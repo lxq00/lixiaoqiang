@@ -1,0 +1,286 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Include\Excel\Excel.h" />
+    <ClInclude Include="..\Include\Excel\Excel_Def.h" />
+    <ClInclude Include="Src\libxls\brdb.c.h" />
+    <ClInclude Include="Src\libxls\brdb.h" />
+    <ClInclude Include="Src\libxls\config.h" />
+    <ClInclude Include="Src\libxls\endian.h" />
+    <ClInclude Include="Src\libxls\ole.h" />
+    <ClInclude Include="Src\libxls\xls.h" />
+    <ClInclude Include="Src\libxls\xlsformula.h" />
+    <ClInclude Include="Src\libxls\xlsstruct.h" />
+    <ClInclude Include="Src\libxls\xlstool.h" />
+    <ClInclude Include="Src\libxls\xlstypes.h" />
+    <ClInclude Include="Src\Read_Cell.h" />
+    <ClInclude Include="Src\Read_Col.h" />
+    <ClInclude Include="Src\Read_Row.h" />
+    <ClInclude Include="Src\Read_Sheet.h" />
+    <ClInclude Include="Src\Read_Workbook.h" />
+    <ClInclude Include="Src\Write_Cell.h" />
+    <ClInclude Include="Src\Write_Col.h" />
+    <ClInclude Include="Src\Write_Color.h" />
+    <ClInclude Include="Src\Write_Font.h" />
+    <ClInclude Include="Src\Write_Format.h" />
+    <ClInclude Include="Src\Write_Range.h" />
+    <ClInclude Include="Src\Write_Row.h" />
+    <ClInclude Include="Src\Write_Sheet.h" />
+    <ClInclude Include="Src\Write_Side.h" />
+    <ClInclude Include="Src\Write_WorkBook.h" />
+    <ClInclude Include="Src\xlslib\common\overnew.h" />
+    <ClInclude Include="Src\xlslib\common\stringtok.h" />
+    <ClInclude Include="Src\xlslib\common\systype.h" />
+    <ClInclude Include="Src\xlslib\common\timespan.h" />
+    <ClInclude Include="Src\xlslib\common\xlstypes.h" />
+    <ClInclude Include="Src\xlslib\common\xlsys.h" />
+    <ClInclude Include="Src\xlslib\common\xls_poppack.h" />
+    <ClInclude Include="Src\xlslib\common\xls_pshpack1.h" />
+    <ClInclude Include="Src\xlslib\common\xls_pshpack2.h" />
+    <ClInclude Include="Src\xlslib\common\xls_pshpack4.h" />
+    <ClInclude Include="Src\xlslib\oledoc\binfile.h" />
+    <ClInclude Include="Src\xlslib\oledoc\oledoc.h" />
+    <ClInclude Include="Src\xlslib\oledoc\olefs.h" />
+    <ClInclude Include="Src\xlslib\oledoc\oleprop.h" />
+    <ClInclude Include="Src\xlslib\xlslib\biffsection.h" />
+    <ClInclude Include="Src\xlslib\xlslib\blank.h" />
+    <ClInclude Include="Src\xlslib\xlslib\boolean.h" />
+    <ClInclude Include="Src\xlslib\xlslib\cbridge.h" />
+    <ClInclude Include="Src\xlslib\xlslib\cell.h" />
+    <ClInclude Include="Src\xlslib\xlslib\colinfo.h" />
+    <ClInclude Include="Src\xlslib\xlslib\colors.h" />
+    <ClInclude Include="Src\xlslib\xlslib\common.h" />
+    <ClInclude Include="Src\xlslib\xlslib\continue.h" />
+    <ClInclude Include="Src\xlslib\xlslib\datast.h" />
+    <ClInclude Include="Src\xlslib\xlslib\docsumminfo.h" />
+    <ClInclude Include="Src\xlslib\xlslib\err.h" />
+    <ClInclude Include="Src\xlslib\xlslib\extformat.h" />
+    <ClInclude Include="Src\xlslib\xlslib\font.h" />
+    <ClInclude Include="Src\xlslib\xlslib\format.h" />
+    <ClInclude Include="Src\xlslib\xlslib\formtags.h" />
+    <ClInclude Include="Src\xlslib\xlslib\formula.h" />
+    <ClInclude Include="Src\xlslib\xlslib\formula_cell.h" />
+    <ClInclude Include="Src\xlslib\xlslib\formula_const.h" />
+    <ClInclude Include="Src\xlslib\xlslib\formula_estimate.h" />
+    <ClInclude Include="Src\xlslib\xlslib\formula_expr.h" />
+    <ClInclude Include="Src\xlslib\xlslib\globalrec.h" />
+    <ClInclude Include="Src\xlslib\xlslib\HPSF.h" />
+    <ClInclude Include="Src\xlslib\xlslib\index.h" />
+    <ClInclude Include="Src\xlslib\xlslib\label.h" />
+    <ClInclude Include="Src\xlslib\xlslib\merged.h" />
+    <ClInclude Include="Src\xlslib\xlslib\note.h" />
+    <ClInclude Include="Src\xlslib\xlslib\number.h" />
+    <ClInclude Include="Src\xlslib\xlslib\range.h" />
+    <ClInclude Include="Src\xlslib\xlslib\recdef.h" />
+    <ClInclude Include="Src\xlslib\xlslib\record.h" />
+    <ClInclude Include="Src\xlslib\xlslib\rectypes.h" />
+    <ClInclude Include="Src\xlslib\xlslib\row.h" />
+    <ClInclude Include="Src\xlslib\xlslib\sheetrec.h" />
+    <ClInclude Include="Src\xlslib\xlslib\summinfo.h" />
+    <ClInclude Include="Src\xlslib\xlslib\tostr.h" />
+    <ClInclude Include="Src\xlslib\xlslib\unit.h" />
+    <ClInclude Include="Src\xlslib\xlslib\workbook.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Src\Excel.cpp" />
+    <ClCompile Include="Src\ExcelValue.cpp" />
+    <ClCompile Include="Src\libxls\endian.cpp" />
+    <ClCompile Include="Src\libxls\getopt.cpp" />
+    <ClCompile Include="Src\libxls\ole.cpp" />
+    <ClCompile Include="Src\libxls\xls.cpp" />
+    <ClCompile Include="Src\libxls\xlsformula.cpp" />
+    <ClCompile Include="Src\libxls\xlstool.cpp" />
+    <ClCompile Include="Src\Read_Cell.cpp" />
+    <ClCompile Include="Src\Read_Col.cpp" />
+    <ClCompile Include="Src\Read_Row.cpp" />
+    <ClCompile Include="Src\Read_Sheet.cpp" />
+    <ClCompile Include="Src\Read_Workbook.cpp" />
+    <ClCompile Include="Src\Write_Cell.cpp" />
+    <ClCompile Include="Src\Write_Col.cpp" />
+    <ClCompile Include="Src\Write_Color.cpp" />
+    <ClCompile Include="Src\Write_Font.cpp" />
+    <ClCompile Include="Src\Write_Format.cpp" />
+    <ClCompile Include="Src\Write_Range.cpp" />
+    <ClCompile Include="Src\Write_Row.cpp" />
+    <ClCompile Include="Src\Write_Sheet.cpp" />
+    <ClCompile Include="Src\Write_Side.cpp" />
+    <ClCompile Include="Src\Write_WorkBook.cpp" />
+    <ClCompile Include="Src\xlslib\common\overnew.cpp" />
+    <ClCompile Include="Src\xlslib\oledoc\binfile.cpp" />
+    <ClCompile Include="Src\xlslib\oledoc\oledoc.cpp" />
+    <ClCompile Include="Src\xlslib\oledoc\olefs.cpp" />
+    <ClCompile Include="Src\xlslib\oledoc\oleprop.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\assert_assist.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\blank.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\boolean.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\cbridge.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\cell.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\colinfo.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\colors.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\continue.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\datast.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\docsumminfo.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\err.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\extformat.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\font.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\format.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\formula.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\formula_cell.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\formula_estimate.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\formula_expr.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\globalrec.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\HPSF.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\index.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\label.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\merged.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\note.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\number.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\range.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\recdef.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\record.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\row.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\sheetrec.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\summinfo.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\unit.cpp" />
+    <ClCompile Include="Src\xlslib\xlslib\workbook.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Src\xlslib\common\xlconfig.h.in" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Src\xlslib\xlslib\formula.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Version.rc" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{0DE75FED-7C09-480F-863E-20E900C8459A}</ProjectGuid>
+    <RootNamespace>Base</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectName>Excel</ProjectName>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <PlatformToolset>v141_xp</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <PlatformToolset>v141_xp</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>11.0.60610.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)\Lib\win32\$(ProjectName)\</OutDir>
+    <IntDir>$(SolutionDir)\__Compile\win32\$(ProjectName)\$(Configuration)\</IntDir>
+    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <TargetName>$(ProjectName)_debug</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)\Lib\win32\$(ProjectName)\</OutDir>
+    <IntDir>$(SolutionDir)\__Compile\win32\$(ProjectName)\$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <PreBuildEvent>
+      <Message>生成svn版本</Message>
+      <Command>GenVersion.bat</Command>
+    </PreBuildEvent>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Include;Src;Src\xlslib;G:\GIT\public\Excel\Src\libxls</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;_DEBUG;_CRT_SECURE_NO_WARNINGS;EXCEL_DLL_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(ProjectName)_debug.dll</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateMapFile>false</GenerateMapFile>
+      <MapExports>false</MapExports>
+      <AdditionalLibraryDirectories>$(SolutionDir)\_Output\Lib\win32;G:\GIT\public\Excel\Src</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Message>Install文件，自己添加mk\UserInstallConfig.bat文件.使用方法见mk\WinInstall.bat</Message>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <PreBuildEvent>
+      <Message>
+      </Message>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Include;Src;Src\xlslib</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;NDEBUG;_CRT_SECURE_NO_WARNINGS;EXCEL_DLL_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateMapFile>false</GenerateMapFile>
+      <MapExports>false</MapExports>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <AdditionalLibraryDirectories>$(SolutionDir)\_Output\Lib\win32</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Message>
+      </Message>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="$(ProjectDir)packages-depend.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

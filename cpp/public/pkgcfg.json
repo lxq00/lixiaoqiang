@@ -1,0 +1,8 @@
+{
+  "Version": "4.0",
+  "Depends": [],
+  "Solution": {
+    "win32": "Solution_2012.sln",
+    "x86": "Makefile"
+  }
+}

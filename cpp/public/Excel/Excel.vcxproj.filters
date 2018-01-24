@@ -1,0 +1,389 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="..\Include\Excel\Excel.h" />
+    <ClInclude Include="..\Include\Excel\Excel_Def.h" />
+    <ClInclude Include="Src\Read_Workbook.h" />
+    <ClInclude Include="Src\Read_Sheet.h" />
+    <ClInclude Include="Src\Read_Cell.h" />
+    <ClInclude Include="Src\Read_Col.h" />
+    <ClInclude Include="Src\Read_Row.h" />
+    <ClInclude Include="Src\libxls\brdb.c.h">
+      <Filter>libxls</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\libxls\brdb.h">
+      <Filter>libxls</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\libxls\config.h">
+      <Filter>libxls</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\libxls\endian.h">
+      <Filter>libxls</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\libxls\ole.h">
+      <Filter>libxls</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\libxls\xls.h">
+      <Filter>libxls</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\libxls\xlsformula.h">
+      <Filter>libxls</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\libxls\xlsstruct.h">
+      <Filter>libxls</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\libxls\xlstool.h">
+      <Filter>libxls</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\libxls\xlstypes.h">
+      <Filter>libxls</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\common\overnew.h">
+      <Filter>xlslib\common</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\common\stringtok.h">
+      <Filter>xlslib\common</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\common\systype.h">
+      <Filter>xlslib\common</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\common\timespan.h">
+      <Filter>xlslib\common</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\common\xls_poppack.h">
+      <Filter>xlslib\common</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\common\xls_pshpack1.h">
+      <Filter>xlslib\common</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\common\xls_pshpack2.h">
+      <Filter>xlslib\common</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\common\xls_pshpack4.h">
+      <Filter>xlslib\common</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\common\xlstypes.h">
+      <Filter>xlslib\common</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\common\xlsys.h">
+      <Filter>xlslib\common</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\biffsection.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\blank.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\boolean.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\cbridge.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\cell.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\colinfo.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\colors.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\common.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\continue.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\datast.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\docsumminfo.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\err.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\extformat.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\font.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\format.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\formtags.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\formula.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\formula_cell.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\formula_const.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\formula_estimate.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\formula_expr.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\globalrec.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\HPSF.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\index.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\label.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\merged.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\note.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\number.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\range.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\recdef.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\record.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\rectypes.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\row.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\sheetrec.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\summinfo.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\tostr.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\unit.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\xlslib\workbook.h">
+      <Filter>xlslib\xlslib</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\oledoc\binfile.h">
+      <Filter>xlslib\oledoc</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\oledoc\oledoc.h">
+      <Filter>xlslib\oledoc</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\oledoc\olefs.h">
+      <Filter>xlslib\oledoc</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\xlslib\oledoc\oleprop.h">
+      <Filter>xlslib\oledoc</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Write_Cell.h" />
+    <ClInclude Include="Src\Write_Col.h" />
+    <ClInclude Include="Src\Write_Row.h" />
+    <ClInclude Include="Src\Write_Sheet.h" />
+    <ClInclude Include="Src\Write_WorkBook.h" />
+    <ClInclude Include="Src\Write_Color.h" />
+    <ClInclude Include="Src\Write_Range.h" />
+    <ClInclude Include="Src\Write_Font.h" />
+    <ClInclude Include="Src\Write_Format.h" />
+    <ClInclude Include="Src\Write_Side.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Src\ExcelValue.cpp" />
+    <ClCompile Include="Src\Read_Workbook.cpp" />
+    <ClCompile Include="Src\Excel.cpp" />
+    <ClCompile Include="Src\Read_Sheet.cpp" />
+    <ClCompile Include="Src\Read_Cell.cpp" />
+    <ClCompile Include="Src\Read_Col.cpp" />
+    <ClCompile Include="Src\Read_Row.cpp" />
+    <ClCompile Include="Src\libxls\endian.cpp">
+      <Filter>libxls</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\libxls\getopt.cpp">
+      <Filter>libxls</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\libxls\ole.cpp">
+      <Filter>libxls</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\libxls\xls.cpp">
+      <Filter>libxls</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\libxls\xlsformula.cpp">
+      <Filter>libxls</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\libxls\xlstool.cpp">
+      <Filter>libxls</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\common\overnew.cpp">
+      <Filter>xlslib\common</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\assert_assist.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\blank.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\boolean.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\cbridge.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\cell.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\colinfo.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\colors.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\continue.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\datast.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\docsumminfo.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\err.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\extformat.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\font.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\format.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\formula.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\formula_cell.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\formula_estimate.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\formula_expr.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\globalrec.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\HPSF.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\index.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\label.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\merged.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\note.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\number.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\range.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\recdef.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\record.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\row.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\sheetrec.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\summinfo.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\unit.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\xlslib\workbook.cpp">
+      <Filter>xlslib\xlslib</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\oledoc\binfile.cpp">
+      <Filter>xlslib\oledoc</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\oledoc\oledoc.cpp">
+      <Filter>xlslib\oledoc</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\oledoc\olefs.cpp">
+      <Filter>xlslib\oledoc</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\xlslib\oledoc\oleprop.cpp">
+      <Filter>xlslib\oledoc</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Write_Cell.cpp" />
+    <ClCompile Include="Src\Write_Col.cpp" />
+    <ClCompile Include="Src\Write_Row.cpp" />
+    <ClCompile Include="Src\Write_Sheet.cpp" />
+    <ClCompile Include="Src\Write_WorkBook.cpp" />
+    <ClCompile Include="Src\Write_Range.cpp" />
+    <ClCompile Include="Src\Write_Font.cpp" />
+    <ClCompile Include="Src\Write_Color.cpp" />
+    <ClCompile Include="Src\Write_Format.cpp" />
+    <ClCompile Include="Src\Write_Side.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="libxls">
+      <UniqueIdentifier>{5136e804-89d1-4b50-8eb6-19de10d69ed4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="xlslib">
+      <UniqueIdentifier>{9d30c5b9-b090-428b-af33-f191b1821ed4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="xlslib\common">
+      <UniqueIdentifier>{85c251ec-6462-40ef-a236-edd3177b5d45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="xlslib\oledoc">
+      <UniqueIdentifier>{08477677-31ea-4b00-8b1c-97ead96db181}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="xlslib\xlslib">
+      <UniqueIdentifier>{ee557dde-3228-4c1c-a611-de944c845b01}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Src\xlslib\common\xlconfig.h.in">
+      <Filter>xlslib\common</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Src\xlslib\xlslib\formula.txt">
+      <Filter>xlslib\xlslib</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Version.rc" />
+  </ItemGroup>
+</Project>

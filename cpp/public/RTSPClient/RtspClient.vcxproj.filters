@@ -1,0 +1,133 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="Analyzer">
+      <UniqueIdentifier>{d77f4e0b-3f3c-4adc-a698-22ac02beac5a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="StringParse">
+      <UniqueIdentifier>{c6da2c47-552e-4819-be52-66cb9f8e02e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RTSP">
+      <UniqueIdentifier>{08e23f43-5f4d-473b-85d8-0a25a5af1316}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Src\Analyzer\rtcpAnalyzer.cpp">
+      <Filter>Analyzer</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Analyzer\rtpH264Analyzer.cpp">
+      <Filter>Analyzer</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Analyzer\rtpJpegAnalyzer.cpp">
+      <Filter>Analyzer</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Analyzer\rtpXunmeiAnalyzer.cpp">
+      <Filter>Analyzer</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\StringParse\rtspResponseParse.cpp">
+      <Filter>StringParse</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\StringParse\sdpParse.cpp">
+      <Filter>StringParse</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\StringParse\strDup.cpp">
+      <Filter>StringParse</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RTSPClient.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RTSPClientInternal.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RTSPClientSdk.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RTSP\RTSPCMD.cpp">
+      <Filter>RTSP</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RTSP\RTSPProtocol.cpp">
+      <Filter>RTSP</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Include\RTSPClient\Version.tpl">
+      <Filter>头文件</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Src\Analyzer\irtpAnalyzer.h">
+      <Filter>Analyzer</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Analyzer\rtcpAnalyzer.h">
+      <Filter>Analyzer</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Analyzer\rtpAnalyzerStructs.h">
+      <Filter>Analyzer</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Analyzer\rtpH264Analyzer.h">
+      <Filter>Analyzer</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Analyzer\rtpJpegAnalyzer.h">
+      <Filter>Analyzer</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Analyzer\rtpXunmeiAnalyzer.h">
+      <Filter>Analyzer</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\StringParse\rtspResponseParse.h">
+      <Filter>StringParse</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\StringParse\sdpParse.h">
+      <Filter>StringParse</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\StringParse\spsParse.h">
+      <Filter>StringParse</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\RTSPClient\RTSPClient.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\RTSPClient\RTSPClientSdk.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\RTSPClient\RTSPStructs.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\StringParse\strDup.h">
+      <Filter>StringParse</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\RTSPClientErrorCode.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\RTSPClientInternal.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\RTSPClientManagerInternal.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\RTSP\RTSPCMD.h">
+      <Filter>RTSP</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\RTSP\RTSPProtocol.h">
+      <Filter>RTSP</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\RTSPCodeTarns.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Version.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
