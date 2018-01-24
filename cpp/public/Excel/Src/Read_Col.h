@@ -3,7 +3,7 @@
 #include "Read_Cell.h"
 #include "Read_Sheet.h"
 
-namespace Xunmei {
+namespace Public {
 namespace Excel {
 
 class Read_Col :public XM_Excel::Col

@@ -3,7 +3,7 @@
 #include "Excel/Excel.h"
 #include "xlslib.h"
 
-namespace Xunmei {
+namespace Public {
 namespace Excel {
 
 class  Write_Sheet :public  XM_Excel::Sheet, public enable_shared_from_this<XM_Excel::Sheet>

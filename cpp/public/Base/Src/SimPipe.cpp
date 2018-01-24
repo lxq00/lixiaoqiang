@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Chongqing Xunmei Technology
+//  Copyright (c)1998-2012, Chongqing Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -17,7 +17,7 @@
 #include "Base/File.h"
 #include "Base/BaseTemplate.h"
 
-namespace Xunmei {
+namespace Public {
 namespace Base {
 
 struct SimPipe::Internal
@@ -303,5 +303,5 @@ const std::string SimPipe::getname() const
 
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 

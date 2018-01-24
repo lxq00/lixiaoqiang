@@ -1,6 +1,6 @@
 #include "Excel/Excel.h"
 
-namespace Xunmei {
+namespace Public {
 namespace Excel {
 
 struct XM_Excel::Value::ValueInternal

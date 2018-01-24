@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Xunmei Technology
+//  Copyright (c)1998-2012, Public Technology
 //  All Rights Reserved.
 //
 //
@@ -12,12 +12,12 @@
 #include "Base/IntTypes.h"
 #include "Defs.h"
 
-namespace Xunmei {
+namespace Public {
 namespace Base {
  //字符的转换 暂时为空 根据需要添加
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 #endif // __BASE_UNICODE_H__
 

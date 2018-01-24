@@ -1,10 +1,10 @@
 #include "Base/Expression.h"
 #include "Base/Base.h"
 #include "Expression/muParser.h"
-namespace Xunmei {
+namespace Public {
 namespace Base {
 
-using namespace Xunmei::Base;
+using namespace Public::Base;
 
 bool Expression::evalBool(const std::string& expression)
 {

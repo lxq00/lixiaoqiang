@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Xunmei Technology
+//  Copyright (c)1998-2012, Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -12,7 +12,7 @@
 #include "Base/IntTypes.h"
 #include "Defs.h"
 
-namespace Xunmei {
+namespace Public {
 namespace Base {
 
 /// \param x 无符号整形变量值
@@ -47,7 +47,7 @@ inline int log2i(uint32_t x)
 }
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 #endif// __BASE_MATH_H__
 

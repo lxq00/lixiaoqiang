@@ -3,7 +3,7 @@
 #include "Write_Sheet.h"
 #include "Write_Range.h"
 
-using namespace Xunmei;
+using namespace Public;
 using namespace Excel;
 
 Write_Row::Write_Row(const shared_ptr<XM_Excel::Sheet>& _worksheet, xlslib_core::worksheet* _writesheet, uint32_t _rowNum)

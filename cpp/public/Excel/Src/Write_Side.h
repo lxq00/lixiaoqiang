@@ -3,7 +3,7 @@
 //#include "Write_Workbook.h"
 #include "Excel/Excel.h"
 
-namespace Xunmei {
+namespace Public {
 namespace Excel {
 
 struct XM_Excel::Side::LineInternal

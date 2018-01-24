@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Chongqing Xunmei Technology
+//  Copyright (c)1998-2012, Chongqing Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -23,7 +23,7 @@
 #include "Base/Guard.h"
 #include "Base/IntTypes.h"
 
-namespace Xunmei{
+namespace Public{
 namespace Base{
 
 #define ErrorInfo_MaxLength 256
@@ -50,7 +50,7 @@ private:
 };
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 
 #endif //__INTERNAL_THREAD_H_

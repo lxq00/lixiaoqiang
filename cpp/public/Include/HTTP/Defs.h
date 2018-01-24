@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2014, Xunmei Technology
+//  Copyright (c)1998-2014, Public Technology
 //  All Rights Reserved.
 //
 //	Description:

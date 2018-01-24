@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2014, Xunmei Technology
+//  Copyright (c)1998-2014, Public Technology
 //  All Rights Reserved.
 //
 //
@@ -70,8 +70,8 @@ inline const char* strcasestr(const char* srcstr,const char* substr)
 	char* subptr = new(std::nothrow) char[strlen(substr) + 1];
 	if(srcptr == NULL || subptr == NULL) 
 	{
-		Xunmei::Base::SAFE_DELETEARRAY(srcptr);
-		Xunmei::Base::SAFE_DELETEARRAY(subptr); 
+		Public::Base::SAFE_DELETEARRAY(srcptr);
+		Public::Base::SAFE_DELETEARRAY(subptr); 
 		return NULL;
 	}
 	stringToLower(srcstr,srcptr);
@@ -82,14 +82,14 @@ inline const char* strcasestr(const char* srcstr,const char* substr)
 	{
 		ptmp = srcstr + (ptmp - srcptr);
 	}
-	Xunmei::Base::SAFE_DELETEARRAY(srcptr);
-	Xunmei::Base::SAFE_DELETEARRAY(subptr);
+	Public::Base::SAFE_DELETEARRAY(srcptr);
+	Public::Base::SAFE_DELETEARRAY(subptr);
 	return ptmp;
 }
 #endif
 
 
-namespace Xunmei {
+namespace Public {
 namespace Base {
 
 
@@ -176,7 +176,7 @@ void BASE_API registeCharsetEncode(const CharsetEncodeCallback& callback);
 
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 #endif// __BASE_STRING_H__
 

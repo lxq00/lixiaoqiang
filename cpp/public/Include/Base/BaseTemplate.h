@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Xunmei Technology
+//  Copyright (c)1998-2012, Public Technology
 //  All Rights Reserved.
 //
 //  Description:透传回应数据包.
@@ -9,7 +9,7 @@
 #ifndef _BASE_TEMPLATE_H_
 #define _BASE_TEMPLATE_H_
 
-namespace Xunmei {
+namespace Public {
 namespace Base {
 
 template<class T> void SAFE_RELEASE( T &t )
@@ -49,6 +49,6 @@ template<class T> void Init_Array( T *t, int count, T value )
 
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 #endif	//_BASE_TEMPLATE_H_

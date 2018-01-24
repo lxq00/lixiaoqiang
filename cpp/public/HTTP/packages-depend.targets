@@ -14,12 +14,12 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Label="Win32 and dynamic and Debug" Condition="'$(Platform.ToLower())' == 'win32' And '$(Linkage-depend.ToLower())' == 'dynamic' And ( $(Configuration.ToLower().IndexOf('debug')) &gt; -1 )">
     <Link>
-      <AdditionalDependencies>$(SolutionDir)/Lib/Win32/Base/Base_debug.lib;$(SolutionDir)/Lib/Win32/Network/Network_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)/Lib/Win32/Base/Base_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Label="Win32 and dynamic and Release" Condition="'$(Platform.ToLower())' == 'win32' And '$(Linkage-depend.ToLower())' == 'dynamic' And ( $(Configuration.ToLower().IndexOf('debug')) == -1 )">
     <Link>
-      <AdditionalDependencies>$(SolutionDir)/Lib/Win32/Base/Base.lib;$(SolutionDir)/Lib/Win32/Network/Network.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)/Lib/Win32/Base/Base.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

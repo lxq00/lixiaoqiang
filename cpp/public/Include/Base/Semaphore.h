@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2014, Xunmei Technology
+//  Copyright (c)1998-2014, Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -12,7 +12,7 @@
 #include "Defs.h"
 #include "Base/IntTypes.h"
 
-namespace Xunmei{
+namespace Public{
 namespace Base{
 /// \class Semaphore
 /// \brief 多平台信号量类
@@ -50,7 +50,7 @@ private:
 };
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 #endif //__BASE_SEMAPHORE_H__
 

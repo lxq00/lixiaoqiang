@@ -5,7 +5,7 @@
 #include "Write_WorkBook.h"
 #include "Write_Sheet.h"
 
-using namespace Xunmei;
+using namespace Public;
 using namespace Excel;
 
 Write_Cell::Write_Cell(const shared_ptr<XM_Excel::Sheet>& _worksheet, uint32_t _rowNum, uint32_t _colNum, xlslib_core::cell_t* _cell)

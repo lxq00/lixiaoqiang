@@ -3,7 +3,7 @@
 #include "HTTP/HTTPServer.h"
 
 
-namespace Xunmei {
+namespace Public {
 namespace HTTP {
 
 struct HTTPServer::HTTPResponse::HTTPResponseInternal

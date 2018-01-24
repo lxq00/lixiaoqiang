@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Xunmei Technology
+//  Copyright (c)1998-2012, Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -14,7 +14,7 @@
 #include "Defs.h"
 
 
-namespace Xunmei {
+namespace Public {
 namespace Base {
 
 
@@ -39,8 +39,8 @@ public:
 };
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
-#endif// __XUNMEI_CRC_ORDER_H__
+#endif// __Public_CRC_ORDER_H__
 
 

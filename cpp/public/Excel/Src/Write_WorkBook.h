@@ -6,7 +6,7 @@
 
 
 using namespace xlslib_core;
-namespace Xunmei {
+namespace Public {
 namespace Excel {
 		
 

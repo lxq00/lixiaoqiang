@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace Xunmei{
+namespace Public{
 namespace Base{
 
 
@@ -87,7 +87,7 @@ private:
 };
 
 };//Base
-};//Xunmei
+};//Public
 
 
 #endif //__THREADPOLLINTERNAL_H__

@@ -1,8 +1,8 @@
-#ifndef __XUNMEI_EXCEL_DEFINE_H__
-#define __XUNMEI_EXCEL_DEFINE_H__
+#ifndef __Public_EXCEL_DEFINE_H__
+#define __Public_EXCEL_DEFINE_H__
 #include "Base/Base.h"
 
-using namespace Xunmei::Base;
+using namespace Public::Base;
 
 // WIN32 Dynamic Link Library
 #ifdef _MSC_VER
@@ -17,7 +17,7 @@ using namespace Xunmei::Base;
 #define EXCEL_API
 #endif
 
-namespace Xunmei {
+namespace Public {
 namespace Excel {
 
 //内容显示格式
@@ -102,4 +102,4 @@ typedef enum
 #pragma warning(disable:4200)
 #endif
 
-#endif //__XUNMEI_EXCEL_H__
+#endif //__Public_EXCEL_H__

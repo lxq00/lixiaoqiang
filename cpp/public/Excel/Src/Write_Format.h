@@ -2,7 +2,7 @@
 #define __WRITE_FORMAT_H__
 #include "Excel/Excel.h"
 
-namespace Xunmei {
+namespace Public {
 namespace Excel {
 
 	struct XM_Excel::Format::FormatInternal

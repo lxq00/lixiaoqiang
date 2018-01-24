@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Chongqing Xunmei Technology
+//  Copyright (c)1998-2012, Chongqing Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -21,7 +21,7 @@ static const char* month[] = {
 
 } // namespace noname
 
-namespace Xunmei {
+namespace Public {
 namespace Base {
 
 SystemTime AppVersion::appDate = Time::getCurrentTime();
@@ -73,5 +73,5 @@ void AppVersion::setAppDate(const char* dateString)
 }
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 

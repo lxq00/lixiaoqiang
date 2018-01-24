@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Chongqing Xunmei Technology
+//  Copyright (c)1998-2012, Chongqing Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -19,7 +19,7 @@
 #include "Base/String.h"
 #include "Base/PrintLog.h"
 
-namespace Xunmei {
+namespace Public {
 namespace Base {
 
 CharsetEncodeCallback charsetCallback;
@@ -294,5 +294,5 @@ bool parseUrlByKey(std::string &url, char* key, char headSymbol,  char tailSymbo
 	return true;
 }
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 

@@ -8,7 +8,7 @@
 #include "../version.inl"
 
 
-namespace Xunmei{
+namespace Public{
 namespace Base {
 
 uint16_t Host::getAvailablePort(uint16_t startPort,SocketType type)

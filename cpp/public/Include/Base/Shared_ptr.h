@@ -1,7 +1,7 @@
 #ifndef __shared_ptr_H__
 #define __shared_ptr_H__
 //
-//  Copyright (c)1998-2012, Xunmei Technology
+//  Copyright (c)1998-2012, Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -10,7 +10,7 @@
 #include "Base/AtomicCount.h"
 #include "Base/IntTypes.h"
 #include <assert.h>
-namespace Xunmei{
+namespace Public{
 namespace Base{
 
 #ifdef WIN32

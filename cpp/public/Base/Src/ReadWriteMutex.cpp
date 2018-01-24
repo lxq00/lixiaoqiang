@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Chongqing Xunmei Technology
+//  Copyright (c)1998-2012, Chongqing Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -26,7 +26,7 @@
 #endif  /* __linux*/
 
 
-namespace Xunmei{
+namespace Public{
 namespace Base{
 
 
@@ -145,7 +145,7 @@ bool ReadWriteMutex::leave()
 }
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 
 

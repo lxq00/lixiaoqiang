@@ -4,7 +4,7 @@
 #include "xlslib.h"
 
 
-namespace Xunmei {
+namespace Public {
 namespace Excel {
 class Write_Col :public XM_Excel::Col
 {

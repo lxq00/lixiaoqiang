@@ -3,7 +3,7 @@
 #include "Excel/Excel.h"
 #include "xlslib.h"
 
-namespace Xunmei {
+namespace Public {
 namespace Excel {
 	
 ///excel中多行多列选择区域

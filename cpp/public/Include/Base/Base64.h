@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Xunmei Technology
+//  Copyright (c)1998-2012, Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -10,7 +10,7 @@
 
 #include "Defs.h"
 
-namespace Xunmei {
+namespace Public {
 namespace Base {
 
 /// \class Base64
@@ -41,7 +41,7 @@ public:
 };
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 #endif// __BASE_BASE64_H__
 

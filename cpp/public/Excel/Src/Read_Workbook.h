@@ -4,7 +4,7 @@
 #include "Excel/Excel.h"
 #include "Read_Sheet.h"
 
-namespace Xunmei {
+namespace Public {
 namespace Excel {
 
 class Read_WorkBook :public XM_Excel::WorkBook,public enable_shared_from_this<XM_Excel::WorkBook>

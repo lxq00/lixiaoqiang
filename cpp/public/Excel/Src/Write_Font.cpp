@@ -1,6 +1,6 @@
 #include "Write_Font.h"
 
-namespace Xunmei {
+namespace Public {
 namespace Excel {
 
 shared_ptr<XM_Excel::Font> XM_Excel::Font::create(const std::string& name)

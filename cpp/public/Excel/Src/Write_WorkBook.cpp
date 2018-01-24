@@ -4,7 +4,7 @@
 
 
 //using namespace xlslib_core;
-namespace Xunmei {
+namespace Public {
 namespace Excel {
 
 Write_WorkBook::Write_WorkBook(const shared_ptr<xlslib_core::workbook>& _pWorkbook, const std::string& _xlsfile):

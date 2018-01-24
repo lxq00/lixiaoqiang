@@ -1,7 +1,7 @@
 #include "curl/curl.h"
 #include "HTTP/HTTPClient.h"
 
- namespace Xunmei{
+ namespace Public{
  namespace HTTP{
 
 struct HTTPClient::HTTPForm::HTTPFormInternal

@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Chongqing Xunmei Technology
+//  Copyright (c)1998-2012, Chongqing Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -9,9 +9,8 @@
 #include "ThreadPoolInternal.h"
 #include "Base/Semaphore.h"
 #include "Base/BaseTemplate.h"
-#include "Base/Singleton.h"
 #include "Base/Shared_ptr.h"
-namespace Xunmei{
+namespace Public{
 namespace Base{
 
 ThreadDispatch::ThreadDispatch(ThreadPool::ThreadPoolInternal* pool): Thread("[ThreadDispatch]", priorTop, policyRealtime)
@@ -294,12 +293,7 @@ void ThreadPool::uninit()
 	}
 }
 
-ThreadPool* ThreadPool::instance()
-{
-	return CreateSingleton<ThreadPool>(SINGLETON_Levl_Base,1);
-}
-
 };//Base
-};//Xunmei
+};//Public
 
 

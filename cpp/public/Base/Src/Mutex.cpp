@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Chongqing Xunmei Technology
+//  Copyright (c)1998-2012, Chongqing Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -16,7 +16,7 @@
 
 #include <Windows.h>
 
-namespace Xunmei{
+namespace Public{
 namespace Base {
 
 struct Mutex::MutexInternal
@@ -52,7 +52,7 @@ bool Mutex::leave()
 }
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -64,7 +64,7 @@ bool Mutex::leave()
 /// pthread_mutexattr_settype bad
 extern "C"	int pthread_mutexattr_settype (pthread_mutexattr_t *__attr, int __kind);
 
-namespace Xunmei{
+namespace Public{
 namespace Base {
 
 struct Mutex::MutexInternal
@@ -101,7 +101,7 @@ bool Mutex::leave()
 }
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 #else
 	#error "Unknown Mutex Platform"

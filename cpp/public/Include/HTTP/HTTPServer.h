@@ -2,8 +2,8 @@
 #define __HTTPSERVER_H__
 #include "HTTPPublic.h"
 #include "Base/Base.h"
-using namespace Xunmei::Base;
-namespace Xunmei {
+using namespace Public::Base;
+namespace Public {
 namespace HTTP {
 
 class HTTP_API HTTPServer

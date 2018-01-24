@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Xunmei Technology
+//  Copyright (c)1998-2012, Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -11,7 +11,7 @@
 
 #include "Base/IntTypes.h"
 
-namespace Xunmei {
+namespace Public {
 namespace Base {
 
 /// 交换16bit的整型结构
@@ -237,7 +237,7 @@ inline T flipFromBig(const T x, Int2Type<8>)
 }
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 #endif// __BASE_BYTEORDER_H__
 

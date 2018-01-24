@@ -1,7 +1,7 @@
 #ifndef __EXPRESSION_H__EVAL_H__
 #define __EXPRESSION_H__EVAL_H__
 #include "Base/IntTypes.h"
-namespace Xunmei {
+namespace Public {
 namespace Base {
 
 ///运算表达式执行库

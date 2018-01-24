@@ -5,56 +5,8 @@
 #include <string>
 #include <list>
 using namespace std;
-namespace Xunmei{
+namespace Public{
 namespace Base{
-
-#define VGSII_URI_PROTOCOL_VDR			"VDR"
-#define VGSII_URI_HOST_Local			"local"
-
-#define VGSII_URI_IDENTIFIER_VGSId		"vgsid"
-#define VGSII_URI_IDENTIFIER_DvsId		"dvsid"
-#define VGSII_URI_IDENTIFIER_Cameras	"Cameras"
-#define VGSII_URI_IDENTIFIER_Storages	"Storages"
-#define VGSII_URI_IDENTIFIER_Streams	"Streams"
-#define VGSII_URI_IDENTIFIER_AlarmInputs "AlarmInputs"
-#define VGSII_URI_IDENTIFIER_AlarmOutputs "AlarmOutputs"
-#define VGSII_URI_IDENTIFIER_Talkbacks "Talkbacks"
-#define VGSII_URI_IDENTIFIER_Disks	"disks"
-#define VGSII_URI_IDENTIFIER_CSID		"csid"
-
-//录像查询额外参数
-#define VGSII_URI_PARAMETER_ExtParam "extParam"
-//录像相关
-#define VGSII_URI_PARAMETER_Starttime "starttime"
-#define VGSII_URI_PARAMETER_Stoptime "stoptime"
-#define VGSII_URI_PARAMETER_TriggerType "TriggerType"
-#define VGSII_URI_PARAMETER_CardNum "CardNum"
-#define VGSII_URI_PARAMETER_IsLock "IsLock"
-#define VGSII_URI_PARAMETER_LimitCount "LimitCount"
-#define VGSII_URI_PARAMETER_Filename "filename"
-#define VGSII_URI_PARAMETER_Camera "Camera"
-#define VGSII_URI_PARAMETER_AddLabel "AddLabel"
-#define VGSII_URI_PARAMETER_CleanLabel "CleanLabel"
-#define VGSII_URI_PARAMETER_Label	"Label"
-#define VGSII_URI_PARAMETER_StreamFmt	"StreamFmt"
-
-#define VGSII_URI_STREAMFMT_STANDARD	"standard"
-
-//行为分析报警相关
-#define VGSII_URI_PARAMETER_RuleAlarmType "RuleAlarmType"
-//设备异常报警相关
-#define VGSII_URI_PARAMETER_DeviceExceptType "DeviceExceptType"
-#define VGSII_URI_PARAMETER_DeviceExceptDesc "DeviceExceptDesc"
-
-//设备外部报警相关
-#define VGSII_URI_PARAMETER_DeviceExternalType "DeviceExternalType"
-
-//日志相关
-#define VGSII_URI_PARAMETER_MainType "MainType"
-#define VGSII_URI_PARAMETER_SubType "SubType"
-//透明参数
-#define VGSII_URI_PARAMETER_Cmd "Cmd"
-#define VGSII_URI_PARAMETER_Parm "Parm"
 
 
 class BASE_API URI
@@ -105,8 +57,7 @@ public:
 	};
 public:
 	//protocol 协议 如：HTTP/FTP/VDR等
-	URI(const std::string& protocol = VGSII_URI_PROTOCOL_VDR,const std::string& host = VGSII_URI_HOST_Local,int port = 0);
-	URI(const std::string& protocol,int centerId);
+	URI(const std::string& protocol,const Value& host,int port = 0);
 	URI(const URI& uri);
 	~URI();
 
@@ -114,9 +65,6 @@ public:
 	
 	bool setHost(const std::string& host,int port = 0);
 
-	bool setHost(int hostId);
-
-	bool setCenterId(int centerId);
 
 	//添加地址标识符 val不能为空
 	//VDR://local/dvsid/610001/Storages/C?camera=camera/1&date=2012-3-5
@@ -156,7 +104,6 @@ public:
 	//获取协议
 	Value getHost() const;
 
-	int getCenterId() const;
 	//获取端口		0表示无
 	int getPort() const;
 	

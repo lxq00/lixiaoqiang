@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2014, Xunmei Technology
+//  Copyright (c)1998-2014, Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -15,7 +15,7 @@
 #include "IntTypes.h"
 #include <string>
 
-namespace Xunmei{
+namespace Public{
 namespace Base{
 
 enum LOG_Level{
@@ -45,6 +45,9 @@ void BASE_API setprintloglevel(int level);
 /// \retval 0 成功
 /// \retval -1 失败
 int BASE_API setlogprinter(const LogPrinterProc& printer);
+
+/// 清除打印的输出回调函数
+int BASE_API cleanlogprinter(const LogPrinterProc& printer);
 
 /// 记录调试信息，级别6，不直接调用，用于实现debgf宏
 /// \return 返回打印的字节数
@@ -95,7 +98,7 @@ void BASE_API dumpHex(unsigned char* pdat, size_t length = 512);
 #define tracepoint()  logdebug("tracepoint: %s, %d.\n",__FILE__,__LINE__)
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 #endif //__BASE_PRINT_LOG_H__
 

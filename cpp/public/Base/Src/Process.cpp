@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Chongqing Xunmei Technology
+//  Copyright (c)1998-2012, Chongqing Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -29,7 +29,7 @@
 
 
 
-namespace Xunmei{
+namespace Public{
 namespace Base{
 
 class ProcessImpl : public Process
@@ -754,6 +754,6 @@ shared_ptr<ProcessInfo> ProcessInfo::getCurrProcessInfo(uint32_t timeout)
 }
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 

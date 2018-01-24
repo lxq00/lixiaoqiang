@@ -6,7 +6,7 @@
 #include <string>
 using namespace std;
 
-namespace Xunmei {
+namespace Public {
 namespace Base {
 
 class BASE_API FileBrowser
@@ -55,7 +55,7 @@ private:
 };
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 
 #endif //__FILEBROWSER_H__

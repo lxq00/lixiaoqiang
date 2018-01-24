@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Chongqing Xunmei Technology
+//  Copyright (c)1998-2012, Chongqing Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -381,7 +381,7 @@ static void CvtHex(
 
 //////////////////////////////////CMd5¿‡ µœ÷////////////////////////////////////
 
-namespace Xunmei{
+namespace Public{
 namespace Base {
 
 
@@ -453,5 +453,5 @@ void Md5::hex(char* hash)
 }
 
 }//namespace Base
-}//namespace Xunmei
+}//namespace Public
 

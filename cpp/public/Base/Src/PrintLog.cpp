@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Chongqing Xunmei Technology
+//  Copyright (c)1998-2012, Chongqing Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -21,7 +21,6 @@
 #include "Base/Time.h"
 #include "Base/Mutex.h"
 #include "Base/Guard.h"
-#include "Base/Singleton.h"
 #include <list>
 
 using namespace std;
@@ -113,23 +112,20 @@ inline void reset_console_color()
 
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace Xunmei {
+namespace Public {
 namespace Base {
 
 struct LogPrintInfoInternal
 {
 	int s_printLogLevel;
 
-	std::list<Xunmei::Base::LogPrinterProc> s_printList;
+	std::list<Public::Base::LogPrinterProc> s_printList;
 	Mutex logMutex;
 
 	LogPrintInfoInternal():s_printLogLevel(6){}
-
-	static LogPrintInfoInternal* instance()
-	{
-		return CreateSingleton<LogPrintInfoInternal>(SINGLETON_Levl_Base,2);
-	}
 };
+
+static LogPrintInfoInternal logmanager;
 
 
 
@@ -152,7 +148,7 @@ std::string getLogTimeAndLevelString(LOG_Level lev)
 
 inline void print(LOG_Level lev,int color,char const* s)
 {
-	if (LogPrintInfoInternal::instance()->s_printList.size() == 0)
+	if (logmanager.s_printList.size() == 0)
 	{
 		set_console_color(color);
 		
@@ -173,10 +169,10 @@ inline void print(LOG_Level lev,int color,char const* s)
 	}
 	else
 	{
-		std::list<Xunmei::Base::LogPrinterProc>::iterator iter;
-		for(iter = LogPrintInfoInternal::instance()->s_printList.begin();iter != LogPrintInfoInternal::instance()->s_printList.end();iter ++)
+		std::list<Public::Base::LogPrinterProc>::iterator iter;
+		for(iter = logmanager.s_printList.begin();iter != logmanager.s_printList.end();iter ++)
 		{
-			Xunmei::Base::LogPrinterProc s_print = *iter;
+			Public::Base::LogPrinterProc s_print = *iter;
 			if(!s_print.empty())
 			{
 				s_print(lev,s);
@@ -186,20 +182,38 @@ inline void print(LOG_Level lev,int color,char const* s)
 }
 int BASE_API setlogprinter(const LogPrinterProc& printer)
 {
-	Guard locker(LogPrintInfoInternal::instance()->logMutex);
-	LogPrintInfoInternal::instance()->s_printList.push_back(printer);
+	Guard locker(logmanager.logMutex);
 
+	logmanager.s_printList.push_back(printer);
+
+	return 0;
+}
+
+int BASE_API cleanlogprinter(const LogPrinterProc& printer)
+{
+	Guard locker(logmanager.logMutex);
+
+	std::list<Public::Base::LogPrinterProc>::iterator iter;
+	for (iter = logmanager.s_printList.begin(); iter != logmanager.s_printList.end(); iter++)
+	{
+		Public::Base::LogPrinterProc s_print = *iter;
+		if(s_print == printer)
+		{
+			logmanager.s_printList.erase(iter);
+			break;
+		}
+	}
 	return 0;
 }
 
 void BASE_API setprintloglevel(int level)
 {
-	LogPrintInfoInternal::instance()->s_printLogLevel = level;
+	logmanager.s_printLogLevel = level;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 #define LOG_MSG(x, y,l) {\
-	Guard locker(LogPrintInfoInternal::instance()->logMutex);\
+	Guard locker(logmanager.logMutex);\
 	char buffer[8192]; \
 	buffer[8191] = 0; \
 	va_list ap; \
@@ -220,7 +234,7 @@ int BASE_API logdebug(const char* fmt, ...)
 {
 	DEBUGPrintLoeveCheck(LOG_Level_DEBUG);
 	
-	if(LogPrintInfoInternal::instance()->s_printLogLevel < 6)return 0;
+	if(logmanager.s_printLogLevel < 6)return 0;
 
 	LOG_MSG("debug ", COLOR_DEBUG,LOG_Level_DEBUG);
 }
@@ -229,7 +243,7 @@ int BASE_API logtrace(const char* fmt, ...)
 {
 	DEBUGPrintLoeveCheck(LOG_Level_TRACE);
 
-	if(LogPrintInfoInternal::instance()->s_printLogLevel < 5)return 0;
+	if(logmanager.s_printLogLevel < 5)return 0;
 
 	LOG_MSG("trace ", COLOR_TRACE,LOG_Level_TRACE);
 }
@@ -238,7 +252,7 @@ int BASE_API loginfo(const char* fmt, ...)
 {
 	DEBUGPrintLoeveCheck(LOG_Level_INFO);
 	
-	if(LogPrintInfoInternal::instance()->s_printLogLevel < 4)return 0;
+	if(logmanager.s_printLogLevel < 4)return 0;
 
 	LOG_MSG("info  ", COLOR_INFO,LOG_Level_INFO);
 }
@@ -247,7 +261,7 @@ int BASE_API logwarn(const char* fmt, ...)
 {
 	DEBUGPrintLoeveCheck(LOG_Level_WARN);
 	
-	if(LogPrintInfoInternal::instance()->s_printLogLevel < 3)return 0;
+	if(logmanager.s_printLogLevel < 3)return 0;
 
 	LOG_MSG("warn  ", COLOR_WARN,LOG_Level_WARN);
 }
@@ -256,7 +270,7 @@ int BASE_API logerror(const char* fmt, ...)
 {
 	DEBUGPrintLoeveCheck(LOG_Level_ERROR);
 	
-	if(LogPrintInfoInternal::instance()->s_printLogLevel < 2)return 0;
+	if(logmanager.s_printLogLevel < 2)return 0;
 
 	LOG_MSG("error ", COLOR_ERROR,LOG_Level_ERROR);
 }
@@ -265,7 +279,7 @@ int BASE_API logfatal(const char* fmt, ...)
 {
 	DEBUGPrintLoeveCheck(LOG_Level_FATAL);
 	
-	if(LogPrintInfoInternal::instance()->s_printLogLevel < 1)return 0;
+	if(logmanager.s_printLogLevel < 1)return 0;
 
 	LOG_MSG("fatal ", COLOR_FATAL,LOG_Level_FATAL);
 }
@@ -309,5 +323,5 @@ void BASE_API dumpHex(uint8_t *pdat, size_t length /* = 512 */)
 }
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 

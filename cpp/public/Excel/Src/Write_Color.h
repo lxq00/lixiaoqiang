@@ -2,7 +2,7 @@
 #define __WRITE_COLOR_H__
 #include "Write_WorkBook.h"
 
-namespace Xunmei {
+namespace Public {
 namespace Excel {
 
 struct XM_Excel::Color::ColorInternal

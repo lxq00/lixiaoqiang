@@ -20,7 +20,7 @@
 #include <list>
 #include <map>
 
-namespace Xunmei {
+namespace Public {
 namespace Base {
 
 struct OrderByItem:public FileBrowser::Dirent
@@ -459,4 +459,4 @@ void FileBrowser::order(OrderType type,OrderMode mode)
 	}
 }
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public

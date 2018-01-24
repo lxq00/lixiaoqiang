@@ -2,7 +2,7 @@
 #include "HTTP/HTTPServer.h"
 using namespace ctemplate;
 
-namespace Xunmei {
+namespace Public {
 namespace HTTP {
 
 

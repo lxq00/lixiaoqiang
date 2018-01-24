@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Chongqing Xunmei Technology
+//  Copyright (c)1998-2012, Chongqing Public Technology
 //  All Rights Reserved.
 //
 //
@@ -55,7 +55,7 @@ bool UuidFromString(const char* str,GUID* guid)
 #endif
 
 
-namespace Xunmei{
+namespace Public{
 namespace Base {
 
 
@@ -215,7 +215,7 @@ bool Guid::getStringStream(char *str) const
 	
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 
 

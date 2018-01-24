@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Xunmei Technology
+//  Copyright (c)1998-2012, Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -9,13 +9,11 @@
 #define _BASE_CLASS_H_
 
 #include "Base/Defs.h"
-#include "Base/Singleton.h"
 #include "Base/AtomicCount.h"
 #include "Base/Base64.h"
 #include "Base/BaseTemplate.h"
 #include "Base/ByteOrder.h"
 #include "Base/Callback.h"
-#include "Base/ConsoleCommand.h"
 #include "Base/Crc.h"
 #include "Base/DynamicLib.h"
 #include "Base/DynamicMemPool.h"
@@ -26,12 +24,7 @@
 #include "Base/IntTypes.h"
 #include "Base/Math.h"
 #include "Base/Md5.h"
-#include "Base/MediaCache.h"
-#include "Base/MediaDefine.h"
-#include "Base/MediaFraming.h"
-#include "Base/MediaPackage.h"
 #include "Base/Mutex.h"
-#include "Base/Packet.h"
 #include "Base/PrintLog.h"
 #include "Base/Process.h"
 #include "Base/ReadWriteMutex.h"
@@ -46,23 +39,22 @@
 #include "Base/String.h"
 #include "Base/System.h"
 #include "Base/Shared_ptr.h"
-#include "Base/TempCache.h"
 #include "Base/Thread.h"
 #include "Base/ThreadEx.h"
 #include "Base/ThreadPool.h"
 #include "Base/Time.h"
 #include "Base/Timer.h"
-#include "Base/TimeRecord.h"
 #include "Base/Unicode.h"
-#include "Base/URI.h"
 #include "Base/URLEncoding.h"
 #include "Base/Version.h"
 #include "Base/Expression.h"
 #include "Base/CoreDump.h"
-
+#include "Base/URI.h"
+#include "Base/Guid.h"
+#include "Base/Host.h"
 
 /*
-			Xunmei 基础库介绍
+			Public 基础库介绍
 一：线程、线程池、互斥、同步
 	Thread.h			线程对象，继承使用，包含sleep；   
 	ThreadEx.h			独立创建线程；   
@@ -119,7 +111,7 @@
 	MediaPackage.h		讯美视频帧
 */
 
-namespace Xunmei {
+namespace Public {
 namespace Base {
 
 ///Base库的接口类
@@ -158,7 +150,7 @@ public:
 };
 
 } // namespace Component
-} // namespace Xunmei
+} // namespace Public
 
 #endif // _BASE_CLASS_H_
 

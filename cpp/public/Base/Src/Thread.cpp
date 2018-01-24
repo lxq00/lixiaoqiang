@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Chongqing Xunmei Technology
+//  Copyright (c)1998-2012, Chongqing Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -28,9 +28,8 @@
 #endif
 #include "Thread.h"
 #include "Base/ThreadEx.h"
-#include "Base/Singleton.h"
 #include "Base/Timer.h"
-namespace Xunmei {
+namespace Public {
 namespace Base {
 
 #ifdef WIN32
@@ -170,7 +169,7 @@ struct ThreadInternal
 #endif
 
 		threadptr->internal->running = true;
-		threadptr->internal->id = Xunmei::Base::Thread::getCurrentThreadID();
+		threadptr->internal->id = Public::Base::Thread::getCurrentThreadID();
 		threadptr->internal->createSem.post();
 
 		threadptr->threadProc();
@@ -735,4 +734,4 @@ bool BASE_API XM_AddLastErrorStack(const char *detail)
 
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public

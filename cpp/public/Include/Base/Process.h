@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Xunmei Technology
+//  Copyright (c)1998-2012, Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -15,7 +15,7 @@
 #endif
 
 #include "Defs.h"
-namespace Xunmei{
+namespace Public{
 namespace Base{
 
 
@@ -109,7 +109,7 @@ public:
 
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 #endif //__BASE_PROCESS_H__
 

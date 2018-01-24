@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2014, Xunmei Technology
+//  Copyright (c)1998-2014, Public Technology
 //  All Rights Reserved.
 //
 //
@@ -14,7 +14,7 @@
 #include "Base/String.h"
 #include <stdio.h>
 
-namespace Xunmei {
+namespace Public {
 namespace Base {
 
 
@@ -111,7 +111,7 @@ public:
 };
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 #endif //__BASE_VERSION_H__
 

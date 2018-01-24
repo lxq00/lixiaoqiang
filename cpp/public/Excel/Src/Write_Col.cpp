@@ -1,7 +1,7 @@
 #include "Write_Col.h"
 #include "Write_Sheet.h"
 
-using namespace Xunmei;
+using namespace Public;
 using namespace Excel;
 
 Write_Col::Write_Col(const shared_ptr<XM_Excel::Sheet>& _worksheet, xlslib_core::worksheet* _writesheet, uint32_t _colNum)

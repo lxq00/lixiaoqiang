@@ -1,7 +1,7 @@
 ﻿
 #include "Read_Cell.h"
 
-namespace Xunmei {
+namespace Public {
 namespace Excel {
 
 	Read_Cell::Read_Cell(const shared_ptr<XM_Excel::Sheet>& _sheet, uint32_t _rowNum, uint32_t _colNum)

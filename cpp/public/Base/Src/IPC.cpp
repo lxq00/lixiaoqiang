@@ -2,7 +2,7 @@
 #include "Base/PrintLog.h"
 #include "Base/BaseTemplate.h"
 #include "Base/Thread.h"
-namespace Xunmei{
+namespace Public{
 namespace Base{
 
 #ifdef WIN32

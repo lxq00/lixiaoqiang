@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Xunmei Technology
+//  Copyright (c)1998-2012, Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -9,10 +9,10 @@
 #define __DYNAMIC_MEMORYPOOL_H__
 #include "Base/Defs.h"
 #include "Base/IntTypes.h"
-namespace Xunmei{
+namespace Public{
 namespace Base{
 
-///内存池设定、用于xunmeimedia、也可以其他地方使用
+///内存池设定、用于Publicmedia、也可以其他地方使用
 class BASE_API DynamicMemPool
 {
 	class MemPoolInternal;
@@ -62,7 +62,7 @@ static DynamicMallocFreeMem dynamicMemObjc;
 #define GDynamicMemObjcPtr &dynamicMemObjc
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 
 #endif //__DYNAMIC_MEMORYPOOL_H__

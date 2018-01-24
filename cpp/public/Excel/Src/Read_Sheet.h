@@ -4,7 +4,7 @@
 #include "Read_Row.h"
 #include "Read_Col.h"
 
-namespace Xunmei {
+namespace Public {
 namespace Excel {
 
 	class  Read_Sheet :public  XM_Excel::Sheet, public enable_shared_from_this<XM_Excel::Sheet>

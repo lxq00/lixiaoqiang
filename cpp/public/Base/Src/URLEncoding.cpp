@@ -2,7 +2,7 @@
 #include "Base/String.h"
 using namespace std;
 
-namespace Xunmei{
+namespace Public{
 namespace Base{
 
 bool NeedTrans(char ch)

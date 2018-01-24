@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Chongqing Xunmei Technology
+//  Copyright (c)1998-2012, Chongqing Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -9,13 +9,13 @@
 #include "Base/Base.h"
 #include "../version.inl"
 
-namespace Xunmei {
+namespace Public {
 namespace Base {
 
 /// 打印 Base库 版本信息
 void BaseSystem::printLibVersion()
 {
-	Xunmei::Base::AppVersion appVersion("Base Lib", r_major, r_minor, r_build, versionalias, __DATE__);
+	Public::Base::AppVersion appVersion("Base Lib", r_major, r_minor, r_build, versionalias, __DATE__);
 	appVersion.print();
 }
 
@@ -145,9 +145,9 @@ void BaseSystem::init(const closeEventCallback& _closeEvent,void* userdata)
 
 void BaseSystem::uninit()
 {
-	SingleHolderInstance::uninit();
+	
 }
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 

@@ -2,7 +2,7 @@
 #define __READCELL_H__
 #include "Excel/Excel.h"
 #include "libxls/xls.h"
-namespace Xunmei {
+namespace Public {
 namespace Excel {
 
 	class Read_Cell :public XM_Excel::Cell

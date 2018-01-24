@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-namespace Xunmei{
+namespace Public{
 namespace Base{
 	
 #ifdef WIN32
@@ -189,7 +189,7 @@ struct URI::URIInternal
 	std::list<URI::URIObject> parameter;
 };
 
-URI::URI(const std::string& protocol,const std::string& host,int port)
+URI::URI(const std::string& protocol,const Value& host,int port)
 {
 	internal = new URIInternal();
 	if(!checkUrlKeyIsValid(protocol))
@@ -203,12 +203,6 @@ URI::URI(const std::string& protocol,const std::string& host,int port)
 	internal->protocol = protocol;
 	internal->host = host;
 	internal->port = port;
-}
-URI::URI(const std::string& protocol,int hostId)
-{
-	internal = new URIInternal();
-	internal->protocol = protocol;	
-	internal->host = hostId;
 }
 URI::URI(const URI& uri)
 {
@@ -249,16 +243,6 @@ bool URI::setHost(const std::string& host,int port)
 {
 	internal->host = host;
 	internal->port = port;
-
-	return true;
-}
-bool  URI::setCenterId(int centerId)
-{
-	return setHost(centerId);
-}
-bool URI::setHost(int hostId)
-{
-	internal->host = hostId;
 
 	return true;
 }
@@ -443,10 +427,6 @@ URI::Value URI::getHost() const
 	return internal->host;
 }
 
-int URI::getCenterId() const
-{
-	return internal->host.readInt();
-}
 
 int URI::getPort() const
 {

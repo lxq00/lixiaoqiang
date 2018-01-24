@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Xunmei Technology
+//  Copyright (c)1998-2012, Public Technology
 //  All Rights Reserved.
 //
 //
@@ -15,7 +15,7 @@
 #include "Thread.h"
 #include "Func.h"
 
-namespace Xunmei{
+namespace Public{
 namespace Base{
 
 
@@ -33,7 +33,7 @@ class BASE_API ThreadEx
 
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 #endif //__BASE_THREADEX_H_
 

@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Chongqing Xunmei Technology
+//  Copyright (c)1998-2012, Chongqing Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -48,7 +48,7 @@
 
 #include <string>
 
-namespace Xunmei {
+namespace Public {
 namespace Base {
 
 struct File::FileInternal
@@ -888,7 +888,7 @@ bool FileFind::isNormal()
 
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 
 

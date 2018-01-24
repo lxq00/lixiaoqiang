@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Xunmei Technology
+//  Copyright (c)1998-2012, Public Technology
 //  All Rights Reserved.
 //
 //
@@ -14,9 +14,9 @@
 
 #include "Defs.h"
 #include "Base/IntTypes.h"
-using namespace Xunmei::Base;
+using namespace Public::Base;
 
-namespace Xunmei{
+namespace Public{
 namespace Base {
 
 
@@ -103,7 +103,7 @@ private:
 
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 #endif //__BASE_GUID_H__
 

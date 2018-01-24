@@ -2,7 +2,7 @@
 #include "Read_Workbook.h"
 #include "Write_WorkBook.h"
 
-namespace Xunmei {
+namespace Public {
 namespace Excel {
 
 shared_ptr<XM_Excel::WorkBook> XM_Excel::read(const std::string& xlsfile)

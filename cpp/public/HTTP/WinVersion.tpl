@@ -1,4 +1,4 @@
 {
 	"filename":"HTTP Dll",
-	"productname":"讯美VGSII HTTP操作库"
+	"productname":"HTTP操作库"
 }

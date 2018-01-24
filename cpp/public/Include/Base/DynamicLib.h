@@ -4,7 +4,7 @@
 #include "Defs.h"
 #include <string>
 using namespace std;
-namespace Xunmei {
+namespace Public {
 namespace Base {
 
 class BASE_API DynamicLib

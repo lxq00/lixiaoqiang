@@ -1,7 +1,7 @@
 #include "Write_Side.h"
 #include "xlslib.h"
 
-using namespace Xunmei;
+using namespace Public;
 using namespace Excel;
 
 XM_Excel::Side::Side(int val, const shared_ptr<Color>& sideColor)

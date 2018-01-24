@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Xunmei Technology
+//  Copyright (c)1998-2012, Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -19,7 +19,7 @@
 #include <typeinfo>
 #include "Defs.h"
 #include "Shared_ptr.h"
-namespace Xunmei {
+namespace Public {
 namespace Base {
 
 namespace Detail {
@@ -153,7 +153,7 @@ inline OutputClass horrible_cast(const InputClass input){
 #undef	FUNCTION_ARGS
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 #if defined(_MSC_VER)
 	#pragma warning (pop)

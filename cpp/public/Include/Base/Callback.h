@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2014, Xunmei Technology
+//  Copyright (c)1998-2014, Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -20,7 +20,7 @@
 #include "Time.h"
 #include "PrintLog.h"
 
-namespace Xunmei{
+namespace Public{
 namespace Base{
 
 //Callback0
@@ -115,7 +115,7 @@ namespace Base{
 #undef	CALLBACK_ARGS
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 #if defined(_MSC_VER)
 	#pragma warning (pop)

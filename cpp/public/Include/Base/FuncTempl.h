@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2014, Xunmei Technology
+//  Copyright (c)1998-2014, Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -173,6 +173,19 @@ class FUNCTION_TEMPL
 	};
 	typedef R (X::*MEM_FUNCTION)(FUNCTION_TYPES);
 	typedef R (*PTR_FUNCTION)(FUNCTION_TYPES);
+
+	class MemObjectPtr
+	{
+	public:
+		MemObjectPtr(){}
+		MemObjectPtr(const MemObjectPtr& mptr) :ptr(mptr.ptr), sptr(mptr.sptr) {}
+		MemObjectPtr(X* _ptr) :ptr(_ptr) {}
+		MemObjectPtr(const weak_ptr<X>& wptr) :ptr(NULL), sptr(wptr.lock()) {}
+		X*  getMemPtr() const { return (ptr != NULL ? ptr : sptr.get()); }
+	private:
+		X * ptr;
+		shared_ptr<X> sptr;
+	};
 	
 	class MemObjectBasePtr
 	{
@@ -180,10 +193,10 @@ class FUNCTION_TEMPL
 		MemObjectBasePtr(X* _ptr):ptr(_ptr){}
 		virtual ~MemObjectBasePtr(){}
 
-		X*  getMemObject() const {return ptr;}
-		virtual MemObjectBasePtr* clone() const
+		virtual MemObjectPtr  getMemObject() const {return MemObjectPtr(ptr);}
+		virtual shared_ptr<MemObjectBasePtr> clone() const
 		{
-			return new MemObjectBasePtr(ptr);
+			return shared_ptr<MemObjectBasePtr>(new MemObjectBasePtr(ptr));
 		}
 	private:
 		X*	ptr;
@@ -192,15 +205,15 @@ class FUNCTION_TEMPL
 	class MemObjectShardPtr:public MemObjectBasePtr
 	{
 	public:
-		MemObjectShardPtr(const shared_ptr<X>& _pxx):MemObjectBasePtr(const_cast<X*>(_pxx.get())),pxx(_pxx){}
+		MemObjectShardPtr(const shared_ptr<X>& _pxx):MemObjectBasePtr(NULL),pxx(_pxx){}
 		virtual ~MemObjectShardPtr(){}
-
-		virtual MemObjectBasePtr* clone() const
+		virtual MemObjectPtr  getMemObject() const { return MemObjectPtr(pxx); }
+		virtual shared_ptr<MemObjectBasePtr> clone() const
 		{
-			return new MemObjectShardPtr(pxx);
+			return shared_ptr<MemObjectBasePtr>(new MemObjectShardPtr(pxx.lock()));
 		}
 	private:
-		shared_ptr<X>	pxx;
+		weak_ptr<X>	pxx;
 	};
 
 	struct MemFunctionObject
@@ -208,12 +221,13 @@ class FUNCTION_TEMPL
 	public:
 		MemFunctionObject(X* _ptr):ptr(new MemObjectBasePtr(_ptr)){}
 		MemFunctionObject(const shared_ptr<X>& _ptr):ptr(new MemObjectShardPtr(_ptr)){}
-		MemFunctionObject(MemObjectBasePtr* _ptr):ptr(_ptr){}
-		virtual ~MemFunctionObject(){delete ptr;}
+		MemFunctionObject(const shared_ptr<MemObjectBasePtr>& _ptr):ptr(_ptr){}
+		MemFunctionObject(const shared_ptr<MemFunctionObject>& obj):ptr(obj.get()->ptr){}
+		virtual ~MemFunctionObject() { ptr = NULL; }
 
-		MemFunctionObject* clone() const {return new MemFunctionObject(ptr->clone());}
+		shared_ptr<MemFunctionObject> clone() const {return shared_ptr<MemFunctionObject>(new MemFunctionObject(ptr->clone()));}
 
-		bool isSame(const MemFunctionObject* obj)
+		bool isSame(const shared_ptr<MemFunctionObject>& obj)
 		{
 			if(ptr == NULL && obj->ptr == NULL)
 			{
@@ -221,23 +235,25 @@ class FUNCTION_TEMPL
 			}
 			if(ptr != NULL && obj->ptr != NULL)
 			{
-				return ptr->getMemObject() == obj->ptr->getMemObject();
+				MemObjectPtr ptr1 = ptr->getMemObject();
+				MemObjectPtr ptr2 = obj->ptr->getMemObject();
+				return ptr1.getMemPtr() == ptr2.getMemPtr();
 			}
 
 			return false;
 		}
 
-		X*  getMemObject() const {return ptr->getMemObject();}
+		MemObjectPtr getMemObject() const {return ptr->getMemObject();}
 	private:
-		MemObjectBasePtr*	ptr;
+		shared_ptr<MemObjectBasePtr>	ptr;
 	};
 
-	union _function
+	struct _function
 	{
 		struct
 		{
-			MEM_FUNCTION		proc;
-			MemFunctionObject*	obj;
+			MEM_FUNCTION					proc;
+			shared_ptr<MemFunctionObject>	obj;
 		}memFunction;
 		PTR_FUNCTION ptrFunction;
 	}function;
@@ -304,7 +320,7 @@ public:
 
 		type = typeMember;
 		function.memFunction.proc = horrible_cast<MEM_FUNCTION>(f); //what's safty, hei hei
-		function.memFunction.obj = new MemFunctionObject(horrible_cast<X*>(o));
+		function.memFunction.obj = shared_ptr<MemFunctionObject>(new MemFunctionObject(horrible_cast<X*>(o)));
 		objectType = typeid(O).name();
 	}
 
@@ -320,7 +336,7 @@ public:
 
 		type = typeMember;
 		function.memFunction.proc = horrible_cast<MEM_FUNCTION>(f); //what's safty, hei hei
-		function.memFunction.obj = new MemFunctionObject(ptr);
+		function.memFunction.obj = shared_ptr<MemFunctionObject>(new MemFunctionObject(ptr));
 		objectType = typeid(O).name();
 	}
 
@@ -377,8 +393,9 @@ public:
 	{
 		if(type == typeMember)
 		{
+			MemObjectPtr ptr = function.memFunction.obj->getMemObject();
 			typedef typename GET_MEM_FUNCTION_INVODER<R>::template Invoker<R FUNCTION_COMMA FUNCTION_TYPES>::type Invoker;
-			return Invoker::invoke(function.memFunction.obj->getMemObject(), function.memFunction.proc FUNCTION_COMMA FUNCTION_ARGS);
+			return Invoker::invoke(ptr.getMemPtr(), function.memFunction.proc FUNCTION_COMMA FUNCTION_ARGS);
 		}
 		else
 		{
@@ -393,7 +410,8 @@ public:
 		{
 			return NULL;
 		}
-		return function.memFunction.obj->getMemObject();
+		MemObjectPtr ptr = function.memFunction.obj->getMemObject();
+		return ptr.getMemPtr();
 	}
 	
 	const char* getObjectType() const
@@ -403,10 +421,7 @@ public:
 
 	void realse()
 	{
-		if(type == typeMember && function.memFunction.obj != NULL)
-		{
-			delete function.memFunction.obj;
-		}
+		function.memFunction.obj = NULL;
 		type = typeEmpty;
 		objectType = 0;
 	}

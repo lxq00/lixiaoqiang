@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Xunmei Technology
+//  Copyright (c)1998-2012, Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -17,7 +17,7 @@
 #include "Base/Defs.h"
 #include "Base/IntTypes.h"
 
-namespace Xunmei {
+namespace Public {
 namespace Base {
 
 /// \struct FileInfo
@@ -308,7 +308,7 @@ protected:
 };
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 #endif //__BASE_FILE_H__
 

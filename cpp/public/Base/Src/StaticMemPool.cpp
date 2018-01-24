@@ -1,7 +1,7 @@
 #include "Base/StaticMemPool.h"
 #include "Base/Math.h"
 
-namespace Xunmei{
+namespace Public{
 namespace Base{
 
 struct StaticMemPool::StaticMemPoolInternal
@@ -267,5 +267,5 @@ void StaticMemPool::Free(void* pAddr)
 }
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 

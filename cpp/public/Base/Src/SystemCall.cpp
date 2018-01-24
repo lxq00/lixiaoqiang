@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Chongqing Xunmei Technology
+//  Copyright (c)1998-2012, Chongqing Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -21,7 +21,7 @@
 
 namespace {
 
-using namespace Xunmei::Base;
+using namespace Public::Base;
 
 #ifdef __linux__
 inline int linux_system(const char* command)
@@ -94,7 +94,7 @@ inline int windows_system(const char* cmd)
 
 } // namespace noname
 
-namespace Xunmei{
+namespace Public{
 namespace Base {
 
 int BASE_API SystemCall(const char* command)
@@ -107,5 +107,5 @@ int BASE_API SystemCall(const char* command)
 }
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 

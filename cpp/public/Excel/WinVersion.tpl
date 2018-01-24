@@ -1,4 +1,4 @@
 {
 	"filename":"Excel Dll",
-	"productname":"讯美VGSII Excel文件操作库"
+	"productname":"Excel文件操作库"
 }

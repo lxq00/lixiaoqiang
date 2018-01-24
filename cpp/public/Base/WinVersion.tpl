@@ -1,4 +1,4 @@
 {
 	"filename":"Base Dll",
-	"productname":"讯美VGSII基础库"
+	"productname":"基础库"
 }

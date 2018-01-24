@@ -5,7 +5,7 @@
 #include <dlfcn.h>
 #endif
 
-namespace Xunmei {
+namespace Public {
 namespace Base {
 
 struct DynamicLib::DynamicLibInternal

@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Chongqing Xunmei Technology
+//  Copyright (c)1998-2012, Chongqing Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -8,7 +8,7 @@
 
 #include "Base/Base64.h"
 
-namespace Xunmei{
+namespace Public{
 namespace Base {
 	
 static const unsigned char pr2six[256] =
@@ -146,5 +146,5 @@ int Base64::decode(char* plain_dst, const char* coded_src)
 
 
 }//namespace Base
-}//namespace Xunmei
+}//namespace Public
 

@@ -1,8 +1,7 @@
 #include "Base/RecycleBin.h"
 #include "Base/Guard.h"
 #include "Base/Timer.h"
-#include "Base/Singleton.h"
-namespace Xunmei{
+namespace Public{
 namespace Base{
 
 struct RecourceProc::RecourceProcInternal
@@ -81,7 +80,8 @@ void RecourceProc::put(IResource* res,uint64_t timeout)
 }
 RecourceProc* RecourceProc::instance()
 {
-	return CreateSingleton<RecourceProc>(SINGLETON_Levl_Base,4);
+	static RecourceProc recource;
+	return &recource;
 }
 
 }

@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Chongqing Xunmei Technology
+//  Copyright (c)1998-2012, Chongqing Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -14,7 +14,7 @@
 
 #include "Base/Crc.h"
 
-namespace Xunmei {
+namespace Public {
 namespace Base {
 unsigned short const crc16_table[256] =
 {
@@ -136,5 +136,5 @@ uint32_t Crc::to32bit (uint8_t const* buffer, size_t length)
 }
 
 }//namespace Base
-}//namespace Xunmei
+}//namespace Public
 

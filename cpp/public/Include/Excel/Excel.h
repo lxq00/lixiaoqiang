@@ -1,9 +1,9 @@
-#ifndef __XUNMEI_EXCEL_H__
-#define __XUNMEI_EXCEL_H__
+#ifndef __Public_EXCEL_H__
+#define __Public_EXCEL_H__
 #include "Excel_Def.h"
 //#include "xlslib.h"
 
-namespace Xunmei {
+namespace Public {
 namespace Excel {
 
 #define XF_HIDDEN			true
@@ -370,4 +370,4 @@ public:
 }
 
 
-#endif //__XUNMEI_EXCEL_H__
+#endif //__Public_EXCEL_H__

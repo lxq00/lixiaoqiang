@@ -177,9 +177,6 @@
     <ClInclude Include="Include\Base\ConsoleCommand.h">
       <Filter>头文件\Base</Filter>
     </ClInclude>
-    <ClInclude Include="Src\MediaConvert.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
     <ClInclude Include="Include\Base\shared_ptr.h">
       <Filter>头文件\Base</Filter>
     </ClInclude>
@@ -219,6 +216,9 @@
     <ClInclude Include="Src\ThreadPoolInternal.h">
       <Filter>源文件</Filter>
     </ClInclude>
+    <ClInclude Include="Src\TimerManager.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\Base.cpp">
@@ -233,19 +233,7 @@
     <ClCompile Include="Src\File.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Src\MediaCache.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\MediaFraming.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\MediaPackage.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Mutex.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Packet.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Src\PrintLog.cpp">
@@ -275,9 +263,6 @@
     <ClCompile Include="Src\SystemCall.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Src\TempCache.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Thread.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -291,9 +276,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Src\Version.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\URI.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Src\URLEncoding.cpp">
@@ -315,9 +297,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Src\RecycleBin.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Singleton.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Src\IPC.cpp">
@@ -357,6 +336,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Src\Host.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\URI.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

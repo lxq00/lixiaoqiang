@@ -4,7 +4,7 @@
 #include "Base/IntTypes.h"
 #include "Defs.h"
 
-namespace Xunmei {
+namespace Public {
 namespace Base {
 
 

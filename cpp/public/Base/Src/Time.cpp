@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Chongqing Xunmei Technology
+//  Copyright (c)1998-2012, Chongqing Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -62,8 +62,8 @@ public:
 }starter;
 #endif
 
-using namespace Xunmei;
-using namespace Xunmei::Base;
+using namespace Public;
+using namespace Public::Base;
 
 static std::string s_format = "yyyy-MM-dd HH:mm:ss";
 
@@ -278,7 +278,7 @@ inline int get_timezone()
 } // namespace noname
 
 
-namespace Xunmei {
+namespace Public {
 namespace Base {
 
 /// UTC ×ª»»Îª SystemTime
@@ -996,5 +996,5 @@ bool Time::parseVGSIITimeString(const std::string& timeStr)
 }
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 

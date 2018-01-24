@@ -8,7 +8,7 @@
 #include <time.h>
 #include <sstream>
 
-namespace Xunmei {
+namespace Public {
 namespace HTTP {
 
 struct HTTPDataInfo
@@ -554,7 +554,7 @@ std::string HTTPServer::parseProxyUrl(const std::string& urltmp)
 	char* decbuffer = new (std::nothrow)char[declen + 100];
 	if (decbuffer == NULL) return "";
 
-	declen = Xunmei::Base::Base64::decode(decbuffer, addrptr);
+	declen = Public::Base::Base64::decode(decbuffer, addrptr);
 	
 	std::string decurl = std::string(decbuffer, declen);
 	

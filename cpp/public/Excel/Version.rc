@@ -1,8 +1,8 @@
 #define APSTUDIO_READONLY_SYMBOLS 
-#include "afxres.h"
+#include "winres.h"
 #undef APSTUDIO_READONLY_SYMBOLS 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS) 
-LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED 
+LANGUAGE 4, 2
 #ifdef APSTUDIO_INVOKED 
 1 TEXTINCLUDE 
 BEGIN 
@@ -10,7 +10,7 @@ END
  
 2 TEXTINCLUDE 
 BEGIN 
-    "#include ""afxres.h""\r\n" 
+    "#include ""winres.h""\r\n"
     "\0" 
 END 
 3 TEXTINCLUDE  
@@ -37,14 +37,14 @@ BEGIN
     BEGIN 
         BLOCK "080404b0" 
         BEGIN 
-            VALUE "CompanyName", "讯美科技股份有限公司" 
+            VALUE "CompanyName", "" 
             VALUE "FileVersion", "1.0.2" 
             VALUE "InternalName", "Excel Dll" 
-            VALUE "LegalCopyright", "Xunmei Copyright(C) 1998-2018" 
+            VALUE "LegalCopyright", "Public Copyright(C) 1998-2018" 
             VALUE "OriginalFilename", "Excel Dll" 
-            VALUE "ProductName", "讯美VGSII Excel文件操作库" 
+            VALUE "ProductName", "Excel文件操作库" 
             VALUE "ProductVersion", "1.0.2" 
-            VALUE "FileDescription", "讯美VGSII Excel文件操作库 1.0.2 " 
+            VALUE "FileDescription", "Excel文件操作库 1.0.2 " 
         END 
     END 
     BLOCK "VarFileInfo" 

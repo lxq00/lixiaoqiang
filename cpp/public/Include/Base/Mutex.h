@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2014, Xunmei Technology
+//  Copyright (c)1998-2014, Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -10,7 +10,7 @@
 
 #include "Defs.h"
 #include "IntTypes.h"
-namespace Xunmei{
+namespace Public{
 namespace Base{
 
 /// \class Mutex
@@ -43,7 +43,7 @@ private:
 };
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 #endif //__BASE_MUTEX_H__
 

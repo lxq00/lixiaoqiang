@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Chongqing Xunmei Technology
+//  Copyright (c)1998-2012, Chongqing Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -27,7 +27,7 @@
 #endif
 
 
-namespace Xunmei{
+namespace Public{
 namespace Base {
 
 
@@ -139,4 +139,4 @@ int Semaphore::post()
 }
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public

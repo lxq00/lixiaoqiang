@@ -7,7 +7,7 @@
 #include <vector>
 #include "HTTPPublic.h"
 
- namespace Xunmei{
+ namespace Public{
  namespace HTTP{
  
  ///HTTP¿Í»§¶Ë·â×°¿â

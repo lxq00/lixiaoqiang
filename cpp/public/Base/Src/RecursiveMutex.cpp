@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Chongqing Xunmei Technology
+//  Copyright (c)1998-2012, Chongqing Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -53,7 +53,7 @@ namespace {
 
 } // namespace noname
 
-namespace Xunmei{
+namespace Public{
 namespace Base {
 
 struct RecursiveMutex::RecursiveMutexInternal
@@ -105,7 +105,7 @@ bool RecursiveMutex::leave()
 }
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -116,7 +116,7 @@ bool RecursiveMutex::leave()
 /// pthread_mutexattr_settype bad
 extern "C"	int pthread_mutexattr_settype (pthread_mutexattr_t *__attr, int __kind);
 
-namespace Xunmei{
+namespace Public{
 namespace Base {
 
 struct RecursiveMutex::RecursiveMutexInternal
@@ -161,7 +161,7 @@ bool RecursiveMutex::leave()
 }
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 ////////////////////////////////////////////////////////////////////////////////
 

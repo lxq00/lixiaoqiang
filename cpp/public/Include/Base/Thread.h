@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Xunmei Technology
+//  Copyright (c)1998-2012, Public Technology
 //  All Rights Reserved.
 //
 //
@@ -15,7 +15,7 @@
 #include "Defs.h"
 #include "Func.h"
 
-namespace Xunmei{
+namespace Public{
 namespace Base{
 
 
@@ -168,7 +168,7 @@ public:
 };
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 
 #ifndef MAX_PATH

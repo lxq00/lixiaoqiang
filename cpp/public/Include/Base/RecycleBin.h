@@ -11,7 +11,7 @@ using namespace std;
 
 ///该头文件定义的为一个资源自动释放机制
 ///如果需要释放资源、为非当前执行线程，可以让资源放入回收器中，资源回收器自动释放
-namespace Xunmei{
+namespace Public{
 namespace Base{
 
 class BASE_API IResource

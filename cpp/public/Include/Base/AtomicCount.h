@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Xunmei Technology
+//  Copyright (c)1998-2012, Public Technology
 //  All Rights Reserved.
 //
 //
@@ -16,7 +16,7 @@
 #endif
 #include "Base/Defs.h"
 
-namespace Xunmei {
+namespace Public {
 namespace Base {
 	
 /// \class AtomicCount
@@ -127,7 +127,7 @@ inline AtomicCount::ValueType AtomicCount::operator --(int)
 #endif
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 #endif // __BASE_ATOMIC_COUNT_H__
 

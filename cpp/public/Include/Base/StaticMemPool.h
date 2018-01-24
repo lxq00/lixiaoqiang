@@ -3,7 +3,7 @@
 #include "Base/Defs.h"
 #include "Base/IntTypes.h"
 #include "Base/Base.h"
-namespace Xunmei{
+namespace Public{
 namespace Base{
 
 class BASE_API StaticMemPool:public IMallcFreeMemObjcPtr
@@ -22,6 +22,6 @@ private:
 };
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 #endif //__STATICMEMPOOL_H__

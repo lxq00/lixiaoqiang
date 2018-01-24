@@ -22,20 +22,358 @@
     <ClInclude Include="..\_Output\Include\HTTP\Defs.h" />
     <ClInclude Include="..\_Output\Include\HTTP\HTTPClient.h" />
     <ClInclude Include="..\_Output\Include\HTTP\HTTPServer.h" />
+    <ClInclude Include="Src\ctemplate\base\arena-inl.h" />
+    <ClInclude Include="Src\ctemplate\base\arena.h" />
+    <ClInclude Include="Src\ctemplate\base\fileutil.h" />
+    <ClInclude Include="Src\ctemplate\base\macros.h" />
+    <ClInclude Include="Src\ctemplate\base\manual_constructor.h" />
+    <ClInclude Include="Src\ctemplate\base\small_map.h" />
+    <ClInclude Include="Src\ctemplate\base\TEMPLATE_mutex.h" />
+    <ClInclude Include="Src\ctemplate\base\thread_annotations.h" />
+    <ClInclude Include="Src\ctemplate\base\util.h" />
+    <ClInclude Include="Src\ctemplate\config.h" />
+    <ClInclude Include="Src\ctemplate\find_ptr.h" />
+    <ClInclude Include="Src\ctemplate\htmlparser\htmlparser.h" />
+    <ClInclude Include="Src\ctemplate\htmlparser\htmlparser_cpp.h" />
+    <ClInclude Include="Src\ctemplate\htmlparser\htmlparser_fsm.h" />
+    <ClInclude Include="Src\ctemplate\htmlparser\jsparser.h" />
+    <ClInclude Include="Src\ctemplate\htmlparser\jsparser_fsm.h" />
+    <ClInclude Include="Src\ctemplate\htmlparser\statemachine.h" />
+    <ClInclude Include="Src\ctemplate\indented_writer.h" />
+    <ClInclude Include="Src\ctemplate\per_expand_data.h" />
+    <ClInclude Include="Src\ctemplate\str_ref.h" />
+    <ClInclude Include="Src\ctemplate\template.h" />
+    <ClInclude Include="Src\ctemplate\template_annotator.h" />
+    <ClInclude Include="Src\ctemplate\template_cache.h" />
+    <ClInclude Include="Src\ctemplate\template_dictionary.h" />
+    <ClInclude Include="Src\ctemplate\template_dictionary_interface.h" />
+    <ClInclude Include="Src\ctemplate\template_emitter.h" />
+    <ClInclude Include="Src\ctemplate\template_enums.h" />
+    <ClInclude Include="Src\ctemplate\template_modifiers.h" />
+    <ClInclude Include="Src\ctemplate\template_modifiers_internal.h" />
+    <ClInclude Include="Src\ctemplate\template_namelist.h" />
+    <ClInclude Include="Src\ctemplate\template_pathops.h" />
+    <ClInclude Include="Src\ctemplate\template_string.h" />
+    <ClInclude Include="Src\ctemplate\windows\port.h" />
+    <ClInclude Include="Src\curl\amigaos.h" />
+    <ClInclude Include="Src\curl\arpa_telnet.h" />
+    <ClInclude Include="Src\curl\asyn.h" />
+    <ClInclude Include="Src\curl\config-amigaos.h" />
+    <ClInclude Include="Src\curl\config-dos.h" />
+    <ClInclude Include="Src\curl\config-mac.h" />
+    <ClInclude Include="Src\curl\config-os400.h" />
+    <ClInclude Include="Src\curl\config-riscos.h" />
+    <ClInclude Include="Src\curl\config-symbian.h" />
+    <ClInclude Include="Src\curl\config-tpf.h" />
+    <ClInclude Include="Src\curl\config-vxworks.h" />
+    <ClInclude Include="Src\curl\config-win32.h" />
+    <ClInclude Include="Src\curl\config-win32ce.h" />
+    <ClInclude Include="Src\curl\conncache.h" />
+    <ClInclude Include="Src\curl\connect.h" />
+    <ClInclude Include="Src\curl\content_encoding.h" />
+    <ClInclude Include="Src\curl\cookie.h" />
+    <ClInclude Include="Src\curl\curl.h" />
+    <ClInclude Include="Src\curl\curlbuild.h" />
+    <ClInclude Include="Src\curl\curlrules.h" />
+    <ClInclude Include="Src\curl\curlver.h" />
+    <ClInclude Include="Src\curl\curlx.h" />
+    <ClInclude Include="Src\curl\curl_addrinfo.h" />
+    <ClInclude Include="Src\curl\curl_base64.h" />
+    <ClInclude Include="Src\curl\curl_config.h" />
+    <ClInclude Include="Src\curl\curl_des.h" />
+    <ClInclude Include="Src\curl\curl_endian.h" />
+    <ClInclude Include="Src\curl\curl_fnmatch.h" />
+    <ClInclude Include="Src\curl\curl_gethostname.h" />
+    <ClInclude Include="Src\curl\curl_gssapi.h" />
+    <ClInclude Include="Src\curl\curl_hmac.h" />
+    <ClInclude Include="Src\curl\curl_ldap.h" />
+    <ClInclude Include="Src\curl\curl_md4.h" />
+    <ClInclude Include="Src\curl\curl_md5.h" />
+    <ClInclude Include="Src\curl\curl_memory.h" />
+    <ClInclude Include="Src\curl\curl_memrchr.h" />
+    <ClInclude Include="Src\curl\curl_multibyte.h" />
+    <ClInclude Include="Src\curl\curl_ntlm_core.h" />
+    <ClInclude Include="Src\curl\curl_ntlm_wb.h" />
+    <ClInclude Include="Src\curl\curl_printf.h" />
+    <ClInclude Include="Src\curl\curl_rtmp.h" />
+    <ClInclude Include="Src\curl\curl_sasl.h" />
+    <ClInclude Include="Src\curl\curl_sec.h" />
+    <ClInclude Include="Src\curl\curl_setup.h" />
+    <ClInclude Include="Src\curl\curl_setup_once.h" />
+    <ClInclude Include="Src\curl\curl_sspi.h" />
+    <ClInclude Include="Src\curl\curl_threads.h" />
+    <ClInclude Include="Src\curl\dict.h" />
+    <ClInclude Include="Src\curl\dotdot.h" />
+    <ClInclude Include="Src\curl\easy.h" />
+    <ClInclude Include="Src\curl\easyif.h" />
+    <ClInclude Include="Src\curl\escape.h" />
+    <ClInclude Include="Src\curl\file.h" />
+    <ClInclude Include="Src\curl\fileinfo.h" />
+    <ClInclude Include="Src\curl\formdata.h" />
+    <ClInclude Include="Src\curl\ftp.h" />
+    <ClInclude Include="Src\curl\ftplistparser.h" />
+    <ClInclude Include="Src\curl\getinfo.h" />
+    <ClInclude Include="Src\curl\gopher.h" />
+    <ClInclude Include="Src\curl\hash.h" />
+    <ClInclude Include="Src\curl\hostcheck.h" />
+    <ClInclude Include="Src\curl\hostip.h" />
+    <ClInclude Include="Src\curl\http.h" />
+    <ClInclude Include="Src\curl\http2.h" />
+    <ClInclude Include="Src\curl\http_chunks.h" />
+    <ClInclude Include="Src\curl\http_digest.h" />
+    <ClInclude Include="Src\curl\http_negotiate.h" />
+    <ClInclude Include="Src\curl\http_ntlm.h" />
+    <ClInclude Include="Src\curl\http_proxy.h" />
+    <ClInclude Include="Src\curl\if2ip.h" />
+    <ClInclude Include="Src\curl\imap.h" />
+    <ClInclude Include="Src\curl\inet_ntop.h" />
+    <ClInclude Include="Src\curl\inet_pton.h" />
+    <ClInclude Include="Src\curl\llist.h" />
+    <ClInclude Include="Src\curl\memdebug.h" />
+    <ClInclude Include="Src\curl\mprintf.h" />
+    <ClInclude Include="Src\curl\multi.h" />
+    <ClInclude Include="Src\curl\multihandle.h" />
+    <ClInclude Include="Src\curl\multiif.h" />
+    <ClInclude Include="Src\curl\netrc.h" />
+    <ClInclude Include="Src\curl\non-ascii.h" />
+    <ClInclude Include="Src\curl\nonblock.h" />
+    <ClInclude Include="Src\curl\parsedate.h" />
+    <ClInclude Include="Src\curl\pingpong.h" />
+    <ClInclude Include="Src\curl\pipeline.h" />
+    <ClInclude Include="Src\curl\pop3.h" />
+    <ClInclude Include="Src\curl\progress.h" />
+    <ClInclude Include="Src\curl\rand.h" />
+    <ClInclude Include="Src\curl\rtsp.h" />
+    <ClInclude Include="Src\curl\select.h" />
+    <ClInclude Include="Src\curl\sendf.h" />
+    <ClInclude Include="Src\curl\setup-os400.h" />
+    <ClInclude Include="Src\curl\setup-vms.h" />
+    <ClInclude Include="Src\curl\share.h" />
+    <ClInclude Include="Src\curl\sigpipe.h" />
+    <ClInclude Include="Src\curl\slist.h" />
+    <ClInclude Include="Src\curl\smb.h" />
+    <ClInclude Include="Src\curl\smtp.h" />
+    <ClInclude Include="Src\curl\sockaddr.h" />
+    <ClInclude Include="Src\curl\socks.h" />
+    <ClInclude Include="Src\curl\speedcheck.h" />
+    <ClInclude Include="Src\curl\splay.h" />
+    <ClInclude Include="Src\curl\ssh.h" />
+    <ClInclude Include="Src\curl\stdcheaders.h" />
+    <ClInclude Include="Src\curl\strcase.h" />
+    <ClInclude Include="Src\curl\strdup.h" />
+    <ClInclude Include="Src\curl\strerror.h" />
+    <ClInclude Include="Src\curl\strtok.h" />
+    <ClInclude Include="Src\curl\strtoofft.h" />
+    <ClInclude Include="Src\curl\system_win32.h" />
+    <ClInclude Include="Src\curl\telnet.h" />
+    <ClInclude Include="Src\curl\tftp.h" />
+    <ClInclude Include="Src\curl\timeval.h" />
+    <ClInclude Include="Src\curl\transfer.h" />
+    <ClInclude Include="Src\curl\typecheck-gcc.h" />
+    <ClInclude Include="Src\curl\url.h" />
+    <ClInclude Include="Src\curl\urldata.h" />
+    <ClInclude Include="Src\curl\vauth\digest.h" />
+    <ClInclude Include="Src\curl\vauth\ntlm.h" />
+    <ClInclude Include="Src\curl\vauth\vauth.h" />
+    <ClInclude Include="Src\curl\vtls\axtls.h" />
+    <ClInclude Include="Src\curl\vtls\cyassl.h" />
+    <ClInclude Include="Src\curl\vtls\darwinssl.h" />
+    <ClInclude Include="Src\curl\vtls\gskit.h" />
+    <ClInclude Include="Src\curl\vtls\gtls.h" />
+    <ClInclude Include="Src\curl\vtls\mbedtls.h" />
+    <ClInclude Include="Src\curl\vtls\nssg.h" />
+    <ClInclude Include="Src\curl\vtls\openssl.h" />
+    <ClInclude Include="Src\curl\vtls\polarssl.h" />
+    <ClInclude Include="Src\curl\vtls\polarssl_threadlock.h" />
+    <ClInclude Include="Src\curl\vtls\schannel.h" />
+    <ClInclude Include="Src\curl\vtls\vtls.h" />
+    <ClInclude Include="Src\curl\warnless.h" />
+    <ClInclude Include="Src\curl\wildcard.h" />
+    <ClInclude Include="Src\curl\x509asn1.h" />
     <ClInclude Include="Src\HTTPRequest.h" />
     <ClInclude Include="Src\HTTPResponse.h" />
+    <ClInclude Include="Src\shttpd\compat_rtems.h" />
+    <ClInclude Include="Src\shttpd\compat_unix.h" />
+    <ClInclude Include="Src\shttpd\compat_win32.h" />
+    <ClInclude Include="Src\shttpd\compat_wince.h" />
+    <ClInclude Include="Src\shttpd\config.h" />
+    <ClInclude Include="Src\shttpd\defs.h" />
+    <ClInclude Include="Src\shttpd\io.h" />
+    <ClInclude Include="Src\shttpd\llist.h" />
+    <ClInclude Include="Src\shttpd\md5.h" />
+    <ClInclude Include="Src\shttpd\shttpd.h" />
+    <ClInclude Include="Src\shttpd\ssl.h" />
+    <ClInclude Include="Src\shttpd\std_includes.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Version.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\ctemplate\base\arena.cc" />
+    <ClCompile Include="Src\ctemplate\diff_tpl_auto_escape.cc" />
+    <ClCompile Include="Src\ctemplate\htmlparser\htmlparser.cc" />
+    <ClCompile Include="Src\ctemplate\htmlparser\jsparser.cc" />
+    <ClCompile Include="Src\ctemplate\htmlparser\statemachine.cc" />
+    <ClCompile Include="Src\ctemplate\make_tpl_varnames_h.cc" />
+    <ClCompile Include="Src\ctemplate\per_expand_data.cc" />
+    <ClCompile Include="Src\ctemplate\template.cc" />
+    <ClCompile Include="Src\ctemplate\template_annotator.cc" />
+    <ClCompile Include="Src\ctemplate\template_cache.cc" />
+    <ClCompile Include="Src\ctemplate\template_dictionary.cc" />
+    <ClCompile Include="Src\ctemplate\template_modifiers.cc" />
+    <ClCompile Include="Src\ctemplate\template_namelist.cc" />
+    <ClCompile Include="Src\ctemplate\template_pathops.cc" />
+    <ClCompile Include="Src\ctemplate\template_string.cc" />
+    <ClCompile Include="Src\ctemplate\windows\port.cc" />
+    <ClCompile Include="Src\curl\amigaos.c" />
+    <ClCompile Include="Src\curl\asyn-ares.c" />
+    <ClCompile Include="Src\curl\asyn-thread.c" />
+    <ClCompile Include="Src\curl\base64.c" />
+    <ClCompile Include="Src\curl\conncache.c" />
+    <ClCompile Include="Src\curl\connect.c" />
+    <ClCompile Include="Src\curl\content_encoding.c" />
+    <ClCompile Include="Src\curl\cookie.c" />
+    <ClCompile Include="Src\curl\curlmd5.c" />
+    <ClCompile Include="Src\curl\curl_addrinfo.c" />
+    <ClCompile Include="Src\curl\curl_des.c" />
+    <ClCompile Include="Src\curl\curl_endian.c" />
+    <ClCompile Include="Src\curl\curl_fnmatch.c" />
+    <ClCompile Include="Src\curl\curl_gethostname.c" />
+    <ClCompile Include="Src\curl\curl_gssapi.c" />
+    <ClCompile Include="Src\curl\curl_memrchr.c" />
+    <ClCompile Include="Src\curl\curl_multibyte.c" />
+    <ClCompile Include="Src\curl\curl_ntlm_core.c" />
+    <ClCompile Include="Src\curl\curl_ntlm_wb.c" />
+    <ClCompile Include="Src\curl\curl_rtmp.c" />
+    <ClCompile Include="Src\curl\curl_sasl.c" />
+    <ClCompile Include="Src\curl\curl_sspi.c" />
+    <ClCompile Include="Src\curl\curl_threads.c" />
+    <ClCompile Include="Src\curl\dict.c" />
+    <ClCompile Include="Src\curl\dotdot.c" />
+    <ClCompile Include="Src\curl\easy.c" />
+    <ClCompile Include="Src\curl\escape.c" />
+    <ClCompile Include="Src\curl\file.c" />
+    <ClCompile Include="Src\curl\fileinfo.c" />
+    <ClCompile Include="Src\curl\formdata.c" />
+    <ClCompile Include="Src\curl\ftp.c" />
+    <ClCompile Include="Src\curl\ftplistparser.c" />
+    <ClCompile Include="Src\curl\getenv.c" />
+    <ClCompile Include="Src\curl\getinfo.c" />
+    <ClCompile Include="Src\curl\gopher.c" />
+    <ClCompile Include="Src\curl\hash.c" />
+    <ClCompile Include="Src\curl\hmac.c" />
+    <ClCompile Include="Src\curl\hostasyn.c" />
+    <ClCompile Include="Src\curl\hostcheck.c" />
+    <ClCompile Include="Src\curl\hostip.c" />
+    <ClCompile Include="Src\curl\hostip4.c" />
+    <ClCompile Include="Src\curl\hostip6.c" />
+    <ClCompile Include="Src\curl\hostsyn.c" />
+    <ClCompile Include="Src\curl\http.c" />
+    <ClCompile Include="Src\curl\http2.c" />
+    <ClCompile Include="Src\curl\http_chunks.c" />
+    <ClCompile Include="Src\curl\http_digest.c" />
+    <ClCompile Include="Src\curl\http_negotiate.c" />
+    <ClCompile Include="Src\curl\http_ntlm.c" />
+    <ClCompile Include="Src\curl\http_proxy.c" />
+    <ClCompile Include="Src\curl\idn_win32.c" />
+    <ClCompile Include="Src\curl\if2ip.c" />
+    <ClCompile Include="Src\curl\imap.c" />
+    <ClCompile Include="Src\curl\inet_ntop.c" />
+    <ClCompile Include="Src\curl\inet_pton.c" />
+    <ClCompile Include="Src\curl\krb5.c" />
+    <ClCompile Include="Src\curl\ldap.c" />
+    <ClCompile Include="Src\curl\llist.c" />
+    <ClCompile Include="Src\curl\md4.c" />
+    <ClCompile Include="Src\curl\memdebug.c" />
+    <ClCompile Include="Src\curl\mprintf.c" />
+    <ClCompile Include="Src\curl\multi.c" />
+    <ClCompile Include="Src\curl\netrc.c" />
+    <ClCompile Include="Src\curl\non-ascii.c" />
+    <ClCompile Include="Src\curl\nonblock.c" />
+    <ClCompile Include="Src\curl\nwlib.c" />
+    <ClCompile Include="Src\curl\nwos.c" />
+    <ClCompile Include="Src\curl\openldap.c" />
+    <ClCompile Include="Src\curl\parsedate.c" />
+    <ClCompile Include="Src\curl\pingpong.c" />
+    <ClCompile Include="Src\curl\pipeline.c" />
+    <ClCompile Include="Src\curl\pop3.c" />
+    <ClCompile Include="Src\curl\progress.c" />
+    <ClCompile Include="Src\curl\rand.c" />
+    <ClCompile Include="Src\curl\rtsp.c" />
+    <ClCompile Include="Src\curl\security.c" />
+    <ClCompile Include="Src\curl\select.c" />
+    <ClCompile Include="Src\curl\sendf.c" />
+    <ClCompile Include="Src\curl\share.c" />
+    <ClCompile Include="Src\curl\slist.c" />
+    <ClCompile Include="Src\curl\smb.c" />
+    <ClCompile Include="Src\curl\smtp.c" />
+    <ClCompile Include="Src\curl\socks.c" />
+    <ClCompile Include="Src\curl\socks_gssapi.c" />
+    <ClCompile Include="Src\curl\socks_sspi.c" />
+    <ClCompile Include="Src\curl\speedcheck.c" />
+    <ClCompile Include="Src\curl\splay.c" />
+    <ClCompile Include="Src\curl\ssh.c" />
+    <ClCompile Include="Src\curl\strcase.c" />
+    <ClCompile Include="Src\curl\strdup.c" />
+    <ClCompile Include="Src\curl\strerror.c" />
+    <ClCompile Include="Src\curl\strtok.c" />
+    <ClCompile Include="Src\curl\strtoofft.c" />
+    <ClCompile Include="Src\curl\system_win32.c" />
+    <ClCompile Include="Src\curl\telnet.c" />
+    <ClCompile Include="Src\curl\tftp.c" />
+    <ClCompile Include="Src\curl\timeval.c" />
+    <ClCompile Include="Src\curl\transfer.c" />
+    <ClCompile Include="Src\curl\url.c" />
+    <ClCompile Include="Src\curl\vauth\cleartext.c" />
+    <ClCompile Include="Src\curl\vauth\cram.c" />
+    <ClCompile Include="Src\curl\vauth\digest.c" />
+    <ClCompile Include="Src\curl\vauth\digest_sspi.c" />
+    <ClCompile Include="Src\curl\vauth\krb5_gssapi.c" />
+    <ClCompile Include="Src\curl\vauth\krb5_sspi.c" />
+    <ClCompile Include="Src\curl\vauth\ntlm.c" />
+    <ClCompile Include="Src\curl\vauth\ntlm_sspi.c" />
+    <ClCompile Include="Src\curl\vauth\oauth2.c" />
+    <ClCompile Include="Src\curl\vauth\spnego_gssapi.c" />
+    <ClCompile Include="Src\curl\vauth\spnego_sspi.c" />
+    <ClCompile Include="Src\curl\vauth\vauth.c" />
+    <ClCompile Include="Src\curl\version.c" />
+    <ClCompile Include="Src\curl\vtls\axtls.c" />
+    <ClCompile Include="Src\curl\vtls\cyassl.c" />
+    <ClCompile Include="Src\curl\vtls\darwinssl.c" />
+    <ClCompile Include="Src\curl\vtls\gskit.c" />
+    <ClCompile Include="Src\curl\vtls\gtls.c" />
+    <ClCompile Include="Src\curl\vtls\mbedtls.c" />
+    <ClCompile Include="Src\curl\vtls\nss.c" />
+    <ClCompile Include="Src\curl\vtls\openssl.c" />
+    <ClCompile Include="Src\curl\vtls\polarssl.c" />
+    <ClCompile Include="Src\curl\vtls\polarssl_threadlock.c" />
+    <ClCompile Include="Src\curl\vtls\schannel.c" />
+    <ClCompile Include="Src\curl\vtls\vtls.c" />
+    <ClCompile Include="Src\curl\warnless.c" />
+    <ClCompile Include="Src\curl\wildcard.c" />
+    <ClCompile Include="Src\curl\x509asn1.c" />
     <ClCompile Include="Src\HTTPClient.cpp" />
     <ClCompile Include="Src\HTTPPublic.cpp" />
     <ClCompile Include="Src\HTTPServer.cpp" />
     <ClCompile Include="Src\HTTPTemplate.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
+    <ClCompile Include="Src\shttpd\auth.c" />
+    <ClCompile Include="Src\shttpd\cgi.c" />
+    <ClCompile Include="Src\shttpd\compat_rtems.c" />
+    <ClCompile Include="Src\shttpd\compat_unix.c" />
+    <ClCompile Include="Src\shttpd\compat_win32.c" />
+    <ClCompile Include="Src\shttpd\compat_wince.c" />
+    <ClCompile Include="Src\shttpd\io_cgi.c" />
+    <ClCompile Include="Src\shttpd\io_dir.c" />
+    <ClCompile Include="Src\shttpd\io_emb.c" />
+    <ClCompile Include="Src\shttpd\io_file.c" />
+    <ClCompile Include="Src\shttpd\io_socket.c" />
+    <ClCompile Include="Src\shttpd\io_ssi.c" />
+    <ClCompile Include="Src\shttpd\io_ssl.c" />
+    <ClCompile Include="Src\shttpd\log.c" />
+    <ClCompile Include="Src\shttpd\md5.c" />
+    <ClCompile Include="Src\shttpd\shttpd.c" />
+    <ClCompile Include="Src\shttpd\standalone.c" />
+    <ClCompile Include="Src\shttpd\string.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{71F87FB4-D088-4CC9-AE2A-0A59571D0676}</ProjectGuid>
@@ -67,8 +405,7 @@
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionSettings" />
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
@@ -130,8 +467,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)\_Output\Include;$(SolutionDir)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;_DEBUG;_CRT_SECURE_NO_WARNINGS;BUILDING_LIBCURL;USE_OPENSSL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Include;Src;Src\ctemplate;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;_DEBUG;_CRT_SECURE_NO_WARNINGS;BUILDING_LIBCURL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -140,7 +477,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;ws2_32.lib;wldap32.lib;libeay32.lib;ssleay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;ws2_32.lib;wldap32.lib;JSON/JSON_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName)_debug.dll</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateMapFile>false</GenerateMapFile>
@@ -237,16 +574,16 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Include;src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Include;Src;Src\ctemplate;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;NDEBUG;_CRT_SECURE_NO_WARNINGS;BUILDING_LIBCURL;USE_OPENSSL</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;NDEBUG;_CRT_SECURE_NO_WARNINGS;BUILDING_LIBCURL</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;ws2_32.lib;wldap32.lib;libeay32.lib;ssleay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;ws2_32.lib;wldap32.lib;JSON/JSON.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -354,23 +691,4 @@
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="$(ProjectDir)packages-depend.targets" />
-  <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\packages\shttpd.5.0.0\build\native\shttpd.targets" Condition="Exists('..\packages\shttpd.5.0.0\build\native\shttpd.targets')" />
-    <Import Project="..\packages\ctemplate.5.0.1\build\native\ctemplate.targets" Condition="Exists('..\packages\ctemplate.5.0.1\build\native\ctemplate.targets')" />
-    <Import Project="..\packages\curl.5.0.1\build\native\curl.targets" Condition="Exists('..\packages\curl.5.0.1\build\native\curl.targets')" />
-    <Import Project="..\packages\openssl.1.0.1\build\native\openssl.targets" Condition="Exists('..\packages\openssl.1.0.1\build\native\openssl.targets')" />
-    <Import Project="..\packages\sqlite3.5.0.3\build\native\sqlite3.targets" Condition="Exists('..\packages\sqlite3.5.0.3\build\native\sqlite3.targets')" />
-    <Import Project="..\packages\JSON.5.0.0\build\native\JSON.targets" Condition="Exists('..\packages\JSON.5.0.0\build\native\JSON.targets')" />
-  </ImportGroup>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>这台计算机上缺少此项目引用的 NuGet 程序包。使用“NuGet 程序包还原”可下载这些程序包。有关更多信息，请参见 http://go.microsoft.com/fwlink/?LinkID=322105。缺少的文件是 {0}。</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\shttpd.5.0.0\build\native\shttpd.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\shttpd.5.0.0\build\native\shttpd.targets'))" />
-    <Error Condition="!Exists('..\packages\ctemplate.5.0.1\build\native\ctemplate.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ctemplate.5.0.1\build\native\ctemplate.targets'))" />
-    <Error Condition="!Exists('..\packages\curl.5.0.1\build\native\curl.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\curl.5.0.1\build\native\curl.targets'))" />
-    <Error Condition="!Exists('..\packages\openssl.1.0.1\build\native\openssl.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\openssl.1.0.1\build\native\openssl.targets'))" />
-    <Error Condition="!Exists('..\packages\sqlite3.5.0.3\build\native\sqlite3.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\sqlite3.5.0.3\build\native\sqlite3.targets'))" />
-    <Error Condition="!Exists('..\packages\JSON.5.0.0\build\native\JSON.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\JSON.5.0.0\build\native\JSON.targets'))" />
-  </Target>
 </Project>

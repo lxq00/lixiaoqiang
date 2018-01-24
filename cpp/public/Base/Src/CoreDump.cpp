@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #endif
-namespace Xunmei {
+namespace Public {
 namespace Base {
 
 std::string dumpSavePath = "";

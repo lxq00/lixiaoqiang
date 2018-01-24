@@ -1,8 +1,6 @@
 #include "HTTP/HTTPPublic.h"
-#include "Network/Network.h"
-using namespace Xunmei::Network;
 
-namespace Xunmei {
+namespace Public {
 namespace HTTP {
 
 //http://user:pass@host.com:8080/p/a/t/h?query=string#hash
@@ -320,7 +318,7 @@ private:
 struct fileCache:public HTTPCache
 {
 public:
-	fileCache() :fd(NULL),datatotal(0), filename(std::string(HTTPTMP) + "_tmp_" + Network::Guid::createGuid().getStringStream() + ".htm")
+	fileCache() :fd(NULL),datatotal(0), filename(std::string(HTTPTMP) + "_tmp_" + Guid::createGuid().getStringStream() + ".htm")
 	{
 		FileCacheManager::instance()->openFile(filename);
 		fd = fopen(filename.c_str(), "wb+");

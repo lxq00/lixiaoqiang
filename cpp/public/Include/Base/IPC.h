@@ -9,7 +9,7 @@
 #include "Base/Func.h"
 #include <string>
 using namespace  std;
-namespace Xunmei{
+namespace Public{
 namespace Base{
 
 ///进程间命名互斥锁

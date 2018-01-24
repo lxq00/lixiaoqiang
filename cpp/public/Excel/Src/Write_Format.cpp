@@ -1,6 +1,6 @@
 #include "Write_Format.h"
 
-using namespace Xunmei;
+using namespace Public;
 using namespace Excel;
 
 XM_Excel::Format::Format()

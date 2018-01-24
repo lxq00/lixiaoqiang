@@ -10,11 +10,10 @@
 #include "Base/Thread.h"
 #include "Base/Timer.h"
 #include "Base/Time.h"
-#include "Base/Singleton.h"
 #include <map>
 #include <list>
 using namespace std;
-namespace Xunmei{
+namespace Public{
 namespace Base{
 
 class DynamicMemPool::MemPoolInternal

@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Xunmei Technology
+//  Copyright (c)1998-2012, Public Technology
 //  All Rights Reserved.
 //
 //
@@ -14,21 +14,18 @@
 #include "Defs.h"
 #include "Func.h"
 
-namespace Xunmei{
+namespace Public{
 namespace Base{
 
 
 /// \class Timer
 /// \brief 多平台定时器，支持延时、周期、异步等多种过程执行方式
 
-struct TimerInternal;
-
 class BASE_API Timer
 {
 	/// 禁止拷贝构造函数和赋值操作
 	Timer(Timer const&);
 	Timer& operator=(Timer const&);
-
 public:
 	typedef Function1<void, unsigned long> Proc;
 
@@ -88,44 +85,15 @@ public:
 	/// \note 一般在用户类析构的时候调用,调用要特别小心,防止死锁
 	bool stopAndWait();
 
+	struct TimerInternal;
 private:
 	TimerInternal* internal;
 };
 
 
-////////////////////////////////////////////////////////////////////////////////
-
-
-/// \class TimerManager
-/// \brief 定时器管理类，使用高精度系统定时其来驱动应用定时器工作
-struct TimerManagerInternal;
-
-class BASE_API TimerManager
-{
-	TimerManager(TimerManager const&);
-	TimerManager& operator=(TimerManager const&);
-
-public:
-	TimerManager();
-	/// 创建定时器管理对象
-	static TimerManager* instance();
-	
-	/// 析构函数
-	~TimerManager();
-
-	/// 打印所有线程信息
-	void dumpTimers();
-
-
-	void uninit();
-
-	TimerManagerInternal* internal;
-};
-
-#define gTimerManager (*TimerManager::instance())
 
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 #endif
 

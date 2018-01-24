@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Xunmei Technology
+//  Copyright (c)1998-2012, Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -18,7 +18,7 @@
 
 using namespace std;
 
-namespace Xunmei{
+namespace Public{
 namespace Base{
 
 ///线程池执行回调函数
@@ -50,8 +50,6 @@ public:
 	bool Dispatch(const ThreadPoolHandler& func,void* param);
 
 	void uninit();
-public:
-	static ThreadPool* instance();
 private:
 	ThreadPoolInternal* internal;
 };
@@ -59,7 +57,7 @@ private:
 #define gThreadPool (*(ThreadPool::instance()))
 
 };//Base
-};//Xunmei
+};//Public
 
 
 

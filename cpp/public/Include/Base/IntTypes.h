@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2014, Xunmei Technology
+//  Copyright (c)1998-2014, Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -64,7 +64,7 @@ typedef unsigned __int64	uint64_t;
 
 using namespace std;
 
-namespace Xunmei{
+namespace Public{
 namespace Base{
 
 #include "Base/Defs.h"

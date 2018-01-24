@@ -1,6 +1,6 @@
 #include "Write_Color.h"
 
-namespace Xunmei {
+namespace Public {
 namespace Excel {
 
 XM_Excel::Color::Color()

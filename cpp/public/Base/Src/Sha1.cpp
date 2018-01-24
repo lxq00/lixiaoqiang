@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Xunmei Technology
+//  Copyright (c)1998-2012, Public Technology
 //  All Rights Reserved.
 //
 //	Description:
@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include "Base/String.h"
 
-namespace Xunmei {
+namespace Public {
 namespace Base {
 
 #if !defined(SHA1_LITTLE_ENDIAN) && !defined(SHA1_BIG_ENDIAN)
@@ -303,7 +303,7 @@ bool Sha1::report(std::string& str,REPORT_TYPE type)
 	return bResult;
 }
 } // namespace Base
-} // namespace Xunmei
+} // namespace Public
 
 
 
