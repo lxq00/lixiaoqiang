@@ -9,10 +9,10 @@ public:
 	IAsyncEvent() {}
 	virtual ~IAsyncEvent() {}
 
-	virtual bool doEvent() = 0
+	virtual bool doResultEvent(int len) = 0
 };
 
-class IAsyncCanEvent :IAsyncEvent
+class IAsyncCanEvent :public IAsyncEvent
 {
 public:
 	IAsyncCanEvent() {}
@@ -21,6 +21,21 @@ public:
 	virtual bool doCanEvent() = 0;
 };
 
+class IEventManager
+{
+public:
+	typedef enum
+	{
+		EventType_Read,
+		EventType_Write,
+		EventType_Error,
+	}EventType;
+public:
+	IEventManager() {}
+	virtual ~IEventManager() {}
+
+	virtual shared_ptr<IAsyncEvent> find
+};
 
 
 
