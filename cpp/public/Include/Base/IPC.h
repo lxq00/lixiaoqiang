@@ -59,8 +59,8 @@ private:
 public:
 	~ShareMEMBuffer();
 	
-	static ShareMEMBuffer* create(const std::string& shareName,int writeBlockSize,int wrteBlockNum,int readBlockSize,int readBlockNum,int memMaxSize,const ReadMEMCallback& callback = NULL);
-	static ShareMEMBuffer* open(const std::string& shareName,int readBlockSize,int readBlockNum,int writeBlockSize,int writeBlockNum,int memMaxSize,void* startAddr,const ReadMEMCallback& callback);
+	static shared_ptr<ShareMEMBuffer> create(const std::string& shareName,int writeBlockSize,int wrteBlockNum,int readBlockSize,int readBlockNum,int memMaxSize,const ReadMEMCallback& callback = NULL);
+	static shared_ptr<ShareMEMBuffer> open(const std::string& shareName,int readBlockSize,int readBlockNum,int writeBlockSize,int writeBlockNum,int memMaxSize,void* startAddr,const ReadMEMCallback& callback);
 	
 	int write(void* block,int size);
 	IMallcFreeMemObjcPtr* getMallckFreeObjcPtr();

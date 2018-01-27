@@ -19,17 +19,14 @@ namespace Public{
 namespace Base{
 
 
-typedef Function1<void, void*>	ThreadExProc;
-
 class BASE_API ThreadEx
 {
 	public:
-		static Thread* creatThreadEx(const char* name,const ThreadExProc& proc, void* param,
+		typedef Function2<void, Thread*, void*>	Proc;
+
+		static Thread* creatThreadEx(const std::string& name,const Proc& proc, void* param,
 			int priority = Thread::priorDefault, int policy = Thread::policyNormal, int stackSize = 0);
 };
-
-#define CreatBaseThreadEx ThreadEx::creatThreadEx
-
 
 
 } // namespace Base

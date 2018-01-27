@@ -20,7 +20,7 @@ namespace Base {
 /// \brief 系统调用
 /// \param cmd [in] 系统call的命令
 /// \param 执行的返回值
-int BASE_API SystemCall(const char* cmd);
+int BASE_API SystemCall(const std::string& cmd);
 
 
 

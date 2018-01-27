@@ -92,7 +92,7 @@ public:
 	/// \param policy [in] 线程调度策略
 	/// \param stackSize [in] 为线程指定的堆栈大小,如果等于0或者小于平台要求必须的值,
 	///        则使用平台缺省值.
-	Thread(const char* name, int priority = priorDefault, int policy = policyNormal, int stackSize = 0);
+	Thread(const std::string& name, int priority = priorDefault, int policy = policyNormal, int stackSize = 0);
 
 	/// 析构函数,如果线程还在执行,会销毁线程
 	virtual ~Thread();
@@ -131,7 +131,7 @@ public:
 
 	/// 设置线程名称
 	/// \param name [in] 新的线程名称
-	void setThreadName(const char * name);
+	void setThreadName(const std::string& name);
 
 	/// 设置超时时间
 	/// \param milliSeconds [in] 超时毫秒数,设置为0表示清空设置
@@ -157,11 +157,6 @@ public:
 	/// 让调用线程阻塞一段时间
 	/// \param milliSeconds [in] 期望阻塞的毫秒数
 	static void sleep(int milliSeconds);
-
-	/// 调节调用线程CPU负载,避免较长的运算过程占用CPU,影响其他线程,在运行过程前后使用.
-	/// \param percent [in] 占用CPU的时间,取值1~100,1表示最慢速度,100表示正常速度.
-	/// \note linux内部使用信号实现,因此要保证运算过程不应该有select之类会被信号唤醒的函数调用.
-	static void load(int percent);
 
 public:
 	ThreadInternal* internal;

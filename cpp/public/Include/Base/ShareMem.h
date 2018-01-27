@@ -34,7 +34,7 @@ public:
 	/// \param size [in] 共享内存的大小
 	/// \return != NULL ShareMem实例指针
 	///          == NULL 失败
-	static ShareMem * create(const std::string &sharename, const size_t size);
+	static shared_ptr<ShareMem> create(const std::string &sharename, const size_t size);
 
 	/// 打开共享内存通道
 	/// \param sharename [in] 共享内存的名称
@@ -42,7 +42,7 @@ public:
 	/// \param startAddr[in] 内存映射的起始地址
 	/// \return != NULL ShareMem实例指针
 	///          == NULL 失败
-	static ShareMem * open(const std::string &sharename, const size_t size,void* startAddr = NULL);
+	static shared_ptr<ShareMem> open(const std::string &sharename, const size_t size,void* startAddr = NULL);
 
 	/// 析构函数
 	virtual ~ShareMem();

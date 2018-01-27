@@ -31,7 +31,7 @@ public:
 
 	/// 构造函数
 	/// \param name [in] 定时器名称
-	Timer(const char * name);
+	Timer(const std::string& name);
 
 	/// 析构函数
 	virtual ~Timer();
@@ -57,11 +57,11 @@ public:
 
 	/// 得到定时器名称
 	/// \retval 定时器名称
-	const char* getName();
+	std::string getName();
 
 	/// 设置定时器名称
 	/// \param name [in]	新的定时器名称
-	void setName(const char* name);
+	void setName(const std::string& name);
 
 	/// 判断定时器是否开启
 	/// \reval true 已经开启

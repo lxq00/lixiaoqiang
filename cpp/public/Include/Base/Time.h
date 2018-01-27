@@ -64,6 +64,8 @@ public:
 	/// \param time [in] 相对时间
 	Time(uint64_t time);
 
+	Time(const SystemTime& time);
+
 	/// 普通时间构造函数
 	/// \param vyear 	[in] 年
 	/// \param vmonth [in] 月
@@ -153,7 +155,7 @@ public:
 	/// 								tt = 显示上午或下午
 	/// \param mask 	[in] 格式选项，指定日期分隔符，年月日顺序，小时制式是否由统一的格
 	///									式决定。相应位置0，表示使用统一格式，置1，表示使用format指定的格式
-	void format(char* buf, const char *format = "yyyy-MM-dd HH:mm:ss", int mask = fmGeneral) const;
+	std::string format(const char *format = "yyyy-MM-dd HH:mm:ss", int mask = fmGeneral) const;
 
 	/// 时间字符串解析
 	/// \param buf   [out] 输入的字符串缓冲
@@ -162,13 +164,7 @@ public:
 	///        					式决定。相应位置0，表示使用统一格式，置1，表示使用format指定的格式
 	/// \retval  true 成功
 	/// \retval  false 失败
-	bool parse(const char* buf, const char *format = "yyyy-MM-dd HH:mm:ss", int mask = fmGeneral);
-
-
-	//解析VGSII uri 中定义的时间格式
-	bool parseVGSIITimeString(const std::string& timeStr);
-	//生成VGSII uri中定义的格式时间
-	std::string buildVGSIITimeString() const;
+	bool parse(const std::string& buf, const char *format = "yyyy-MM-dd HH:mm:ss", int mask = fmGeneral);
 	
 	/// 得到本地当前系统时间
 	/// \retval Time对象
@@ -209,8 +205,6 @@ public:
 	/// 获取日期分割符
 	/// \retval 分割符
 	static char getSeparator();
-
-	static void convertSystemTimeToTime(SystemTime &sys, Time& tm);
 };
 
 } // namespace Base

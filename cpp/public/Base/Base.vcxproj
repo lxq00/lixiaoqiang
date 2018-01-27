@@ -19,74 +19,60 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Include\Base\AtomicCount.h" />
-    <ClInclude Include="Include\Base\Base.h" />
-    <ClInclude Include="Include\Base\Base64.h" />
-    <ClInclude Include="Include\Base\BaseTemplate.h" />
-    <ClInclude Include="Include\Base\Buffer.h" />
-    <ClInclude Include="Include\Base\ByteOrder.h" />
-    <ClInclude Include="Include\Base\Callback.h" />
-    <ClInclude Include="Include\Base\CallbackTempl.h" />
-    <ClInclude Include="Include\Base\CircularQueue.h" />
-    <ClInclude Include="Include\Base\ConsoleCommand.h" />
-    <ClInclude Include="Include\Base\Crc.h" />
-    <ClInclude Include="Include\Base\Defs.h" />
-    <ClInclude Include="Include\Base\DynamicLib.h" />
-    <ClInclude Include="Include\Base\DynamicMemPool.h" />
-    <ClInclude Include="Include\Base\EventHandling.h" />
-    <ClInclude Include="Include\Base\File.h" />
-    <ClInclude Include="Include\Base\FileBrowser.h" />
-    <ClInclude Include="Include\Base\ForwardPacket.h" />
-    <ClInclude Include="Include\Base\Func.h" />
-    <ClInclude Include="Include\Base\FuncTempl.h" />
-    <ClInclude Include="Include\Base\Guard.h" />
-    <ClInclude Include="Include\Base\Guid.h" />
-    <ClInclude Include="Include\Base\IntTypes.h" />
-    <ClInclude Include="Include\Base\IPC.h" />
-    <ClInclude Include="Include\Base\Math.h" />
-    <ClInclude Include="Include\Base\Md5.h" />
-    <ClInclude Include="Include\Base\MediaDefine.h" />
-    <ClInclude Include="Include\Base\MemPool.h" />
-    <ClInclude Include="Include\Base\MsgQue.h" />
-    <ClInclude Include="Include\Base\Mutex.h" />
-    <ClInclude Include="Include\Base\Packet.h" />
-    <ClInclude Include="Include\Base\PacketHelper.h" />
-    <ClInclude Include="Include\Base\PrintLog.h" />
-    <ClInclude Include="Include\Base\Process.h" />
-    <ClInclude Include="Include\Base\ReadWriteMutex.h" />
-    <ClInclude Include="Include\Base\RecursiveMutex.h" />
-    <ClInclude Include="Include\Base\RecycleBin.h" />
-    <ClInclude Include="Include\Base\Semaphore.h" />
-    <ClInclude Include="Include\Base\Sha1.h" />
-    <ClInclude Include="Include\Base\ShareCommChnnl.h" />
-    <ClInclude Include="Include\Base\shared_ptr.h" />
-    <ClInclude Include="Include\Base\ShareMem.h" />
-    <ClInclude Include="Include\Base\SimPipe.h" />
-    <ClInclude Include="Include\Base\Singleton.h" />
-    <ClInclude Include="Include\Base\StaticMemPool.h" />
-    <ClInclude Include="Include\Base\String.h" />
-    <ClInclude Include="Include\Base\SyncEvent.h" />
-    <ClInclude Include="Include\Base\System.h" />
-    <ClInclude Include="Include\Base\TempCache.h" />
-    <ClInclude Include="Include\Base\Thread.h" />
-    <ClInclude Include="Include\Base\ThreadEx.h" />
-    <ClInclude Include="Include\Base\ThreadPool.h" />
-    <ClInclude Include="Include\Base\ThreadSpecific.h" />
-    <ClInclude Include="Include\Base\Time.h" />
-    <ClInclude Include="Include\Base\Timer.h" />
-    <ClInclude Include="Include\Base\TimeRecord.h" />
-    <ClInclude Include="Include\Base\Unicode.h" />
-    <ClInclude Include="Include\Base\URI.h" />
-    <ClInclude Include="Include\Base\URLEncoding.h" />
-    <ClInclude Include="Include\Base\Version.h" />
-    <ClInclude Include="Include\Base\MediaCache.h" />
-    <ClInclude Include="Include\Base\MediaPackage.h" />
-    <ClInclude Include="Include\Base\MediaFraming.h" />
+    <ClInclude Include="..\Include\Base\AtomicCount.h" />
+    <ClInclude Include="..\Include\Base\Base.h" />
+    <ClInclude Include="..\Include\Base\Base64.h" />
+    <ClInclude Include="..\Include\Base\BaseTemplate.h" />
+    <ClInclude Include="..\Include\Base\ByteOrder.h" />
+    <ClInclude Include="..\Include\Base\Callback.h" />
+    <ClInclude Include="..\Include\Base\CallbackTempl.h" />
+    <ClInclude Include="..\Include\Base\CoreDump.h" />
+    <ClInclude Include="..\Include\Base\Crc.h" />
+    <ClInclude Include="..\Include\Base\Defs.h" />
+    <ClInclude Include="..\Include\Base\DynamicLib.h" />
+    <ClInclude Include="..\Include\Base\DynamicMemPool.h" />
+    <ClInclude Include="..\Include\Base\Expression.h" />
+    <ClInclude Include="..\Include\Base\File.h" />
+    <ClInclude Include="..\Include\Base\FileBrowser.h" />
+    <ClInclude Include="..\Include\Base\FileFind.h" />
+    <ClInclude Include="..\Include\Base\Func.h" />
+    <ClInclude Include="..\Include\Base\FuncTempl.h" />
+    <ClInclude Include="..\Include\Base\Guard.h" />
+    <ClInclude Include="..\Include\Base\Guid.h" />
+    <ClInclude Include="..\Include\Base\Host.h" />
+    <ClInclude Include="..\Include\Base\IntTypes.h" />
+    <ClInclude Include="..\Include\Base\IPC.h" />
+    <ClInclude Include="..\Include\Base\Math.h" />
+    <ClInclude Include="..\Include\Base\Md5.h" />
+    <ClInclude Include="..\Include\Base\Mutex.h" />
+    <ClInclude Include="..\Include\Base\PrintLog.h" />
+    <ClInclude Include="..\Include\Base\Process.h" />
+    <ClInclude Include="..\Include\Base\ReadWriteMutex.h" />
+    <ClInclude Include="..\Include\Base\RecursiveMutex.h" />
+    <ClInclude Include="..\Include\Base\RecycleBin.h" />
+    <ClInclude Include="..\Include\Base\Semaphore.h" />
+    <ClInclude Include="..\Include\Base\Sha1.h" />
+    <ClInclude Include="..\Include\Base\Shared_ptr.h" />
+    <ClInclude Include="..\Include\Base\ShareMem.h" />
+    <ClInclude Include="..\Include\Base\SimPipe.h" />
+    <ClInclude Include="..\Include\Base\StaticMemPool.h" />
+    <ClInclude Include="..\Include\Base\String.h" />
+    <ClInclude Include="..\Include\Base\System.h" />
+    <ClInclude Include="..\Include\Base\Thread.h" />
+    <ClInclude Include="..\Include\Base\ThreadEx.h" />
+    <ClInclude Include="..\Include\Base\ThreadPool.h" />
+    <ClInclude Include="..\Include\Base\Time.h" />
+    <ClInclude Include="..\Include\Base\Timer.h" />
+    <ClInclude Include="..\Include\Base\Unicode.h" />
+    <ClInclude Include="..\Include\Base\URI.h" />
+    <ClInclude Include="..\Include\Base\URLEncoding.h" />
+    <ClInclude Include="..\Include\Base\Version.h" />
     <ClInclude Include="Src\Thread.h" />
     <ClInclude Include="Src\ThreadPoolInternal.h" />
     <ClInclude Include="Src\TimerManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\AtomicCount.cpp" />
     <ClCompile Include="Src\Base.cpp" />
     <ClCompile Include="Src\Base64.cpp" />
     <ClCompile Include="Src\CoreDump.cpp" />
@@ -103,6 +89,7 @@
     <ClCompile Include="Src\Expression\muParserTokenReader.cpp" />
     <ClCompile Include="Src\File.cpp" />
     <ClCompile Include="Src\FileBrowser.cpp" />
+    <ClCompile Include="Src\FileFind.cpp" />
     <ClCompile Include="Src\Guid.cpp" />
     <ClCompile Include="Src\Host.cpp" />
     <ClCompile Include="Src\IPC.cpp" />
@@ -130,6 +117,9 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Version.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Include\Base\Version.tpl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1A207225-9188-4FCC-9198-E20188F87C4A}</ProjectGuid>

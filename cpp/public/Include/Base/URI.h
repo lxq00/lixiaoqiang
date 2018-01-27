@@ -16,13 +16,24 @@ public:
 	class BASE_API Value
 	{
 	public:
+		typedef enum 
+		{
+			Type_String,
+			Type_Char,
+			Type_Int32,
+			Type_Double,
+			Type_Bool,
+			Type_Int64,
+		}Type;
+	public:
 		Value() {}
 		Value(const std::string& val);
 		Value(char val);
 		Value(const char* val);
 		Value(const unsigned char* val);
 		Value(int val);
-		Value(float val);
+		Value(double val);
+		Value(bool val);
 		Value(long long val);
 		Value(uint32_t val);
 		Value(uint64_t val);
@@ -39,8 +50,10 @@ public:
 		int readInt() const;
 		float readFloat() const;
 		long long readInt64() const;
+		bool readBool() const;
 		uint32_t readUint32() const;
 		uint64_t readUint64() const;
+		Type type() const;
 
 		bool isEmpty() const;
 	private:

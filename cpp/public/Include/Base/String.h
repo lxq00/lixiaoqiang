@@ -16,78 +16,6 @@
 #include <string>
 #include "Func.h"
 
-inline void stringToLower(const char* strcstr,char* deststr)
-{
-	while(*strcstr)
-	{
-		*deststr = tolower(*strcstr);
-		strcstr++;
-		deststr++;
-	}
-	*deststr = 0;
-}
-
-inline void stringToUpper(const char* strcstr, char* deststr)
-{
-	while (*strcstr)
-	{
-		*deststr = toupper(*strcstr);
-		strcstr++;
-		deststr++;
-	}
-	*deststr = 0;
-}
-
-inline std::string stringToLowerEx(const std::string& srcstring)
-{
-	std::string dststring = srcstring;
-	
-	stringToLower(srcstring.c_str(), (char*)dststring.c_str());
-
-	return dststring;
-}
-
-inline std::string stringToUpperEx(const std::string& srcstring)
-{
-	std::string dststring = srcstring;
-
-	stringToUpper(srcstring.c_str(), (char*)dststring.c_str());
-
-	return dststring;
-}
-
-#ifdef WIN32
-#define strcasecmp _stricmp
-#define snprintf _snprintf
-#define strncasecmp _strnicmp
-inline const char* strcasestr(const char* srcstr,const char* substr)
-{
-	if(srcstr == NULL || substr == NULL) 
-	{
-		return NULL;
-	}
-	char* srcptr = new(std::nothrow) char[strlen(srcstr) + 1];
-	char* subptr = new(std::nothrow) char[strlen(substr) + 1];
-	if(srcptr == NULL || subptr == NULL) 
-	{
-		Public::Base::SAFE_DELETEARRAY(srcptr);
-		Public::Base::SAFE_DELETEARRAY(subptr); 
-		return NULL;
-	}
-	stringToLower(srcstr,srcptr);
-	stringToLower(substr,subptr);
-
-	const char* ptmp = strstr(srcptr,subptr);
-	if(ptmp != NULL)
-	{
-		ptmp = srcstr + (ptmp - srcptr);
-	}
-	Public::Base::SAFE_DELETEARRAY(srcptr);
-	Public::Base::SAFE_DELETEARRAY(subptr);
-	return ptmp;
-}
-#endif
-
 
 namespace Public {
 namespace Base {
@@ -122,57 +50,51 @@ size_t BASE_API strncpy(char* dst, size_t dstBufLen, const char* src, size_t src
 ///	\retval 返回实际写入长度
 int  BASE_API snprintf_x(char* buf, int maxlen, const char* fmt, ... );
 
-/// Ansi(Gb2312)转换字符串为utf8格式
-/// \param [in] inbuf 源字符串
-/// \param [in]  inlen 源字符串的长度
-/// \param [out] outbuf 目标字符串
-/// \param [in] outlen 存储目标的字符串最大值
-/// \retval > 0转换后的长度, 
-///         <= 0 出错
-int BASE_API ansi2utf8(char *inbuf,size_t inlen,char *outbuf,size_t outlen);
+
+class BASE_API String
+{
+public:
+	//字符串转小写
+	static std::string tolower(const std::string& src);
+
+	//字符串转大写
+	static std::string toupper(const std::string& src);
 
 
-/// utf8转换字符串为 Ansi(Gb2312)格式
-/// \param [in] inbuf 源字符串
-/// \param [in]  inlen 源字符串的长度
-/// \param [out] outbuf 目标字符串
-/// \param [in] outlen 存储目标的字符串最大值
-/// \retval > 0转换后的长度, 
-///         <= 0 出错
-int BASE_API utf82ansi(char *inbuf,size_t inlen,char *outbuf,size_t outlen);
+	/// Ansi(Gb2312) 转换字符串为utf8格式 扩展接口(linux 只支持转换后结果不超过1024bytes)
+	/// \param [in] src 源字符串
+	/// \retval 空string 转换失败
+	///         非空string 转换结果
+	std::string ansi2utf8(const std::string& src);
 
-/// Ansi(Gb2312) 转换字符串为utf8格式 扩展接口(linux 只支持转换后结果不超过1024bytes)
-/// \param [in] inbuf 源字符串
-/// \param [in]  inlen 源字符串的长度
-/// \retval 空string 转换失败
-///         非空string 转换结果
-std::string BASE_API ansi2utf8Ex(char *inbuf,size_t inlen);
+	/// utf8转换字符串为 Ansi(Gb2312)格式  扩展接口(linux 只支持转换后结果不超过1024bytes)
+	/// \param [in] src 源字符串
+	/// \retval 空string 转换失败
+	///         非空string 转换结果
+	std::string utf82ansi(const std::string& src);
+};
 
+#ifdef WIN32
+#define strcasecmp _stricmp
+#define snprintf _snprintf
+#define strncasecmp _strnicmp
+inline const char* strcasestr(const char* srcstr, const char* substr)
+{
+	if (srcstr == NULL || substr == NULL)
+	{
+		return NULL;
+	}
+	std::string srcstrtmp = String::tolower(srcstr);
+	std::string substrtmp = String::tolower(substr);
 
-/// utf8转换字符串为 Ansi(Gb2312)格式  扩展接口(linux 只支持转换后结果不超过1024bytes)
-/// \param [in] inbuf 源字符串
-/// \param [in]  inlen 源字符串的长度
-/// \retval 空string 转换失败
-///         非空string 转换结果
-std::string BASE_API utf82ansiEx(char *inbuf,size_t inlen);
-/// 通过标识符解析url字段
-/// \param [in] url 要解析的url串
-/// \param [in] key 解析的字段名字
-/// \param [in] headSymbol 解析的字段名称首部分割符
-/// \param [in] tailSymbol 解析的字段名称尾部分割符
-/// \param [out] value 解析后的结果返回值
-bool BASE_API parseUrlByKey(std::string &url, char* key, char headSymbol,  char tailSymbol, std::string & value);
-
-
-std::string BASE_API ansi2utf8Ex(const std::string& inString);
-
-std::string BASE_API utf82ansiEx(const std::string& inString);
-
-///Function3<std::string,const std::string& inputstr,const std::string& fromcharset,const std::string& tocharset>EncodeCallback
-typedef Function3<std::string,const std::string&,const std::string&,const std::string& > CharsetEncodeCallback;
-
-void BASE_API registeCharsetEncode(const CharsetEncodeCallback& callback);
-
+	const char* ptmp = strstr(srcstrtmp.c_str(), substrtmp.c_str());
+	if (ptmp != NULL)
+	{
+		ptmp = srcstr + (ptmp - srcstrtmp.c_str());
+	}
+	return ptmp;
+}
+#endif
 
 
 } // namespace Base

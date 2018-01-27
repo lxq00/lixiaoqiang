@@ -21,195 +21,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Include\Base\AtomicCount.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\Base.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\Base64.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\BaseTemplate.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\Buffer.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\ByteOrder.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\Callback.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\CallbackTempl.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\CircularQueue.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\Crc.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\Defs.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\File.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\ForwardPacket.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\Func.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\FuncTempl.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\Guard.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\Guid.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\IntTypes.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\Math.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\Md5.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\MsgQue.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\Mutex.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\Packet.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\PacketHelper.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\PrintLog.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\Process.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\ReadWriteMutex.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\RecursiveMutex.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\Semaphore.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\ShareCommChnnl.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\ShareMem.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\SimPipe.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\String.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\SyncEvent.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\System.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\Thread.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\ThreadEx.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\ThreadPool.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\ThreadSpecific.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\Time.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\Timer.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\TimeRecord.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\Unicode.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\Version.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\EventHandling.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\MemPool.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\TempCache.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\MediaPackage.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\MediaCache.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\RecycleBin.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\MediaFraming.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\ConsoleCommand.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\shared_ptr.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\DynamicLib.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\DynamicMemPool.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\FileBrowser.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\MediaDefine.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\Sha1.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\StaticMemPool.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\URI.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\URLEncoding.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\IPC.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Base\Singleton.h">
-      <Filter>头文件\Base</Filter>
-    </ClInclude>
     <ClInclude Include="Src\Thread.h">
       <Filter>源文件</Filter>
     </ClInclude>
@@ -218,6 +29,147 @@
     </ClInclude>
     <ClInclude Include="Src\TimerManager.h">
       <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\AtomicCount.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\Base.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\Base64.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\BaseTemplate.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\ByteOrder.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\Callback.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\CallbackTempl.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\CoreDump.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\Crc.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\Defs.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\DynamicLib.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\DynamicMemPool.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\Expression.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\File.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\FileBrowser.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\Func.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\FuncTempl.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\Guard.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\Guid.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\Host.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\IntTypes.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\IPC.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\Math.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\Md5.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\Mutex.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\PrintLog.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\Process.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\ReadWriteMutex.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\RecursiveMutex.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\RecycleBin.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\Semaphore.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\Sha1.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\Shared_ptr.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\ShareMem.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\SimPipe.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\StaticMemPool.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\String.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\System.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\Thread.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\ThreadEx.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\ThreadPool.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\Time.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\Timer.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\Unicode.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\URI.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\URLEncoding.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Base\Version.h">
+      <Filter>头文件\Base</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -341,10 +293,18 @@
     <ClCompile Include="Src\URI.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Src\AtomicCount.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Version.rc">
       <Filter>资源文件</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Include\Base\Version.tpl">
+      <Filter>头文件\Base</Filter>
+    </None>
   </ItemGroup>
 </Project>

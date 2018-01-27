@@ -5,9 +5,9 @@
 //	Description:
 //	$Id: Base64.cpp 11 2013-01-22 08:42:03Z jiangwei $
 //
-
+#include "base/IntTypes.h"
 #include "Base/Base64.h"
-
+#include "base/BaseTemplate.h"
 namespace Public{
 namespace Base {
 	
@@ -40,12 +40,19 @@ int Base64::encodelen(int len)
 }
 
 /// base46 encode
-int Base64::encode(char* coded_dst, const char* plain_src, int len_plain_src)
+std::string Base64::encode(const std::string& src)
 {
-	int i;
-	char *p;
+	const char* plain_src = src.c_str();
+	int len_plain_src = src.length();
+	int destlen = ((len_plain_src + 2) / 3 * 4) + 1;;
 
-	p = coded_dst;
+	char* coded_dst = new (std::nothrow)char[destlen];
+	if(coded_dst == NULL)
+	{
+		return "";
+	}
+	int i = 0;
+	char *p = coded_dst;
 	for (i = 0; i < len_plain_src - 2; i += 3)
 	{
 		*p++ = basis_64[(plain_src[i] >> 2) & 0x3F];
@@ -73,11 +80,15 @@ int Base64::encode(char* coded_dst, const char* plain_src, int len_plain_src)
 	}
 
 	*p++ = '\0';
-	return p - coded_dst;
+
+	std::string destsrc(coded_dst);
+	SAFE_DELETE(coded_dst);
+
+	return destsrc;
 }
 
 /// cal dst buf len
-int  Base64::decodelen(const char* coded_src)
+int  _decodelen(const char* coded_src)
 {
 	int nbytesdecoded;
 	register const unsigned char *bufin;
@@ -94,20 +105,22 @@ int  Base64::decodelen(const char* coded_src)
 }
 
 /// base64 decode
-int Base64::decode(char* plain_dst, const char* coded_src)
+std::string Base64::decode(const std::string& src)
 {
-	int nbytesdecoded;
-	register const unsigned char *bufin;
-	register unsigned char *bufout;
-	register int nprbytes;
+	const char* coded_src = src.c_str();
 
-	bufin = (const unsigned char *) coded_src;
-	while (pr2six[*(bufin++)] <= 63)
-		;
-	nprbytes = (bufin - (const unsigned char *) coded_src) - 1;
-	nbytesdecoded = ((nprbytes + 3) / 4) * 3;
+	register const unsigned char * bufin = (const unsigned char *) coded_src;
+	while (pr2six[*(bufin++)] <= 63);
+	register int  nprbytes = (bufin - (const unsigned char *) coded_src) - 1;
+	int nbytesdecoded = ((nprbytes + 3) / 4) * 3;
 
-	bufout = (unsigned char *) plain_dst;
+	char* plain_dst = new (std::nothrow)char[_decodelen(coded_src) + 100];
+	if (plain_dst == NULL)
+	{
+		return "";
+	}
+
+	register unsigned char * bufout = (unsigned char *) plain_dst;
 	bufin = (const unsigned char *) coded_src;
 
 	while (nprbytes > 4)
@@ -140,8 +153,10 @@ int Base64::decode(char* plain_dst, const char* coded_src)
 	}
 
 	*(bufout++) = '\0';
-	nbytesdecoded -= (4 - nprbytes) & 3;
-	return nbytesdecoded;
+	std::string outputstr(plain_dst);
+	SAFE_DELETE(plain_dst);
+
+	return outputstr;
 }
 
 

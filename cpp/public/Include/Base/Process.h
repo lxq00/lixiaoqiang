@@ -43,7 +43,7 @@ public:
 	/// \param relation 关系进程，当创建进程关闭后，子进程自动退出
 	/// \retval != NULL 成功
 	/// \retval == NULL 失败
-	static Process * createProcess(const char *name, int argc  = 0, const char *argv[] = NULL,bool relation = true);
+	static shared_ptr<Process> createProcess(const std::string& name, int argc  = 0, const char *argv[] = NULL,bool relation = true);
 
 
 	/// 获得进程的句柄

@@ -53,10 +53,7 @@ namespace Base {
 
 struct File::FileInternal
 {	
-	FILE *file;				
-	unsigned char *buffer;	///< 文件数据缓冲，Load和UnLoad接口使用。
-	unsigned long long length;		///< 文件长度。
-	unsigned long long position;		///< 文件读写指针。
+	FILE *file;	
 };
 
 
@@ -67,9 +64,6 @@ File::File()
 {
 	internal = new(std::nothrow) FileInternal;
 	internal->file = NULL;
-	internal->buffer = NULL;
-	internal->length = 0;
-	internal->position = 0;
 }
 
 File::~File()
@@ -78,23 +72,15 @@ File::~File()
 	{
 		close();
 	}
-	if(internal->buffer)
-	{
-		unload();
-	}
 	delete internal;
 }
 
 
-bool File::open(const char* pFileName, uint32_t dwFlags)
+bool File::open(const std::string& pFileName, uint32_t dwFlags)
 {
 	if(internal->file)
 	{
 		close();
-	}
-	if(internal->buffer)
-	{
-		unload();
 	}
 
 	const char* mode = "";
@@ -124,10 +110,10 @@ bool File::open(const char* pFileName, uint32_t dwFlags)
 		}
 	}
 
-	internal->file = ::fopen(pFileName, mode);
+	internal->file = ::fopen(pFileName.c_str(), mode);
 
 
-	if(!internal->file)
+	if(internal->file == NULL)
 	{
 		return false;
 	}
@@ -144,80 +130,36 @@ void File::close()
 	::fclose((FILE *)internal->file);
 
 	internal->file = NULL;
-	internal->length = 0;
-	internal->buffer = NULL;
-	internal->position = 0;
 }
 
-uint8_t* File::load(const char* pFileName)
-{
-	assert(!internal->buffer);
-	if(open(pFileName, modeRead | modeNoTruncate))
-	{
-		if (internal->length == 0) {
-			internal->length = seek(0, end);
-			seek(0,begin);
-		}
-		if(internal->length)
-		{
-			internal->buffer = new(std::nothrow) unsigned char[(unsigned int)internal->length];
-			if(internal->buffer)
-			{
-				seek(0, begin);
-				unsigned int ret = read(internal->buffer, (size_t)internal->length);
-				assert(ret == internal->length);
-				(void)ret;	// 消除变量未使用编译警告
-			}
-		}
-	}
-	return internal->buffer;
-}
-
-void File::unload()
-{
-	if(internal->buffer)
-	{
-		close();
-
-		delete []internal->buffer;
-		internal->buffer = NULL;
-	}
-}
 long File::read(void* pBuffer, size_t dwCount)
 {
-	if(!internal->file)
+	if(internal->file == NULL)
 	{
 		return -1;
 	}
 
 	size_t len = ::fread(pBuffer, 1, dwCount, internal->file);
 
-	internal->position += len;
 
 	return len;
 }
 long File::write(void *pBuffer, size_t dwCount)
 {
-	if(!internal->file)
+	if(internal->file == NULL)
 	{
 		return -1;
 	}
 
 	size_t len = ::fwrite(pBuffer, 1, dwCount, internal->file);
 
-	internal->position += len;
-
-	if(internal->length < internal->position)
-	{
-		internal->length = internal->position;
-	}
 
 	return len;
 }
 
 void File::flush()
 {
-	if(!internal->file)
+	if (internal->file == NULL)
 	{
 		return;
 	}
@@ -228,50 +170,38 @@ void File::flush()
 
 uint64_t File::seek(int64_t lOff, SeekPosition nFrom)
 {
-	if(!internal->file)
+	if (internal->file == NULL)
 	{
 		return 0;
 	}
 	int origin = 0;
-	uint64_t position = 0;
+	uint64_t position = lOff;
 
 	switch(nFrom){
 	case begin:
-		position = lOff;
 		origin = SEEK_SET;
 		break;
 	case current:
-		position = internal->position + lOff;
 		origin = SEEK_CUR;
 		break;
 	case end:
-		position = internal->length + lOff;
 		origin = SEEK_END;
 		break;
 	}
-
-	// 如果文件偏移一样，直接返回，提高效率
-	if(position == internal->position&& origin != SEEK_END)
-	{
-		return position;
-	}
-
 
 #ifdef WIN32
 	if(::_fseeki64(internal->file, lOff, origin) >= 0)
 	{
 		int64_t pos = ::_ftelli64(internal->file);
-		internal->position = pos < 0 ? 0 : pos;
 
-		return internal->position;
+		return pos;
 	};
 #else
 	if(::fseeko(internal->file, lOff, origin) >= 0)
 	{
 		int64_t pos = ::ftello(internal->file);
-		internal->position = pos < 0 ? 0 : pos;
 
-		return internal->position;
+		return pos;
 	};
 #endif // WIN32
 
@@ -280,26 +210,15 @@ uint64_t File::seek(int64_t lOff, SeekPosition nFrom)
 
 uint64_t File::getPosition()
 {
-	if(!internal->file)
-	{
-		return 0;
-	}
+#ifdef WIN32
+	int64_t pos = ::_ftelli64(internal->file);
 
-	return internal->position;
-}
+	return pos;
+#else
+	int64_t pos = ::ftello(internal->file);
 
-uint64_t File::getLength()
-{
-	if(!internal->file)
-	{
-		return 0;
-	}
-	if (internal->length == 0) {
-		uint64_t pos = getPosition();
-		internal->length = seek(0, end);
-		seek(pos, begin);
-	}
-	return internal->length;
+	return pos;
+#endif // WIN32
 }
 
 char* File::gets(char* s, size_t size)
@@ -311,10 +230,6 @@ char* File::gets(char* s, size_t size)
 
 	char* p = ::fgets(s, size, internal->file);
 
-	if(p)
-	{
-		internal->position += strlen(p);
-	}
 
 	return p;
 }
@@ -328,10 +243,6 @@ long File::puts(const char* s)
 	}
 
 	long ret = ::fputs(s, internal->file);
-	if(ret != EOF)
-	{
-		internal->position += strlen(s);
-	}
 
 	return ret;
 }
@@ -340,27 +251,72 @@ bool File::isOpen()
 {
 	return (internal->file != 0);
 }
-bool File::rename(const char* oldName, const char* newName)
+
+std::string File::load(const std::string& pFileName)
 {
-	return (::rename(oldName, newName) == 0);
+	uint64_t filelen = getLength(pFileName);
+	if (filelen == 0)
+	{
+		return "";
+	}
+	char* buffer = new (std::nothrow)char[filelen];
+	if (buffer == NULL)
+	{
+		return "";
+	}
+
+	FILE* fd = fopen(pFileName.c_str(), "rb");
+	if (fd == NULL)
+	{
+		SAFE_DELETEARRAY(buffer);
+		return "";
+	}
+
+	int readlen = fread(buffer, 1, filelen, fd);
+	if (readlen != filelen)
+	{
+		SAFE_DELETEARRAY(buffer);
+		fclose(fd);
+		return "";
+	}
+	fclose(fd);
+	std::string outputstr(buffer);
+	SAFE_DELETEARRAY(buffer);
+
+	return outputstr;
 }
 
-size_t File::getExcutableFileName(char* s, size_t size)
+
+uint64_t File::getLength(const std::string& pFileName)
 {
+	FileInfo info;
+
+	if (!stat(pFileName, info))
+	{
+		return 0;
+	}
+
+	return info.size;
+}
+
+bool File::rename(const std::string& oldName, const std::string&  newName)
+{
+	return (::rename(oldName.c_str(), newName.c_str()) == 0);
+}
+
+std::string File::getExcutableFileName()
+{
+	char s[256] = { 0 };
 	size_t ret = -1;
 #ifdef WIN32
-	ret = GetModuleFileName(NULL, s, size-1);
+	ret = GetModuleFileName(NULL, s, 255);
 #else
-	ret = readlink("/proc/self/exe", s, size-1);
+	ret = readlink("/proc/self/exe", s, 255);
 #endif // WIN32
 
-	if (ret <0)
+	if (ret <0 || ret >= 256)
 	{
-		return ret;
-	}
-	if (ret >= size-1)
-	{
-		return -1;
+		return "";
 	}
 	s[ret] = 0;
 	for (int i = ret; i >= 0; i--)
@@ -374,25 +330,21 @@ size_t File::getExcutableFileName(char* s, size_t size)
 		}
 	}
 
-	return ret;
+	return s;
 }
-size_t File::getExcutableFileFullPath(char* s, size_t size)
+std::string File::getExcutableFileFullPath()
 {
+	char s[256] = { 0 };
 	size_t ret = -1;
-	s[0] = 0;
 #ifdef WIN32
-	ret = GetModuleFileName(NULL, s, size-1);
+	ret = GetModuleFileName(NULL, s, 255);
 #else
-	ret = readlink("/proc/self/exe", s, size-1);
+	ret = readlink("/proc/self/exe", s, 255);
 #endif // WIN32
 	
-	if (ret <0)
+	if (ret <0 || ret >= 256)
 	{
-		return ret;
-	}
-	if (ret >= size-1)
-	{
-		return -1;
+		return "";
 	}
 	s[ret] = 0;
 	for (int i = ret; i >= 0; i--)
@@ -405,23 +357,23 @@ size_t File::getExcutableFileFullPath(char* s, size_t size)
 		}
 	}
 
-	return ret;
+	return s;
 }
-bool File::remove(const char* fileName)
+bool File::remove(const std::string& fileName)
 {
-	return (::remove(fileName) == 0);
+	return (::remove(fileName.c_str()) == 0);
 }
-bool File::makeDirectory(const char* dirName)
+bool File::makeDirectory(const std::string& dirName)
 {
 #ifndef WIN32
-	if(!File::access(dirName, File::accessExist))
+	if(!File::access(dirName.c_str(), File::accessExist))
 	{
 		char tmp[256];
-		snprintf_x(tmp,255,"mkdir -pv \"%s\"",dirName); //创建多重目录
+		snprintf_x(tmp,255,"mkdir -pv \"%s\"",dirName.c_str()); //创建多重目录
 
 		SystemCall(tmp);
 
-		return File::access(dirName, File::accessExist);
+		return File::access(dirName.c_str(), File::accessExist);
 	}
 	return true;
 #else
@@ -455,29 +407,29 @@ bool File::makeDirectory(const char* dirName)
 
 }
 
-bool File::removeDirectory(const char* dirName)
+bool File::removeDirectory(const std::string& dirName)
 {
 #ifndef WIN32
-	if(File::access(dirName, File::accessExist))
+	if(File::access(dirName.c_str(), File::accessExist))
 	{
 		char tmp[256];
-		snprintf_x(tmp,255,"rm -rdf \"%s\"",dirName); //删除非空目录
+		snprintf_x(tmp,255,"rm -rdf \"%s\"",dirName.c_str()); //删除非空目录
 
 		SystemCall(tmp);
 
-		return !File::access(dirName, File::accessExist);
+		return !File::access(dirName.c_str(), File::accessExist);
 	}
 
 	return true;
 #else
-	DWORD attr = GetFileAttributes(dirName);
+	DWORD attr = GetFileAttributes(dirName.c_str());
 	if(attr != -1 && attr & FILE_ATTRIBUTE_DIRECTORY)
 	{
 		char cmdstr[256];
-		snprintf_x(cmdstr,255,"rd /Q /S \"%s\"", dirName);
+		snprintf_x(cmdstr,255,"rd /Q /S \"%s\"", dirName.c_str());
 		SystemCall(cmdstr);
 
-		attr = GetFileAttributes(dirName);
+		attr = GetFileAttributes(dirName.c_str());
 		return (attr == -1 || !(attr & FILE_ATTRIBUTE_DIRECTORY));
 	}
 
@@ -485,13 +437,10 @@ bool File::removeDirectory(const char* dirName)
 #endif
 }
 
-bool File::statFS(const char* path,
-		uint64_t& userFreeBytes,
-		uint64_t& totalBytes,
-		uint64_t& totalFreeBytes)
+bool File::statFS(const std::string& path,uint64_t& userFreeBytes,uint64_t& totalBytes,uint64_t& totalFreeBytes)
 {
 #ifdef WIN32
-	GetDiskFreeSpaceEx((LPCTSTR)path,
+	GetDiskFreeSpaceEx((LPCTSTR)path.c_str(),
 		(PULARGE_INTEGER)&userFreeBytes,
 		(PULARGE_INTEGER)&totalBytes,
 		(PULARGE_INTEGER)&totalFreeBytes);
@@ -501,7 +450,7 @@ bool File::statFS(const char* path,
 	totalFreeBytes = 0;
 
 	struct statfs info = {0};
-	if (::statfs(path, &info) == 0)
+	if (::statfs(path.c_str(), &info) == 0)
 	{
 		userFreeBytes = (uint64_t)(info.f_bsize) * info.f_bavail;
 		totalBytes = (uint64_t)(info.f_bsize) * info.f_blocks;
@@ -511,33 +460,33 @@ bool File::statFS(const char* path,
 	return true;
 }
 		
-bool File::access(const char* path, int mode)
+bool File::access(const std::string& path, AccessMode mode)
 {
 
 #ifndef WIN32
-	return (::access(path, mode) == 0);
+	return (::access(path.c_str(), (int)mode) == 0);
 #else
-	return (_access(path, mode) == 0);
+	return (_access(path.c_str(), (int)mode) == 0);
 #endif
 	
 }
 
-bool File::stat(const char* path, FileInfo& info)
+bool File::stat(const std::string& path, FileInfo& info)
 {
 
 #ifdef WIN32
 	struct _stat s = {0};
-	int ret = _stat(path, &s);
+	int ret = _stat(path.c_str(), &s);
 #else
 	struct stat s = {0};
-	int ret = ::stat(path, &s);
+	int ret = ::stat(path.c_str(), &s);
 #endif
 	if(ret != 0)
 	{
 		return false;
 	}
 
-	strncpy(info.name, FileInfo::maxPathSize - 1,path, strlen(path));
+	info.name = path;
 	info.attrib = s.st_mode;
 	info.timeWrite = s.st_mtime;
 	info.timeAccess = s.st_atime;
@@ -546,346 +495,6 @@ bool File::stat(const char* path, FileInfo& info)
 
 	return true;
 }
-
-File::File(File const& fs)
-{
-	internal = new(std::nothrow) FileInternal;
-	internal->file = fs.internal->file;
-	internal->buffer = fs.internal->buffer;
-	internal->length = fs.internal->length;
-	internal->position = fs.internal->position;
-}
-
-File& File::operator=(File const& fs)
-{
-	if (this == &fs)
-		return *this;
-	if (internal->file)
-	{
-	 	::fclose(internal->file);
-	}
-	if (internal->buffer)
-	{
-		unload();
-	}
-	internal->file = fs.internal->file;
-	internal->buffer = fs.internal->buffer;
-	internal->length = fs.internal->length;
-	internal->position = fs.internal->position;
-	return *this;
-}
-#ifndef WIN32
-
-typedef uint32_t _fsize_t;
-#define _MAX_FNAME 	256
-struct _finddata_t
-{
-	unsigned int 	attrib;
-	time_t 			time_create;
-	time_t			time_access;
-	time_t			time_write;
-	_fsize_t		size;
-	char 			name[_MAX_FNAME];
-};
-
-struct linuxfilestate
-{
-	std::string 	name;
-	uint32_t		size;
-	int 			type;
-};
-
-class LinuxFinderFile
-{
-public:	
-	LinuxFinderFile(const std::string& name):readfileindex(0)
-	{
-		find(name);
-	}
-	~LinuxFinderFile(){}
-	
-
-	bool get(_finddata_t& file)
-	{
-		std::map<int,linuxfilestate>::iterator iter = linuxfilestateList.find(readfileindex);
-		if(iter == linuxfilestateList.end())
-		{
-			return false;
-		}
-
-		strncpy(file.name,_MAX_FNAME - 1,iter->second.name.c_str(),iter->second.name.length());
-		file.size = iter->second.size;
-		file.attrib = File::normal ;
-		if(!iter->second.type)
-		{
-			file.attrib &= File::directory;
-		}
-
-		readfileindex ++;
-
-		return true;
-	}
-private:	
-	void find(const std::string& name)
-	{
-//		{
-//			struct stat buf;
-//			int ret = stat(name.c_str(),&buf);
-//			if(ret < 0)
-//			{
-//				return;
-//			}
-//		}
-
-		std::string filepath;
-		std::string filename;
-
-		getFilePathAndNameByAddr(name,filepath,filename);
-		
-		char tmp[512];
-		sprintf(tmp,"find %s 2>/dev/null",name.c_str());
-
-		FILE* fd = popen(tmp,"r");
-		if(fd == NULL)
-		{
-			return;
-		}
-
-		while(fgets(tmp,511,fd) != NULL)
-		{
-			/// 去掉回车符
-			int filelen = strlen(tmp);
-			while(filelen > 0 && (tmp[filelen-1] == '\n' || tmp[filelen-1] == '\r'))
-			{
-				tmp[filelen-1] = 0;
-				filelen --;
-			}
-
-			addfiletolist(tmp,filepath);
-		}
-
-		fclose(fd);
-	}
-	void addfiletolist(const std::string& name,const std::string& findfiledir)
-	{
-		linuxfilestate fileitem;
-		struct stat filestat;
-
-		if(stat(name.c_str(),&filestat) != 0)
-		{
-			return;
-		}
-
-		fileitem.type = !S_ISDIR(filestat.st_mode);
-		fileitem.size = filestat.st_size;
-
-		if(name.size() < findfiledir.size() || memcmp(name.c_str(),findfiledir.c_str(),findfiledir.size()) != 0)
-		{
-			return;
-		}
-		fileitem.name = name.c_str() + findfiledir.size() + 1;
-		
-		linuxfilestateList.insert(std::pair<int,linuxfilestate>(linuxfilestateList.size(),fileitem));
-	}
-	void getFilePathAndNameByAddr(const std::string& name, std::string &filepath, std::string &filename)
-	{
-		filename = name;
-
-		const char* dirtmp = strrchr(name.c_str(),PATH_SEPARATOR);
-		if(dirtmp != NULL)
-		{
-			filepath = string(name.c_str(),dirtmp - name.c_str());
-			filename = dirtmp + 1;
-		}
-	}
-private:	
-	std::map<int,linuxfilestate> 	linuxfilestateList;
-	int 							readfileindex;
-};
-
-
-static long _findfirst(const std::string& fileName,_finddata_t* finddata)
-{
-	if(finddata == NULL)
-	{
-		return 0;
-	}
-
-	LinuxFinderFile* file = new(std::nothrow) LinuxFinderFile(fileName);
-	if(file == NULL)
-	{
-		return 0;
-	}
-
-	if(!file->get(*finddata))
-	{
-		delete file;
-		return 0;
-	}
-
-	return (long)file;
-}
-
-static long _findnext(long handle,_finddata_t* finddata)
-{
-	LinuxFinderFile* file = (LinuxFinderFile*)handle;
-	if(file == NULL || finddata == NULL)
-	{
-		return -1;
-	}
-
-	bool ret = file->get(*finddata);
-
-	return ret ? 0:-1;
-}
-
-
-static void _findclose(long handle)
-{
-	if(handle <= 0)
-	{
-		return;
-	}
-	
-	LinuxFinderFile* file = (LinuxFinderFile*)handle;
-	
-	delete file;
-	file = NULL;
-}
-
-#endif
-
-struct FileFind::FileFindInternal
-{
-	long handle;
-	FileInfo fileInfo;
-	std::string path;			///< 查找路径。
-};
-
-///////////////////////////////////////////////////////////////////////////////
-///////   FileFind implement
-FileFind::FileFind(FileFind const& fs)
-{
-	internal = new(std::nothrow) FileFindInternal;
-	internal->handle = fs.internal->handle;
-	memcpy(&internal->fileInfo, &fs.internal->fileInfo, sizeof(FileInfo));
-}
-FileFind& FileFind::operator=(FileFind const&fs)
-{
-	if (this == &fs)
-		return *this;
-	close();
-	internal->handle = fs.internal->handle;
-	memcpy(&internal->fileInfo, &fs.internal->fileInfo, sizeof(FileInfo));
-	return *this;
-}
-
-FileFind::FileFind()
-{
-	internal = new(std::nothrow) FileFindInternal;
-	internal->handle = -1;
-	memset(&internal->fileInfo, 0, sizeof(FileInfo));
-}
-
-FileFind::~FileFind()
-{
-	close();
-	delete internal;
-}
-
-bool FileFind::findFile(const char* fileName)
-{
-	close();
-	const char* p = fileName + strlen(fileName);
-	while(*p != '/' && *p != '\\' && p != fileName)
-	{
-		p--;
-	}
-	strncpy(internal->fileInfo.name, FileInfo::maxPathSize - 1,p + 1, strlen(p + 1));
-	internal->path.assign(fileName, p - fileName + 1);
-	
-	_finddata_t finddata = {0};
-	long ret = _findfirst(fileName, &finddata);
-	if(ret <= 0)
-	{
-		return false;
-	}
-	internal->fileInfo.attrib = finddata.attrib;
-	internal->fileInfo.size = finddata.size;
-	memcpy( internal->fileInfo.name, finddata.name,  sizeof( internal->fileInfo.name) - 1);
-	internal->fileInfo.name[sizeof(internal->fileInfo.name) - 1] = '\0';
-	internal->fileInfo.timeWrite = finddata.time_write;
-	internal->fileInfo.timeAccess = finddata.time_access;
-	internal->fileInfo.timeCreate = finddata.time_create;
-	internal->handle = ret;
-	return true;
-}
-
-bool FileFind::findNextFile()
-{
-	_finddata_t finddata = {0};
-	long ret = _findnext((long)internal->handle, &finddata);
-	if(ret < 0)
-	{
-		return false;
-	}
-	internal->fileInfo.attrib = finddata.attrib;
-	internal->fileInfo.size = finddata.size;
-	memcpy(internal->fileInfo.name, finddata.name, sizeof(internal->fileInfo.name) - 1);
-	internal->fileInfo.name[ sizeof(internal->fileInfo.name) - 1] = '\0';
-	internal->fileInfo.timeWrite = finddata.time_write;
-	internal->fileInfo.timeAccess = finddata.time_access;
-	internal->fileInfo.timeCreate = finddata.time_create;
-
-	return true;
-}
-
-void FileFind::close()
-{
-	if(internal->handle < 0)
-	{
-		return;
-	}
-	_findclose((long)internal->handle);
-	internal->handle = -1;
-}
-
-size_t FileFind::getLength()
-{
-	return (unsigned int)internal->fileInfo.size;
-}
-
-std::string FileFind::getFileName()
-{
-	return internal->fileInfo.name;
-}
-
-std::string FileFind::getFilePath()
-{
-	return internal->path + internal->fileInfo.name;
-}
-
-bool FileFind::isReadOnly()
-{
-	return ((internal->fileInfo.attrib & File::readOnly) != 0);
-}
-
-bool FileFind::isDirectory()
-{
-	return ((internal->fileInfo.attrib & File::directory) != 0);
-}
-
-
-bool FileFind::isHidden()
-{
-	return ((internal->fileInfo.attrib & File::hidden) != 0);
-}
-
-bool FileFind::isNormal()
-{
-	return (internal->fileInfo.attrib == File::normal);
-}
-
 
 } // namespace Base
 } // namespace Public

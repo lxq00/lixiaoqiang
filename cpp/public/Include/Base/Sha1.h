@@ -25,30 +25,24 @@ class BASE_API Sha1
 public:
 	typedef enum
 	{
-		REPORT_HEX = 0,
-		REPORT_DIGIT = 1,
-		REPORT_HEX_SHORT = 2
+		REPORT_Normal = 0,
+		REPORT_HEX,
+		REPORT_DIGIT,
+		REPORT_HEX_SHORT
 	}REPORT_TYPE;
 public:
 	Sha1();
 	~Sha1();
 
-	bool hashFile(const std::string& file);
+	static std::string hashFile(const std::string& file, REPORT_TYPE type);
 
 	///	数据编码。
 	///	\param [in] data 数据指针
 	/// \param [in] size 数据长度
 	bool input(uint8_t const* data, size_t size);
 
-	///数据一切都放好，计算hash值
-	bool Final();
-
-	/// 获取结果
-	/// \param [in] result 40位编码数据
-	bool result(uint32_t ret[5]);
-
 	///格式化结果值
-	bool report(std::string& str,REPORT_TYPE type);
+	std::string report(REPORT_TYPE type);
 private:
 	class Sha1Internal;
 	Sha1Internal* internal;

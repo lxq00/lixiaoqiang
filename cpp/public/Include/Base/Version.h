@@ -23,39 +23,50 @@ struct BASE_API Version
 {
 	int Major; //主要版本.
 	int Minor; //次要版本.
-	int Build; //内部版本号.
-	int Revision; //修订号.
+	int Build; //修订号.
+	std::string Revision; //修订号.
 
 
 	Version()
 	{
-		Major = Minor = Build = Revision = 0;
+		Major = Minor = Build  = 0;
 	}
-	std::string toString()
+	std::string toString() const
 	{
 		char ver[128];
-		snprintf_x(ver, 127, "%d.%d.%d.%d", Major, Minor, Build, Revision);
-		return std::string(ver);
+		snprintf_x(ver, 127, "%d.%d.%d", Major, Minor, Build);
+
+		return Revision == "" ? ver:std::string(ver)+"-"+ Revision;
 	}
 	bool parseString(const std::string& versionstr)
 	{
 #ifndef WIN32
 #define sscanf_s sscanf
 #endif
-		Major = Minor = Build = Revision = 0;
-		if (sscanf_s(versionstr.c_str(), "%d.%d.%d.%d", &Major, &Minor, &Build, &Revision) == 4)
+		Major = Minor = Build = 0;
+		Revision = "";
+
+		std::string versontmp = versionstr;
+		const char* revsiontmp = strchr(versontmp.c_str(), '-');
+		if (revsiontmp != NULL)
+		{
+			Revision = revsiontmp + 1;
+			versontmp = std::string(versontmp.c_str(), revsiontmp - revsiontmp + 1);
+		}
+		
+		if (sscanf_s(versontmp.c_str(), "%d.%d.%d.%d", &Major, &Minor, &Build, &Revision) == 4)
 		{
 			return true;
 		}
-		else if (sscanf_s(versionstr.c_str(), "%d.%d.%d", &Major, &Minor, &Build) == 3)
+		else if (sscanf_s(versontmp.c_str(), "%d.%d.%d", &Major, &Minor, &Build) == 3)
 		{
 			return true;
 		}
-		else if (sscanf_s(versionstr.c_str(), "%d.%d", &Major, &Minor) == 2)
+		else if (sscanf_s(versontmp.c_str(), "%d.%d", &Major, &Minor) == 2)
 		{
 			return true;
 		}
-		else if (sscanf_s(versionstr.c_str(), "%d", &Major) == 1)
+		else if (sscanf_s(versontmp.c_str(), "%d", &Major) == 1)
 		{
 			return true;
 		}
@@ -66,18 +77,20 @@ struct BASE_API Version
 		return Major < version.Major ||
 			(Major == version.Major && Minor < version.Minor) ||
 			(Major == version.Major && Minor == version.Minor && Build < version.Build) ||
-			(Major == version.Major && Minor == version.Minor && Build == version.Build && Revision < version.Revision);
+			(Major == version.Major && Minor == version.Minor && Build == version.Build && Revision != "" &&  version.Revision == "") ||
+			(Major == version.Major && Minor == version.Minor && Build == version.Build && Revision != "" &&  version.Revision != "" && strcmp(Revision.c_str(),version.Revision.c_str()) < 0);
 	}
 	bool operator > (const Version& version) const
 	{
 		return Major > version.Major ||
 			(Major == version.Major && Minor > version.Minor) ||
 			(Major == version.Major && Minor == version.Minor && Build > version.Build) ||
-			(Major == version.Major && Minor == version.Minor && Build == version.Build && Revision > version.Revision);
+			(Major == version.Major && Minor == version.Minor && Build == version.Build && Revision == "" && version.Revision != "") ||
+			(Major == version.Major && Minor == version.Minor && Build == version.Build && Revision != "" &&  version.Revision != "" && strcmp(Revision.c_str(), version.Revision.c_str()) > 0);
 	}
 	bool operator == (const Version& version) const
 	{
-		return Major == version.Major && Minor == version.Minor && Build == version.Build && Revision == version.Revision;
+		return toString() == version.toString();
 	}
 };
 
@@ -99,14 +112,14 @@ public:
 	/// \param revision 	[in] 修订版本号
 	/// \param svnString 	[in] svn版本号的字符串
 	/// \param dataString	[in]	时间字符串
-	AppVersion(const char* name, int major, int minor, int build, const char* svnString, const char* dateString);
+	AppVersion(const std::string& name, int major, int minor, int build, const std::string& revision, const std::string& dateString);
 
 	/// 版本信息打印
 	void print() const;
 
 	/// 设置应用程序编译日期
 	/// \param dateString [in] 时间字符串
-	static void setAppDate(const char* dateString);
+	static void setAppDate(const std::string& dateString);
 
 };
 

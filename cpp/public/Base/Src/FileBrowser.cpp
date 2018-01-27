@@ -4,6 +4,7 @@
 #include "Base/String.h"
 #include "Base/ReadWriteMutex.h"
 #include "Base/Guard.h"
+#include "Base/FileFind.h"
 #ifdef WIN32
 #include <windows.h>
 #else
@@ -23,9 +24,61 @@
 namespace Public {
 namespace Base {
 
-struct OrderByItem:public FileBrowser::Dirent
+struct Directory::DirectoryInternal
 {
-	OrderByItem(const FileBrowser::Dirent& dirent,FileBrowser::OrderMode _mode):mode(_mode)
+	FileFind	find;
+	std::string	path;
+
+	DirectoryInternal(const std::string& _path):find(_path),path(_path){}
+};
+
+Directory::Directory(const std::string& path)
+{
+	internal = new DirectoryInternal(path);
+}
+Directory::~Directory()
+{
+	SAFE_DELETE(internal);
+}
+
+bool Directory::read(Dirent& dir)
+{
+	while(true)
+	{
+		shared_ptr<FileFind::FileFindInfo> info = internal->find.find();
+		if (info == NULL)
+		{
+			return false;
+		}
+		if (info->getFileName() == "." || info->getFileName() == "..")
+		{
+			continue;
+		}
+		dir.Type = info->isDirectory() ? Dirent::DirentType_Dir : Dirent::DirentType_File;
+		dir.Name = info->getFileName();
+		dir.CompletePath = info->getFilePath();
+		dir.Path = internal->path;
+		const char* tmp = strrchr(dir.Name.c_str(), '.');
+		if (tmp != NULL)
+		{
+			dir.SuffixName = tmp + 1;
+		}
+
+		FileInfo finfo;
+		File::stat(dir.CompletePath, finfo);
+		dir.CreatTime = finfo.timeCreate;
+		dir.FileSize = finfo.size;
+
+		return true;
+	}
+
+	return false;
+}
+
+
+struct OrderByItem:public Directory::Dirent
+{
+	OrderByItem(const Directory::Dirent& dirent,FileBrowser::OrderMode _mode):mode(_mode)
 	{
 		Name = dirent.Name;
 		CompletePath = dirent.CompletePath;
@@ -35,9 +88,9 @@ struct OrderByItem:public FileBrowser::Dirent
 		CreatTime = dirent.CreatTime;
 		Type= dirent.Type;
 	}
-	FileBrowser::Dirent getDirent()
+	Directory::Dirent getDirent()
 	{
-		FileBrowser::Dirent dirent;
+		Directory::Dirent dirent;
 
 		dirent.Name = Name;
 		dirent.CompletePath = CompletePath;
@@ -55,7 +108,7 @@ struct OrderByItem:public FileBrowser::Dirent
 
 struct OrderByNameItem:public OrderByItem
 {
-	OrderByNameItem(const FileBrowser::Dirent& dirent,FileBrowser::OrderMode mode):OrderByItem(dirent,mode)
+	OrderByNameItem(const Directory::Dirent& dirent,FileBrowser::OrderMode mode):OrderByItem(dirent,mode)
 	{
 	}
 	
@@ -73,7 +126,7 @@ struct OrderByNameItem:public OrderByItem
 };
 struct OrderBySizeItem:public OrderByItem
 {
-	OrderBySizeItem(const FileBrowser::Dirent& dirent,FileBrowser::OrderMode mode):OrderByItem(dirent,mode)
+	OrderBySizeItem(const Directory::Dirent& dirent,FileBrowser::OrderMode mode):OrderByItem(dirent,mode)
 	{
 	}
 
@@ -91,7 +144,7 @@ struct OrderBySizeItem:public OrderByItem
 };
 struct OrderByCteatTimeItem:public OrderByItem
 {
-	OrderByCteatTimeItem(const FileBrowser::Dirent& dirent,FileBrowser::OrderMode mode):OrderByItem(dirent,mode)
+	OrderByCteatTimeItem(const Directory::Dirent& dirent,FileBrowser::OrderMode mode):OrderByItem(dirent,mode)
 	{
 	}
 
@@ -110,198 +163,44 @@ struct OrderByCteatTimeItem:public OrderByItem
 
 struct FileBrowser::FileBrowserInternal
 {
-	FileBrowserInternal(const std::string& dirpath):status(false),path(dirpath)
+	FileBrowserInternal(const std::string& dirpath):path(dirpath)
 	{
 		load(dirpath);
 	}
-#ifdef WIN32
+
 	static uint64_t getTotalFileSize(const std::string& dirpath)
 	{
 		uint64_t totalSize = 0;
-		
-		WIN32_FIND_DATA findData;
-		std::string path = dirpath + PATH_SEPARATOR + "*.*";	
-		HANDLE hFile = FindFirstFile(path.c_str(),&findData);
-		if(hFile == INVALID_HANDLE_VALUE)
+
+		Directory dirent(dirpath);
+
+		Directory::Dirent dinfo;
+		while (dirent.read(dinfo))
 		{
-			return 0;
-		}
-		
-		do{
-			if(strcmp(findData.cFileName,".") != 0 && strcmp(findData.cFileName,"..") != 0)
+			if (dinfo.Type == Directory::Dirent::DirentType_Dir)
 			{
-				std::string suffixName;
-				const char* tmp = strrchr(findData.cFileName,'.');
-				if(tmp != NULL)
-				{
-					suffixName = tmp + 1;
-				}
-				if((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && strcasecmp(suffixName.c_str(),"lnk") != 0)
-				{
-					std::string completePath = dirpath + std::string(std::string("")+PATH_SEPARATOR) + findData.cFileName;
-
-					totalSize += getTotalFileSize(completePath);
-				}
-				else
-				{
-					uint64_t high = findData.nFileSizeHigh;
-					totalSize += (high << 32) | findData.nFileSizeLow;
-				}
+				totalSize += getTotalFileSize(dinfo.CompletePath);
 			}
-		}while(FindNextFile(hFile,&findData));
-
-		FindClose(hFile);
+			else
+			{
+				totalSize += dinfo.FileSize;
+			}
+		}
 
 		return totalSize;
 	}
 	void load(const std::string& dirpath)
 	{
-		GuardWriteMutex guard(direntMutex);
-		WIN32_FIND_DATA findData;
+		Directory dirent(dirpath);
 
-		std::string path = dirpath + PATH_SEPARATOR + "*.*";
-		
-		HANDLE hFile = FindFirstFile(path.c_str(),&findData);
-		if(hFile == INVALID_HANDLE_VALUE)
+		Directory::Dirent dinfo;
+		while (dirent.read(dinfo))
 		{
-			int a = GetLastError();
-			return;
+			direntList.push_back(dinfo);
 		}
-		
-		do{
-			if(strcmp(findData.cFileName,".") != 0 && strcmp(findData.cFileName,"..") != 0)
-			{
-				Dirent dir;
-				
-				dir.Type = (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? Dirent::DirentType_Dir : Dirent::DirentType_File;
-				dir.Name = findData.cFileName;
-				dir.CompletePath = dirpath + std::string(std::string("")+PATH_SEPARATOR) + dir.Name;
-				dir.Path = dirpath;				
-				const char* tmp = strrchr(findData.cFileName,'.');
-				if(tmp != NULL)
-				{
-					dir.SuffixName = tmp + 1;
-				}
-
-				SYSTEMTIME systime;
-				FileTimeToSystemTime(&findData.ftLastAccessTime,&systime);
-
-				dir.CreatTime = Time(systime.wYear,systime.wMonth,systime.wDay,systime.wHour,systime.wMinute,systime.wSecond);
-
-				if(dir.Type == Dirent::DirentType_File)
-				{
-					uint64_t high = findData.nFileSizeHigh;
-					dir.FileSize = (high << 32) | findData.nFileSizeLow;
-				}
-				else
-				{	
-					dir.FileSize = 0;
-				}				
-				
-				direntList.push_back(dir);
-			}
-		}while(FindNextFile(hFile,&findData));
-
-		FindClose(hFile);
-		
-		status = true;
 	}	
-#else
-	static uint64_t getTotalFileSize(const std::string& dirpath)
-	{
-		uint64_t totalSize = 0;
-
-		DIR* pdir = opendir(dirpath.c_str());
-		if(pdir == NULL)
-		{
-			return 0;
-		}
-
-		dirent* pdirent;
-
-		while((pdirent = readdir(pdir)) != NULL)
-		{
-			if(strcmp(pdirent->d_name,".") == 0 || strcmp(pdirent->d_name,"..") == 0)
-			{
-				continue;
-			}
-			if(pdirent->d_type != DT_DIR && pdirent->d_type != DT_REG)
-			{
-				continue;
-			}
-			std::string completePath = dirpath + PATH_SEPARATOR + pdirent->d_name;
-			if((pdirent->d_type == DT_DIR))
-			{
-				totalSize += getTotalFileSize(completePath);
-			}
-			else
-			{
-				struct stat filestat;
-				stat(completePath.c_str(),&filestat);
-				totalSize += filestat.st_size;
-			}
-		}
-		closedir(pdir);
-
-		return totalSize;
-	}
-
-	void load(const std::string& dirpath)
-	{
-		GuardWriteMutex guard(direntMutex);
-		DIR* pdir = opendir(dirpath.c_str());
-		if(pdir == NULL)
-		{
-			return;
-		}
-
-		dirent* pdirent;
-
-		while((pdirent = readdir(pdir)) != NULL)
-		{
-			if(strcmp(pdirent->d_name,".") == 0 || strcmp(pdirent->d_name,"..") == 0)
-			{
-				continue;
-			}
-
-			Dirent dir;
-			dir.Type = (pdirent->d_type == DT_DIR) ? Dirent::DirentType_Dir : Dirent::DirentType_File;
-			dir.Name = pdirent->d_name;
-			dir.CompletePath = dirpath + PATH_SEPARATOR + dir.Name;
-			dir.Path = dirpath;
-			const char* tmp = strrchr(pdirent->d_name,'.');
-			if(tmp != NULL)
-			{
-				dir.SuffixName = tmp + 1;
-			}
-
-			struct stat filestat;
-			stat(dir.CompletePath.c_str(),&filestat);
-
-			Time creattime;
-			creattime.breakTime(filestat.st_atime);
-			dir.CreatTime = creattime;
-
-			if(dir.Type == Dirent::DirentType_File && !(pdirent->d_type == DT_LNK))
-			{
-				dir.FileSize = filestat.st_size;
-			}
-			else
-			{	
-				dir.FileSize = 0;
-			}				
-
-			direntList.push_back(dir);	
-		}
-		closedir(pdir);
-		
-		status = true;
-	}
-#endif
 public:
-	bool							status;
-	ReadWriteMutex					direntMutex;
-	std::vector<Dirent>				direntList;
+	std::vector<Directory::Dirent>	direntList;
 	std::string						path;
 };
 
@@ -315,7 +214,7 @@ FileBrowser::~FileBrowser()
 }
 bool FileBrowser::isExist() const
 {
-	return internal->status;
+	return File::access(internal->path,File::accessExist);
 }
 uint64_t FileBrowser::fileTotalSize(const std::string& path)
 {
@@ -352,9 +251,8 @@ bool FileBrowser::getFreeSpaceSize(const std::string& path,uint64_t& freeSize)
 #endif
 }
 
-bool FileBrowser::read(Dirent& dir,uint32_t index) const
+bool FileBrowser::read(Directory::Dirent& dir,uint32_t index) const
 {
-	GuardReadMutex guard(internal->direntMutex);
 	if(index >= internal->direntList.size())
 	{
 		return false;
@@ -368,13 +266,12 @@ bool FileBrowser::remove(const std::string& CompletePath)
 {
 	bool isdir = false;
 
-	GuardWriteMutex guard(internal->direntMutex);
-	std::vector<Dirent>::iterator iter;
+	std::vector<Directory::Dirent>::iterator iter;
 	for(iter = internal->direntList.begin();iter != internal->direntList.end();iter ++)
 	{
 		if(iter->CompletePath == CompletePath || iter->Path == CompletePath || iter->Name == CompletePath)
 		{
-			isdir = iter->Type == Dirent::DirentType_Dir;
+			isdir = iter->Type == Directory::Dirent::DirentType_Dir;
 			break;
 		}
 	}
@@ -391,7 +288,7 @@ bool FileBrowser::remove(const std::string& CompletePath)
 
 	if(ret)
 	{
-		std::vector<Dirent>::iterator iter;
+		std::vector<Directory::Dirent>::iterator iter;
 		for(iter = internal->direntList.begin();iter != internal->direntList.end();iter ++)
 		{
 			if(iter->CompletePath == CompletePath || iter->Path == CompletePath || iter->Name == CompletePath)
@@ -408,10 +305,9 @@ bool FileBrowser::remove(const std::string& CompletePath)
 
 void FileBrowser::order(OrderType type,OrderMode mode)
 {
-	GuardWriteMutex guard(internal->direntMutex);
 	if(type == OrderType_Name)
 	{
-		std::vector<Dirent>::iterator iter;
+		std::vector<Directory::Dirent>::iterator iter;
 		std::list<OrderByNameItem> nameList;
 		for(iter = internal->direntList.begin();iter != internal->direntList.end();iter ++)
 		{
@@ -427,7 +323,7 @@ void FileBrowser::order(OrderType type,OrderMode mode)
 	}
 	else if(type == OrderType_Size)
 	{
-		std::vector<Dirent>::iterator iter;
+		std::vector<Directory::Dirent>::iterator iter;
 		std::list<OrderBySizeItem> nameList;
 		for(iter = internal->direntList.begin();iter != internal->direntList.end();iter ++)
 		{
@@ -443,7 +339,7 @@ void FileBrowser::order(OrderType type,OrderMode mode)
 	}
 	else
 	{
-		std::vector<Dirent>::iterator iter;
+		std::vector<Directory::Dirent>::iterator iter;
 		std::list<OrderByCteatTimeItem> nameList;
 		for(iter = internal->direntList.begin();iter != internal->direntList.end();iter ++)
 		{

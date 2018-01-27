@@ -9,9 +9,8 @@ using namespace std;
 namespace Public {
 namespace Base {
 
-class BASE_API FileBrowser
+class BASE_API Directory
 {
-	struct FileBrowserInternal;
 public:
 	struct BASE_API Dirent
 	{
@@ -21,12 +20,26 @@ public:
 		std::string		SuffixName;
 		uint64_t		FileSize;
 		Time			CreatTime;
-		enum{
+		enum {
 			DirentType_Dir,
 			DirentType_File,
 		}				Type;
 
 	};
+public:
+	Directory(const std::string& path);
+	virtual ~Directory();
+
+	bool read(Dirent& dirent);
+private:
+	struct DirectoryInternal;
+	DirectoryInternal* internal;
+};
+
+class BASE_API FileBrowser
+{
+	struct FileBrowserInternal;
+public:
 	enum OrderType
 	{
 		OrderType_Name,
@@ -40,7 +53,7 @@ public:
 	};
 public:
 	FileBrowser(const std::string& dirpath);
-	~FileBrowser();
+	virtual ~FileBrowser();
 
 	bool isExist() const;
 	static uint64_t fileTotalSize(const std::string& path);
@@ -48,7 +61,7 @@ public:
 
 	void order(OrderType type,OrderMode mode);
 
-	bool read(Dirent& dir,uint32_t index) const;
+	bool read(Directory::Dirent& dir,uint32_t index) const;
 	bool remove(const std::string& CompletePath);
 private:
 	FileBrowserInternal* internal;

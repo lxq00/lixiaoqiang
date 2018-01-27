@@ -592,7 +592,7 @@ void Thread::load(int percent)
 class ThreadProcThread :public Thread
 {
 public:
-	ThreadProcThread(const char* name,const ThreadExProc& _proc, void* _param,int priority, int policy, int stackSize)
+	ThreadProcThread(const std::string& name,const ThreadEx::Proc& _proc, void* _param,int priority, int policy, int stackSize)
 	:Thread(name, priority, policy, stackSize),proc(_proc),param(_param)
 	{
 
@@ -601,15 +601,15 @@ public:
 	{
 		if(!(proc == NULL))
 		{
-			proc(param);
+			proc(this,param);
 		}		
 	}
 private:
-	ThreadExProc proc;
+	ThreadEx::Proc proc;
 	void*		param;
 };
 
-Thread* ThreadEx::creatThreadEx(const char* name,const ThreadExProc& proc, void* param, int priority, int policy, int stackSize)
+Thread* ThreadEx::creatThreadEx(const std::string& name,const ThreadEx::Proc& proc, void* param, int priority, int policy, int stackSize)
 {
 	ThreadProcThread *thread = new ThreadProcThread(name, proc, param, priority, policy, stackSize);
 	return thread;

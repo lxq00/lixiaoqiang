@@ -24,8 +24,7 @@ namespace Base {
 /// \brief 文件信息结构
 struct FileInfo
 {
-	enum {maxPathSize = 256};
-	char		name[maxPathSize];	///< 文件名
+	std::string	name;	///< 文件名
 	uint16_t	attrib;			///< 文件属性
 	uint64_t	timeCreate;	///< 文件创建时间
 	uint64_t	timeAccess;	///< 文件访问时间
@@ -108,20 +107,20 @@ public:
 	/// \param  dwFlags [in]打开标志,默认为modeReadWrite.
 	/// \retval true  打开成功
 	/// \retval false  打开失败,文件不存在或无法打开.
-	virtual bool open(const char* pFileName, uint32_t dwFlags = modeReadWrite);
+	virtual bool open(const std::string& pFileName, uint32_t dwFlags = modeReadWrite);
 
 	/// 关闭文件.
 	virtual void close();
+
+	bool isOpen();
 
 	/// 装载数据,申请和文件长度一样大小的缓冲,将文件内容读到该缓冲,返回缓冲指针.
 	/// 和unload函数一起提供方便
 	/// \param  pFileName [in] 文件名.
 	/// \retval NULL  装载失败
 	/// \retval !NULL  数据缓冲指针.
-	virtual uint8_t* load(const char* pFileName);
+	virtual std::string load(const std::string& pFileName);
 
-	/// 释放数据缓冲
-	virtual void unload();
 
 	/// 读文件数据.读操作后文件指针自动累加.
 	/// \param pBuffer [out]  数据缓冲的指针.
@@ -152,7 +151,7 @@ public:
 
 	/// 获得文件长度
 	/// \retval 文件长度
-	virtual uint64_t getLength();
+	static uint64_t getLength(const std::string& pFileName);
 
 	/// 从文本文件当前偏移处读取一行字符串.读操作后文件指针自动累加.
 	/// \param s [out]  数据缓冲.
@@ -166,47 +165,38 @@ public:
 	/// \retval  实际写入字符串长度.
 	virtual long puts(const char* s);
 
-	/// 判断文件是否打开
-	/// \retval true 已经打开
-	/// \retval false 没有打开
-	virtual bool isOpen();
-
 	/// 获取当前可执行程序的文件名
-	/// \param s [out]  数据缓冲.
-	/// \param size [in]  需要读取的字符串长度.
-	/// \retval 实际得到的字符串长度,失败返回-1
-	static size_t getExcutableFileName(char* s, size_t size);
+	/// \retval 实际得到的字符串,失败返回""
+	static std::string getExcutableFileName();
 
 	/// 获取当前可执行程序文件的绝对路径
-	/// \param s [out]  数据缓冲.
-	/// \param size [in]  需要读取的字符串长度.
-	/// \retval 实际得到的字符串长度,失败返回-1
-	static size_t getExcutableFileFullPath(char* s, size_t size);
+	/// \retval 实际得到的字符串,失败返回""
+	static std::string getExcutableFileFullPath();
 
 	/// 重命名文件
 	/// \param oldName [in] 旧的文件名
 	/// \param oldName [in] 新的文件名
 	/// \retval true  成功
 	/// \retval false 失败
-	static bool rename(const char* oldName, const char* newName);
+	static bool rename(const std::string& oldName, const std::string& newName);
 
 	/// 删除文件
 	/// \param fileName [in] 文件名
 	/// \retval true  成功
 	/// \retval false 失败
-	static bool remove(const char* fileName);
+	static bool remove(const std::string& fileName);
 
 	/// 创建目录
 	/// \param dirName [in] 目录名
 	/// \retval true  成功
 	/// \retval false 失败
-	static bool makeDirectory(const char* dirName);
+	static bool makeDirectory(const std::string& dirName);
 
 	/// 删除目录
 	/// \param dirName [in] 目录名
 	/// \retval true  成功
 	/// \retval false 失败
-	static bool removeDirectory(const char* dirName);
+	static bool removeDirectory(const std::string& dirName);
 
 	/// 文件系统统计
 	/// \param path [in]任意路径,不一定是分区根目录.
@@ -216,95 +206,25 @@ public:
 	///        空间配额,userFreeBytes可能会比totalFreeBytes小
 	/// \retval true  成功
 	/// \retval false 失败
-	static bool statFS(const char* path,
-		uint64_t& userFreeBytes,
-		uint64_t& totalBytes,
-		uint64_t& totalFreeBytes);
+	static bool statFS(const std::string& path,uint64_t& userFreeBytes,uint64_t& totalBytes,uint64_t& totalFreeBytes);
 
 	/// 判断文件或目录访问权限
 	/// \param path [in]文件或目录的路径.
 	/// \param mode [in]访问权限,\see AccessMode
 	/// \retval true  有权限
 	/// \retval false 没有权限
-	static bool access(const char* path, int mode);
+	static bool access(const std::string& path, AccessMode mode);
 
 	/// 根据路径获取文件信息
 	/// \param path [out]文件或目录的路径.
 	/// \param info [out]文件信息,\see FileInfo
 	/// \retval true  成功
 	/// \retval false 失败
-	static bool stat(const char* path, FileInfo& info);
+	static bool stat(const std::string& path, FileInfo& info);
 
 protected:
 	struct FileInternal;
 	FileInternal* internal;
-};
-
-////////////////////////////////////////////////////////////////////////////////
-
-/// \class FileFind
-/// \brief 文件查找类,支持'*','?'通配符查找
-class BASE_API FileFind
-{
-	FileFind(FileFind const&);
-	FileFind& operator=(FileFind const&);
-
-public:
-	/// 构造函数
-	FileFind();
-
-	/// 析构函数
-	virtual ~FileFind();
-
-	/// 查找第一个文件
-	/// \param fileName [in] 包含通配符的路径名
-	/// \retval ture 找到
-	/// \retval false 没有找到
-	virtual bool findFile(const char* fileName);
-
-	/// 查找下一个文件,使用和上次findFile相同的条件,必须在findFile之后调用(Linux端有问题)
-	/// \retval ture 找到
-	/// \retval false 没有找到
-	virtual bool findNextFile();
-
-	/// 关闭查找,关闭后可以再次调用findFile
-	virtual void close();
-
-	/// 得到查找到的文件的长度
-	/// \retval 文件长度
-	virtual size_t getLength();
-
-	/// 得到查找到的文件的文件名
-	/// \retval 文件名称
-	virtual std::string getFileName();
-
-	/// 得到查找到的文件的全路径
-	/// \retval 全路径
-	virtual std::string getFilePath();
-
-	/// 是否为只读文件
-	/// \retval true 只读
-	/// \retval false 不是只读
-	virtual bool isReadOnly();
-
-	/// 是否为目录文件
-	/// \retval true 是目录
-	/// \retval false 不是目录
-	virtual bool isDirectory();
-
-	/// 是否为隐藏文件
-	/// \retval true 是
-	/// \retval false 不是
-	virtual bool isHidden();
-
-	/// 是否为普通文件
-	/// \retval true 是
-	/// \retval false 不是	
-	virtual bool isNormal();
-
-protected:
-	struct FileFindInternal;
-	FileFindInternal* internal;
 };
 
 } // namespace Base

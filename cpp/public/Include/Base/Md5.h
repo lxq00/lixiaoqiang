@@ -41,12 +41,12 @@ public:
 	void update(uint8_t const* data, size_t size);
 
 	///	生成16字节MD5摘要
-	///	\param [out] digest 摘要输出缓存，不可小于16字节！
-	void final(uint8_t* digest);
+	///	\param [out]  摘要输出缓存，不可小于16字节！
+	std::string final();
 
 	///	生成32字节MD5摘要哈希(16进制小写字符串)
 	///	\param [out] hash 摘要哈希输出缓存，不可小于32字节！
-	void hex(char* hash);
+	std::string hex();
 
 private:
 	struct Md5Internal;

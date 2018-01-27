@@ -132,7 +132,7 @@ public:
 	typedef Function2<void,void*,CloseEvent> 	closeEventCallback;
 public:
 	/// 打印 Base库 版本信息
-	static void  printLibVersion();
+	static void  printVersion();
 
 	//初始化Base、并注册一个关闭事件通知回调
 	static void init(const closeEventCallback& closeEvent = NULL,void* userdata = NULL);
@@ -140,13 +140,13 @@ public:
 	static void uninit();
 
 	//主动退出
-	static void ConsoleCommandClose(CloseEvent cmd);
+	static void consoleCommandClose(CloseEvent cmd);
 
 	//等待base退出接口、当使用输入终端时不适用该接口、该接口未堵塞模式
-	static void WaitSystemClose();
+	static void waitSystemClose();
 
 	//自动延时强制退出
-	static void AutoExitDelayer(uint64_t delaySecond = 30);
+	static void autoExitDelayer(uint64_t delaySecond = 30);
 };
 
 } // namespace Component

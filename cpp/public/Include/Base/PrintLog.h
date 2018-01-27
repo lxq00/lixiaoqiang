@@ -34,7 +34,6 @@ typedef Function2<void,LOG_Level,char const*> LogPrinterProc;
 
 std::string BASE_API getLogTimeAndLevelString(LOG_Level lev);
 
-void BASE_API initPrintLog();
 
 ///设置打印等级
 //0:off 1:fatal 2:error 3:warn 4:info 5:trace 6:debug
@@ -73,29 +72,6 @@ int BASE_API logerror(const char* fmt, ...);
 /// \return 返回打印的字节数
 int BASE_API logfatal(const char* fmt, ...);
 
-/// 以16进制和字符对应的方式打印内存数据
-/// \param pdat [in] 数据缓冲指针
-/// \param length [in] 数据缓冲长度
-void BASE_API dumpHex(unsigned char* pdat, size_t length = 512);
-
-
-#ifdef __GNUC__ 
-#	define debugf(format, ...) logdebug(format, ## __VA_ARGS__)
-#	define tracef(format, ...) logtrace(format, ## __VA_ARGS__)
-#	define infof(format, ...) loginfo(format, ## __VA_ARGS__)
-#	define warnf(format, ...) logwarn(format, ## __VA_ARGS__)
-#	define errorf(format, ...) logerror(format, ## __VA_ARGS__)
-#	define fatalf(format, ...) logfatal(format, ## __VA_ARGS__)
-#else
-#	define debugf logdebug
-#	define tracef logtrace
-#	define infof loginfo
-#	define warnf logwarn
-#	define errorf logerror
-#	define fatalf logfatal
-#endif
-
-#define tracepoint()  logdebug("tracepoint: %s, %d.\n",__FILE__,__LINE__)
 
 } // namespace Base
 } // namespace Public

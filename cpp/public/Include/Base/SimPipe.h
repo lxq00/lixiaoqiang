@@ -58,15 +58,6 @@ public:
 	/// \note  read 和readEx两个的调用 是线程不安全的,
 	int read(void *buf, size_t len);
 
-	/// 扩展读数据，必须读len长度
-	/// \param buf [out] 读数据地址
-	/// \param len [in] 数据长度
-	/// \retval  > 0 成功
-	///          = 0 数据不够
-	///          < 0 失败
-	/// \note  read 和readEx两个的调用 是线程不安全的,
-	int readEx(void *buf, size_t len);
-	
 	typedef enum {
 		seekPos_Cur,
 		seekPos_Head,

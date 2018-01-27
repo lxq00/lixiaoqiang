@@ -13,13 +13,13 @@ namespace Public {
 namespace Base {
 
 /// 打印 Base库 版本信息
-void BaseSystem::printLibVersion()
+void BaseSystem::printVersion()
 {
 	Public::Base::AppVersion appVersion("Base Lib", r_major, r_minor, r_build, versionalias, __DATE__);
 	appVersion.print();
 }
 
-void BaseSystem::AutoExitDelayer(uint64_t delaySecond /* = 30 */)
+void BaseSystem::autoExitDelayer(uint64_t delaySecond /* = 30 */)
 {
 #ifdef WIN32
 	uint32_t processId = GetCurrentProcessId();
@@ -60,14 +60,14 @@ static bool 								systemIsClose = false;
 static Semaphore							closeSem;
 static BaseSystem::CloseEvent			closeCmd;
 
-void BaseSystem::ConsoleCommandClose(CloseEvent cmd)
+void BaseSystem::consoleCommandClose(CloseEvent cmd)
 {
 	closeCmd = cmd;
 	systemIsClose = true;
 	closeSem.post();
 }
 
-void BaseSystem::WaitSystemClose()
+void BaseSystem::waitSystemClose()
 {
 	closeSem.pend();
 	if(systemIsClose)
@@ -88,17 +88,17 @@ bool consoleHandler(DWORD event)
 	switch(event)
 	{
 	case CTRL_C_EVENT:
-		BaseSystem::ConsoleCommandClose(BaseSystem::CloseEvent_CTRLC);
+		BaseSystem::consoleCommandClose(BaseSystem::CloseEvent_CTRLC);
 		break;
 	case CTRL_BREAK_EVENT:
-		BaseSystem::ConsoleCommandClose(BaseSystem::CloseEvent_CTRLBREAK);
+		BaseSystem::consoleCommandClose(BaseSystem::CloseEvent_CTRLBREAK);
 		break;
 	case CTRL_CLOSE_EVENT:
-		BaseSystem::ConsoleCommandClose(BaseSystem::CloseEvent_ONCLOSE);
+		BaseSystem::consoleCommandClose(BaseSystem::CloseEvent_ONCLOSE);
 		break;
 	case CTRL_SHUTDOWN_EVENT:
 	case CTRL_LOGOFF_EVENT:
-		BaseSystem::ConsoleCommandClose(BaseSystem::CloseEvent_LOGOFF);
+		BaseSystem::consoleCommandClose(BaseSystem::CloseEvent_LOGOFF);
 		break;
 	default:
 		break;
