@@ -36,7 +36,7 @@ class ProcessImpl : public Process
 {
 public:
 	/// ¹¹Ôìº¯Êý
-	ProcessImpl(const char *name, int argc , const char *argv[],bool relation) 
+	ProcessImpl(const std::string& name, int argc , const char *argv[],bool relation) 
 	:handle(0)
 	{
 #ifdef WIN32
@@ -54,10 +54,10 @@ public:
 			Base::snprintf_x(param, 512, "%s %s", param, argv[i]);
 		}
 
-		if (!CreateProcessA((LPSTR)name,((argc > 0)?(LPSTR)(param):NULL), NULL, NULL, FALSE, 0, NULL, NULL, &StartupInfo, &ProcessInformation))
+		if (!CreateProcessA((LPSTR)name.c_str(),((argc > 0)?(LPSTR)(param):NULL), NULL, NULL, FALSE, 0, NULL, NULL, &StartupInfo, &ProcessInformation))
 		{
 			DWORD ret = GetLastError();
-			logwarn("Can't open process:%s: errno (%d) \n", name, ret);
+			logwarn("Can't open process:%s: errno (%d) \n", name.c_str(), ret);
 			isok = false;
 			handle = NULL;
 			return ;
@@ -84,24 +84,24 @@ public:
 			{
 				char *args[argc + 2];
 				int i = 1;
-				args[0] = (char *)name;
+				args[0] = (char *)name.c_str();
 				for (; i < argc + 1; i++)
 				{
 					args[i] = (char *)argv[i - 1];
 				}	
 				args[i] = NULL;
-				execv(name, args);
+				execv(name.c_str(), args);
 			}
 			else
 			{
-				execl(name, name, (char *)NULL);
+				execl(name.c_str(), name.c_str(), (char *)NULL);
 			}
 			//logwarn("Can't run sub process:%s:%s \n", name, strerror(errno));
 			_exit(1);
 		}
 		if (handle == -1)
 		{
-			logwarn("Can't open process:%s:%s \n", name, strerror(errno));
+			logwarn("Can't open process:%s:%s \n", name.c_str() strerror(errno));
 			isok = false;
 			return ;
 		}
@@ -207,19 +207,19 @@ private:
 
 
 
-Process * Process::createProcess(const char *name, int argc , const char *argv[],bool relation)
+shared_ptr<Process> Process::createProcess(const std::string& name, int argc , const char *argv[],bool relation)
 	
 {
-	ProcessImpl *impl = new ProcessImpl(name, argc, argv,relation);
+	shared_ptr<ProcessImpl> impl;
+	impl = new ProcessImpl(name, argc, argv, relation);
 	if (impl->isrunning())
 	{
 		return impl;
 	}else{
-		delete impl;
-		return NULL;
+		return shared_ptr<Process>();
 	}
 
-	return NULL;
+	return shared_ptr<Process>();
 }
 
 bool Process::existByPid(int pid)

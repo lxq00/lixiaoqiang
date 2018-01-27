@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2010
+VisualStudioVersion = 15.0.27130.2024
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Base", "Base\Base.vcxproj", "{1A207225-9188-4FCC-9198-E20188F87C4A}"
 EndProject
@@ -13,7 +13,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HTTP", "HTTP\HTTP.vcxproj", "{71F87FB4-D088-4CC9-AE2A-0A59571D0676}"
 	ProjectSection(ProjectDependencies) = postProject
 		{1A207225-9188-4FCC-9198-E20188F87C4A} = {1A207225-9188-4FCC-9198-E20188F87C4A}
-		{00D374D2-FF31-4627-BCCE-F597B4769959} = {00D374D2-FF31-4627-BCCE-F597B4769959}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Excel", "Excel\Excel.vcxproj", "{0DE75FED-7C09-480F-863E-20E900C8459A}"

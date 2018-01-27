@@ -58,6 +58,7 @@ public:
 		bool isEmpty() const;
 	private:
 		std::string valuestring;
+		Type		valuetype;
 	};
 	struct BASE_API URIObject
 	{

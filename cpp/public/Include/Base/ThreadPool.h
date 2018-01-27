@@ -28,7 +28,7 @@ class BASE_API ThreadPool
 public:
 	struct ThreadPoolInternal;
 	///线程池执行回调函数
-	typedef Function1<void, void*> ThreadPoolHandler;
+	typedef Function1<void, void*> Proc;
 public:
 	/// 析构函数，创建和销毁线程池
 	/// param[in] type    线程池工作模式
@@ -41,7 +41,7 @@ public:
 	/// param func[in] 需要执行的函数指针
 	/// param param[n] 需要执行该函数指针的参数
 	/// param [out] 0成功、-1失败
-	bool dispatch(const ThreadPoolHandler& func,void* param);
+	bool dispatch(const Proc& func,void* param);
 private:
 	ThreadPoolInternal* internal;
 };

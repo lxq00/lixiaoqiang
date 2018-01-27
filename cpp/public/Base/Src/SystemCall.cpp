@@ -97,12 +97,12 @@ inline int windows_system(const char* cmd)
 namespace Public{
 namespace Base {
 
-int BASE_API SystemCall(const char* command)
+int SystemCall(const std::string& command)
 {
 #ifndef WIN32
-	return linux_system(command);
+	return linux_system(command.c_str());
 #else
-	return windows_system(command);
+	return windows_system(command.c_str());
 #endif
 }
 

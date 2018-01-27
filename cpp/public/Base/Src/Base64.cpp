@@ -34,10 +34,6 @@ static const unsigned char pr2six[256] =
 static const char basis_64[] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"; 
 	
-int Base64::encodelen(int len)
-{
-	return ((len + 2) / 3 * 4) + 1;	
-}
 
 /// base46 encode
 std::string Base64::encode(const std::string& src)

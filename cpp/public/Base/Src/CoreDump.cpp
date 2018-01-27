@@ -3,6 +3,7 @@
 #include "Base/Thread.h"
 #include "Base/String.h"
 #include "Base/System.h"
+#include "Base/FileFind.h"
 #ifdef WIN32
 #include <windows.h>
 #include <DbgHelp.h>
@@ -33,11 +34,8 @@ std::string getRecordPath(const std::string& path)
 	{
 		return path;
 	}
-
-	char buffer[256]= {0};
-	File::getExcutableFileFullPath(buffer,255);
-
-	return buffer;
+	
+	return File::getExcutableFileFullPath();
 }
 
 std::string getRecordFile(const std::string& path)
@@ -52,53 +50,51 @@ void findAndCheckCore()
 #else
 	std::string path = getRecordPath(dumpSavePath) + PATH_SEPARATOR + "core.*";
 #endif
-	FileFind finder;
+	FileFind finder(path);
 
-	if (finder.findFile(path.c_str()))
+	while (true)
 	{
-		do
+		shared_ptr<FileFind::FileFindInfo> info = finder.find();
+		if (info == NULL)
 		{
-			std::string filename = finder.getFilePath();
+			break;
+		}
 
-			if (File::access(filename.c_str(), File::accessExist))
+		std::string filename = info->getFilePath();
+
+		if (File::access(filename.c_str(), File::accessExist))
+		{
+			FileInfo fileinfo;
+			File::stat(filename.c_str(), fileinfo);
+			if (fileinfo.size == 0)
 			{
-				FileInfo fileinfo;
-				File::stat(filename.c_str(), fileinfo);
-				if (fileinfo.size == 0)
-				{
-					File::remove(filename.c_str());
-					continue;
-				}
+				File::remove(filename.c_str());
+				continue;
+			}
 
-				Time creatFileTime(fileinfo.timeWrite);
+			Time creatFileTime(fileinfo.timeWrite);
 
-				char buffer[256] = { 0 };
-				snprintf_x(buffer, 127, "echo %s >> \"%s\"", creatFileTime.buildVGSIITimeString().c_str(), getRecordFile(dumpSavePath).c_str());
-				SystemCall(buffer);
-
-				File::getExcutableFileName(buffer, 127);
-
-				char dumpfilename[256] = { 0 };
-				snprintf_x(dumpfilename, 255, "%s/%s_%04d%02d%02d%02d%02d%02d"
+			char buffer[256] = { 0 };
+			snprintf_x(buffer, 127, "echo %s >> \"%s\"", creatFileTime.format().c_str(), getRecordFile(dumpSavePath).c_str());
+			SystemCall(buffer);
+			
+			char dumpfilename[256] = { 0 };
+			snprintf_x(dumpfilename, 255, "%s/%s_%04d%02d%02d%02d%02d%02d"
 #ifdef WIN32
 				".dmp"
 #else
 				".core"
 #endif
-					, getRecordPath(dumpSavePath).c_str(), buffer, creatFileTime.year, creatFileTime.month, creatFileTime.day, creatFileTime.hour, creatFileTime.minute, creatFileTime.second);
+				, getRecordPath(dumpSavePath).c_str(), File::getExcutableFileName().c_str(), creatFileTime.year, creatFileTime.month, creatFileTime.day, creatFileTime.hour, creatFileTime.minute, creatFileTime.second);
 
 #ifdef WIN32
-				snprintf_x(buffer, 255, "move \"%s\" \"%s\"", filename.c_str(), dumpfilename);
+			snprintf_x(buffer, 255, "move \"%s\" \"%s\"", filename.c_str(), dumpfilename);
 #else
-				snprintf_x(buffer, 255, "mv %s %s", filename.c_str(), dumpfilename);
+			snprintf_x(buffer, 255, "mv %s %s", filename.c_str(), dumpfilename);
 #endif
-				
-				SystemCall(buffer);
-			}
 
-		} while (finder.findNextFile());
-
-		finder.close();
+			SystemCall(buffer);
+		}
 	}
 }
 
@@ -176,10 +172,7 @@ inline void CreateMiniDump(PEXCEPTION_POINTERS pep, LPCTSTR strFileName)
 std::string getDumpFileNameAndWriteRecord()
 {
 	Time currtime = Time::getCurrentTime();
-
-	char buffer[128] = { 0 };
-	File::getExcutableFileName(buffer, 127);
-
+	
 	char dumpfilename[256] = { 0 };
 	snprintf_x(dumpfilename, 255, "%s/dmp.%04d%02d%02d%02d%02d%02d",
 		getRecordPath(dumpSavePath).c_str(), currtime.year, currtime.month, currtime.day, currtime.hour, currtime.minute, currtime.second);
@@ -265,7 +258,7 @@ bool CoreDump::getCoreDumpRecord(std::list<Time>& record,const std::string& save
 	while(fgets(buffer,255,fd) != NULL)
 	{
 		Time tmp = Time::getCurrentTime();
-		tmp.parseVGSIITimeString(buffer);
+		tmp.parse(buffer);
 		record.push_back(tmp);
 	}
 
@@ -304,25 +297,28 @@ bool CoreDump::cleanCoreDumpReocrdByTimeout(uint32_t maxDay,uint32_t maxNum,cons
 #endif // WIN32
 
 	std::list<CoreDumpFileInfo>		coreDumpList;
-	FileFind finder;
-	
-	if (finder.findFile(path.c_str()))
+	FileFind finder(path);
+
+	while (true)
 	{
-		do 
+		shared_ptr<FileFind::FileFindInfo> info = finder.find();
+		if (info == NULL)
 		{
-			std::string filename = finder.getFilePath();
+			break;
+		}
 
-			FileInfo fileinfo;
-			File::stat(filename.c_str(),fileinfo);
-			
-			CoreDumpFileInfo info;
-			info.createTime = fileinfo.timeCreate;
-			info.filename = filename;
-			
-			coreDumpList.push_back(info);
+		std::string filename = info->getFilePath();
 
-		} while (finder.findNextFile());
+		FileInfo fileinfo;
+		File::stat(filename.c_str(), fileinfo);
+
+		CoreDumpFileInfo cinfo;
+		cinfo.createTime = fileinfo.timeCreate;
+		cinfo.filename = filename;
+
+		coreDumpList.push_back(cinfo);
 	}
+	
 	coreDumpList.sort();
 	Time currTime = Time::getCurrentTime();
 
@@ -355,17 +351,20 @@ bool CoreDump::cleanCoreDumpReocrd(const std::string& savePath)
 	std::string path = getRecordPath(savePath) + PATH_SEPARATOR + "*.core";
 #endif // WIN32
 
-	FileFind finder;
-	Time currTime = Time::getCurrentTime();
-	if (finder.findFile(path.c_str()))
+	FileFind finder(path);
+
+	while (true)
 	{
-		do 
+		shared_ptr<FileFind::FileFindInfo> info = finder.find();
+		if (info == NULL)
 		{
-			std::string filename = finder.getFilePath();
+			break;
+		}
 
-			File::remove(filename.c_str());
+		std::string filename = info->getFilePath();
 
-		} while (finder.findNextFile());
+		File::remove(filename.c_str());
+
 	}
 
 	return true;
@@ -381,17 +380,19 @@ bool CoreDump::getCoreDumpFileList(std::list<std::string>& filelist,const std::s
 	std::string path = getRecordPath(savePath) + PATH_SEPARATOR + "*.core";
 #endif // WIN32
 
-	FileFind finder;
-	Time currTime = Time::getCurrentTime();
-	if (finder.findFile(path.c_str()))
+	FileFind finder(path);
+
+	while (true)
 	{
-		do 
+		shared_ptr<FileFind::FileFindInfo> info = finder.find();
+		if (info == NULL)
 		{
-			std::string filename = finder.getFilePath();
+			break;
+		}
 
-			filelist.push_back(filename);
+		std::string filename = info->getFilePath();
 
-		} while (finder.findNextFile());
+		filelist.push_back(filename);
 	}
 
 	return true;

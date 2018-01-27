@@ -16,6 +16,7 @@
 
 #include "Base/Defs.h"
 #include "Base/IntTypes.h"
+#include "Base/Shared_ptr.h"
 
 namespace Public {
 namespace Base {
@@ -81,7 +82,7 @@ public:
 	/// 查找第一个文件
 	/// \retval object 找到
 	/// \retval null 没有找到
-	shared_ptr<FileFindInfo>  find();
+	shared_ptr<FileFind::FileFindInfo>  find();
 private:
 	struct FileFindInternal;
 	FileFindInternal* internal;

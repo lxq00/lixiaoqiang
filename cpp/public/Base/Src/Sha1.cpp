@@ -234,74 +234,57 @@ Sha1::~Sha1()
 {
 	delete internal;
 }
-bool Sha1::hashFile(const std::string& file)
+std::string Sha1::hashFile(const std::string& file, REPORT_TYPE type)
 {
 	FILE* fpIn = fopen(file.c_str(), "rb");
 	if(fpIn == NULL)
 	{
-		return false;
+		return "";
 	}
-	char* pbData = new char[SHA1_MAX_FILE_BUFFER];
-	if(pbData == NULL)
+	Sha1 sa1;
+
+	char buffer[1024];
+	while (true)
 	{
-		fclose(fpIn); 
-		return false; 
-	}
-
-	bool bSuccess = true;
-	while(true)
-	{
-		const size_t uRead = fread(pbData, 1, SHA1_MAX_FILE_BUFFER, fpIn);
-
-		if(uRead > 0)
-			internal->Update((const unsigned char*)pbData, uRead);
-
-		if(uRead < SHA1_MAX_FILE_BUFFER)
+		int readlen = fread(buffer, 1, 1024, fpIn);
+		if (readlen <= 0)
 		{
-			if(feof(fpIn) == 0)
-			{
-				bSuccess = false;
-			}
 			break;
 		}
+
+		sa1.input(buffer, readlen);
 	}
-
 	fclose(fpIn);
-	delete[] pbData;
 
-	return bSuccess;
+
+	return sa1.report(type);
 }
-bool Sha1::input(uint8_t const* data, size_t size)
+bool Sha1::input(char const* data, size_t size)
 {
 	if(data == NULL || size == 0)
 	{
 		return false;
 	}
 
-	internal->Update(data,size);
+	internal->Update((const unsigned char*)data,size);
 
 	return true;
 }
-bool Sha1::Final()
+
+
+std::string Sha1::report(REPORT_TYPE type)
 {
 	internal->Final();
 
-	return true;
-}
-bool Sha1::result(uint32_t ret[5])
-{
-	return internal->GetHash((unsigned char*)ret);
-}
-bool Sha1::report(std::string& str,REPORT_TYPE type)
-{
-	char tszOut[84];
+	char tszOut[84] = { 0 };
 	const bool bResult = internal->ReportHash(tszOut, type);
-	if(bResult)
+	if (!bResult)
 	{
-		str = tszOut;
+		return "";
 	}
-	return bResult;
+	return tszOut;
 }
+
 } // namespace Base
 } // namespace Public
 

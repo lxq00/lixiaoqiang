@@ -184,7 +184,7 @@ public:
 					{
 						mutex.leave();
 						Thread::sleep(1);
-						infof("CALLBACK_TEMPL::Detach wait callback exit!\n");
+						loginfo("CALLBACK_TEMPL::Detach wait callback exit!\n");
 						mutex.enter();
 					}
 				}
@@ -217,7 +217,7 @@ public:
 					{
 						mutex.leave();
 						Thread::sleep(1);
-						infof("CALLBACK_TEMPL::Detach wait callback exit!\n");
+						loginfo("CALLBACK_TEMPL::Detach wait callback exit!\n");
 						mutex.enter();
 					}
 				}

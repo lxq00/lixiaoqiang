@@ -65,13 +65,13 @@ public:
 	/// \param [in] src 源字符串
 	/// \retval 空string 转换失败
 	///         非空string 转换结果
-	std::string ansi2utf8(const std::string& src);
+	static std::string ansi2utf8(const std::string& src);
 
 	/// utf8转换字符串为 Ansi(Gb2312)格式  扩展接口(linux 只支持转换后结果不超过1024bytes)
 	/// \param [in] src 源字符串
 	/// \retval 空string 转换失败
 	///         非空string 转换结果
-	std::string utf82ansi(const std::string& src);
+	static std::string utf82ansi(const std::string& src);
 };
 
 #ifdef WIN32

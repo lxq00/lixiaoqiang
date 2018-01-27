@@ -185,12 +185,7 @@ public:
 	{
 		return len;
 	}
-
-	void dumpData(const uint32_t offset, const uint32_t len)
-	{
-		dumpHex(buf + offset, len);
-	}
-
+	
 	const std::string &getname() const
 	{
 		return name;
@@ -222,27 +217,27 @@ ShareMem::ShareMem(const std::string &sharename, const size_t size, bool iscreat
 }
 
 
-ShareMem * ShareMem::create(const std::string &sharename, const size_t size)
+shared_ptr<ShareMem> ShareMem::create(const std::string &sharename, const size_t size)
 {
-	ShareMem *p = new ShareMem(sharename, size, true,NULL);
-	if (p->internal->isValid())
-		return p;
+	shared_ptr<ShareMem> mem;
+	mem  = new ShareMem(sharename, size, true,NULL);
+	if (mem->internal->isValid())
+		return mem;
 	else
 	{
-		delete p;
-		return NULL;
+		return shared_ptr<ShareMem>();
 	}
 
 }
-ShareMem * ShareMem::open(const std::string &sharename, const size_t size,void* startaddr)
+shared_ptr<ShareMem> ShareMem::open(const std::string &sharename, const size_t size,void* startaddr)
 {
-	ShareMem *p = new ShareMem(sharename, size, false,startaddr);
+	shared_ptr<ShareMem> p;
+	p = new ShareMem(sharename, size, false,startaddr);
 	if (p->internal->isValid())
 		return p;
 	else
 	{
-		delete p;
-		return NULL;
+		return shared_ptr<ShareMem>();
 	}
 
 }
@@ -262,11 +257,7 @@ size_t ShareMem::getSize()
 	return internal->getSize();
 }
 
-	/// 打印内存节点的状态,仅用于调试
-void ShareMem::dumpData(const uint32_t offset, const uint32_t len)
-{
-	return internal->dumpData(offset, len);
-}
+
 const std::string &ShareMem::getname() const
 {
 	return internal->getname();

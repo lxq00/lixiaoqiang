@@ -13,7 +13,7 @@
 #include "Mutex.h"
 #include "RecursiveMutex.h"
 #include "ReadWriteMutex.h"
-
+#include "Shared_ptr.h"
 namespace Public{
 namespace Base{
 
@@ -37,7 +37,14 @@ public:
 			mutex->enter();
 		}		
 	};
-
+	inline Guard(const shared_ptr<ILockerObjcPtr>& ptr)
+		:mutex(ptr.get())
+	{
+		if (mutex != NULL)
+		{
+			mutex->enter();
+		}
+	};
 	inline Guard(ILockerObjcPtr* ptr)
 		:mutex(ptr)
 	{

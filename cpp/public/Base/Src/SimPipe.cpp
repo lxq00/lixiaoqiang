@@ -75,20 +75,7 @@ struct SimPipe::Internal
 		}
 		return rlen;
 	}
-	int readEx(void *buf, size_t len)
-	{
-		if (writepos - readpos < len)
-			return 0;
-		Guard guard(mutex);
-		::fseek(file,  (long)readpos, SEEK_SET);
-		int rlen = ::fread(buf,1,  len, file);
-		if (rlen >= 0)
-		{
-			readpos += rlen;
-			return 1;
-		}
-		return -1;
-	}
+	
 	bool readSeek(const int64_t &offset, SimPipe::SeekPos pos)
 	{
 		Guard guard(mutex);
@@ -225,21 +212,7 @@ int SimPipe::read(void *buf, size_t len)
 	return internal->read(buf, len);
 }
 
-/// 扩展读数据，必须读len长度
-/// \param buf [out] 读数据地址
-/// \param len [in] 数据长度
-/// \retval  > 0 成功
-///          = 0 没有数据
-///          < 0 失败	
-int SimPipe::readEx(void *buf, size_t len)
-{
-	if(internal == NULL)
-	{
-		return -1;
-	}
-	return internal->readEx(buf, len);
-}
-	
+
 /// 读位置Seek
 /// \param offset [in] 偏移
 /// \param pos [in]位置

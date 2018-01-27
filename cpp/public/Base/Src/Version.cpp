@@ -24,52 +24,106 @@ static const char* month[] = {
 namespace Public {
 namespace Base {
 
+Version::Version()
+{
+	Major = Minor = Build = 0;
+}
+std::string Version::toString() const
+{
+	char ver[128];
+	snprintf_x(ver, 127, "%d.%d.%d", Major, Minor, Build);
+
+	return Revision == "" ? ver : std::string(ver) + "-" + Revision;
+}
+bool Version::parseString(const std::string& versionstr)
+{
+#ifndef WIN32
+#define sscanf_s sscanf
+#endif
+	Major = Minor = Build = 0;
+	Revision = "";
+
+	std::string versontmp = versionstr;
+	const char* revsiontmp = strchr(versontmp.c_str(), '-');
+	if (revsiontmp != NULL)
+	{
+		Revision = revsiontmp + 1;
+		versontmp = std::string(versontmp.c_str(), revsiontmp - revsiontmp + 1);
+	}
+	int revsionval = 0;
+	if (sscanf_s(versontmp.c_str(), "%d.%d.%d.%d", &Major, &Minor, &Build, &revsionval) == 4)
+	{
+		char buf[32] = { 0 };
+		snprintf(buf, 32, "%d", revsionval);
+		Revision = buf;
+
+		return true;
+	}
+	else if (sscanf_s(versontmp.c_str(), "%d.%d.%d", &Major, &Minor, &Build) == 3)
+	{
+		return true;
+	}
+	else if (sscanf_s(versontmp.c_str(), "%d.%d", &Major, &Minor) == 2)
+	{
+		return true;
+	}
+	else if (sscanf_s(versontmp.c_str(), "%d", &Major) == 1)
+	{
+		return true;
+	}
+	return false;
+}
+bool Version::operator < (const Version& version) const
+{
+	return Major < version.Major ||
+		(Major == version.Major && Minor < version.Minor) ||
+		(Major == version.Major && Minor == version.Minor && Build < version.Build) ||
+		(Major == version.Major && Minor == version.Minor && Build == version.Build && Revision != "" &&  version.Revision == "") ||
+		(Major == version.Major && Minor == version.Minor && Build == version.Build && Revision != "" &&  version.Revision != "" && strcmp(Revision.c_str(), version.Revision.c_str()) < 0);
+}
+bool Version::operator > (const Version& version) const
+{
+	return Major > version.Major ||
+		(Major == version.Major && Minor > version.Minor) ||
+		(Major == version.Major && Minor == version.Minor && Build > version.Build) ||
+		(Major == version.Major && Minor == version.Minor && Build == version.Build && Revision == "" && version.Revision != "") ||
+		(Major == version.Major && Minor == version.Minor && Build == version.Build && Revision != "" &&  version.Revision != "" && strcmp(Revision.c_str(), version.Revision.c_str()) > 0);
+}
+bool Version::operator == (const Version& version) const
+{
+	return toString() == version.toString();
+}
+
 SystemTime AppVersion::appDate = Time::getCurrentTime();
 
-AppVersion::AppVersion(const char* name, int major, int minor, int build, const char* svnString, const char* dateString)
+AppVersion::AppVersion(const std::string& name, int major, int minor, int build, const std::string& svnString, const std::string& dateString)
 {
-	::strncpy(this->name, name, sizeof(this->name) - 1);
+	this->name = name;
 	this->Major = major;
 	this->Minor = minor;
 	this->Build = build;
-
-	if (svnString[0] >= '0' && svnString[0] <= '9')
-	{
-		this->Revision = atoi(svnString);
-	}
-	else
-	{
-		this->Revision = 0;
-		sscanf(svnString, "%*[$a-zA-Z:]%d", &this->Revision);
-	}
+	this->Revision = svnString;
 
 	// 得到编译时间
-	int i = 0;
-	for (i = 0; i < 12; i++) {
-		if( strncmp(month[i], dateString, 3) == 0 )
-			break;
-	}
-	date.month = i+1;
-	sscanf(dateString + 3, "%d %d", &date.day, &date.year);
+	setAppDate(dateString);
 }
 
 void AppVersion::print() const
 {
-	infof("*************************************************\r\n");
-	infof("%s Version:%d.%d.%d svn:%d Built in %d/%02d/%02d\r\n", name, this->Major, this->Minor, this->Build, this->Revision, date.year, date.month, date.day);
-	infof("*************************************************\r\n\r\n");
-
+	loginfo("*************************************************\r\n");
+	loginfo("%s Version:%s Built in %d/%02d/%02d\r\n", name, toString().c_str(), date.year, date.month, date.day);
+	loginfo("*************************************************\r\n\r\n");
 }
 
-void AppVersion::setAppDate(const char* dateString)
+void AppVersion::setAppDate(const std::string& dateString)
 {
 	int i = 0;
 	for (i = 0; i < 12; i++) {
-		if( strncmp(month[i], dateString, 3) == 0 )
+		if( strncmp(month[i], dateString.c_str(), 3) == 0 )
 			break;
 	}
 	appDate.month = i+1;
-	sscanf(dateString + 3, "%d %d", &appDate.day, &appDate.year);
+	sscanf(dateString.c_str() + 3, "%d %d", &appDate.day, &appDate.year);
 }
 
 } // namespace Base

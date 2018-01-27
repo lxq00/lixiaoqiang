@@ -331,6 +331,16 @@ Time::Time(uint64_t time)
 	breakTime(time);
 }
 
+Time::Time(const SystemTime& sys) 
+	:Time(sys.year,					// 年
+	sys.month,						// 月
+	sys.day,						// 日
+	sys.hour,						// 时
+	sys.minute,						// 分
+	sys.second)
+{
+}
+
 Time::Time( int vyear, int vmonth, int vday, int vhour, int vmin, int vsec)
 {
 	struct tm t;
@@ -528,16 +538,6 @@ char Time::getSeparator()
 	return s_dateSeparator;
 }
 
-void Time::convertSystemTimeToTime(SystemTime &sys, Time& tm)
-{
-	tm = Time(sys.year,					// 年
-		sys.month,						// 月
-		sys.day,						// 日
-		sys.hour,						// 时
-		sys.minute,						// 分
-		sys.second);
-}
-
 uint64_t Time::makeTime() const
 {
 	return time_to_utc(*this);
@@ -548,7 +548,7 @@ void Time::breakTime(uint64_t time)
 	time_t tt = (time_t)time; // linux下可能是32位，会溢出
 	if(time != (uint64_t)tt)
 	{
-		errorf("Time::breakTime overflowed!\n");
+		logerror("Time::breakTime overflowed!\n");
 	}
 	timeZone = get_timezone();
 	utc_to_time(time, *this);
@@ -627,21 +627,20 @@ bool Time::operator <= (const Time& time) const
 	return !operator>(time);
 }
 
-void Time::format(char* buf, const char *format, int mask) const
+std::string Time::format(const std::string& format, int mask) const
 {
 	char temp[8] = {0};
 	char tempYear[8] = {0};
 	char tempMonth[8] = {0};
 	char tempDay[8] = {0};
 	const char* str[3] = {0};
-	size_t size = strlen(format);
+	size_t size = format.length();
 
-	assert(buf);
-	buf[0] = '\0';
+	char buf[512] = { 0 };
 
 	// 日期字符串格式化
 	int ny = 0, nm = 0, nd = 0;
-	const char *p = format;
+	const char *p = format.c_str();
 	while(*p)
 	{
 		if(*p == 'y')
@@ -715,9 +714,9 @@ void Time::format(char* buf, const char *format, int mask) const
 	DateFormat df = s_dateFormat;
 	if (mask & fmDateFormat)
 	{
-		char const* pos1 = std::find(format, format + size, 'y');
-		char const* pos2 = std::find(format, format + size, 'M');
-		char const* pos3 = std::find(format, format + size, 'd');
+		char const* pos1 = std::find(format.c_str(), format.c_str() + size, 'y');
+		char const* pos2 = std::find(format.c_str(), format.c_str() + size, 'M');
+		char const* pos3 = std::find(format.c_str(), format.c_str() + size, 'd');
 
 		if(pos1 < pos2 && pos2 < pos3)
 		{
@@ -768,7 +767,7 @@ void Time::format(char* buf, const char *format, int mask) const
 	}
 
 	// 12小时换算
-	int is_12hour = (mask & fmHourFormat) ? (std::find(format, format + size, 'h') != format + size) : s_12hour;
+	int is_12hour = (mask & fmHourFormat) ? (std::find(format.c_str(), format.c_str() + size, 'h') != format.c_str() + size) : s_12hour;
 	int h = this->hour;
 	if (is_12hour)
 	{
@@ -876,17 +875,19 @@ void Time::format(char* buf, const char *format, int mask) const
 			break;
 
 		default:
-			strncat(buf, format + i, 1);
+			strncat(buf, format.c_str() + i, 1);
 			break;
 		}
 	}
+
+	return buf;
 }
 
-bool Time::parse(const char* buf, const char *format, int mask)
+bool Time::parse(const std::string& buf, const std::string& format, int mask)
 {
 	int n[6] = {0};	// 存放解析出的数字
 	int count = 0;	// 解析出的数字个数
-	char const* p = buf;
+	char const* p = buf.c_str();
 	while (count < 6)
 	{
 		while (*p >= '0' && *p <= '9')
@@ -921,78 +922,6 @@ bool Time::parse(const char* buf, const char *format, int mask)
 	}
 
 	return false;
-}
-
-std::string Time::buildVGSIITimeString() const
-{
-	char timebuf[1024];
-
-	sprintf(timebuf,"%04d-%02d-%02d %02d:%02d:%02d",year,month,day,hour,minute,second);
-
-	if(timeZone != 0)
-	{
-		int abstzdifff = abs(timeZone);
-		sprintf(timebuf + strlen(timebuf)," %c%02d:%02d",timeZone > 0 ? '+':'-',abstzdifff/60,abstzdifff%60);
-	}
-
-	return timebuf;
-}
-
-bool Time::parseVGSIITimeString(const std::string& timeStr)
-{
-	std::string str = timeStr.c_str();
-
-	bool isAdd = true;
-	char* tztmp = (char*)strstr(str.c_str()," +");
-	if(tztmp == NULL)
-	{
-		isAdd = false;
-		tztmp = (char*)strstr(str.c_str()," -");
-	}
-
-	if(tztmp != NULL)
-	{
-		*tztmp = 0;
-
-		char * endtmp = tztmp;
-		while(endtmp > str.c_str() && *endtmp == ' ')
-		{
-			*endtmp = 0;
-		}
-	}
-
-	if(sscanf(str.c_str(),"%d-%d-%d %d:%d:%d",&year,&month,&day,&hour,&minute,&second) != 6)
-	{
-		return false;
-	}
-	timeZone = 0;
-	
-	if(tztmp != NULL)
-	{
-		int tzh = 0,tzmin = 0;
-		tztmp += 2;
-		while(*tztmp != 0 && *tztmp == ' ')
-		{
-			tztmp = 0;
-		}
-
-		if(sscanf(tztmp,"%02d:%02d",&tzh,&tzmin) == 2)
-		{
-			if(isAdd)
-			{
-				timeZone = (tzh*60 + tzmin);
-			}
-			else
-			{
-				timeZone = -(tzh*60 + tzmin);
-			}
-		}
-	}
-
-	// 值校验，规范化，生成星期
-	normalize_time(*this);
-
-	return true;
 }
 
 } // namespace Base

@@ -57,13 +57,6 @@ public:
 
 	//异步监听
 	bool run(uint32_t httpport);
-
-	static std::string getXMQWebVersion(const std::string& webaddr);
-
-	///构造一个中转代理url
-	static std::string buildProxyUrl(const std::string& webaddr, const std::string& url);
-
-	static std::string parseProxyUrl(const std::string& proxyUrl);
 private:
 	struct HTTPServrInternal;
 	HTTPServrInternal* internal;

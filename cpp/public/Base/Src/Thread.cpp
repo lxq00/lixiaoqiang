@@ -218,7 +218,7 @@ struct ThreadInternal
 
 #define DEFAULTTHREADNAME	"Nonamed"
 
-Thread::Thread(const char * name, int priority /* = priorDefault */, int policy /* = policyNormal */, int stackSize /* = 0 */)
+Thread::Thread(const std::string& name, int priority /* = priorDefault */, int policy /* = policyNormal */, int stackSize /* = 0 */)
 {
 	internal = new ThreadInternal;
 
@@ -226,14 +226,7 @@ Thread::Thread(const char * name, int priority /* = priorDefault */, int policy 
 	internal->policy = policy;
 	internal->stacksize = stackSize;
 	internal->errinfo.errorCode= 0;
-	if(name)
-	{
-		internal->name = name;
-	}
-	else
-	{
-		internal->name = DEFAULTTHREADNAME;
-	}
+	internal->name = name;
 	internal->id = -1;
 	internal->running = false;
 	internal->loop = false;
@@ -252,16 +245,9 @@ Thread::~Thread()
 	delete internal;
 }
 
-void Thread::setThreadName(const char*pName)
+void Thread::setThreadName(const std::string& name)
 {
-	if(pName)
-	{
-		internal->name = pName;
-	}
-	else
-	{
-		internal->name = DEFAULTTHREADNAME;
-	}
+	internal->name = name;
 }
 
 bool Thread::createThread()
@@ -584,10 +570,6 @@ void Thread::sleep(int ms)
 #endif
 }
 
-void Thread::load(int percent)
-{
-};
-
 
 class ThreadProcThread :public Thread
 {
@@ -653,7 +635,7 @@ bool ThreadErrorManager::getThreadErrorInfo(uint32_t threadId,XM_ErrorInfo& info
 	return true;
 }
 
-bool BASE_API XM_SetLastErrorInfo(int errCode, const char *fmt, ...)
+bool XM_SetLastErrorInfo(int errCode, const char *fmt, ...)
 {
 	char info[ErrorInfo_MaxLength] = {0};
 	va_list arg;
@@ -668,7 +650,7 @@ bool BASE_API XM_SetLastErrorInfo(int errCode, const char *fmt, ...)
 /// \param info [in] 错误码的描述信息
 /// \retval true 成功
 /// \retval false 失败	
-bool BASE_API XM_SetLastError(int errCode, const char *info)
+bool XM_SetLastError(int errCode, const char *info)
 {
 	XM_ErrorInfo errinfo;
 
@@ -684,7 +666,7 @@ bool BASE_API XM_SetLastError(int errCode, const char *info)
 /// \param info [in] 错误码的描述信息
 /// \retval true 成功
 /// \retval false 失败	
-bool BASE_API XM_SetLastErrorEx(const XM_ErrorInfo &lastinfo)
+bool XM_SetLastErrorEx(const XM_ErrorInfo &lastinfo)
 {
 	return threadErrorManager.setThreadErrorInfo(Thread::getCurrentThreadID(),lastinfo);
 }
@@ -693,7 +675,7 @@ bool BASE_API XM_SetLastErrorEx(const XM_ErrorInfo &lastinfo)
 /// \param errinfo [out] 错误码
 /// \retval true 成功
 /// \retval false 失败	
-bool BASE_API XM_GetLastError(XM_ErrorInfo &errinfo)
+bool XM_GetLastError(XM_ErrorInfo &errinfo)
 {
 	errinfo.errorCode = 0;
 	errinfo.info.clear();
@@ -705,7 +687,7 @@ bool BASE_API XM_GetLastError(XM_ErrorInfo &errinfo)
 /// 清空最后的错误码
 /// \retval true 成功
 /// \retval false 失败
-bool BASE_API XM_ClearLastError()
+bool XM_ClearLastError()
 {
 	return threadErrorManager.cleanThreadErrorInfo(Thread::getCurrentThreadID());
 }
@@ -714,7 +696,7 @@ bool BASE_API XM_ClearLastError()
 /// \param detail [in] 附加信息
 /// \retval true 成功
 /// \retval false 失败	
-bool BASE_API XM_AddLastErrorStack(const char *detail)
+bool XM_AddLastErrorStack(const char *detail)
 {
 	if(detail == NULL)
 	{

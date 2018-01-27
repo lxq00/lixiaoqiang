@@ -59,45 +59,54 @@ const char* findNodeInString(const char* str,std::string& val,const char* breaks
 URI::Value::Value(const char* val)
 {
 	valuestring = val;
+	valuetype = Type_String;
 }
 URI::Value::Value(const std::string& val)
 {
-	valuestring = val.c_str();
+	valuestring = val;
+	valuetype = Type_String;
 }
 
 URI::Value::Value(const unsigned char* val)
 {
 	valuestring = (const char*)val;
+	valuetype = Type_String;
 }
 URI::Value::Value(char val)
 {
 	char tmp[32];
 	sprintf(tmp,"%c",val);
 	valuestring = tmp;
+
+	valuetype = Type_Char;
 }
 URI::Value::Value(int val)
 {
 	char tmp[32];
 	sprintf(tmp,"%d",val);
 	valuestring = tmp;
+	valuetype = Type_Int32;
 }
-URI::Value::Value(float val)
+URI::Value::Value(double val)
 {
 	char tmp[32];
 	sprintf(tmp,"%f",val);
 	valuestring = tmp;
+	valuetype = Type_Double;
 }
 URI::Value::Value(long long val)
 {
 	char tmp[32];
 	sprintf(tmp,"%lld",val);
 	valuestring = tmp;
+	valuetype = Type_Int64;
 }
 URI::Value::Value(uint32_t val)
 {
 	char tmp[32];
 	sprintf(tmp,"%u",val);
 	valuestring = tmp;
+	valuetype = Type_Int32;
 }
 URI::Value::Value(uint64_t val)
 {
@@ -106,13 +115,28 @@ URI::Value::Value(uint64_t val)
 	char tmp[32];
 	sprintf(tmp,"%llu",vval);
 	valuestring = tmp;
+	valuetype = Type_Int64;
 }
+URI::Value::Value(bool val)
+{
+	char tmp[32];
+	sprintf(tmp, "%u", val ? 1 : 0);
+	valuestring = tmp;
+	valuetype = Type_Bool;
+}
+
 URI::Value::Value(const Value& val)
 {
 	valuestring = val.valuestring;
+	valuetype = val.valuetype;
 }
 
 URI::Value::~Value(){}
+
+URI::Value::Type URI::Value::type() const
+{
+	return valuetype;
+}
 std::string URI::Value::readString() const
 {
 	return valuestring;
@@ -154,6 +178,12 @@ uint64_t URI::Value::readUint64() const
 	sscanf(valuestring.c_str(),"%llu",&val);
 
 	return val;
+}
+bool URI::Value::readBool() const
+{
+	int val = readInt();
+
+	return val != 0;
 }
 bool URI::Value::isEmpty() const
 {

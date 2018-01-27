@@ -45,7 +45,6 @@ public:
 	/// \retval == NULL 失败
 	static shared_ptr<Process> createProcess(const std::string& name, int argc  = 0, const char *argv[] = NULL,bool relation = true);
 
-
 	/// 获得进程的句柄
 	/// \retval 句柄
 	virtual ProcessHandle getHandle() = 0;

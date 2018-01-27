@@ -113,7 +113,10 @@ namespace Excel {
 		else
 		{
 			const char* excelstr = (const char*)pWorkSheet->rows.row[rowNum].cells.cell[colNum].str;
-			val = new XM_Excel::Value(utf82ansiEx(excelstr));
+			val = new XM_Excel::Value(excelstr);
+#ifndef WIN32
+			val = new XM_Excel::Value(String::utf82ansi(excelstr));
+#endif
 		}
 
 		return val;

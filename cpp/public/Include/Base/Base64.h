@@ -9,6 +9,7 @@
 #define __BASE_BASE64_H__
 
 #include "Defs.h"
+#include "Base/IntTypes.h"
 
 namespace Public {
 namespace Base {

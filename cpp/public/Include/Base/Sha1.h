@@ -39,7 +39,7 @@ public:
 	///	数据编码。
 	///	\param [in] data 数据指针
 	/// \param [in] size 数据长度
-	bool input(uint8_t const* data, size_t size);
+	bool input(char const* data, size_t size);
 
 	///格式化结果值
 	std::string report(REPORT_TYPE type);

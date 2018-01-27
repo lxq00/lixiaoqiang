@@ -39,28 +39,20 @@ std::string URLEncoding::encode(const std::string& url)
 		return "";
 	}
 
-	int utf8bufsize = url.length()*2 + 100;
-	char* utf8buf = new char[utf8bufsize + 10];
+	std::string utf8buf = String::ansi2utf8(url);
 
-	utf8bufsize = ansi2utf8((char*)url.c_str(),url.length(),utf8buf,utf8bufsize);
-	if(utf8bufsize < 0)
-	{
-		delete []utf8buf;
-		return "";
-	}
-
-	char* enbuf = new char[utf8bufsize*3 + 100];
+	char* enbuf = new char[utf8buf.length() *3 + 100];
 	int enbufpos = 0;
-	for(int i = 0;i < utf8bufsize;i ++)
+	for(uint32_t i = 0;i < utf8buf.length();i ++)
 	{
-		if(NeedTrans(utf8buf[i]))
+		if(NeedTrans(utf8buf.c_str()[i]))
 		{
-			sprintf(&enbuf[enbufpos],"%%%02X",utf8buf[i]&0xff);
+			sprintf(&enbuf[enbufpos],"%%%02X",utf8buf.c_str()[i]&0xff);
 			enbufpos += 3;
 		}
 		else
 		{
-			enbuf[enbufpos] = utf8buf[i];
+			enbuf[enbufpos] = utf8buf.c_str()[i];
 			enbufpos ++;
 		}
 	}
@@ -69,7 +61,6 @@ std::string URLEncoding::encode(const std::string& url)
 	std::string enstr(enbuf);
 
 	delete []enbuf;
-	delete []utf8buf;
 
 	return enstr;
 }
@@ -82,7 +73,6 @@ std::string URLEncoding::decode(const std::string& enurl)
 
 	int urlbuflen = enurl.length() + 100;
 	char* urlbuf = new char[urlbuflen + 10];
-	char* asiibuf = new char[urlbuflen + 10];
 
 	int urlbufpos = 0;
 	for(unsigned int i = 0;i < enurl.length();urlbufpos ++)
@@ -104,18 +94,9 @@ std::string URLEncoding::decode(const std::string& enurl)
 	
 	urlbuf[urlbufpos] = 0;
 
-	int len = utf82ansi(urlbuf,urlbufpos,asiibuf,urlbuflen);
-	if(len < 0)
-	{
-		delete []urlbuf;
-		delete []asiibuf;
-		return "";
-	}
-
-	std::string url(asiibuf,len);
+	std::string url = String::utf82ansi(urlbuf);
 
 	delete []urlbuf;
-	delete []asiibuf;
 
 	return url;
 }

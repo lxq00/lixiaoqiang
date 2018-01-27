@@ -10,6 +10,7 @@
 
 #include <stddef.h>		
 #include "Base/IntTypes.h"
+#include "Base/Shared_ptr.h"
 #include "Defs.h"
 
 namespace Public {
@@ -54,12 +55,7 @@ public:
 	/// 获得buf的大小
 	/// \retval buf大小
 	size_t getSize();
-
-	/// 打印共享内存内容,主要用于测试
-	/// \param offset [in] 打印的内存相对起始位置的偏移量
-	/// \param len [in] 长度
-	void dumpData(const uint32_t offset, const uint32_t len);
-
+	
 	/// 获得共享内存的名称
 	/// \retval 返回共享内存名称的引用
 	const std::string &getname() const;

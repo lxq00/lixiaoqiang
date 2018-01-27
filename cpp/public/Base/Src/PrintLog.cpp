@@ -284,44 +284,6 @@ int BASE_API logfatal(const char* fmt, ...)
 	LOG_MSG("fatal ", COLOR_FATAL,LOG_Level_FATAL);
 }
 
-void BASE_API dumpHex(uint8_t *pdat, size_t length /* = 512 */)
-{
-	for (int i = 0; i < (int)length; i += 16) {
-		tracef("%08x: ", pdat);
-		int tmp = i;
-		int j = 0;
-		for (j = 0; j < 16 ; j++, tmp++) {
-			if (tmp >= (int)length)
-			{
-				tracef("   ");
-			}
-			else
-				tracef("%02x ", *pdat++);
-		}
-		
-		pdat -= (tmp >= (int)length)?(16 -tmp + length):16;
-		tracef("  ");
-		tmp = i;
-		for (j = 0; j < 16; j++, tmp++) {
-			if (tmp >= (int)length)
-			{
-				tracef(" ");
-			}
-			else
-			{
-				tracef("%c", *pdat > 31 && *pdat <= 'z' ? *pdat:'.');
-				pdat++;
-			}
-		}
-		tracef("\n");
-		if(i % 512 == 0 && i != 0)
-		{
-			tracef("\n");
-		}
-	}
-	tracef("\n");
-}
-
 } // namespace Base
 } // namespace Public
 

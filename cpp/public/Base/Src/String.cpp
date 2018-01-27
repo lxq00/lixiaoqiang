@@ -22,12 +22,6 @@
 namespace Public {
 namespace Base {
 
-CharsetEncodeCallback charsetCallback;
-
-void BASE_API registeCharsetEncode(const CharsetEncodeCallback& callback)
-{
-	charsetCallback = callback;
-}
 
 /// 兼容不同平台下的函数
 typedef int (*snprintfFunc)(char *buffer, size_t count, const char *format, ... );
@@ -46,7 +40,7 @@ extern stricmpFunc stricmp;
 #endif
 
 
-size_t BASE_API strncat(char* dest, size_t dstBufLen, const char* src, const size_t srcCopyCount)
+size_t strncat(char* dest, size_t dstBufLen, const char* src, const size_t srcCopyCount)
 {
 	size_t len = strlen(dest);
 	len = dstBufLen - len - 1 > srcCopyCount ? srcCopyCount:dstBufLen - len - 1;
@@ -57,7 +51,7 @@ size_t BASE_API strncat(char* dest, size_t dstBufLen, const char* src, const siz
 	return len;
 }
 
-size_t BASE_API strncpy(char* dst, size_t dstBufLen, const char* src, size_t srcCopyCount)
+size_t strncpy(char* dst, size_t dstBufLen, const char* src, size_t srcCopyCount)
 {
 	size_t count = dstBufLen - 1 > srcCopyCount?srcCopyCount:dstBufLen-1;
 	::strncpy(dst, src, count);
@@ -65,7 +59,7 @@ size_t BASE_API strncpy(char* dst, size_t dstBufLen, const char* src, size_t src
 	return strlen(dst);
 }
 
-int BASE_API snprintf_x(char* buf, int maxlen, const char* fmt, ... )
+int snprintf_x(char* buf, int maxlen, const char* fmt, ... )
 {
 	va_list arg;
 	int count;
@@ -89,7 +83,38 @@ int BASE_API snprintf_x(char* buf, int maxlen, const char* fmt, ... )
 	va_end (arg);
 	return (int)::strlen(buf);
 }
-std::string BASE_API ansi2utf8Ex(const std::string& inString)
+
+std::string String::tolower(const std::string& src)
+{
+	std::string tmp;
+	const char* tmpbuf = src.c_str();
+	int len = src.length();
+	for (int i = 0; i < len; i++)
+	{
+		char tmpc = ::tolower(tmpbuf[i]);
+		tmp.push_back(tmpc);
+	}
+
+	return tmp;
+}
+
+//字符串转大写
+std::string String::toupper(const std::string& src)
+{
+	std::string tmp;
+	const char* tmpbuf = src.c_str();
+	int len = src.length();
+	for (int i = 0; i < len; i++)
+	{
+		char tmpc = ::toupper(tmpbuf[i]);
+		tmp.push_back(tmpc);
+	}
+
+	return tmp;
+}
+
+
+std::string String::ansi2utf8(const std::string& inString)
 {
 	do 
 	{
@@ -131,47 +156,10 @@ std::string BASE_API ansi2utf8Ex(const std::string& inString)
 		return tmp;
 #endif
 	} while (0);
-	if(charsetCallback == NULL)
-	{
-		//logerror("ansi2utf8Ex error\r\n");
 
-		return inString;
-	}
-
-	return charsetCallback(inString,"gb2312","utf8");
+	return "";
 }
-int BASE_API ansi2utf8(char *inbuf,size_t inlen,char *outbuf,size_t outlen)
-{
-	if(inbuf == NULL || inlen == 0 || outbuf == NULL || outlen == 0)
-	{
-		return 0;
-	}
-	std::string outputstr = ansi2utf8Ex(std::string(inbuf,inlen));
-	size_t outputlen = outlen > outputstr.length() ? outputstr.length() : outlen;
-	memcpy(outbuf,outputstr.c_str(),outputlen);
-	if(outputlen < outlen)
-	{
-		outbuf[outputlen] = 0;
-	}
-
-	return outputlen;
-}
-
-/// Ansi(Gb2312) 转换字符串为utf8格式 扩展接口(linux只支持转换后结果不超过1024bytes)
-/// \param [in] inbuf 源字符串
-/// \param [in]  inlen 源字符串的长度
-/// \retval 空string 转换失败
-///         非空string 转换结果
-std::string BASE_API ansi2utf8Ex(char *inbuf,size_t inlen)
-{
-	if(inbuf == NULL || inlen == 0)
-	{
-		return "";
-	}
-	return ansi2utf8Ex(std::string(inbuf,inlen));
-}
-
-std::string BASE_API utf82ansiEx(const std::string& inString)
+std::string  String::utf82ansi(const std::string& inString)
 {
 	do 
 	{
@@ -216,83 +204,9 @@ std::string BASE_API utf82ansiEx(const std::string& inString)
 #endif
 	} while (0);
 
-	if(charsetCallback == NULL)
-	{
-		//logdebug("utf82ansiEx error\r\n");
-
-		return inString;
-	}
-
-	return charsetCallback(inString,"utf8","gb2312");
+	return "";
 }
 
-int BASE_API utf82ansi(char *inbuf,size_t inlen,char *outbuf,size_t outlen)
-{
-	if(inbuf == NULL || inlen == 0 || outbuf == NULL || outlen == 0)
-	{
-		return 0;
-	}
-	std::string outputstr = utf82ansiEx(std::string(inbuf,inlen));
-	size_t outputlen = outlen > outputstr.length() ? outputstr.length() : outlen;
-	memcpy(outbuf,outputstr.c_str(),outputlen);
-	if(outputlen < outlen)
-	{
-		outbuf[outputlen] = 0;
-	}
-
-	return outputlen;
-}
-
-
-/// utf8转换字符串为 Ansi(Gb2312)格式  扩展接口(只支持转换后结果不超过1024bytes)
-/// \param [in] inbuf 源字符串
-/// \param [in]  inlen 源字符串的长度
-/// \retval 空string 转换失败
-///         非空string 转换结果
-std::string BASE_API utf82ansiEx(char *inbuf,size_t inlen)
-{
-	if(inbuf == NULL || inlen == 0)
-	{
-		return "";
-	}
-	return utf82ansiEx(std::string(inbuf,inlen));
-}
-
-/// 通过标识符解析url字段
-/// \param [in] url 要解析的url串
-/// \param [in] key 解析的字段名字
-/// \param [in] headSymbol 解析的字段名称首部分割符
-/// \param [in] tailSymbol 解析的字段名称尾部分割符
-/// \param [out] value 解析后的结果返回值
-bool parseUrlByKey(std::string &url, char* key, char headSymbol,  char tailSymbol, std::string & value)
-{
-	int bPos = url.find(key);
-	int ePos = -1;
-	if ((unsigned int)bPos == std::string::npos)
-	{
-		return false;
-	}
-	bPos = url.find(headSymbol, bPos) + 1;
-	if ((unsigned int)bPos == std::string::npos)
-	{
-		return false;
-	}
-
-	if (tailSymbol == '\0')
-	{
-		ePos = url.length();
-	}
-	else
-		ePos = url.find(tailSymbol, bPos);
-
-	if ((unsigned int)ePos == std::string::npos)
-	{
-		return false;
-	}
-
-	value = url.substr(bPos, ePos - bPos);
-	return true;
-}
 } // namespace Base
 } // namespace Public
 

@@ -47,7 +47,7 @@ void 	ThreadDispatch::threadProc()
 	}
 }
 
-void ThreadDispatch::SetDispatchFunc(const ThreadPoolHandler& func,void* param)
+void ThreadDispatch::SetDispatchFunc(const ThreadPool::Proc& func,void* param)
 {
 	if(!Dispatchthreadstatus)
 	{
@@ -61,17 +61,21 @@ void ThreadDispatch::SetDispatchFunc(const ThreadPoolHandler& func,void* param)
 #define CHECKTHREADIDELETIME		2*1000
 
 ThreadPool::ThreadPoolInternal::ThreadPoolInternal(uint32_t maxSize,uint64_t threadLivetime)
-:Thread("ThreadPoolInternal"),liveTime(threadLivetime),maxDiapathcerSize(maxSize){}
+:liveTime(threadLivetime),maxDiapathcerSize(maxSize)
+{
+	prevTime = 0, printtime = 0;
+}
 
 ThreadPool::ThreadPoolInternal::~ThreadPoolInternal(){}
 
 void ThreadPool::ThreadPoolInternal::start()
 {
-	createThread();
+	pooltimer = new Timer("ThreadPoolInternal");
+	pooltimer->start(Timer::Proc(&ThreadPoolInternal::poolTimerProc, this), 0, 1000);
 }
 void ThreadPool::ThreadPoolInternal::stop()
 {
-	cancelThread();
+	pooltimer = NULL;
 
 	{
 		Guard locker(mutex);
@@ -79,31 +83,23 @@ void ThreadPool::ThreadPoolInternal::stop()
 		threadIdelList.clear();
 	}
 	
-
-	destroyThread();
 }
-void ThreadPool::ThreadPoolInternal::threadProc()
+void ThreadPool::ThreadPoolInternal::poolTimerProc(unsigned long)
 {
-	Semaphore waitsem;
-	uint64_t prevTime = 0,printtime = 0;
-	while(looping())
+	if(Time::getCurrentMilliSecond() < prevTime || Time::getCurrentMilliSecond() - prevTime >= CHECKTHREADIDELETIME)
 	{
-		waitsem.pend(500);
-		if(Time::getCurrentMilliSecond() < prevTime || Time::getCurrentMilliSecond() - prevTime >= CHECKTHREADIDELETIME)
-		{
-			checkThreadIsLiveOver();
+		checkThreadIsLiveOver();
 
-			prevTime = Time::getCurrentMilliSecond();
-		}
+		prevTime = Time::getCurrentMilliSecond();
+	}
 
-		if(Time::getCurrentMilliSecond() < printtime || Time::getCurrentMilliSecond() - printtime >= MAXPRINTTHREADPOOLTIME)
-		{
-			Guard locker(mutex);
+	if (Time::getCurrentMilliSecond() < printtime || Time::getCurrentMilliSecond() - printtime >= MAXPRINTTHREADPOOLTIME)
+	{
+		Guard locker(mutex);
 
-			logtrace("Base ThreadPoolInternal:	 threadPoolList:%d threadIdelList:%d maxDiapathcerSize:%d",threadPoolList.size(),threadIdelList.size(),maxDiapathcerSize);
+		logtrace("Base ThreadPoolInternal:	 threadPoolList:%d threadIdelList:%d maxDiapathcerSize:%d", threadPoolList.size(), threadIdelList.size(), maxDiapathcerSize);
 
-			printtime = Time::getCurrentMilliSecond();
-		}
+		printtime = Time::getCurrentMilliSecond();
 	}
 }
 
@@ -119,7 +115,7 @@ void ThreadPool::ThreadPoolInternal::refreeThraed(ThreadDispatch* thread)
 	iter->second->prevUsedTime = Time::getCurrentTime().makeTime();
 	threadIdelList[thread] = iter->second;
 }
-bool ThreadPool::ThreadPoolInternal::doDispatcher(const ThreadPoolHandler& func,void* param)
+bool ThreadPool::ThreadPoolInternal::doDispatcher(const ThreadPool::Proc& func,void* param)
 {
 	Guard locker(mutex);
 	if(threadIdelList.size() > 0)
@@ -178,97 +174,9 @@ void ThreadPool::ThreadPoolInternal::checkThreadIsLiveOver()
 		}
 	}
 }
-ThreadPoolInternalManager::ThreadPoolInternalManager(uint32_t maxSize,uint64_t threadLivetime):ThreadPool::ThreadPoolInternal(maxSize,threadLivetime){}
-ThreadPoolInternalManager::~ThreadPoolInternalManager(){}
-
-void ThreadPoolInternalManager::start()
+ThreadPool::ThreadPool(uint32_t maxDiapathcerSize,uint32_t liveTime)
 {
-	createThread();
-}
-void ThreadPoolInternalManager::stop()
-{
-	ThreadPool::ThreadPoolInternal::stop();
-
-	{
-		Guard locker(mutex);
-		threadpoolitemlist.clear();
-	}
-}
-void ThreadPoolInternalManager::threadProc()
-{
-	uint64_t prevTime = 0,printtime = 0;
-
-	while(looping())
-	{
-		{
-			if(Time::getCurrentMilliSecond() < prevTime || Time::getCurrentMilliSecond() - prevTime >= CHECKTHREADIDELETIME)
-			{
-				checkThreadIsLiveOver();
-
-				prevTime = Time::getCurrentMilliSecond();
-			}
-
-			if(Time::getCurrentMilliSecond() < printtime || Time::getCurrentMilliSecond() - printtime >= MAXPRINTTHREADPOOLTIME)
-			{
-				Guard locker(mutex);
-
-				logtrace("Base ThreadPoolInternalManager:	 threadpoolitemlist:%d threadPoolList:%d threadIdelList:%d maxDiapathcerSize:%d",threadpoolitemlist.size(),threadPoolList.size(),threadIdelList.size(),maxDiapathcerSize);
-
-				printtime = Time::getCurrentMilliSecond();
-			}
-		}	
-
-		ThreadPoolItem item;
-		bool isHaveItem = false;
-		if(threadpoollistcond.pend(100) >= 0)
-		{
-			Guard locker(mutex);
-
-			if(threadpoolitemlist.size() <= 0)
-			{
-				continue;
-			}			
-			item = threadpoolitemlist.front();
-			isHaveItem = true;
-		}
-
-		if(isHaveItem)
-		{
-			if(ThreadPool::ThreadPoolInternal::doDispatcher(item.func,item.param))
-			{
-				Guard locker(mutex);
-				threadpoolitemlist.pop_front();
-			}
-		}
-	}
-}
-bool ThreadPoolInternalManager::doDispatcher(const ThreadPoolHandler& func,void* param)
-{
-	Guard locker(mutex);
-
-	if(threadpoolitemlist.size() > maxDiapathcerSize)
-	{
-		return false;
-	}
-
-	ThreadPoolItem item(func,param);
-
-	threadpoolitemlist.push_back(item);
-	threadpoollistcond.post();
-
-	return true;
-}
-
-ThreadPool::ThreadPool(Type type,uint32_t maxDiapathcerSize,uint32_t liveTime)
-{
-	if(type == Type_Manager)
-	{
-		internal = new ThreadPoolInternalManager(maxDiapathcerSize,liveTime);
-	}
-	else
-	{
-		internal = new ThreadPoolInternal(maxDiapathcerSize,liveTime);
-	}
+	internal = new ThreadPoolInternal(maxDiapathcerSize,liveTime);
 	internal->start();
 }
 
@@ -278,20 +186,11 @@ ThreadPool::~ThreadPool()
 	SAFE_DELETE(internal);
 }
 
-bool ThreadPool::Dispatch(const ThreadPoolHandler& func,void* param)
+bool ThreadPool::dispatch(const ThreadPool::Proc& func,void* param)
 {
 	return internal->doDispatcher(func,param);
 }
 
-
-
-void ThreadPool::uninit()
-{
-	if(internal != NULL)
-	{
-		SAFE_DELETE(internal);
-	}
-}
 
 };//Base
 };//Public

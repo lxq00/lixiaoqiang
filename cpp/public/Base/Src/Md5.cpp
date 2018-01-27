@@ -426,30 +426,30 @@ void Md5::update(uint8_t const* data, size_t size)
 	}
 }
 
-void Md5::final(uint8_t* digest)
+std::string Md5::final()
 {
-	assert(digest != NULL);
-
 	if (!internal->is_final)
 	{
 		MD5_Final((unsigned char*)internal->digest, &(internal->md5_ctx));
 		internal->is_final = true;
 	}
 
-	memcpy(digest, internal->digest, 16);
+	return std::string(internal->digest, 16);
 }
 
-void Md5::hex(char* hash)
+std::string Md5::hex()
 {
-	assert(hash != NULL);
-
 	if (!internal->is_final)
 	{
 		MD5_Final((unsigned char*)internal->digest, &(internal->md5_ctx));
 		internal->is_final = true;
 	}
 
+	char hash[64] = { 0 };
+
 	CvtHex(internal->digest, hash);
+
+	return hash;
 }
 
 }//namespace Base

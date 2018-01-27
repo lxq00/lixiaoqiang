@@ -45,7 +45,7 @@ static Mutex				  timerMutex;
 static weak_ptr<TimerManager> manager;
 
 
-Timer::Timer(const char * pName)
+Timer::Timer(const std::string& pName)
 {
 	internal = new TimerInternal();
 
@@ -100,14 +100,14 @@ bool Timer::stopAndWait()
 	return true;
 }
 
-const char * Timer::getName()
+std::string Timer::getName()
 {
-	return internal->name.c_str();
+	return internal->name;
 }
 
-void Timer::setName(const char * pszName)
+void Timer::setName(const std::string& pszName)
 {
-	internal->name = (pszName == NULL) ? ":":pszName;
+	internal->name = pszName;
 }
 
 bool Timer::isStarted()

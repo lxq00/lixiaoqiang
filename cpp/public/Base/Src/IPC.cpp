@@ -307,9 +307,9 @@ int NamedSemaphore::post()
 
 struct ShareMEMBuffer::ShareMEMBufferInternal:public Thread
 {
-	ShareMem*					sharemem;
-	StaticMemPool*				memPool;
-	NamedMutex*					memmutex;
+	shared_ptr<ShareMem>		sharemem;
+	shared_ptr<StaticMemPool>	memPool;
+	shared_ptr<NamedMutex>		memmutex;
 
 
 	char*						createWriteList;
@@ -317,8 +317,8 @@ struct ShareMEMBuffer::ShareMEMBufferInternal:public Thread
 	int*						createReadPos;
 	int							createMaxSize;
 	int							createBlockSize;
-	NamedMutex*					createMutex;
-	NamedSemaphore*				createSem;
+	shared_ptr<NamedMutex>		createMutex;
+	shared_ptr<NamedSemaphore>  createSem;
 	
 
 	char*						readWriteList;
@@ -326,17 +326,17 @@ struct ShareMEMBuffer::ShareMEMBufferInternal:public Thread
 	int*						readReadPos;
 	int							readMaxSize;
 	int							readBlockSize;
-	NamedMutex*					readMutex;
-	NamedSemaphore*				readSem;
+	shared_ptr<NamedMutex>		readMutex;
+	shared_ptr<NamedSemaphore>	readSem;
 
 	bool						create;
 	
 	ShareMEMBuffer::ReadMEMCallback	callback;
 
 	ShareMEMBufferInternal(const std::string& shareName,int createBlock,int maxBlock,int rblockSize,int maxrblock,int memMaxSize,bool _create,void* startAddr,const ReadMEMCallback& _callback)
-		:Thread("ShareMEMBufferInternal"),sharemem(NULL),memPool(NULL),memmutex(NULL),createWriteList(NULL),createWritePos(NULL),createReadPos(NULL)
-		,createMaxSize(0),createBlockSize(0),createMutex(NULL),createSem(NULL),readWriteList(NULL),readWritePos(NULL)
-		,readReadPos(NULL),readMaxSize(0),readBlockSize(0),readMutex(NULL),readSem(NULL),create(_create),callback(_callback)
+		:Thread("ShareMEMBufferInternal"),createWriteList(NULL),createWritePos(NULL),createReadPos(NULL)
+		,createMaxSize(0),createBlockSize(0),readWriteList(NULL),readWritePos(NULL)
+		,readReadPos(NULL),readMaxSize(0),readBlockSize(0),create(_create),callback(_callback)
 	{
 		createMaxSize = createBlock;
 		createBlockSize = maxBlock;
@@ -356,13 +356,13 @@ struct ShareMEMBuffer::ShareMEMBufferInternal:public Thread
 			sharemem = ShareMem::open(shareName,maxmemSize,startAddr);
 		}
 
-		if (NULL == sharemem)
+		if (sharemem == NULL)
 		{
 			return;
 		}
 
 		memmutex = new NamedMutex(shareName + "_mempool.lock");
-		memPool = new StaticMemPool((char*)sharemem->getbuffer() + maxcommnusize,memMaxSize - maxcommnusize,memmutex,create);
+		memPool = new StaticMemPool((char*)sharemem->getbuffer() + maxcommnusize,memMaxSize - maxcommnusize,memmutex.get(),create);
 
 
 		createWriteList = (char*)sharemem->getbuffer();
@@ -386,13 +386,6 @@ struct ShareMEMBuffer::ShareMEMBufferInternal:public Thread
 	~ShareMEMBufferInternal()
 	{
 		destroyThread();
-		SAFE_DELETE(createSem);
-		SAFE_DELETE(createMutex);
-		SAFE_DELETE(readSem);
-		SAFE_DELETE(readMutex);
-		SAFE_DELETE(memPool);
-		SAFE_DELETE(memmutex);
-		SAFE_DELETE(sharemem);
 	}
 	void threadProc()
 	{
@@ -529,13 +522,17 @@ ShareMEMBuffer::~ShareMEMBuffer()
 	SAFE_DELETE(internal);
 }
 
-ShareMEMBuffer* ShareMEMBuffer::create(const std::string& shareName,int writeBlockSize,int wrteBlockNum,int readBlockSize,int readBlockNum,int memMaxSize,const ReadMEMCallback& callback)
+shared_ptr<ShareMEMBuffer> ShareMEMBuffer::create(const std::string& shareName,int writeBlockSize,int wrteBlockNum,int readBlockSize,int readBlockNum,int memMaxSize,const ReadMEMCallback& callback)
 {
-	return new ShareMEMBuffer(shareName,writeBlockSize,wrteBlockNum,readBlockSize,readBlockNum,memMaxSize,true,NULL,callback);
+	shared_ptr<ShareMEMBuffer> membuf;
+	membuf = new ShareMEMBuffer(shareName,writeBlockSize,wrteBlockNum,readBlockSize,readBlockNum,memMaxSize,true,NULL,callback);
+	return membuf;
 }
-ShareMEMBuffer* ShareMEMBuffer::open(const std::string& shareName,int readBlockSize,int readBlockNum,int writeBlockSize,int writeBlockNum,int memMaxSize,void* startAddr,const ReadMEMCallback& callback)
+shared_ptr<ShareMEMBuffer> ShareMEMBuffer::open(const std::string& shareName,int readBlockSize,int readBlockNum,int writeBlockSize,int writeBlockNum,int memMaxSize,void* startAddr,const ReadMEMCallback& callback)
 {
-	return new ShareMEMBuffer(shareName,readBlockSize,readBlockNum,writeBlockSize,writeBlockNum,memMaxSize,false,startAddr,callback);
+	shared_ptr<ShareMEMBuffer> membuf;
+	membuf = new ShareMEMBuffer(shareName, readBlockSize, readBlockNum, writeBlockSize, writeBlockNum, memMaxSize, false, startAddr, callback);
+	return membuf;
 }
 
 int ShareMEMBuffer::write(void* block,int size)
@@ -558,7 +555,7 @@ IMallcFreeMemObjcPtr* ShareMEMBuffer::getMallckFreeObjcPtr()
 		return NULL;
 	}
 
-	return internal->memPool;
+	return internal->memPool.get();
 }
 char* ShareMEMBuffer::getShareStartMemBuffer()
 {

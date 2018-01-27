@@ -256,24 +256,33 @@ shared_ptr<FileFind::FileFindInfo> FileFind::find()
 {
 	_finddata_t finddata = { 0 };
 
-	if (internal->handle == -1)
+	while (true)
 	{
-		internal->handle = _findfirst(internal->searchfile.c_str(), &finddata);
-		if (internal->handle <= 0)
+		if (internal->handle == -1)
 		{
-			return shared_ptr<FileFind::FileFindInfo>();
+			internal->handle = _findfirst(internal->searchfile.c_str(), &finddata);
+			if (internal->handle <= 0)
+			{
+				return shared_ptr<FileFind::FileFindInfo>();
+			}
 		}
-	}
-	else
-	{
-		long ret = _findnext((long)internal->handle, &finddata);
-		if (ret < 0)
+		else
 		{
-			return shared_ptr<FileFind::FileFindInfo>();
+			long ret = _findnext((long)internal->handle, &finddata);
+			if (ret < 0)
+			{
+				return shared_ptr<FileFind::FileFindInfo>();
+			}
 		}
+
+		if (strcmp(finddata.name,".") == 0 || strcmp(finddata.name,"..") == 0)
+		{
+			continue;
+		}
+		break;
 	}
 
-	return make_shared<FileFind::FileFindInfo>(new FileFindInfo(&finddata));
+	return shared_ptr<FileFind::FileFindInfo>(new FileFindInfo(internal->path,&finddata));
 }
 
 struct FileFind::FileFindInfo::FileFindInfoInternal
