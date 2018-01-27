@@ -1,41 +1,71 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="Src\ASIOServerPool.cpp" />
-    <ClCompile Include="Src\ASIOSocketAcceptObject.cpp" />
-    <ClCompile Include="Src\ASIOSocketObject.cpp" />
-    <ClCompile Include="Src\ASIOSocketTCPObject.cpp" />
-    <ClCompile Include="Src\ASIOSocketUDPObject.cpp" />
-    <ClCompile Include="Src\Guid.cpp" />
-    <ClCompile Include="Src\Host.cpp" />
-    <ClCompile Include="Src\NetAddr.cpp" />
-    <ClCompile Include="Src\Network.cpp" />
-    <ClCompile Include="Src\SocketTcp.cpp" />
-    <ClCompile Include="Src\TcpClient.cpp" />
-    <ClCompile Include="Src\TcpServer.cpp" />
-    <ClCompile Include="Src\Udp.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Include\Network\Defs.h" />
-    <ClInclude Include="Include\Network\Guid.h" />
-    <ClInclude Include="Include\Network\Host.h" />
-    <ClInclude Include="Include\Network\NetAddr.h" />
-    <ClInclude Include="Include\Network\Network.h" />
-    <ClInclude Include="Include\Network\Socket.h" />
-    <ClInclude Include="Include\Network\TcpClient.h" />
-    <ClInclude Include="Include\Network\TcpServer.h" />
-    <ClInclude Include="Include\Network\Udp.h" />
-    <ClInclude Include="Src\ASIOServerPool.h" />
-    <ClInclude Include="Src\ASIOSocketAcceptObject.h" />
-    <ClInclude Include="Src\ASIOSocketObject.h" />
-    <ClInclude Include="Src\ASIOSocketTCPObject.h" />
-    <ClInclude Include="Src\ASIOSocketUDPObject.h" />
-    <ClInclude Include="Src\SocketTcp.h" />
+    <ClInclude Include="..\Include\Network\Defs.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Network\NetAddr.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Network\Network.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Network\Socket.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Network\TcpClient.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Network\TcpServer.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Network\Udp.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\SocketTcp.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Async\IAsyncEvent.h">
+      <Filter>Src\Async</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Version.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="..\Include\Network\Version.tpl">
+      <Filter>Include</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Include">
+      <UniqueIdentifier>{07ac0154-773a-45d0-a284-34eaedc2814a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src">
+      <UniqueIdentifier>{c60eb28d-f2a0-489a-8819-926d1dd02589}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Async">
+      <UniqueIdentifier>{b2942908-6a9e-44dc-a562-a54d400b630d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Src\NetAddr.cpp">
+      <Filter>Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Network.cpp">
+      <Filter>Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\SocketTcp.cpp">
+      <Filter>Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\TcpClient.cpp">
+      <Filter>Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\TcpServer.cpp">
+      <Filter>Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Udp.cpp">
+      <Filter>Src</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
