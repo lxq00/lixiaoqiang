@@ -620,13 +620,13 @@ int Host::getProcessorNum()
 //	char* memtotalstart = strstr(buffer,"MemTotal:");
 //	if(memtotalstart == NULL)
 //	{
-//		SAFE_DELETE(buffer);
+//		SAFE_DELETEARRAY(buffer);
 //		return false;
 //	}
 //	char* memtotalend = strchr(memtotalstart,'\n');
 //	if(memtotalend == NULL)
 //	{
-//		SAFE_DELETE(buffer);
+//		SAFE_DELETEARRAY(buffer);
 //		return false;
 //	}
 //	*memtotalend = 0;
@@ -634,13 +634,13 @@ int Host::getProcessorNum()
 //	char* memfreestart = strstr(buffer,"MemFree:");
 //	if(memfreestart == NULL)
 //	{
-//		SAFE_DELETE(buffer);
+//		SAFE_DELETEARRAY(buffer);
 //		return false;
 //	}
 //	char* memfreeend = strchr(memfreestart,'\n');
 //	if(memfreeend == NULL)
 //	{
-//		SAFE_DELETE(buffer);
+//		SAFE_DELETEARRAY(buffer);
 //		return false;
 //	}
 //	*memfreeend = 0;
@@ -648,13 +648,13 @@ int Host::getProcessorNum()
 //	char*vmallocTotalstart = strstr(buffer,"VmallocTotal:");
 //	if(vmallocTotalstart == NULL)
 //	{
-//		SAFE_DELETE(buffer);
+//		SAFE_DELETEARRAY(buffer);
 //		return false;
 //	}
 //	char* vmallocTotalend = strchr(vmallocTotalstart,'\n');
 //	if(vmallocTotalend == NULL)
 //	{
-//		SAFE_DELETE(buffer);
+//		SAFE_DELETEARRAY(buffer);
 //		return false;
 //	}
 //	*vmallocTotalend = 0;
@@ -662,13 +662,13 @@ int Host::getProcessorNum()
 //	char*vmallocUsedstart = strstr(buffer,"VmallocUsed:");
 //	if(vmallocUsedstart == NULL)
 //	{
-//		SAFE_DELETE(buffer);
+//		SAFE_DELETEARRAY(buffer);
 //		return false;
 //	}
 //	char* vmallocUsedend = strchr(vmallocUsedstart,'\n');
 //	if(vmallocUsedend == NULL)
 //	{
-//		SAFE_DELETE(buffer);
+//		SAFE_DELETEARRAY(buffer);
 //		return false;
 //	}
 //	*vmallocUsedend = 0;
@@ -683,7 +683,7 @@ int Host::getProcessorNum()
 //	sscanf(memtotalstart,"VmallocTotal: %llu KB",&vmalloctotal);
 //	sscanf(memtotalstart,"VmallocUsed: %llu KB",&vmallocused);
 //
-//	SAFE_DELETE(buffer);
+//	SAFE_DELETEARRAY(buffer);
 //
 //	totalPhys = memtotal / 1024;
 //	totalVirual = vmalloctotal / 1024;

@@ -4,7 +4,7 @@
 //
 //
 //	Description:
-//	$Id: ThreadEx.h 58 2013-03-20 08:44:05Z jiangwei $
+//	$Id: ThreadEx.h 58 2013-03-20 08:44:05Z  $
 
 
 #ifndef __BASE_THREADEX_H_

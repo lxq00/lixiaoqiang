@@ -5,7 +5,7 @@
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: shared_ptr.h 3 2013-01-21 06:57:38Z lixiaoqiang $
+//	$Id: shared_ptr.h 3 2013-01-21 06:57:38Z  $
 //   智能指针
 #include "Base/AtomicCount.h"
 #include "Base/IntTypes.h"
@@ -157,7 +157,7 @@ public:
 	template<class _Ty2>
 	void _Reset(const _Ptr_base<_Ty2>& _Other)
 	{
-		//lixiaoqiang  这里强制转换 有崩溃的风险
+		//  这里强制转换 有崩溃的风险
 		_Reset((_Elem *)(_Other._Ptr), _Other._Rep);
 	}
 

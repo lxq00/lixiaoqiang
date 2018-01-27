@@ -1,9 +1,9 @@
 //
-//  Copyright (c)1998-2012, Chongqing Public Technology
+//  Copyright (c)1998-2012,  Public Technology
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: Process.cpp 120 2013-05-22 07:47:37Z jiangwei $
+//	$Id: Process.cpp 120 2013-05-22 07:47:37Z  $
 //
 
 #ifndef WIN32

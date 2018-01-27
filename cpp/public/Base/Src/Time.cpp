@@ -1,9 +1,9 @@
 //
-//  Copyright (c)1998-2012, Chongqing Public Technology
+//  Copyright (c)1998-2012,  Public Technology
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: Time.cpp 226 2013-10-29 09:10:03Z linyang $
+//	$Id: Time.cpp 226 2013-10-29 09:10:03Z  $
 //
 
 #include <stdio.h>

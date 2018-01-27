@@ -1,9 +1,9 @@
 //
-//  Copyright (c)1998-2012, Chongqing Public Technology
+//  Copyright (c)1998-2012,  Public Technology
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: Base64.cpp 11 2013-01-22 08:42:03Z jiangwei $
+//	$Id: Base64.cpp 11 2013-01-22 08:42:03Z  $
 //
 #include "base/IntTypes.h"
 #include "Base/Base64.h"
@@ -78,7 +78,7 @@ std::string Base64::encode(const std::string& src)
 	*p++ = '\0';
 
 	std::string destsrc(coded_dst);
-	SAFE_DELETE(coded_dst);
+	SAFE_DELETEARRAY(coded_dst);
 
 	return destsrc;
 }
@@ -150,7 +150,7 @@ std::string Base64::decode(const std::string& src)
 
 	*(bufout++) = '\0';
 	std::string outputstr(plain_dst);
-	SAFE_DELETE(plain_dst);
+	SAFE_DELETEARRAY(plain_dst);
 
 	return outputstr;
 }

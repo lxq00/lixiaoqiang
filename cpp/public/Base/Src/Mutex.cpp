@@ -1,9 +1,9 @@
 //
-//  Copyright (c)1998-2012, Chongqing Public Technology
+//  Copyright (c)1998-2012,  Public Technology
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: Mutex.cpp 154 2013-09-02 01:59:53Z lixiaoqiang $
+//	$Id: Mutex.cpp 154 2013-09-02 01:59:53Z  $
 //
 
 #include <assert.h>

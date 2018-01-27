@@ -3,7 +3,7 @@
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: FuncTempl.h 3 2013-01-21 06:57:38Z jiangwei $
+//	$Id: FuncTempl.h 3 2013-01-21 06:57:38Z  $
 //
 
 #define FUNCTION_TEMPL MACRO_JOIN(Function,FUNCTION_NUMBER)

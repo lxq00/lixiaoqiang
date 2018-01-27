@@ -1,9 +1,9 @@
 //
-//  Copyright (c)1998-2012, Chongqing Public Technology
+//  Copyright (c)1998-2012,  Public Technology
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: Timer.cpp 56 2013-03-08 01:47:53Z jiangwei $
+//	$Id: Timer.cpp 56 2013-03-08 01:47:53Z  $
 //
 
 

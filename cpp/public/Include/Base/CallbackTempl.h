@@ -3,7 +3,7 @@
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: CallbackTempl.h 3 2013-01-21 06:57:38Z jiangwei $
+//	$Id: CallbackTempl.h 3 2013-01-21 06:57:38Z  $
 
 /// \class CallbackX
 /// \brief ÐÅºÅÀàÄ£¿é¡£

@@ -3,7 +3,7 @@
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: File.h 252 2013-12-18 04:40:28Z linyang $
+//	$Id: File.h 252 2013-12-18 04:40:28Z  $
 //
 
 #ifndef __BASE_FILE_H__

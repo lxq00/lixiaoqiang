@@ -3,7 +3,7 @@
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: Md5.h 3 2013-01-21 06:57:38Z jiangwei $
+//	$Id: Md5.h 3 2013-01-21 06:57:38Z  $
 //
 
 #ifndef __BASE_MD5_H__

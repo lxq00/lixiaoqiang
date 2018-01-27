@@ -1,12 +1,12 @@
 //
-//  Copyright (c)1998-2012, Chongqing Xunmei Technology
+//  Copyright (c)1998-2012,  Public Technology
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: network.h 216 2015-12-15 11:33:55Z lixiaoqiang $
+//	$Id: network.h 216 2015-12-15 11:33:55Z  $
 //
-#ifndef __XUNMEINETWORK_H__
-#define __XUNMEINETWORK_H__
+#ifndef __PublicNETWORK_H__
+#define __PublicNETWORK_H__
 #include "Network/Defs.h"
 #include "Network/Host.h"
 #include "Network/NetAddr.h"
@@ -16,7 +16,7 @@
 #include "Network/Udp.h"
 #include "Network/Guid.h"
 
-namespace Xunmei{
+namespace Public{
 namespace Network{
 
 class NETWORK_API NetworkSystem
@@ -40,4 +40,4 @@ public:
 
 
 
-#endif //__XUNMEINETWORK_H__
+#endif //__PublicNETWORK_H__

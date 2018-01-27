@@ -3,7 +3,7 @@
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: Base64.h 3 2013-01-21 06:57:38Z jiangwei $
+//	$Id: Base64.h 3 2013-01-21 06:57:38Z  $
 
 #ifndef __BASE_BASE64_H__
 #define __BASE_BASE64_H__

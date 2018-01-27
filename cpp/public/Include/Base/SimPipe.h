@@ -3,7 +3,7 @@
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: SimPipe.h 140 2013-06-27 07:55:35Z jiangwei $
+//	$Id: SimPipe.h 140 2013-06-27 07:55:35Z  $
 
 #ifndef __BASE_SIMPIPE_H__
 #define __BASE_SIMPIPE_H__

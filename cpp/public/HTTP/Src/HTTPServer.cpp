@@ -1,7 +1,6 @@
 #include "HTTPRequest.h"
 #include "HTTPResponse.h"
 #include "shttpd/shttpd.h"
-#include "Network/Guid.h"
 #include "HTTP/HTTPServer.h"
 #include "HTTP/HTTPClient.h"
 #include "JSON/json.h"

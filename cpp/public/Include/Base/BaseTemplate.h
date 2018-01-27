@@ -3,7 +3,7 @@
 //  All Rights Reserved.
 //
 //  Description:透传回应数据包.
-//  $Id: BaseTemplate.h 237 2013-12-22 09:21:41Z linyang $
+//  $Id: BaseTemplate.h 237 2013-12-22 09:21:41Z  $
 //
 
 #ifndef _BASE_TEMPLATE_H_

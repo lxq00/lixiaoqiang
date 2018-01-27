@@ -1,16 +1,16 @@
 //
-//  Copyright (c)1998-2012, Chongqing Xunmei Technology
+//  Copyright (c)1998-2012,  Public Technology
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: tcpserver.h 216 2015-12-15 11:33:55Z lixiaoqiang $
+//	$Id: tcpserver.h 216 2015-12-15 11:33:55Z  $
 //
 #ifndef __NETWORK_TCPSERVER_H__
 #define __NETWORK_TCPSERVER_H__
 
 #include "Network/Socket.h"
 
-namespace Xunmei{
+namespace Public{
 namespace Network{
 
 class NETWORK_API TCPServer:public Socket

@@ -3,7 +3,7 @@
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: Guard.h 3 2013-01-21 06:57:38Z jiangwei $
+//	$Id: Guard.h 3 2013-01-21 06:57:38Z  $
 //
 
 

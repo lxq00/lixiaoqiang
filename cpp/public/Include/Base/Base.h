@@ -3,7 +3,7 @@
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: Base.h 3 2013-01-21 06:57:38Z lixiaoqiang $
+//	$Id: Base.h 3 2013-01-21 06:57:38Z  $
 //   基础库统一头文件
 #ifndef _BASE_CLASS_H_
 #define _BASE_CLASS_H_

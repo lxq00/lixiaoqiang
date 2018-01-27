@@ -4,7 +4,7 @@
 //
 //
 //	Description:
-//	$Id: Version.h 3 2013-01-21 06:57:38Z jiangwei $
+//	$Id: Version.h 3 2013-01-21 06:57:38Z  $
 
 #ifndef __BASE_VERSION_H__
 #define __BASE_VERSION_H__

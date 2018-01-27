@@ -2,16 +2,16 @@
 #define __NETWORK_UDP_H__
 
 //
-//  Copyright (c)1998-2012, Chongqing Xunmei Technology
+//  Copyright (c)1998-2012,  Public Technology
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: udp.h 216 2015-12-15 11:33:55Z lixiaoqiang $
+//	$Id: udp.h 216 2015-12-15 11:33:55Z  $
 //
 #include "Network/Socket.h"
 
 using namespace std;
-namespace Xunmei{
+namespace Public{
 namespace Network{
 	
 class NETWORK_API UDP:public Socket

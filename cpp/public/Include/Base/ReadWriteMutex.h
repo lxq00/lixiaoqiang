@@ -3,7 +3,7 @@
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: ReadWriteMutex.h 3 2013-01-21 06:57:38Z jiangwei $
+//	$Id: ReadWriteMutex.h 3 2013-01-21 06:57:38Z  $
 
 #ifndef __BASE_RW_MUTEX_H__
 #define __BASE_RW_MUTEX_H__

@@ -3,7 +3,7 @@
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: Defs.h 216 2013-09-17 01:27:49Z linyang $
+//	$Id: Defs.h 216 2013-09-17 01:27:49Z  $
 //
 
 

@@ -1,9 +1,9 @@
 //
-//  Copyright (c)1998-2012, Chongqing Public Technology
+//  Copyright (c)1998-2012,  Public Technology
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: SimPipe.cpp 141 2013-06-27 09:08:03Z jiangwei $
+//	$Id: SimPipe.cpp 141 2013-06-27 09:08:03Z  $
 
 #include <sys/types.h>
 #include <sys/stat.h>

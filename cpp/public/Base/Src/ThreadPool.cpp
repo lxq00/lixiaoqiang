@@ -1,9 +1,9 @@
 //
-//  Copyright (c)1998-2012, Chongqing Public Technology
+//  Copyright (c)1998-2012,  Public Technology
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: ThreadPool.cpp 3 2013年8月21日10:18:30 lixiaoqiang $
+//	$Id: ThreadPool.cpp 3 2013年8月21日10:18:30  $
 #include <string.h>
 #include "Base/ThreadPool.h"
 #include "ThreadPoolInternal.h"

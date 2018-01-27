@@ -1,9 +1,9 @@
 //
-//  Copyright (c)1998-2012, Chongqing Public Technology
+//  Copyright (c)1998-2012,  Public Technology
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: File.cpp 251 2013-12-18 04:40:13Z lixiaoqiang $
+//	$Id: File.cpp 251 2013-12-18 04:40:13Z  $
 //
 
 

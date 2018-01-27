@@ -4,7 +4,7 @@
 //
 //
 //	Description:
-//	$Id: String.h 227 2013-10-30 01:10:30Z linyang $
+//	$Id: String.h 227 2013-10-30 01:10:30Z  $
 
 #ifndef __BASE_STRING_H__
 #define __BASE_STRING_H__

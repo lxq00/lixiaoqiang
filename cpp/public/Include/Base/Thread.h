@@ -4,7 +4,7 @@
 //
 //
 //	Description:
-//	$Id: Thread.h 159 2013-09-03 05:37:51Z lixiaoqiang $
+//	$Id: Thread.h 159 2013-09-03 05:37:51Z  $
 
 
 #ifndef __BASE_THREAD_H_
@@ -167,7 +167,7 @@ public:
 
 
 #ifndef MAX_PATH
-#define MAX_PATH 260 // add by lixiaoqiang,no fond by linux
+#define MAX_PATH 260 // add by ,no fond by linux
 #endif
 
 #ifndef WIN32

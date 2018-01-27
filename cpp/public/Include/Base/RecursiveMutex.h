@@ -3,7 +3,7 @@
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: RecursiveMutex.h 3 2013-01-21 06:57:38Z jiangwei $
+//	$Id: RecursiveMutex.h 3 2013-01-21 06:57:38Z  $
 
 #ifndef __BASE_RECURSIVE_MUTEX_H__
 #define __BASE_RECURSIVE_MUTEX_H__

@@ -1,9 +1,9 @@
 //
-//  Copyright (c)1998-2012, Chongqing Public Technology
+//  Copyright (c)1998-2012,  Public Technology
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: String.cpp 227 2013-10-30 01:10:30Z linyang $
+//	$Id: String.cpp 227 2013-10-30 01:10:30Z  $
 //
 #ifdef WIN32
 #include <windows.h>

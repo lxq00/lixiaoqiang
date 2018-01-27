@@ -1,9 +1,9 @@
 //
-//  Copyright (c)1998-2012, Chongqing Public Technology
+//  Copyright (c)1998-2012,  Public Technology
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: Base.cpp 11 2013-01-22 08:42:03Z lixiaoqiang $
+//	$Id: Base.cpp 11 2013-01-22 08:42:03Z  $
 //
 
 #include "Base/Base.h"

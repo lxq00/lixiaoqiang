@@ -1,9 +1,9 @@
 //
-//  Copyright (c)1998-2012, Chongqing Public Technology
+//  Copyright (c)1998-2012,  Public Technology
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: ReadWriteMutex.cpp 11 2013-01-22 08:42:03Z jiangwei $
+//	$Id: ReadWriteMutex.cpp 11 2013-01-22 08:42:03Z  $
 //
 
 #include <assert.h>

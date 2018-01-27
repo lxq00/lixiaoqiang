@@ -1,9 +1,9 @@
 //
-//  Copyright (c)1998-2012, Chongqing Public Technology
+//  Copyright (c)1998-2012,  Public Technology
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: Semaphore.cpp 33 2013-02-05 09:43:35Z jiangwei $
+//	$Id: Semaphore.cpp 33 2013-02-05 09:43:35Z  $
 //
 #if defined(__linux__)
 #include <semaphore.h>

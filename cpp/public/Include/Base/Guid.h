@@ -4,7 +4,7 @@
 //
 //
 //	Description:
-//	$Id: Guid.h 89 2013-05-08 10:43:01Z lixiaoqiang $
+//	$Id: Guid.h 89 2013-05-08 10:43:01Z  $
 //
 //
 

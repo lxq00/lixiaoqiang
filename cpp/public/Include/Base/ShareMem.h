@@ -3,7 +3,7 @@
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: ShareMem.h 3 2013-01-21 06:57:38Z jiangwei $
+//	$Id: ShareMem.h 3 2013-01-21 06:57:38Z  $
 
 #ifndef __BASE_SHAREMEM_H__
 #define __BASE_SHAREMEM_H__

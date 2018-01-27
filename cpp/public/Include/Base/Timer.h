@@ -4,7 +4,7 @@
 //
 //
 //	Description:
-//	$Id: Timer.h 3 2013-01-21 06:57:38Z jiangwei $
+//	$Id: Timer.h 3 2013-01-21 06:57:38Z  $
 
 
 #ifndef _BASE_TIMER_H_

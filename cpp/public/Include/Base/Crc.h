@@ -3,7 +3,7 @@
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: Crc.h 3 2013-01-21 06:57:38Z jiangwei $
+//	$Id: Crc.h 3 2013-01-21 06:57:38Z  $
 //
 
 #ifndef __BASE_CRC_ORDER_H__

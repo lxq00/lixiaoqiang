@@ -1,9 +1,9 @@
 //
-//  Copyright (c)1998-2012, Chongqing Public Technology
+//  Copyright (c)1998-2012,  Public Technology
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: File.cpp 251 2013-12-18 04:40:13Z lixiaoqiang $
+//	$Id: File.cpp 251 2013-12-18 04:40:13Z  $
 //
 
 
@@ -259,7 +259,7 @@ std::string File::load(const std::string& pFileName)
 	{
 		return "";
 	}
-	char* buffer = new (std::nothrow)char[filelen];
+	char* buffer = new (std::nothrow)char[(size_t)filelen];
 	if (buffer == NULL)
 	{
 		return "";
@@ -272,8 +272,8 @@ std::string File::load(const std::string& pFileName)
 		return "";
 	}
 
-	int readlen = fread(buffer, 1, filelen, fd);
-	if (readlen != filelen)
+	size_t readlen = fread(buffer, 1, (size_t)filelen, fd);
+	if (readlen != (size_t)filelen)
 	{
 		SAFE_DELETEARRAY(buffer);
 		fclose(fd);

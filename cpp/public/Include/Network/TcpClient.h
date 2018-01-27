@@ -1,16 +1,16 @@
 //
-//  Copyright (c)1998-2012, Chongqing Xunmei Technology
+//  Copyright (c)1998-2012,  Public Technology
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: tcpclient.h 216 2015-12-15 11:33:55Z lixiaoqiang $
+//	$Id: tcpclient.h 216 2015-12-15 11:33:55Z  $
 //
 #ifndef __NETWORK_TCPCLIENT_H__
 #define __NETWORK_TCPCLIENT_H__
 
 #include "Network/Socket.h"
 
-namespace Xunmei{
+namespace Public{
 namespace Network{
 
 

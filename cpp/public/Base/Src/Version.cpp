@@ -1,9 +1,9 @@
 //
-//  Copyright (c)1998-2012, Chongqing Public Technology
+//  Copyright (c)1998-2012,  Public Technology
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: Version.cpp 31 2013-02-05 04:30:06Z jiangwei $
+//	$Id: Version.cpp 31 2013-02-05 04:30:06Z  $
 //
 
 #include <stdio.h>

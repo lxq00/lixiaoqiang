@@ -4,7 +4,7 @@
 //
 //
 //	Description:
-//	$Id: Time.h 226 2013-10-29 09:10:03Z linyang $
+//	$Id: Time.h 226 2013-10-29 09:10:03Z  $
 
 
 #ifndef __BASE_TIME_H__

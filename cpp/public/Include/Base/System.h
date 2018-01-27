@@ -4,7 +4,7 @@
 //
 //
 //	Description:
-//	$Id: System.h 3 2013-01-21 06:57:38Z jiangwei $
+//	$Id: System.h 3 2013-01-21 06:57:38Z  $
 
 
 #ifndef __BASE_SYSTEM_H__

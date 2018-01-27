@@ -4,7 +4,7 @@
 //
 //
 //	Description:
-//	$Id: AtomicCount.h 80 2013-04-11 07:05:56Z jiangwei $
+//	$Id: AtomicCount.h 80 2013-04-11 07:05:56Z  $
 //
 #include "Base/AtomicCount.h"
 

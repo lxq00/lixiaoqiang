@@ -3,7 +3,7 @@
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: ByteOrder.h 3 2013-01-21 06:57:38Z jiangwei $
+//	$Id: ByteOrder.h 3 2013-01-21 06:57:38Z  $
 //
 
 #ifndef __BASE_BYTEORDER_H__

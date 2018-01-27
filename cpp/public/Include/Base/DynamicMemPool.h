@@ -3,7 +3,7 @@
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: MemPool.h 255 2014-01-23 03:28:32Z lixiaoqiang $
+//	$Id: MemPool.h 255 2014-01-23 03:28:32Z  $
 //
 #ifndef __DYNAMIC_MEMORYPOOL_H__
 #define __DYNAMIC_MEMORYPOOL_H__

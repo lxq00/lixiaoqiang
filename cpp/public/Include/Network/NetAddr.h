@@ -1,9 +1,9 @@
 //
-//  Copyright (c)1998-2012, Chongqing Xunmei Technology
+//  Copyright (c)1998-2012,  Public Technology
 //  All Rights Reserved.
 //
 //  Description:
-//  $Id: NetAddr.h 17 2013-01-22 09:26:19Z lixiaoqiang  $
+//  $Id: NetAddr.h 17 2013-01-22 09:26:19Z   $
 //
 
 #ifndef __NET_NETADDR_H__
@@ -18,9 +18,9 @@
 #include <netinet/in.h>
 #endif
 
-using namespace Xunmei::Base;
+using namespace Public::Base;
 
-namespace Xunmei{
+namespace Public{
 namespace Network{
 
 typedef  sockaddr 		SockAddr;
@@ -123,7 +123,7 @@ private:
 };
 
 } // namespace Net
-} // namespace Xunmei
+} // namespace Public
 
 #endif// __NET_NETFRAME_H__
 

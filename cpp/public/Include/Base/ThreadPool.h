@@ -3,7 +3,7 @@
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: ThreadPool.h 3 2013年8月21日10:18:30 lixiaoqiang $
+//	$Id: ThreadPool.h 3 2013年8月21日10:18:30  $
 
 #ifndef __BASE_THREADPOOL_H__
 #define __BASE_THREADPOOL_H__

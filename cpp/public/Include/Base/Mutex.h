@@ -3,7 +3,7 @@
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: Mutex.h 3 2013-01-21 06:57:38Z jiangwei $
+//	$Id: Mutex.h 3 2013-01-21 06:57:38Z  $
 
 #ifndef __BASE_MUTEX_H__
 #define __BASE_MUTEX_H__

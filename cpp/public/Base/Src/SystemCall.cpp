@@ -1,9 +1,9 @@
 //
-//  Copyright (c)1998-2012, Chongqing Public Technology
+//  Copyright (c)1998-2012,  Public Technology
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: SystemCall.cpp 11 2013-01-22 08:42:03Z jiangwei $
+//	$Id: SystemCall.cpp 11 2013-01-22 08:42:03Z  $
 //
 
 #ifdef __linux__

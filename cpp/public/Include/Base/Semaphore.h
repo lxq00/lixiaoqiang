@@ -3,7 +3,7 @@
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: Semaphore.h 33 2013-02-05 09:43:35Z jiangwei $
+//	$Id: Semaphore.h 33 2013-02-05 09:43:35Z  $
 
 
 #ifndef __BASE_SEMAPHORE_H__

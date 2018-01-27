@@ -1,9 +1,9 @@
 //
-//  Copyright (c)1998-2012, Chongqing Public Technology
+//  Copyright (c)1998-2012,  Public Technology
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: Thread.h 60 2013-03-23 08:07:40Z jiangwei $
+//	$Id: Thread.h 60 2013-03-23 08:07:40Z  $
 //
 
 #ifndef __INTERNAL_THREAD_H_

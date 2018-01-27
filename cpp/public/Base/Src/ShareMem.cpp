@@ -1,9 +1,9 @@
 //
-//  Copyright (c)1998-2012, Chongqing Public Technology
+//  Copyright (c)1998-2012,  Public Technology
 //  All Rights Reserved.
 //
 //	Description:
-//	$Id: ShareMem.cpp 55 2013-03-01 08:55:08Z jiangwei $
+//	$Id: ShareMem.cpp 55 2013-03-01 08:55:08Z  $
 //
 
 #include <stdexcept>
