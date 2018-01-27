@@ -18,6 +18,8 @@
     <ClInclude Include="..\Include\Network\TcpClient.h" />
     <ClInclude Include="..\Include\Network\TcpServer.h" />
     <ClInclude Include="..\Include\Network\Udp.h" />
+    <ClInclude Include="Src\Async\AsyncCanPoll.h" />
+    <ClInclude Include="Src\Async\AsyncCanSelect.h" />
     <ClInclude Include="Src\Async\IAsyncEvent.h" />
     <ClInclude Include="Src\SocketTcp.h" />
   </ItemGroup>

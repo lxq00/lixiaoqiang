@@ -28,6 +28,12 @@
     <ClInclude Include="Src\Async\IAsyncEvent.h">
       <Filter>Src\Async</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Async\AsyncCanSelect.h">
+      <Filter>Src\Async</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Async\AsyncCanPoll.h">
+      <Filter>Src\Async</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Version.rc" />
