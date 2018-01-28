@@ -24,7 +24,7 @@ class BASE_API ThreadEx
 	public:
 		typedef Function2<void, Thread*, void*>	Proc;
 
-		static Thread* creatThreadEx(const std::string& name,const Proc& proc, void* param,
+		static shared_ptr<Thread> creatThreadEx(const std::string& name,const Proc& proc, void* param,
 			int priority = Thread::priorDefault, int policy = Thread::policyNormal, int stackSize = 0);
 };
 

@@ -1,7 +1,9 @@
 #ifndef __ASYNCCANPOLL_H__
 #define __ASYNCCANPOLL_H__
 #include "AsyncObjectCan.h"
+#ifdef WIN32
 #include <WinSock2.h>
+#endif
 
 #define MAXPOLLSIZE		1024
 class AsyncObjectCanPoll :public AsyncObjectCan,public Thread
@@ -57,7 +59,7 @@ private:
 						haveEvent = true;
 					}
 
-					if (iter->second->connectEvent != NULL || iter->second->sendEvent != NULL)
+					if ((iter->second->connectEvent != NULL && iter->second->connectEvent->runTimes ++ % EVENTRUNTIMES == 0) || iter->second->sendEvent != NULL)
 					{
 						fdset[fdnum].fd = sockfd;
 						fdset[fdnum].events |= POLLOUT | POLLERR | POLLHUP | POLLNVAL;
@@ -93,6 +95,12 @@ private:
 
 					shared_ptr<Socket> sock = asyncinfo->sock.lock();
 					if (sock == NULL) continue;
+					int sockfd = sock->getHandle();
+
+					if (fdset[i].fd != sockfd)
+					{
+						assert(0);
+					}
 
 					if (fdset[i].events & POLLIN || fdset[i].events & POLLPRI)
 					{

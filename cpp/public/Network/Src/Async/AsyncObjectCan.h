@@ -4,7 +4,7 @@
 
 struct ConnectCanEvent:public ConnectEvent
 {
-	bool doCanEvent(const shared_ptr<Socket>& sock)
+	bool doCanEvent(const shared_ptr<Socket>& sock, int flag)
 	{
 		int sockfd = sock->getHandle();
 
@@ -20,7 +20,7 @@ struct ConnectCanEvent:public ConnectEvent
 
 struct AcceptCanEvent :public AcceptEvent
 {
-	bool doCanEvent(const shared_ptr<Socket>& sock)
+	bool doCanEvent(const shared_ptr<Socket>& sock, int flag)
 	{
 		int sockfd = sock->getHandle();
 
@@ -34,7 +34,7 @@ struct AcceptCanEvent :public AcceptEvent
 		{
 			return false;
 		}
-		otheraaddr = NetAddr(conaddr);
+		otheraaddr = NetAddr(*(SockAddr*)&conaddr);
 
 		return doResultEvent(sock,newsock);
 	}
@@ -47,7 +47,7 @@ struct SendCanEvent :public SendEvent
 
 	SendCanEvent():sendtmp(NULL),sendtmplen(0){}
 
-	bool doCanEvent(const shared_ptr<Socket>& sock)
+	bool doCanEvent(const shared_ptr<Socket>& sock, int flag)
 	{
 		int sockfd = sock->getHandle();
 
@@ -83,7 +83,7 @@ struct SendCanEvent :public SendEvent
 
 struct RecvCanEvent :public RecvEvent
 {
-	bool doCanEvent(const shared_ptr<Socket>& sock)
+	bool doCanEvent(const shared_ptr<Socket>& sock, int flag)
 	{
 		int sockfd = sock->getHandle();
 
@@ -99,7 +99,7 @@ struct RecvCanEvent :public RecvEvent
 			recvlen = recvfrom(sockfd, buffer, bufferlen, 0, (sockaddr*)&conaddr, &len);
 			if (recvlen > 0)
 			{
-				otheraddr = new NetAddr(conaddr);
+				otheraddr = new NetAddr(*(SockAddr*)&conaddr);
 			}
 		}
 		else

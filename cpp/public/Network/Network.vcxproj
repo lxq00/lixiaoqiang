@@ -18,9 +18,12 @@
     <ClInclude Include="..\Include\Network\TcpClient.h" />
     <ClInclude Include="..\Include\Network\TcpServer.h" />
     <ClInclude Include="..\Include\Network\Udp.h" />
+    <ClInclude Include="Src\Async\AsyncManager.h" />
+    <ClInclude Include="Src\Async\AsyncObjectCanEPoll.h" />
     <ClInclude Include="Src\Async\AsyncObjectCanPoll.h" />
     <ClInclude Include="Src\Async\AsyncObjectCan.h" />
     <ClInclude Include="Src\Async\AsyncObjectCanSelect.h" />
+    <ClInclude Include="Src\Async\AsyncObjectIOCP.h" />
     <ClInclude Include="Src\Async\IAsyncEvent.h" />
     <ClInclude Include="Src\Async\AsyncObject.h" />
     <ClInclude Include="Src\SocketTcp.h" />

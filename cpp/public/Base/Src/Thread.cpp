@@ -591,10 +591,10 @@ private:
 	void*		param;
 };
 
-Thread* ThreadEx::creatThreadEx(const std::string& name,const ThreadEx::Proc& proc, void* param, int priority, int policy, int stackSize)
+shared_ptr<Thread> ThreadEx::creatThreadEx(const std::string& name,const ThreadEx::Proc& proc, void* param, int priority, int policy, int stackSize)
 {
 	ThreadProcThread *thread = new ThreadProcThread(name, proc, param, priority, policy, stackSize);
-	return thread;
+	return shared_ptr<Thread>(thread);
 
 }
 

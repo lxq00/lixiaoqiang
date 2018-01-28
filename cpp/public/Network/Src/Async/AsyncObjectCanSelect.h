@@ -41,7 +41,7 @@ private:
 				if (sock == NULL) continue;
 
 				int sockfd = sock->getHandle();
-				if (iter->second->connectEvent != NULL || iter->second->sendEvent != NULL)
+				if ((iter->second->connectEvent != NULL && iter->second->connectEvent->runTimes++ % EVENTRUNTIMES == 0) || iter->second->sendEvent != NULL)
 				{
 					FD_SET(sockfd, &fdwrite);
 					maxsock = maxsock > sockfd ? maxsock : sockfd;
