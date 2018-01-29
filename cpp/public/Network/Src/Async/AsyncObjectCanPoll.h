@@ -9,7 +9,7 @@
 class AsyncObjectCanPoll :public AsyncObjectCan,public Thread
 {
 public:
-	AsyncObjectCanPoll():AsyncObjectCan(), Thread("AsyncObjectCanPoll")
+	AsyncObjectCanPoll(const Public::Base::shared_ptr<AsyncManager>& _manager):AsyncObjectCan(_manager), Thread("AsyncObjectCanPoll")
 	{
 		createThread();
 	}
@@ -28,21 +28,21 @@ private:
 
 			buildDoingEvent();
 
-			std::vector<shared_ptr<DoingAsyncInfo> > doingsocklist;			
+			std::vector<Public::Base::shared_ptr<DoingAsyncInfo> > doingsocklist;
 			{
-				std::map<const Socket*, shared_ptr<DoingAsyncInfo> > doingtmp;
+				std::map<const Socket*, Public::Base::shared_ptr<DoingAsyncInfo> > doingtmp;
 				{
 					Guard locker(mutex);
 					doingtmp = doingList;
 				}
-				for (std::map<const Socket*, shared_ptr<DoingAsyncInfo> >::iterator iter = doingtmp.begin(); iter != doingtmp.end() && fdnum < MAXPOLLSIZE; iter++)
+				for (std::map<const Socket*, Public::Base::shared_ptr<DoingAsyncInfo> >::iterator iter = doingtmp.begin(); iter != doingtmp.end() && fdnum < MAXPOLLSIZE; iter++)
 				{
 					if (iter->second == NULL) continue;;
 
-					shared_ptr<AsyncInfo> asyncinfo = iter->second->asyncInfo.lock();
+					Public::Base::shared_ptr<AsyncInfo> asyncinfo = iter->second->asyncInfo.lock();
 					if (asyncinfo == NULL) continue;
 
-					shared_ptr<Socket> sock = asyncinfo->sock.lock();
+					Public::Base::shared_ptr<Socket> sock = asyncinfo->sock.lock();
 					if (sock == NULL) continue;
 
 					int sockfd = sock->getHandle();
@@ -51,7 +51,8 @@ private:
 
 					bool haveEvent = false;
 
-					if (iter->second->acceptEvent != NULL || iter->second->recvEvent != NULL || iter->second->disconnedEvent != NULL)
+					if (iter->second->acceptEvent != NULL || iter->second->recvEvent != NULL 
+						|| (iter->second->disconnedEvent != NULL && iter->second->disconnedEvent->runTimes++ % EVENTRUNTIMES == 0))
 					{
 						fdset[fdnum].fd = sockfd;
 						fdset[fdnum].events |= POLLIN | POLLPRI | POLLERR | POLLHUP | POLLNVAL;
@@ -87,13 +88,13 @@ private:
 			{
 				for (int i = 0; i < fdnum; i++)
 				{
-					shared_ptr<DoingAsyncInfo> info = doingsocklist[i];
+					Public::Base::shared_ptr<DoingAsyncInfo> info = doingsocklist[i];
 					if (info == NULL) continue;
 
-					shared_ptr<AsyncInfo> asyncinfo = info->asyncInfo.lock();
+					Public::Base::shared_ptr<AsyncInfo> asyncinfo = info->asyncInfo.lock();
 					if (asyncinfo == NULL) continue;
 
-					shared_ptr<Socket> sock = asyncinfo->sock.lock();
+					Public::Base::shared_ptr<Socket> sock = asyncinfo->sock.lock();
 					if (sock == NULL) continue;
 					int sockfd = sock->getHandle();
 

@@ -1,7 +1,7 @@
 #ifndef __ASYNCOBJECTIOCP_H__
 #define __ASYNCOBJECTIOCP_H__
 #include "AsyncObject.h"
-
+#ifdef WIN32
 #include <winsock2.h>
 #include <MSWSock.h>
 
@@ -10,7 +10,7 @@ struct IOCPConnectCanEvent :public ConnectEvent
 	OVERLAPPED				overlped;
 	LPFN_CONNECTEX			connectExFunc;
 
-	bool doPrevEvent(const shared_ptr<Socket>& sock)
+	bool doPrevEvent(const Public::Base::shared_ptr<Socket>& sock)
 	{
 		memset(&overlped, 0, sizeof(OVERLAPPED));
 
@@ -32,7 +32,7 @@ struct IOCPConnectCanEvent :public ConnectEvent
 
 		return true;
 	}
-	bool doCanEvent(const shared_ptr<Socket>& sock, int flag)
+	bool doCanEvent(const Public::Base::shared_ptr<Socket>& sock, int flag)
 	{
 		return doResultEvent(sock);
 	}
@@ -57,7 +57,7 @@ struct IOCPAcceptCanEvent :public AcceptEvent
 			newsock = INVALID_SOCKET;
 		}
 	}
-	bool doPrevEvent(const shared_ptr<Socket>& sock)
+	bool doPrevEvent(const Public::Base::shared_ptr<Socket>& sock)
 	{
 		memset(&overlped, 0, sizeof(OVERLAPPED));
 
@@ -94,7 +94,7 @@ struct IOCPAcceptCanEvent :public AcceptEvent
 		return true;
 	}	
 
-	bool doCanEvent(const shared_ptr<Socket>& sock, int flag)
+	bool doCanEvent(const Public::Base::shared_ptr<Socket>& sock, int flag)
 	{
 		int sockfd = sock->getHandle();
 
@@ -120,7 +120,7 @@ struct IOCPSendCanEvent :public SendEvent
 	WSABUF			wbuf;
 	DWORD			dwBytes;
 	
-	bool doPrevEvent(const shared_ptr<Socket>& sock)
+	bool doPrevEvent(const Public::Base::shared_ptr<Socket>& sock)
 	{
 		dwBytes = 0;
 		memset(&overlped, 0, sizeof(OVERLAPPED));
@@ -149,7 +149,7 @@ struct IOCPSendCanEvent :public SendEvent
 	}
 
 
-	bool doCanEvent(const shared_ptr<Socket>& sock, int flag)
+	bool doCanEvent(const Public::Base::shared_ptr<Socket>& sock, int flag)
 	{
 		return doResultEvent(sock, flag);
 	}
@@ -165,7 +165,7 @@ struct IOCPRecvCanEvent :public RecvEvent
 	SOCKADDR		addr;
 	int 			addrlen;
 
-	bool doPrevEvent(const shared_ptr<Socket>& sock)
+	bool doPrevEvent(const Public::Base::shared_ptr<Socket>& sock)
 	{
 		dwBytes = dwFlags = 0;
 		memset(&overlped, 0, sizeof(OVERLAPPED));
@@ -195,7 +195,7 @@ struct IOCPRecvCanEvent :public RecvEvent
 			}
 		}
 	}
-	bool doCanEvent(const shared_ptr<Socket>& sock, int flag)
+	bool doCanEvent(const Public::Base::shared_ptr<Socket>& sock, int flag)
 	{
 		int sockfd = sock->getHandle();
 
@@ -211,7 +211,7 @@ struct IOCPRecvCanEvent :public RecvEvent
 class AsyncObjectIOCP :public AsyncObject
 {
 public:
-	AsyncObjectIOCP(int threadnum)
+	AsyncObjectIOCP(const Public::Base::shared_ptr<AsyncManager>& _manager,int threadnum):AsyncObject(_manager)
 	{
 		iocpHandle = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
 		if (iocpHandle == NULL)
@@ -220,13 +220,18 @@ public:
 		}
 		for (uint32_t i = 0; i < threadnum; i++)
 		{
-			shared_ptr<Thread> thread = ThreadEx::creatThreadEx("AsyncObjectIOCP", ThreadEx::Proc(&AsyncObjectIOCP::doWorkThreadProc, this), NULL);
+			Public::Base::shared_ptr<Thread> thread = ThreadEx::creatThreadEx("AsyncObjectIOCP", ThreadEx::Proc(&AsyncObjectIOCP::doWorkThreadProc, this), NULL);
 			thread->createThread();
 			threadlist.push_back(thread);
 		}
 	}
 	~AsyncObjectIOCP()
 	{
+		for (uint32_t i = 0; iocpHandle != NULL && i < threadlist.size(); i++)
+		{
+			::PostQueuedCompletionStatus(iocpHandle, 0, NULL, NULL);
+		}
+
 		threadlist.clear();
 		if (iocpHandle != NULL)
 		{
@@ -235,82 +240,124 @@ public:
 		}
 	}
 private:
-	virtual shared_ptr<AsyncInfo> addConnectEvent(const shared_ptr<Socket>& sock, const NetAddr& othreaddr, const Socket::ConnectedCallback& callback)
+	virtual bool addConnectEvent(const Public::Base::shared_ptr<Socket>& sock, const NetAddr& othreaddr, const Socket::ConnectedCallback& callback)
 	{
-		shared_ptr<IOCPConnectCanEvent> event(new IOCPConnectCanEvent);
+		Public::Base::shared_ptr<IOCPConnectCanEvent> event(new IOCPConnectCanEvent);
 		event->callback = callback;
 		event->otheraddr = othreaddr;
+		event->manager = manager;
 
-		return AsyncObject::addConnectEvent(sock, event);
+		if (!AsyncObject::addConnectEvent(sock, event))
+		{
+			return false;
+		}
+		AsyncObject::buildDoingEvent(sock);
+		return true;
 	}
-	virtual shared_ptr<AsyncInfo> addAcceptEvent(const shared_ptr<Socket>& sock, const Socket::AcceptedCallback& callback)
+	virtual bool addAcceptEvent(const Public::Base::shared_ptr<Socket>& sock, const Socket::AcceptedCallback& callback)
 	{
-		shared_ptr<IOCPAcceptCanEvent> event(new IOCPAcceptCanEvent());
+		Public::Base::shared_ptr<IOCPAcceptCanEvent> event(new IOCPAcceptCanEvent());
 		event->callback = callback;
+		event->manager = manager;
 
-		return AsyncObject::addAcceptEvent(sock, event);
+		if (!AsyncObject::addAcceptEvent(sock, event))
+		{
+			return false;
+		}
+		AsyncObject::buildDoingEvent(sock);
+		return true;
 	}
-	virtual shared_ptr<AsyncInfo> addRecvFromEvent(const shared_ptr<Socket>& sock, char* buffer, int bufferlen, const Socket::RecvFromCallback& callback)
+	virtual bool addRecvFromEvent(const Public::Base::shared_ptr<Socket>& sock, char* buffer, int bufferlen, const Socket::RecvFromCallback& callback)
 	{
-		shared_ptr<IOCPRecvCanEvent> event(new IOCPRecvCanEvent);
+		Public::Base::shared_ptr<IOCPRecvCanEvent> event(new IOCPRecvCanEvent);
 		event->buffer = buffer;
 		event->bufferlen = bufferlen;
 		event->recvFromCallback = callback;
+		event->manager = manager;
 
-		return AsyncObject::addRecvEvent(sock, event);
+		if (!AsyncObject::addRecvEvent(sock, event))
+		{
+			return false;
+		}
+		AsyncObject::buildDoingEvent(sock);
+		return true;
 	}
-	virtual shared_ptr<AsyncInfo> addRecvEvent(const shared_ptr<Socket>& sock, char* buffer, int bufferlen, const Socket::ReceivedCallback& callback)
+	virtual bool addRecvEvent(const Public::Base::shared_ptr<Socket>& sock, char* buffer, int bufferlen, const Socket::ReceivedCallback& callback)
 	{
-		shared_ptr<IOCPRecvCanEvent> event(new IOCPRecvCanEvent);
+		Public::Base::shared_ptr<IOCPRecvCanEvent> event(new IOCPRecvCanEvent);
 		event->buffer = buffer;
 		event->bufferlen = bufferlen;
 		event->recvCallback = callback;
+		event->manager = manager;
 
-		return AsyncObject::addRecvEvent(sock, event);
+		if (!AsyncObject::addRecvEvent(sock, event))
+		{
+			return false;
+		}
+		AsyncObject::buildDoingEvent(sock);
+		return true;
 	}
-	virtual shared_ptr<AsyncInfo> addSendToEvent(const shared_ptr<Socket>& sock, const char* buffer, int bufferlen, const NetAddr& otheraddr, const Socket::SendedCallback& callback)
+	virtual bool addSendToEvent(const Public::Base::shared_ptr<Socket>& sock, const char* buffer, int bufferlen, const NetAddr& otheraddr, const Socket::SendedCallback& callback)
 	{
-		shared_ptr<IOCPSendCanEvent> event(new IOCPSendCanEvent);
+		Public::Base::shared_ptr<IOCPSendCanEvent> event(new IOCPSendCanEvent);
 		event->buffer = buffer;
 		event->bufferlen = bufferlen;
 		event->otheraddr = new NetAddr(otheraddr);
 		event->callback = callback;
+		event->manager = manager;
 
-		return AsyncObject::addSendEvent(sock, event);
+		if (!AsyncObject::addSendEvent(sock, event))
+		{
+			return false;
+		}
+		AsyncObject::buildDoingEvent(sock);
+		return true;
 	}
-	virtual shared_ptr<AsyncInfo> addSendEvent(const shared_ptr<Socket>& sock, const char* buffer, int bufferlen, const Socket::SendedCallback& callback)
+	virtual bool addSendEvent(const Public::Base::shared_ptr<Socket>& sock, const char* buffer, int bufferlen, const Socket::SendedCallback& callback)
 	{
-		shared_ptr<IOCPSendCanEvent> event(new IOCPSendCanEvent);
+		Public::Base::shared_ptr<IOCPSendCanEvent> event(new IOCPSendCanEvent);
 		event->buffer = buffer;
 		event->bufferlen = bufferlen;
 		event->callback = callback;
+		event->manager = manager;
 
-		return AsyncObject::addSendEvent(sock, event);
+		if (!AsyncObject::addSendEvent(sock, event))
+		{
+			return false;
+		}
+		AsyncObject::buildDoingEvent(sock);
+		return true;
 	}
-	virtual shared_ptr<AsyncInfo> addDisconnectEvent(const shared_ptr<Socket>& sock, const Socket::DisconnectedCallback& callback)
+	virtual bool addDisconnectEvent(const Public::Base::shared_ptr<Socket>& sock, const Socket::DisconnectedCallback& callback)
 	{
-		shared_ptr<DisconnectEvent> event(new DisconnectEvent);
+		Public::Base::shared_ptr<DisconnectEvent> event(new DisconnectEvent);
 		event->callback = callback;
+		event->manager = manager;
 
-		return AsyncObject::addDisconnectEvent(sock, event);
+		if (!AsyncObject::addDisconnectEvent(sock, event))
+		{
+			return false;
+		}
+		AsyncObject::buildDoingEvent(sock);
+		return true;
 	}
 private:
-	virtual bool deleteSocket(const Socket* sock)
+	virtual bool deleteSocket(int sockfd)
 	{
-		AsyncObject::deleteSocket(sock);
+		AsyncObject::deleteSocket(sockfd);
 
 		{
 			Guard locker(iocpMutex);
 			for (std::map<void*, IOCPInfo>::iterator iter = iocpList.begin(); iter != iocpList.end();)
 			{
-				shared_ptr<AsyncInfo> asyncinfo = iter->second.doasyncinfo->asyncInfo.lock();
+				Public::Base::shared_ptr<AsyncInfo> asyncinfo = iter->second.doasyncinfo->asyncInfo.lock();
 				if (asyncinfo == NULL)
 				{
 					iocpList.erase(iter++);
 					continue;
 				}
-				shared_ptr<Socket> sockobj = asyncinfo->sock.lock();
-				if (sockobj == NULL || sockobj.get() == sock)
+				Public::Base::shared_ptr<Socket> sockobj = asyncinfo->sock.lock();
+				if (sockobj == NULL || sockobj->getHandle() == sockfd)
 				{
 					iocpList.erase(iter++);
 					continue;
@@ -319,7 +366,7 @@ private:
 			}
 		}
 	}
-	virtual void addSocketEvent(const shared_ptr<Socket>& sock, EventType type,const shared_ptr<DoingAsyncInfo>& doasyncinfo, const shared_ptr<ConnectEvent>& event)
+	virtual void addSocketEvent(const Public::Base::shared_ptr<Socket>& sock, EventType type,const Public::Base::shared_ptr<DoingAsyncInfo>& doasyncinfo, const Public::Base::shared_ptr<ConnectEvent>& event)
 	{
 		if (iocpHandle == NULL)
 		{
@@ -346,10 +393,11 @@ private:
 			DWORD bytes = 0, key = 0;
 			OVERLAPPED* poverlaped = NULL;
 
-			if (!GetQueuedCompletionStatus(iocpHandle, &bytes, &key, &poverlaped, 100))
+			if (!GetQueuedCompletionStatus(iocpHandle, &bytes, &key, &poverlaped, INFINITE))
 			{
 				continue;
 			}
+			if (key == 0) break;
 
 			IOCPInfo info;
 			{
@@ -360,33 +408,33 @@ private:
 					continue;
 				}
 			}
-			shared_ptr<AsyncInfo> asyncinfo = info.doasyncinfo->asyncInfo.lock();
+			Public::Base::shared_ptr<AsyncInfo> asyncinfo = info.doasyncinfo->asyncInfo.lock();
 			if (asyncinfo == NULL)
 			{
 				continue;
 			}
-			shared_ptr<Socket> sock = asyncinfo->sock.lock();
+			Public::Base::shared_ptr<Socket> sock = asyncinfo->sock.lock();
 			if (sock == NULL)
 			{
 				continue;
 			}
 
 			info.event->doCanEvent(sock);
-			AsyncObject::buildDoingEvent(sock.get());
+			AsyncObject::buildDoingEvent(sock);
 		}
 	}
 private:
 	HANDLE						   iocpHandle;
-	std::list<shared_ptr<Thread> > threadlist;
+	std::list<Public::Base::shared_ptr<Thread> > threadlist;
 
 	struct IOCPInfo
 	{
-		shared_ptr<DoingAsyncInfo> doasyncinfo;
-		shared_ptr<ConnectEvent>  event;
+		Public::Base::shared_ptr<DoingAsyncInfo> doasyncinfo;
+		Public::Base::shared_ptr<ConnectEvent>  event;
 	};
 
 	Mutex							iocpMutex;
 	std::map<void*, IOCPInfo>		iocpList;
 };
-
+#endif
 #endif //__ASYNCOBJECTIOCP_H__

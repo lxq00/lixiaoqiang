@@ -17,8 +17,9 @@ class NETWORK_API TCPServer:public Socket
 {
 	struct TCPServerInternalPointer;
 	TCPServer(const TCPServer&);
+	TCPServer();
 public:
-	TCPServer(IOWorker& worker,const NetAddr& addr = NetAddr());
+	static Public::Base::shared_ptr<Socket> create(const shared_ptr<IOWorker>& worker);
 
 	virtual ~TCPServer();
 
@@ -33,25 +34,7 @@ public:
 	///注：不不建议使用该函数来判断串口是否被占用，端口判断推进使用host::checkPortIsNotUsed接口
 	virtual bool bind(const NetAddr& addr,bool reusedAddr = true);
 
-	///获取socket发送接受超时时间
-	///param[in]		recvTimeout		接收超时 单位：毫秒
-	///param[in]		sendTimeout		发送超时 单位：毫秒
-	///retun		 true 成功、false 失败 
-	virtual bool getSocketTimeout(uint32_t& recvTimeout,uint32_t& sendTimeout) const;
-
-	///设置socket发送接受超时时间
-	///param[in]		recvTimeout		接收超时 单位：毫秒
-	///param[in]		sendTimeout		发送超时 单位：毫秒
-	///retun		 true 成功、false 失败 
-	virtual bool setSocketTimeout(uint32_t recvTimeout,uint32_t sendTimeout);
-
-
-	///设置socket堵塞、非堵塞模式
-	///param[in]		nonblock		true 堵塞模式  false 非赌赛模式
-	///return		true 成功、false 失败 
-	virtual bool nonBlocking(bool nonblock);
-
-
+	
 	///【异步】启动监听服务
 	///param[in]		callback		accept产生的socket通知回调，不能为NULL
 	///retun		 true 成功、false 失败 
@@ -69,16 +52,11 @@ public:
 	/// 1:只有tcpserver才支持
 	///	2:与startListen不能同时使用
 	///	3:该接口的调用时间跟setSocketTimeout/nonBlocking两个函数决定
-	virtual Socket* accept();
+	virtual Public::Base::shared_ptr<Socket> accept();
 
 	///获取Socket句柄
 	///return 句柄	、当socket创建失败 -1
 	virtual int getHandle() const ;
-
-	///获取Socket连接状态
-	///param in		
-	///return 连接状态、TCPServer默认NetStatus_notconnected、UDP默认NetStatus_connected
-	virtual NetStatus getStatus() const;
 
 	///获取Socket网络类型
 	///param in		

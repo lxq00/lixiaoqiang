@@ -4,7 +4,7 @@
 
 struct ConnectCanEvent:public ConnectEvent
 {
-	bool doCanEvent(const shared_ptr<Socket>& sock, int flag)
+	bool doCanEvent(const Public::Base::shared_ptr<Socket>& sock, int flag)
 	{
 		int sockfd = sock->getHandle();
 
@@ -20,7 +20,7 @@ struct ConnectCanEvent:public ConnectEvent
 
 struct AcceptCanEvent :public AcceptEvent
 {
-	bool doCanEvent(const shared_ptr<Socket>& sock, int flag)
+	bool doCanEvent(const Public::Base::shared_ptr<Socket>& sock, int flag)
 	{
 		int sockfd = sock->getHandle();
 
@@ -47,7 +47,7 @@ struct SendCanEvent :public SendEvent
 
 	SendCanEvent():sendtmp(NULL),sendtmplen(0){}
 
-	bool doCanEvent(const shared_ptr<Socket>& sock, int flag)
+	bool doCanEvent(const Public::Base::shared_ptr<Socket>& sock, int flag)
 	{
 		int sockfd = sock->getHandle();
 
@@ -83,7 +83,7 @@ struct SendCanEvent :public SendEvent
 
 struct RecvCanEvent :public RecvEvent
 {
-	bool doCanEvent(const shared_ptr<Socket>& sock, int flag)
+	bool doCanEvent(const Public::Base::shared_ptr<Socket>& sock, int flag)
 	{
 		int sockfd = sock->getHandle();
 
@@ -120,67 +120,103 @@ struct RecvCanEvent :public RecvEvent
 class AsyncObjectCan:public AsyncObject
 {
 public:
-	AsyncObjectCan() {}
+	AsyncObjectCan(const Public::Base::shared_ptr<AsyncManager>& _manager):AsyncObject(_manager) {}
 	virtual ~AsyncObjectCan(){}
 
-	virtual shared_ptr<AsyncInfo> addConnectEvent(const shared_ptr<Socket>& sock, const NetAddr& othreaddr, const Socket::ConnectedCallback& callback)
+	virtual bool addConnectEvent(const Public::Base::shared_ptr<Socket>& sock, const NetAddr& othreaddr, const Socket::ConnectedCallback& callback)
 	{
-		shared_ptr<ConnectCanEvent> event(new ConnectCanEvent);
+		Public::Base::shared_ptr<ConnectCanEvent> event(new ConnectCanEvent);
 		event->callback = callback;
 		event->otheraddr = othreaddr;
+		event->manager = manager;
 
-		return AsyncObject::addConnectEvent(sock, event);
+		if (!AsyncObject::addConnectEvent(sock, event))
+		{
+			return false;
+		}
+		AsyncObject::buildDoingEvent(sock);
+		return true;
 	}
-	virtual shared_ptr<AsyncInfo> addAcceptEvent(const shared_ptr<Socket>& sock, const Socket::AcceptedCallback& callback)
+	virtual bool addAcceptEvent(const Public::Base::shared_ptr<Socket>& sock, const Socket::AcceptedCallback& callback)
 	{
-		shared_ptr<AcceptCanEvent> event(new AcceptCanEvent);
+		Public::Base::shared_ptr<AcceptCanEvent> event(new AcceptCanEvent);
 		event->callback = callback;
+		event->manager = manager;
 
-		return AsyncObject::addAcceptEvent(sock, event);
+		if (!AsyncObject::addAcceptEvent(sock, event))
+		{
+			return false;
+		}
+		AsyncObject::buildDoingEvent(sock);
+		return true;
 	}
-	virtual shared_ptr<AsyncInfo> addRecvFromEvent(const shared_ptr<Socket>& sock, char* buffer, int bufferlen, const Socket::RecvFromCallback& callback)
+	virtual bool addRecvFromEvent(const Public::Base::shared_ptr<Socket>& sock, char* buffer, int bufferlen, const Socket::RecvFromCallback& callback)
 	{
-		shared_ptr<RecvCanEvent> event(new RecvCanEvent);
+		Public::Base::shared_ptr<RecvCanEvent> event(new RecvCanEvent);
 		event->buffer = buffer;
 		event->bufferlen = bufferlen;
 		event->recvFromCallback = callback;
+		event->manager = manager;
 
-		return AsyncObject::addRecvEvent(sock, event);
+		if (!AsyncObject::addRecvEvent(sock, event))
+		{
+			return false;
+		}
+		AsyncObject::buildDoingEvent(sock);
+		return true;
 	}
-	virtual shared_ptr<AsyncInfo> addRecvEvent(const shared_ptr<Socket>& sock, char* buffer, int bufferlen, const Socket::ReceivedCallback& callback)
+	virtual bool addRecvEvent(const Public::Base::shared_ptr<Socket>& sock, char* buffer, int bufferlen, const Socket::ReceivedCallback& callback)
 	{
-		shared_ptr<RecvCanEvent> event(new RecvCanEvent);
+		Public::Base::shared_ptr<RecvCanEvent> event(new RecvCanEvent);
 		event->buffer = buffer;
 		event->bufferlen = bufferlen;
 		event->recvCallback = callback;
+		event->manager = manager;
 
 		return AsyncObject::addRecvEvent(sock, event);
 	}
-	virtual shared_ptr<AsyncInfo> addSendToEvent(const shared_ptr<Socket>& sock, const char* buffer, int bufferlen, const NetAddr& otheraddr, const Socket::SendedCallback& callback)
+	virtual bool addSendToEvent(const Public::Base::shared_ptr<Socket>& sock, const char* buffer, int bufferlen, const NetAddr& otheraddr, const Socket::SendedCallback& callback)
 	{
-		shared_ptr<SendCanEvent> event(new SendCanEvent);
+		Public::Base::shared_ptr<SendCanEvent> event(new SendCanEvent);
 		event->buffer = buffer;
 		event->bufferlen = bufferlen;
 		event->otheraddr = new NetAddr(otheraddr);
 		event->callback = callback;
+		event->manager = manager;
 
-		return AsyncObject::addSendEvent(sock, event);
+		if (!AsyncObject::addSendEvent(sock, event))
+		{
+			return false;
+		}
+		AsyncObject::buildDoingEvent(sock);
+		return true;
 	}
-	virtual shared_ptr<AsyncInfo> addSendEvent(const shared_ptr<Socket>& sock, const char* buffer, int bufferlen, const Socket::SendedCallback& callback)
+	virtual bool addSendEvent(const Public::Base::shared_ptr<Socket>& sock, const char* buffer, int bufferlen, const Socket::SendedCallback& callback)
 	{
-		shared_ptr<SendCanEvent> event(new SendCanEvent);
+		Public::Base::shared_ptr<SendCanEvent> event(new SendCanEvent);
 		event->buffer = buffer;
 		event->bufferlen = bufferlen;
 		event->callback = callback;
+		event->manager = manager;
 
-		return AsyncObject::addSendEvent(sock, event);
+		if (!AsyncObject::addSendEvent(sock, event))
+		{
+			return false;
+		}
+		AsyncObject::buildDoingEvent(sock);
+		return true;
 	}
-	virtual shared_ptr<AsyncInfo> addDisconnectEvent(const shared_ptr<Socket>& sock, const Socket::DisconnectedCallback& callback)
+	virtual bool addDisconnectEvent(const Public::Base::shared_ptr<Socket>& sock, const Socket::DisconnectedCallback& callback)
 	{
-		shared_ptr<DisconnectEvent> event(new DisconnectEvent);
+		Public::Base::shared_ptr<DisconnectEvent> event(new DisconnectEvent);
 		event->callback = callback;
 
-		return AsyncObject::addDisconnectEvent(sock, event);
+		if (!AsyncObject::addDisconnectEvent(sock, event))
+		{
+			return false;
+		}
+		AsyncObject::buildDoingEvent(sock);
+		return true;
 	}
 
 };

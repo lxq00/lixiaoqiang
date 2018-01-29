@@ -26,7 +26,9 @@
     <ClInclude Include="Src\Async\AsyncObjectIOCP.h" />
     <ClInclude Include="Src\Async\IAsyncEvent.h" />
     <ClInclude Include="Src\Async\AsyncObject.h" />
-    <ClInclude Include="Src\SocketTcp.h" />
+    <ClInclude Include="Src\IOWorker.cpp" />
+    <ClInclude Include="Src\IOWorkerInternal.h" />
+    <ClInclude Include="Src\SocketInternal.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Version.rc" />
@@ -37,7 +39,6 @@
   <ItemGroup>
     <ClCompile Include="Src\NetAddr.cpp" />
     <ClCompile Include="Src\Network.cpp" />
-    <ClCompile Include="Src\SocketTcp.cpp" />
     <ClCompile Include="Src\TcpClient.cpp" />
     <ClCompile Include="Src\TcpServer.cpp" />
     <ClCompile Include="Src\Udp.cpp" />

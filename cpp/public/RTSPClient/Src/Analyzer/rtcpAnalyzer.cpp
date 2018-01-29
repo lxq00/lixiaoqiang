@@ -130,7 +130,7 @@ int RtcpUnpack::CreateRR(char* pBuffer, int& nBufLen)
 //	// 	stRecvReport.exthighseqnr = 0;
 //	// 	stRecvReport.i
 //	//stSdes.type = 2;
-//	//strcpy(stSdes.szdes, "XUNMEI_RTSP");
+//	//strcpy(stSdes.szdes, "Public_RTSP");
 //	//stSdes.lenth = htonl(32);
 //
 //	int nHeaderLen = sizeof(RTCPHEADER);

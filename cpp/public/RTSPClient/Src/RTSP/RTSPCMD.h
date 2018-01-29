@@ -1,7 +1,7 @@
 #ifndef __RTSPCMD_H__
 #define __RTSPCMD_H__
 #include "RTSPClient/RTSPClient.h"
-using namespace Xunmei::RTSPClient;
+using namespace Public::RTSPClient;
 
 struct SDPInfo
 {

@@ -2,7 +2,7 @@
 #include "RTSPCodeTarns.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//xunmei heart beat
+//Public heart beat
 static unsigned char normaltheartbeat[] = {0x24 ,0x01 ,0x00 ,0x34 ,0x81 ,0xC9 ,0x00 ,0x07 ,0x80 ,0x00 ,0x00 ,0x29 ,0x1A ,0xC3 ,0x79 ,0x75   
 ,0x00 ,0x00 ,0x00 ,0x00 ,0x00 ,0x00 ,0x5B ,0x9F ,0x00 ,0x00 ,0x07 ,0x7C ,0x80 ,0x7A ,0x30 ,0xCE 
 ,0x00 ,0x00 ,0xAD ,0x79 ,0x81 ,0xCA ,0x00 ,0x04 ,0x80 ,0x00 ,0x00 ,0x29 ,0x01 ,0x09 ,0x62 ,0x6C 
@@ -153,7 +153,7 @@ int RTSPClient::RTSPClientInternal::creatRTPAnalyzer()
 	if (0 == strncasecmp("H264", m_stMediaInfo.stStreamVideo.szCodec, 4))
 	{
 		m_pRtpAnalyzer = new RtpH264Analyzer(m_stMediaInfo.stStreamVideo.nPayLoad, m_stMediaInfo.stStreamAudio.nPayLoad, (char*)m_szSpsBuffer, m_nSpsLen, (char*)m_szPpsBuffer, m_nPpsLen);
-		//*ppRtpAnalyzer = new RtpXunmeiAnalyzer(m_stMediaInfo.stStreamVideo.nPayLoad, m_stMediaInfo.stStreamAudio.nPayLoad);
+		//*ppRtpAnalyzer = new RtpPublicAnalyzer(m_stMediaInfo.stStreamVideo.nPayLoad, m_stMediaInfo.stStreamAudio.nPayLoad);
 
 	}
 	//不区分大小写比较4个字节的编码类型

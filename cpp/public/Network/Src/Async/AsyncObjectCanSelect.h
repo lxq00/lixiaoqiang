@@ -4,7 +4,7 @@
 class AsyncObjectCanSelect :public AsyncObjectCan, public Thread
 {
 public:
-	AsyncObjectCanSelect():AsyncObjectCan(), Thread("AsyncObjectSelect")
+	AsyncObjectCanSelect(const Public::Base::shared_ptr<AsyncManager>& _manager):AsyncObjectCan(_manager), Thread("AsyncObjectSelect")
 	{
 		createThread();
 	}
@@ -25,28 +25,30 @@ private:
 
 			buildDoingEvent();
 
-			std::map<const Socket*, shared_ptr<DoingAsyncInfo> > doingtmp;
+			std::map<const Socket*, Public::Base::shared_ptr<DoingAsyncInfo> > doingtmp;
 			{
 				Guard locker(mutex);
 				doingtmp = doingList;
 			}
-			for (std::map<const Socket*, shared_ptr<DoingAsyncInfo> >::iterator iter = doingtmp.begin(); iter != doingtmp.end(); iter++)
+			for (std::map<const Socket*, Public::Base::shared_ptr<DoingAsyncInfo> >::iterator iter = doingtmp.begin(); iter != doingtmp.end(); iter++)
 			{
 				if (iter->second == NULL) continue;;
 
-				shared_ptr<AsyncInfo> asyncinfo = iter->second->asyncInfo.lock();
+				Public::Base::shared_ptr<AsyncInfo> asyncinfo = iter->second->asyncInfo.lock();
 				if (asyncinfo == NULL) continue;
 
-				shared_ptr<Socket> sock = asyncinfo->sock.lock();
+				Public::Base::shared_ptr<Socket> sock = asyncinfo->sock.lock();
 				if (sock == NULL) continue;
 
 				int sockfd = sock->getHandle();
-				if ((iter->second->connectEvent != NULL && iter->second->connectEvent->runTimes++ % EVENTRUNTIMES == 0) || iter->second->sendEvent != NULL)
+				if ((iter->second->connectEvent != NULL && iter->second->connectEvent->runTimes++ % EVENTRUNTIMES == 0) 
+					|| iter->second->sendEvent != NULL)
 				{
 					FD_SET(sockfd, &fdwrite);
 					maxsock = maxsock > sockfd ? maxsock : sockfd;
 				}
-				if (iter->second->acceptEvent != NULL || iter->second->recvEvent != NULL || iter->second->disconnedEvent != NULL)
+				if (iter->second->acceptEvent != NULL || iter->second->recvEvent != NULL 
+					|| (iter->second->disconnedEvent != NULL && iter->second->disconnedEvent->runTimes++ % EVENTRUNTIMES == 0))
 				{
 					FD_SET(sockfd, &fdread);
 					maxsock = maxsock > sockfd ? maxsock : sockfd;
@@ -63,14 +65,14 @@ private:
 				continue;
 			}
 			{
-				for (std::map<const Socket*, shared_ptr<DoingAsyncInfo> >::iterator iter = doingtmp.begin(); iter != doingtmp.end(); iter++)
+				for (std::map<const Socket*, Public::Base::shared_ptr<DoingAsyncInfo> >::iterator iter = doingtmp.begin(); iter != doingtmp.end(); iter++)
 				{
 					if (iter->second == NULL) continue;;
 
-					shared_ptr<AsyncInfo> asyncinfo = iter->second->asyncInfo.lock();
+					Public::Base::shared_ptr<AsyncInfo> asyncinfo = iter->second->asyncInfo.lock();
 					if (asyncinfo == NULL) continue;
 
-					shared_ptr<Socket> sock = asyncinfo->sock.lock();
+					Public::Base::shared_ptr<Socket> sock = asyncinfo->sock.lock();
 					if (sock == NULL) continue;
 				
 					int sockfd = sock->getHandle();

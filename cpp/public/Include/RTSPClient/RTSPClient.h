@@ -4,10 +4,10 @@
 #include "Base/Base.h"
 #include "Network/Network.h"
 #include "RTSPClientErrorCode.h"
-using namespace Xunmei::Base;
-using namespace Xunmei::Network;
+using namespace Public::Base;
+using namespace Public::Network;
 
-namespace Xunmei {
+namespace Public {
 namespace RTSPClient {
 
 typedef Function4<void, const char*, long, LPFRAME_INFO, void*> RTSPClient_DataCallBack;

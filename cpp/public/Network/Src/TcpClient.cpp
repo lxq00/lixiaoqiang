@@ -1,23 +1,27 @@
-#include "SocketTcp.h"
+#include "SocketInternal.h"
 #include "Network/TcpClient.h"
 #include <memory>
 
 using namespace std;
-namespace Xunmei{
+namespace Public{
 namespace Network{
 
-struct TCPClient::TCPClientInternalPointer:public SocketConnection
+struct TCPClient::TCPClientInternalPointer
 {
-	TCPClientInternalPointer():SocketConnection(){}
-	~TCPClientInternalPointer(){}
+	Public::Base::shared_ptr<SocketInternal> sock;
 };
-TCPClient::TCPClient(IOWorker& worker)
+TCPClient::TCPClient()
 {
 	tcpclientinternal = new TCPClientInternalPointer();
-	tcpclientinternal->internal = boost::make_shared<TCPSocketObject>(worker.internal,this,false);
-	tcpclientinternal->internal->create();
 }
+Public::Base::shared_ptr<Socket> TCPClient::create(const Public::Base::shared_ptr<IOWorker>& worker)
+{
+	if (worker == NULL) return Public::Base::shared_ptr<Socket>();
 
+	Public::Base::shared_ptr<TCPClient> client(new TCPClient());
+	client->tcpclientinternal->sock = new SocketInternal(worker->internal->manager, client, NetType_TcpClient);
+	return client;
+}
 TCPClient::~TCPClient()
 {
 	disconnect();
@@ -26,12 +30,7 @@ TCPClient::~TCPClient()
 }
 bool TCPClient::bind(const NetAddr& addr,bool reusedaddr)
 {
-	boost::shared_ptr<TCPSocketObject> sockobj;
-
-	{
-		Guard locker(tcpclientinternal->mutex);
-		sockobj = tcpclientinternal->internal;
-	}
+	Public::Base::shared_ptr<SocketInternal> sockobj = tcpclientinternal->sock;
 	if(sockobj == NULL)
 	{
 		return false;
@@ -41,72 +40,80 @@ bool TCPClient::bind(const NetAddr& addr,bool reusedaddr)
 }
 bool TCPClient::disconnect()
 {
-	return tcpclientinternal->disconnect();
+	if (tcpclientinternal->sock != NULL)
+	{
+		tcpclientinternal->sock->disconnect();
+		tcpclientinternal->sock = NULL;
+	}
+	return true;
 }
 bool TCPClient::getSocketBuffer(uint32_t& recvSize,uint32_t& sendSize) const
 {
-	return tcpclientinternal->getSocketBuffer(recvSize,sendSize);
+	Public::Base::shared_ptr<SocketInternal> sockobj = tcpclientinternal->sock;
+	if (sockobj == NULL)
+	{
+		return false;
+	}
+
+	return sockobj->getSocketBuffer(recvSize,sendSize);
 }
 bool TCPClient::setSocketBuffer(uint32_t recvSize,uint32_t sendSize)
 {
-	return tcpclientinternal->setSocketBuffer(recvSize,sendSize);
-}
-bool TCPClient::getSocketTimeout(uint32_t& recvTimeout,uint32_t& sendTimeout) const
-{
-	return tcpclientinternal->getSocketTimeout(recvTimeout,sendTimeout);
-}
-bool TCPClient::setSocketTimeout(uint32_t recvTimeout,uint32_t sendTimeout)
-{
-	return tcpclientinternal->setSocketTimeout(recvTimeout,sendTimeout);
-}
-bool TCPClient::nonBlocking(bool nonblock)
-{
-	return tcpclientinternal->nonBlocking(nonblock);
+	Public::Base::shared_ptr<SocketInternal> sockobj = tcpclientinternal->sock;
+	if (sockobj == NULL)
+	{
+		return false;
+	}
+
+	return sockobj->setSocketBuffer(recvSize,sendSize);
 }
 int TCPClient::getHandle() const
 {
-	return tcpclientinternal->getHandle();
+	Public::Base::shared_ptr<SocketInternal> sockobj = tcpclientinternal->sock;
+	if (sockobj == NULL)
+	{
+		return false;
+	}
+
+	return sockobj->getHandle();
 }
-NetStatus TCPClient::getStatus() const
-{
-	return tcpclientinternal->getStatus();
-}
+
 NetType TCPClient::getNetType() const
 {
 	return NetType_TcpClient;
 }
 NetAddr TCPClient::getMyAddr() const
 {
-	return tcpclientinternal->getMyAddr();
+	Public::Base::shared_ptr<SocketInternal> sockobj = tcpclientinternal->sock;
+	if (sockobj == NULL)
+	{
+		return NetAddr();
+	}
+	return sockobj->getMyAddr();
 }
 NetAddr TCPClient::getOhterAddr() const
 {
-	return tcpclientinternal->getOhterAddr();
+	Public::Base::shared_ptr<SocketInternal> sockobj = tcpclientinternal->sock;
+	if (sockobj == NULL)
+	{
+		return NetAddr();
+	}
+	return sockobj->getOhterAddr();
 }
 bool TCPClient::async_connect(const NetAddr& addr,const ConnectedCallback& connected)
 {
-	boost::shared_ptr<TCPSocketObject> sockobj;
-
-	{
-		Guard locker(tcpclientinternal->mutex);
-		sockobj = tcpclientinternal->internal;
-	}
-	if(sockobj == NULL || connected == NULL)
+	Public::Base::shared_ptr<SocketInternal> sockobj = tcpclientinternal->sock;
+	if (sockobj == NULL)
 	{
 		return false;
 	}
 
-	return sockobj->startConnect(connected,addr);
+	return sockobj->async_connect(addr,connected);
 }
 bool TCPClient::connect(const NetAddr& addr)
 {
-	boost::shared_ptr<TCPSocketObject> sockobj;
-
-	{
-		Guard locker(tcpclientinternal->mutex);
-		sockobj = tcpclientinternal->internal;
-	}
-	if(sockobj == NULL)
+	Public::Base::shared_ptr<SocketInternal> sockobj = tcpclientinternal->sock;
+	if (sockobj == NULL)
 	{
 		return false;
 	}
@@ -115,23 +122,53 @@ bool TCPClient::connect(const NetAddr& addr)
 }
 bool TCPClient::setDisconnectCallback(const Socket::DisconnectedCallback& disconnected)
 {
-	return tcpclientinternal->setDisconnectCallback(disconnected);
+	Public::Base::shared_ptr<SocketInternal> sockobj = tcpclientinternal->sock;
+	if (sockobj == NULL)
+	{
+		return false;
+	}
+
+	return sockobj->setDisconnectCallback(disconnected);
 }
 bool TCPClient::async_recv(char *buf , uint32_t len,const Socket::ReceivedCallback& received)
 {
-	return tcpclientinternal->async_recv(buf,len,received);
+	Public::Base::shared_ptr<SocketInternal> sockobj = tcpclientinternal->sock;
+	if (sockobj == NULL)
+	{
+		return false;
+	}
+
+	return sockobj->async_recv(buf,len,received);
 }
 bool TCPClient::async_send(const char * buf, uint32_t len,const Socket::SendedCallback& sended)
 {
-	return tcpclientinternal->async_send(buf,len,sended);
+	Public::Base::shared_ptr<SocketInternal> sockobj = tcpclientinternal->sock;
+	if (sockobj == NULL)
+	{
+		return false;
+	}
+
+	return sockobj->async_send(buf,len,sended);
 }
 int TCPClient::recv(char *buf , uint32_t len)
 {
-	return tcpclientinternal->recv(buf,len);
+	Public::Base::shared_ptr<SocketInternal> sockobj = tcpclientinternal->sock;
+	if (sockobj == NULL)
+	{
+		return false;
+	}
+
+	return sockobj->recv(buf,len);
 }
 int TCPClient::send(const char * buf, uint32_t len)
 {
-	return tcpclientinternal->send(buf,len);
+	Public::Base::shared_ptr<SocketInternal> sockobj = tcpclientinternal->sock;
+	if (sockobj == NULL)
+	{
+		return false;
+	}
+
+	return sockobj->send(buf,len);
 }
 };
 };

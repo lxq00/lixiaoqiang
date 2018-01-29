@@ -1,7 +1,7 @@
 
 #pragma once
 #include "Base/Base.h"
-using namespace Xunmei::Base;
+using namespace Public::Base;
 
 struct RTSP_RESPONSE
 {

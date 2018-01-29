@@ -3,7 +3,7 @@
 #include "RTSPClientManagerInternal.h"
 
 
-using namespace Xunmei::RTSPClient;
+using namespace Public::RTSPClient;
 
 RTSPClientManager::RTSPClientManager(const std::string& userContent, const IOWorker::ThreadNum& threadNum)
 {

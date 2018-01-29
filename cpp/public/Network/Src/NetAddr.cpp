@@ -1,5 +1,5 @@
 //
-//  Copyright (c)1998-2012, Chongqing Xunmei Technology
+//  Copyright (c)1998-2012, Chongqing Public Technology
 //  All Rights Reserved.
 //
 //  Description:
@@ -18,7 +18,7 @@
 #endif
 #include "Base/String.h"
 #include "Network/NetAddr.h"
-namespace Xunmei{
+namespace Public{
 namespace Network{
 
 
@@ -356,7 +356,7 @@ NetAddr& NetAddr::operator=( NetAddrIPv6 const & other )
 }
 #endif
 } // namespace Net
-} // namespace Xunmei
+} // namespace Public
 
 
 

@@ -2,7 +2,7 @@
 #define __RTSPClientManager_H__
 #include "RTSPClient/RTSPClient.h"
 
-using namespace Xunmei::RTSPClient;
+using namespace Public::RTSPClient;
 
 struct RTSPClientManager::RTSPClientManagerInternal
 {

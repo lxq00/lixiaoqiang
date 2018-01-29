@@ -1,7 +1,7 @@
 #ifndef __RTSPPROTOCOL_H__
 #define __RTSPPROTOCOL_H__
 #include "RTSPClient/RTSPClient.h"
-using namespace Xunmei::RTSPClient;
+using namespace Public::RTSPClient;
 #include "RTSPCMD.h"
 #include "../StringParse/rtspResponseParse.h"
 

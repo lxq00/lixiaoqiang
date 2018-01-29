@@ -2,7 +2,7 @@
 #include "RTSPClient/RTSPClient.h"
 #include "RTSPClient/RTSPClientErrorCode.h"
 
-using namespace Xunmei::RTSPClient;
+using namespace Public::RTSPClient;
 
 //........................global............................
 static Mutex	clientmutex;
@@ -112,7 +112,7 @@ int CALLBACK XM_RTSP_Init()
 	{
 		BaseSystem::init();
 		NetworkSystem::init();
-		clientManager = new RTSPClientManager("Xunmei RTSP Client");
+		clientManager = new RTSPClientManager("Public RTSP Client");
 	}
 	return RTSP_ERR_NO_ERROR;
 }

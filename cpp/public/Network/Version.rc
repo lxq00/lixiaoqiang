@@ -40,7 +40,7 @@ BEGIN
             VALUE "CompanyName", "讯美科技股份有限公司" 
             VALUE "FileVersion", "5.0.1" 
             VALUE "InternalName", "Network Dll" 
-            VALUE "LegalCopyright", "Xunmei Copyright(C) 1998-2018" 
+            VALUE "LegalCopyright", "Public Copyright(C) 1998-2018" 
             VALUE "OriginalFilename", "Network Dll" 
             VALUE "ProductName", "讯美VGSII网络库" 
             VALUE "ProductVersion", "5.0.1" 

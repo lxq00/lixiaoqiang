@@ -4,11 +4,11 @@
 
 #define H264_STATRTCODE_LEN	4
 
-class RtpXunmeiAnalyzer : public IRtpAnalyzer
+class RtpPublicAnalyzer : public IRtpAnalyzer
 {
 public:
-	RtpXunmeiAnalyzer(int nVideoPayload, int nAudioPayload);
-	~RtpXunmeiAnalyzer(void);
+	RtpPublicAnalyzer(int nVideoPayload, int nAudioPayload);
+	~RtpPublicAnalyzer(void);
 
 	//virtual
 	int Init(int nBufferSize);

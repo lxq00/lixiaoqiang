@@ -4,11 +4,11 @@
 #include "Analyzer/rtcpAnalyzer.h"
 #include "Analyzer/rtpH264Analyzer.h"
 #include "Analyzer/rtpJpegAnalyzer.h"
-#include "Analyzer/rtpXunmeiAnalyzer.h"
+#include "Analyzer/rtpPublicAnalyzer.h"
 #include "RTSPClient/RTSPClientErrorCode.h"
 #include "RTSP/RTSPProtocol.h"
 
-using namespace Xunmei::RTSPClient;
+using namespace Public::RTSPClient;
 
 struct RTSPClient::RTSPClientInternal:public RTSPProtocol
 {

@@ -28,8 +28,8 @@ inline int SuportType()
 	return suportType;
 }
 
-
-inline shared_ptr<Socket> buildSocketBySock(int sock,const NetAddr& otheraaddr);
+class AsyncManager;
+inline Public::Base::shared_ptr<Socket> buildSocketBySock(const Public::Base::weak_ptr<AsyncManager>& manager,int sock,const NetAddr& otheraaddr);
 
 typedef enum
 {
@@ -46,12 +46,13 @@ public:
 	IAsyncEvent() :doSuccess(false), runTimes(0) {}
 	virtual ~IAsyncEvent() {}
 
-	virtual bool doPrevEvent(const shared_ptr<Socket>& sock) { return true; }
-	virtual bool doCanEvent(const shared_ptr<Socket>& sock,int flag = 0) = 0;
-	virtual bool doResultEvent(const shared_ptr<Socket>& sock, int flag = 0, const std::string& context = "") = 0;
+	virtual bool doPrevEvent(const Public::Base::shared_ptr<Socket>& sock) { return true; }
+	virtual bool doCanEvent(const Public::Base::shared_ptr<Socket>& sock,int flag = 0) = 0;
+	virtual bool doResultEvent(const Public::Base::shared_ptr<Socket>& sock, int flag = 0, const std::string& context = "") = 0;
 
 	bool doSuccess;
 	uint32_t runTimes;
+	weak_ptr<AsyncManager> manager;
 };
 
 struct ConnectEvent :public IAsyncEvent
@@ -59,7 +60,7 @@ struct ConnectEvent :public IAsyncEvent
 	NetAddr						otheraddr;
 	Socket::ConnectedCallback	callback;
 
-	virtual bool doResultEvent(const shared_ptr<Socket>& sock, int flag = 0, const std::string& context = "")
+	virtual bool doResultEvent(const Public::Base::shared_ptr<Socket>& sock, int flag = 0, const std::string& context = "")
 	{
 		shared_ptr<Socket>		s = sock;
 		if (s != NULL)
@@ -80,7 +81,7 @@ struct AcceptEvent :public IAsyncEvent
 
 	AcceptEvent() {}
 	virtual ~AcceptEvent() {}
-	virtual bool doResultEvent(const shared_ptr<Socket>& sock, int flag, const std::string& context = "")
+	virtual bool doResultEvent(const Public::Base::shared_ptr<Socket>& sock, int flag, const std::string& context = "")
 	{
 		shared_ptr<Socket> ns = buildSocketBySock(flag, otheraaddr);
 		shared_ptr<Socket>	s = sock;
@@ -90,7 +91,9 @@ struct AcceptEvent :public IAsyncEvent
 		}
 
 		//需要一直进行
-		return false;
+		doSuccess = false;
+
+		return true;
 	}
 };
 
@@ -101,7 +104,7 @@ struct SendEvent :public IAsyncEvent
 	shared_ptr<NetAddr>			otheraddr;
 	Socket::SendedCallback		callback;
 
-	virtual bool doResultEvent(const shared_ptr<Socket>& sock, int flag, const std::string& context = "")
+	virtual bool doResultEvent(const Public::Base::shared_ptr<Socket>& sock, int flag, const std::string& context = "")
 	{
 		shared_ptr<Socket>	s = sock;
 		if (s != NULL)
@@ -121,7 +124,7 @@ struct RecvEvent :public IAsyncEvent
 	Socket::ReceivedCallback	recvCallback;
 	Socket::RecvFromCallback	recvFromCallback;
 
-	virtual bool doResultEvent(const shared_ptr<Socket>& sock, int flag, const std::string& context = "")
+	virtual bool doResultEvent(const Public::Base::shared_ptr<Socket>& sock, int flag, const std::string& context = "")
 	{
 		shared_ptr<Socket>	s = sock;
 		if (s != NULL)
@@ -143,7 +146,7 @@ struct RecvEvent :public IAsyncEvent
 struct DisconnectEvent :public IAsyncEvent
 {
 	Socket::DisconnectedCallback callback;
-	virtual bool doCanEvent(const shared_ptr<Socket>& sock,int flag)
+	virtual bool doCanEvent(const Public::Base::shared_ptr<Socket>& sock,int flag)
 	{
 		int sockfd = sock->getHandle();
 
@@ -170,7 +173,7 @@ struct DisconnectEvent :public IAsyncEvent
 
 		return false;
 	}
-	virtual bool doResultEvent(const shared_ptr<Socket>& sock, int flag, const std::string& context)
+	virtual bool doResultEvent(const Public::Base::shared_ptr<Socket>& sock, int flag, const std::string& context)
 	{
 		shared_ptr<Socket>	s = sock;
 		if (s != NULL)

@@ -2,7 +2,7 @@
 #ifndef _SDP_PARSE_H_
 #define _SDP_PARSE_H_
 #include "Base/Base.h"
-using namespace Xunmei::Base;
+using namespace Public::Base;
 
 #include "RTSPClient/rtspStructs.h"
 

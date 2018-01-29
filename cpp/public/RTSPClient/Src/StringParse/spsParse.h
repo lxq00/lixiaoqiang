@@ -609,7 +609,7 @@ static int DecodeSpsPpsInfo(char* pSpsPpsBufer, int& nWidth, int& nHetght,char* 
 	}
 	else
 	{
-		//防止SPS PPS字符串出错导致拷贝崩溃. 例如xunmei IPC 的SPS PPS 只有一个"," .
+		//防止SPS PPS字符串出错导致拷贝崩溃. 例如Public IPC 的SPS PPS 只有一个"," .
 		int nPpsLen = pFindPps - pSpsPpsBufer;
 		if (nPpsLen > 0)
 		{

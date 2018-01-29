@@ -22,9 +22,6 @@
     <ClInclude Include="..\Include\Network\Udp.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="Src\SocketTcp.h">
-      <Filter>Src</Filter>
-    </ClInclude>
     <ClInclude Include="Src\Async\IAsyncEvent.h">
       <Filter>Src\Async</Filter>
     </ClInclude>
@@ -48,6 +45,15 @@
     </ClInclude>
     <ClInclude Include="Src\Async\AsyncObjectIOCP.h">
       <Filter>Src\Async</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\SocketInternal.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\IOWorkerInternal.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\IOWorker.cpp">
+      <Filter>Src</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -74,9 +80,6 @@
       <Filter>Src</Filter>
     </ClCompile>
     <ClCompile Include="Src\Network.cpp">
-      <Filter>Src</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\SocketTcp.cpp">
       <Filter>Src</Filter>
     </ClCompile>
     <ClCompile Include="Src\TcpClient.cpp">

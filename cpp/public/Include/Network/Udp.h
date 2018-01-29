@@ -18,14 +18,11 @@ class NETWORK_API UDP:public Socket
 {
 	struct UDPInternalPointer;
 	UDP(const UDP&);
+	UDP();
 public:	
-	UDP(IOWorker& worker);
+	static Public::Base::shared_ptr<Socket> create(const  Public::Base::shared_ptr<IOWorker>& worker);
 	virtual ~UDP();
 	
-	///断开socket连接，停止socket内部工作，关闭socket句柄等
-	///UDP/TCP都可使用该接口释放资源，关闭socket
-	virtual bool disconnect();
-
 	///绑定串口信息
 	///param[in]		addr		需要绑定的端口
 	///param[in]		reusedAddr	端口是否允许需要重复绑定

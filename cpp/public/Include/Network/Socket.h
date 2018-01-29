@@ -42,19 +42,11 @@ public:
 public:
 	IOWorker(const ThreadNum& num);
 	~IOWorker();
-
 public:
-	class IOWorkerInternal;
+	struct IOWorkerInternal;
 	IOWorkerInternal* internal;
 };
 
-
-/// Net 连接的状态
-enum NetStatus{
-	NetStatus_connected = 0, 		//	已经连接上
-	NetStatus_notconnected = -1, 	// 	未连接
-	NetStatus_error = -2			//  出错
-};
 
 enum NetType{
 	NetType_TcpServer = 0,			//Accept的TCP
@@ -68,28 +60,28 @@ class NETWORK_API Socket
 public:
 	/// socket监听时有accept事件回调方法，第一个参数表示监听socket自身，第二个表示新构造的socket.需要外部释放
 	/// 回调定义参考：void acceptCallbackFunc(Socket* oldSock,Socket* newSock);
-	typedef Function2<void, const shared_ptr<Socket>&, const shared_ptr<Socket>&> AcceptedCallback;
+	typedef Function2<void, const Public::Base::shared_ptr<Socket>&, const Public::Base::shared_ptr<Socket>&> AcceptedCallback;
 
 	/// socket异步连接事件回调方法,第一个参数表示连接socket自身
 	///回调定义参考：void connectCallbackFunc(Socket* connectSock);
-	typedef Function1<void, const shared_ptr<Socket>&> ConnectedCallback;
+	typedef Function1<void, const Public::Base::shared_ptr<Socket>&> ConnectedCallback;
 
 	/// socket异步断开事件回调方法,int 第一个参数表示连接socket自身，第二个表示描述断开错误描述，客户端，服务端均使用该事件
 	/// 当socket第一次连接成功后，如果10秒无数据，会主动断开连接，错误，防止 tcp恶意连接，只针对accept产生的socket
 	///回调定义参考：void disconnectCallbackFunc(Socket* connectionSock,const char* disconectErrorInfo);
-	typedef Function2<void, const shared_ptr<Socket>&,const std::string&> DisconnectedCallback;
+	typedef Function2<void, const Public::Base::shared_ptr<Socket>&,const std::string&> DisconnectedCallback;
 
 	// socket发生received事件回调方法，第一个参数表示连接socket自身，第二个表示实际接收的socket数据长度.
 	///回调定义参考：void recvCallbackFunc(Socket* sock,const char* recvBuffer,int recvlen);
-	typedef Function3<void, const shared_ptr<Socket>&,const char*, int> ReceivedCallback;
+	typedef Function3<void, const Public::Base::shared_ptr<Socket>&,const char*, int> ReceivedCallback;
 
 	// socket发生send事件回调方法，第一个参数表示连接socket自身，第二个表示实际发送的socket数据长度.
 	///回调定义参考：void sendCallbackFunc(Socket* sock,const char* sendBuffer,int sendlen);
-	typedef Function3<void, const shared_ptr<Socket>&,const char*, int> SendedCallback;
+	typedef Function3<void, const Public::Base::shared_ptr<Socket>&,const char*, int> SendedCallback;
 	
 	/// socket发送udp的recvfrom事件回调方法，第一个参数表示socket自身，第二三个参数表示接收的数据信息地址和长度，第四个参数表示数据发送方ip
 	///回调定义参考：void recvfromCallbackFunc(Socket* sock,const char* recvBuffer, int recvlen ,const NetAddr& otheraddr);
-	typedef Function4<void, const shared_ptr<Socket>&,const char*, int,const NetAddr&> RecvFromCallback;
+	typedef Function4<void, const Public::Base::shared_ptr<Socket>&,const char*, int,const NetAddr&> RecvFromCallback;
 public:
 	Socket(){}
 	virtual ~Socket(){}
@@ -104,6 +96,10 @@ public:
 	///return		true 成功、false 失败 
 	///注：不不建议使用该函数来判断串口是否被占用，端口判断推进使用host::checkPortIsNotUsed接口
 	virtual bool bind(const NetAddr& addr,bool reusedAddr = true){return false;}
+
+	///启动服务listen工作
+	///param[int] falg				监听缓冲池最大的个数
+	virtual bool listen(int flag = 100) { return false; }
 	
 	///获取socket缓冲区大小
 	///param[in]		readSize		读的缓冲区大小
@@ -116,25 +112,6 @@ public:
 	///param[in]		sendSize		发送缓冲区大小
 	///retun		 true 成功、false 失败 
 	virtual bool setSocketBuffer(uint32_t recvSize,uint32_t sendSize){return false;}
-
-	///获取socket发送接受超时时间
-	///param[in]		recvTimeout		接收超时 单位：毫秒
-	///param[in]		sendTimeout		发送超时 单位：毫秒
-	///retun		 true 成功、false 失败 
-	virtual bool getSocketTimeout(uint32_t& recvTimeout,uint32_t& sendTimeout) const{return false;}
-
-	///设置socket发送接受超时时间
-	///param[in]		recvTimeout		接收超时 单位：毫秒
-	///param[in]		sendTimeout		发送超时 单位：毫秒
-	///retun		 true 成功、false 失败 
-	virtual bool setSocketTimeout(uint32_t recvTimeout,uint32_t sendTimeout) {return false;}
-
-
-	///设置socket堵塞、非堵塞模式
-	///param[in]		nonblock		true 堵塞模式  false 非赌赛模式
-	///return		true 成功、false 失败 
-	virtual bool nonBlocking(bool nonblock){return false;}
-
 
 	///【异步】启动监听服务
 	///param[in]		callback		accept产生的socket通知回调，不能为NULL
@@ -153,7 +130,7 @@ public:
 	/// 1:只有tcpserver才支持
 	///	2:与startListen不能同时使用
 	///	3:该接口的调用时间跟setSocketTimeout/nonBlocking两个函数决定
-	virtual Socket* accept(){return NULL;}
+	virtual Public::Base::shared_ptr<Socket> accept(){return Public::Base::shared_ptr<Socket>();}
 
 
 	///【异步】启动TCP连接
@@ -262,10 +239,6 @@ public:
 	///return 句柄	、当socket创建失败 -1
 	virtual int getHandle() const {return INVALIDHANDLE;}
 
-	///获取Socket连接状态
-	///param in		
-	///return 连接状态、TCPServer默认NetStatus_notconnected、UDP默认NetStatus_connected
-	virtual NetStatus getStatus() const{return NetStatus_error;}
 
 	///获取Socket网络类型
 	///param in		

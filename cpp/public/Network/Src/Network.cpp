@@ -3,9 +3,9 @@
 #include "Base/Base.h"
 #include "../version.inl"
 //#include "boost/Include/boost/locale.hpp"
-using namespace Xunmei::Base;
+using namespace Public::Base;
 
-namespace Xunmei{
+namespace Public{
 namespace Network{
 //
 //std::string baseCharsetEncodeEx(const std::string& inputstr,const std::string& fromcharset,const std::string& tocharset)

@@ -18,8 +18,9 @@ class NETWORK_API TCPClient:public Socket
 {
 	struct TCPClientInternalPointer;
 	TCPClient(const TCPClient&);
+	TCPClient();
 public:
-	TCPClient(IOWorker& worker);
+	static Public::Base::shared_ptr<Socket> create(const Public::Base::shared_ptr<IOWorker>& worker);
 	virtual ~TCPClient();
 
 	///断开socket连接，停止socket内部工作，关闭socket句柄等
@@ -44,25 +45,6 @@ public:
 	///param[in]		sendSize		发送缓冲区大小
 	///retun		 true 成功、false 失败 
 	virtual bool setSocketBuffer(uint32_t recvSize,uint32_t sendSize);
-
-	///获取socket发送接受超时时间
-	///param[in]		recvTimeout		接收超时 单位：毫秒
-	///param[in]		sendTimeout		发送超时 单位：毫秒
-	///retun		 true 成功、false 失败 
-	virtual bool getSocketTimeout(uint32_t& recvTimeout,uint32_t& sendTimeout) const;
-
-	///设置socket发送接受超时时间
-	///param[in]		recvTimeout		接收超时 单位：毫秒
-	///param[in]		sendTimeout		发送超时 单位：毫秒
-	///retun		 true 成功、false 失败 
-	virtual bool setSocketTimeout(uint32_t recvTimeout,uint32_t sendTimeout);
-
-
-	///设置socket堵塞、非堵塞模式
-	///param[in]		nonblock		true 堵塞模式  false 非赌赛模式
-	///return		true 成功、false 失败 
-	virtual bool nonBlocking(bool nonblock);
-
 
 	///【异步】启动TCP连接
 	///param[in]		addr			第三方的地址
@@ -125,11 +107,6 @@ public:
 	///获取Socket句柄
 	///return 句柄	、当socket创建失败 -1
 	virtual int getHandle() const;
-
-	///获取Socket连接状态
-	///param in		
-	///return 连接状态、TCPServer默认NetStatus_notconnected、UDP默认NetStatus_connected
-	virtual NetStatus getStatus() const;
 
 	///获取Socket网络类型
 	///param in		

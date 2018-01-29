@@ -1,6 +1,6 @@
-#include "rtpXunmeiAnalyzer.h"
+#include "rtpPublicAnalyzer.h"
 
-RtpXunmeiAnalyzer::RtpXunmeiAnalyzer(int nVideoPayload, int nAudioPayload)
+RtpPublicAnalyzer::RtpPublicAnalyzer(int nVideoPayload, int nAudioPayload)
 {
 	memset(m_pVideoBuf,		0, VIEOD_FRAME_LEN);
 	memset(m_pAudioBuf,		0, AUDIO_FRAME_LEN);
@@ -29,24 +29,24 @@ RtpXunmeiAnalyzer::RtpXunmeiAnalyzer(int nVideoPayload, int nAudioPayload)
 	m_nAudioPayload			= nAudioPayload;
 }
 
-RtpXunmeiAnalyzer::~RtpXunmeiAnalyzer()
+RtpPublicAnalyzer::~RtpPublicAnalyzer()
 {
 }
 
-int RtpXunmeiAnalyzer::Init(int nBufferSize)
+int RtpPublicAnalyzer::Init(int nBufferSize)
 {
 	//缓存机制,暂未实现
 	return 0;
 }
 
-int RtpXunmeiAnalyzer::InputData(char *pBuf, unsigned short nBufSize, int nOffset)
+int RtpPublicAnalyzer::InputData(char *pBuf, unsigned short nBufSize, int nOffset)
 {
 	OnAnalyze(pBuf, nBufSize);
 
 	return 0;
 }
 
-int RtpXunmeiAnalyzer::SetFreamDataCallBack(CBFreamCallBack pCallBack, uint32_t dwUserData1, void* lpUserData2)
+int RtpPublicAnalyzer::SetFreamDataCallBack(CBFreamCallBack pCallBack, uint32_t dwUserData1, void* lpUserData2)
 {
 	if (NULL == pCallBack)
 	{
@@ -60,12 +60,12 @@ int RtpXunmeiAnalyzer::SetFreamDataCallBack(CBFreamCallBack pCallBack, uint32_t 
 	return 0;
 }
 
-int RtpXunmeiAnalyzer::ResetBuffer()
+int RtpPublicAnalyzer::ResetBuffer()
 {
 	return 0;
 }
 
-int RtpXunmeiAnalyzer::OnAnalyze(char* pBuf, int nBufLen)
+int RtpPublicAnalyzer::OnAnalyze(char* pBuf, int nBufLen)
 {
 	if(NULL == pBuf || nBufLen <= RTP_HEADER_LEN )
 	{
@@ -100,7 +100,7 @@ int RtpXunmeiAnalyzer::OnAnalyze(char* pBuf, int nBufLen)
 	return 0;
 }
 
-int  RtpXunmeiAnalyzer::AnalyzeVideo(char* pBuf, int nBufLen)
+int  RtpPublicAnalyzer::AnalyzeVideo(char* pBuf, int nBufLen)
 {
 	//检查是否有丢包
 	int nCurrentSeq = ntohs(m_stRtpHeader.seq);
@@ -307,7 +307,7 @@ int  RtpXunmeiAnalyzer::AnalyzeVideo(char* pBuf, int nBufLen)
 	return 0;
 }
 
-int  RtpXunmeiAnalyzer::AnalyzeAudio(char* pBuf, int nBufLen)
+int  RtpPublicAnalyzer::AnalyzeAudio(char* pBuf, int nBufLen)
 {
 	memcpy(m_pAudioBuf, pBuf, nBufLen);
 	m_nAudioBufLen = nBufLen;
@@ -320,7 +320,7 @@ int  RtpXunmeiAnalyzer::AnalyzeAudio(char* pBuf, int nBufLen)
 	return 0;
 }
 
-int RtpXunmeiAnalyzer::SetH264StartCode(char* pBuf, int nOffset)
+int RtpPublicAnalyzer::SetH264StartCode(char* pBuf, int nOffset)
 {
 	if (NULL == pBuf)
 	{
