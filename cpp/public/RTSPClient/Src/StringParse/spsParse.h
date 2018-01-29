@@ -634,15 +634,13 @@ static int DecodeSpsPpsInfo(char* pSpsPpsBufer, int& nWidth, int& nHetght,char* 
 	memset(m_szPpsBuffer + 3, 0x01, 1);
 
 	//sps Base64 decode
-	char baseDecBuffer[1024] = { 0 };
-	unsigned int nRetLen = Base64::decode(baseDecBuffer, szSpsBufer);
-
-	if (nRetLen <= 0)
+	std::string decBuffer = Base64::decode(szSpsBufer);
+	if (decBuffer.length() <= 0)
 	{
 		return -1;
 	}
-	memcpy(m_szSpsBuffer + 4, baseDecBuffer, nRetLen);
-	m_nSpsLen += nRetLen;
+	memcpy(m_szSpsBuffer + 4, decBuffer.c_str(), decBuffer.length());
+	m_nSpsLen += decBuffer.length();
 
 	//Decode sps get video size
 	int nRet = DecodeSps((unsigned char*)m_szSpsBuffer, m_nSpsLen, nWidth, nHetght, m_nFrameRate);
@@ -652,14 +650,13 @@ static int DecodeSpsPpsInfo(char* pSpsPpsBufer, int& nWidth, int& nHetght,char* 
 		return -1;
 	}
 
-	//sps Base64 decode
-	nRetLen = Base64::decode(baseDecBuffer, szPpsBufer);
-	if (nRetLen <= 0)
+	std::string baseDecBuffer = Base64::decode(szPpsBufer);
+	if (baseDecBuffer.length() <= 0)
 	{
 		return -1;
 	}
-	memcpy(m_szPpsBuffer + 4, baseDecBuffer, nRetLen);
-	m_nPpsLen += nRetLen;
+	memcpy(m_szPpsBuffer + 4, baseDecBuffer.c_str(), baseDecBuffer.length());
+	m_nPpsLen += baseDecBuffer.length();
 
 	return 0;
 }

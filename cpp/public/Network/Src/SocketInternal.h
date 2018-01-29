@@ -39,13 +39,26 @@ public:
 		:type(_type),sockfd(-1),sock(_sock), manager(_manager)
 	{
 #ifdef WIN32
-		int domain = (_type != NetType_Udp) ? SOCK_STREAM : SOCK_DGRAM;
-		int protocol = (_type != NetType_Udp) ? IPPROTO_TCP : IPPROTO_UDP;
-		sockfd = WSASocket(AF_INET, domain, protocol, NULL, 0, WSA_FLAG_OVERLAPPED);
-		if (sockfd <= 0)
+		if (_manager != NULL)
 		{
-			perror("WSASocket");
-			return;
+			int domain = (_type != NetType_Udp) ? SOCK_STREAM : SOCK_DGRAM;
+			int protocol = (_type != NetType_Udp) ? IPPROTO_TCP : IPPROTO_UDP;
+			sockfd = WSASocket(AF_INET, domain, protocol, NULL, 0, WSA_FLAG_OVERLAPPED);
+			if (sockfd <= 0)
+			{
+				perror("WSASocket");
+				return;
+			}
+		}
+		else
+		{
+			int domain = (_type != NetType_Udp) ? SOCK_STREAM : SOCK_DGRAM;
+			sockfd = socket(AF_INET, domain, 0);
+			if (sockfd <= 0)
+			{
+				perror("socket");
+				return;
+			}
 		}
 #else
 		int domain = (_type != NetType_Udp) ? SOCK_STREAM : SOCK_DGRAM;
@@ -55,18 +68,22 @@ public:
 			perror("socket");
 			return;
 		}
-
-		int flags = fcntl(sockfd, F_GETFL, 0);
-		fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
+		if (_manager != NULL)
+		{
+			int flags = fcntl(sockfd, F_GETFL, 0);
+			fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
+		}
 #endif
-		shared_ptr<AsyncManager> _manager = _manager;
-		async = _manager->addSocket(sockfd);
+		shared_ptr<AsyncManager> managertmp = _manager;
+		if(managertmp != NULL)
+			async = managertmp->addSocket(sockfd);
 	}
 	SocketInternal::SocketInternal(const Public::Base::shared_ptr<AsyncManager>& _manager,int _sockfd,const NetAddr& _otheraddr)
 		: type(NetType_TcpConnection),sockfd(_sockfd), otheraddr(_otheraddr), manager(_manager)
 	{
-		Public::Base::shared_ptr<AsyncManager> _manager = _manager;
-		async = _manager->addSocket(sockfd);
+		Public::Base::shared_ptr<AsyncManager> _managertmp = _manager;
+		if(_managertmp != NULL)
+			async = _manager->addSocket(sockfd);
 	}
 	~SocketInternal()
 	{
@@ -157,13 +174,51 @@ public:
 	bool setDisconnectCallback(const DisconnectedCallback& disconnected)
 	{
 		Public::Base::shared_ptr<Socket> socktmp = sock.lock();
-		if (socktmp == NULL)
+		if (socktmp == NULL || async == NULL)
 		{
 			socktmp = shared_from_this();
 		}
 
 		return async->addDisconnectEvent(socktmp, disconnected);
 	}
+	bool setSocketTimeout(uint32_t recvTimeout, uint32_t sendTimeout)
+	{ 
+		if (sockfd == -1 || async != NULL)
+		{
+			return false;
+		}
+		if (recvTimeout != -1)
+		{
+			int ret = setsockopt(getHandle(), SOL_SOCKET, SO_RCVTIMEO, (const char*)&recvTimeout, sizeof(recvTimeout));
+			if (ret < 0)
+			{
+				return false;
+			}
+		}
+		if (sendTimeout != -1)
+		{
+			int ret = setsockopt(getHandle(), SOL_SOCKET, SO_SNDTIMEO, (const char*)&sendTimeout, sizeof(sendTimeout));
+			if (ret < 0)
+			{
+				return false;
+			}
+		}
+		
+		return true;
+	}
+
+	bool getSocketTimeout(uint32_t& recvTimeout, uint32_t& sendTimeout) const 
+	{
+		if (sockfd == -1 || async != NULL)
+		{
+			return false;
+		}
+		int sendlen = sizeof(uint32_t), recvlen = sizeof(uint32_t);
+		int ret = getsockopt(getHandle(), SOL_SOCKET, SO_SNDTIMEO, (char*)&sendTimeout, &sendlen);
+		ret |= getsockopt(getHandle(), SOL_SOCKET, SO_RCVTIMEO, (char*)&recvTimeout, &recvlen);
+		return false; 
+	}
+
 	bool getSocketBuffer(uint32_t& recvSize, uint32_t& sendSize) const
 	{
 		if (sockfd == -1) return false;
@@ -182,8 +237,8 @@ public:
 	}
 	bool setSocketBuffer(uint32_t recvSize, uint32_t sendSize)
 	{
-		if (sockfd == -1 || recvSize == 0 || sendSize == 0) return false;
-		if (recvSize != 0)
+		if (sockfd == -1 || recvSize == -1 || sendSize == -1) return false;
+		if (recvSize != -1)
 		{
 			int optlen = sizeof(recvSize);
 			int err = setsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, (char *)&recvSize, optlen);
@@ -191,7 +246,7 @@ public:
 				return false;
 			}
 		}
-		if (sendSize != 0)
+		if (sendSize != -1)
 		{
 			int optlen = sizeof(sendSize);
 			int err = setsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, (char *)&sendSize, optlen);
@@ -206,7 +261,7 @@ public:
 		if (sockfd == -1 || buf == NULL || len == 0 || type == NetType_Udp) return false;
 
 		Public::Base::shared_ptr<Socket> socktmp = sock.lock();
-		if (socktmp == NULL)
+		if (socktmp == NULL || async == NULL)
 		{
 			socktmp = shared_from_this();
 		}
@@ -218,7 +273,7 @@ public:
 		if (sockfd == -1 || buf == NULL || len == 0 || type == NetType_Udp) return false;
 
 		Public::Base::shared_ptr<Socket> socktmp = sock.lock();
-		if (socktmp == NULL)
+		if (socktmp == NULL || async == NULL)
 		{
 			socktmp = shared_from_this();
 		}

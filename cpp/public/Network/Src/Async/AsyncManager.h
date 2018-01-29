@@ -1,9 +1,9 @@
 #ifndef __ASYNCMANAGER_H__
 #define __ASYNCMANAGER_H__
+#include "AsyncObjectIOCP.h"
 #include "AsyncObjectCanEPoll.h"
 #include "AsyncObjectCanPoll.h"
 #include "AsyncObjectCanSelect.h"
-#include "AsyncObjectIOCP.h"
 
 class AsyncManager:public Public::Base::enable_shared_from_this<AsyncManager>
 {
@@ -62,7 +62,7 @@ public:
 	{
 		Guard locker(mutex);
 		
-		int idel = 0;
+		uint32_t idel = 0;
 		shared_ptr<AsyncObject> async;
 		for (std::list<Public::Base::shared_ptr<AsyncObject> >::iterator iter = asyncList.begin(); iter != asyncList.end(); iter++)
 		{

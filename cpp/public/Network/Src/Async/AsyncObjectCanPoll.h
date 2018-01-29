@@ -30,12 +30,12 @@ private:
 
 			std::vector<Public::Base::shared_ptr<DoingAsyncInfo> > doingsocklist;
 			{
-				std::map<const Socket*, Public::Base::shared_ptr<DoingAsyncInfo> > doingtmp;
+				std::map<int, Public::Base::shared_ptr<DoingAsyncInfo> > doingtmp;
 				{
 					Guard locker(mutex);
 					doingtmp = doingList;
 				}
-				for (std::map<const Socket*, Public::Base::shared_ptr<DoingAsyncInfo> >::iterator iter = doingtmp.begin(); iter != doingtmp.end() && fdnum < MAXPOLLSIZE; iter++)
+				for (std::map<int, Public::Base::shared_ptr<DoingAsyncInfo> >::iterator iter = doingtmp.begin(); iter != doingtmp.end() && fdnum < MAXPOLLSIZE; iter++)
 				{
 					if (iter->second == NULL) continue;;
 

@@ -5,10 +5,10 @@
 
 using namespace Public::RTSPClient;
 
-RTSPClientManager::RTSPClientManager(const std::string& userContent, const IOWorker::ThreadNum& threadNum)
+RTSPClientManager::RTSPClientManager(const std::string& userContent, const AsyncIOWorker::ThreadNum& threadNum)
 {
 	internal = new RTSPClientManagerInternal();
-	internal->ioworker = new IOWorker(threadNum);
+	internal->ioworker = new AsyncIOWorker(threadNum);
 	internal->userContext = userContent;
 
 	initUDPRecvTypeStartPort();

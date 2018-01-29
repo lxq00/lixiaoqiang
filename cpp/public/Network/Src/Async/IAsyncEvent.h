@@ -83,7 +83,7 @@ struct AcceptEvent :public IAsyncEvent
 	virtual ~AcceptEvent() {}
 	virtual bool doResultEvent(const Public::Base::shared_ptr<Socket>& sock, int flag, const std::string& context = "")
 	{
-		shared_ptr<Socket> ns = buildSocketBySock(flag, otheraaddr);
+		shared_ptr<Socket> ns = buildSocketBySock(manager,flag, otheraaddr);
 		shared_ptr<Socket>	s = sock;
 		if (s != NULL && ns != NULL)
 		{

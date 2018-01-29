@@ -66,7 +66,7 @@ protected:
 	virtual void addSocketEvent(const Public::Base::shared_ptr<Socket>& sock, EventType type, const Public::Base::shared_ptr<DoingAsyncInfo>& doasyncinfo, const Public::Base::shared_ptr<IAsyncEvent>& event) {}
 	virtual void cleanSocketAllEvent(const Public::Base::shared_ptr<Socket>& sock) {}
 	virtual void addSocketAllEvent(const Public::Base::shared_ptr<Socket>& sock, int event) {}
-	void cleanSuccessEvent(Public::Base::shared_ptr<AsyncInfo> asyfncinfo, Public::Base::shared_ptr<DoingAsyncInfo> doasyncinfo)
+	void cleanSuccessEvent(const Public::Base::shared_ptr<AsyncInfo>& asyfncinfo, const Public::Base::shared_ptr<DoingAsyncInfo>& doasyncinfo)
 	{
 		shared_ptr<Socket> sock = asyfncinfo->sock.lock();
 		if (sock == NULL) return;
@@ -96,7 +96,7 @@ protected:
 			doasyncinfo->disconnedEvent = NULL;
 		}
 	}
-	bool _rebuildDoingEvent(Public::Base::shared_ptr<Socket>& sock, Public::Base::shared_ptr<AsyncInfo>& asyncinfo, Public::Base::shared_ptr<DoingAsyncInfo>& doasyncinfo)
+	bool _rebuildDoingEvent(const Public::Base::shared_ptr<Socket>& sock,const Public::Base::shared_ptr<AsyncInfo>& asyncinfo,const Public::Base::shared_ptr<DoingAsyncInfo>& doasyncinfo)
 	{
 		cleanSocketAllEvent(sock);
 		cleanSuccessEvent(asyncinfo, doasyncinfo);
@@ -153,6 +153,8 @@ protected:
 			allevent |= EventType_Error;
 		}
 		addSocketAllEvent(sock, allevent);
+
+		return true;
 	}
 	bool buildDoingEvent(const Public::Base::shared_ptr<Socket>& sock)
 	{
@@ -176,6 +178,8 @@ protected:
 			doingList[iter->first] = doasyncinfo;
 		}
 		_rebuildDoingEvent(sock,iter->second, doasyncinfo);
+
+		return true;
 	}
 	bool buildDoingEvent()
 	{
@@ -206,6 +210,8 @@ protected:
 		{
 			doingList.erase(iter->first);
 		}
+
+		return true;
 	}
 	virtual bool addConnectEvent(const Public::Base::shared_ptr<Socket>& sock, const Public::Base::shared_ptr<ConnectEvent>& event)
 	{

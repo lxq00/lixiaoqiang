@@ -335,7 +335,7 @@ const char* GetNextLine(const char *pParseBuf, int& nParseOffset)
 	return NULL;
 }
 
-void DecodeHeader(const const char *pLine, void *pResponse)
+void DecodeHeader(const char *pLine, void *pResponse)
 {
 	int i;
 	const char *after;

@@ -38,8 +38,8 @@ private:
 	void addFlowList(const shared_ptr<CMDBuilder>& builder);
 	void doFlowList();
 	void doDispatcherCMD(const RTSP_RESPONSE& repose);
-	void _tcpRecvCallback(Socket* sock, const char* buf, int len);
-	void _tcpSocketDisconnectCallback(Socket* sock, const char* errrstr);
+	void _tcpRecvCallback(const shared_ptr<Socket>& sock, const char* buf, int len);
+	void _tcpSocketDisconnectCallback(const shared_ptr<Socket>& sock, const std::string& errrstr);
 protected:
 	MediaDataCallback			m_dataCallback;
 	StatusCallback				m_statusCallback;
@@ -57,7 +57,7 @@ public:
 	std::string					play_startTime;
 	std::string					play_stopTime;
 protected:
-	shared_ptr<IOWorker>		m_ioworker;
+	shared_ptr<AsyncIOWorker>	m_ioworker;
 	shared_ptr<TCPClient>		m_tcpsocket;
 
 	char						m_szSpsBuffer[512];

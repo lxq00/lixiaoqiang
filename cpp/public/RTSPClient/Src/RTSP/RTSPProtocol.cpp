@@ -24,7 +24,7 @@ RTSPProtocol::~RTSPProtocol()
 
 bool RTSPProtocol::startProtocol(uint32_t timeout)
 {
-	m_tcpsocket = new TCPClient(*m_ioworker.get());
+	m_tcpsocket = TCPClient::create(m_ioworker);
 	m_tcpsocket->setSocketTimeout(timeout, timeout);
 
 	bool connectret = m_tcpsocket->connect(NetAddr(m_rtspInfo->m_szServerIp, m_rtspInfo->m_nServerPort));
@@ -49,12 +49,12 @@ bool RTSPProtocol::stopProcol()
 	return true;
 }
 
-void RTSPProtocol::_tcpSocketDisconnectCallback(Socket* sock, const char* errrstr)
+void RTSPProtocol::_tcpSocketDisconnectCallback(const shared_ptr<Socket>& sock, const std::string& errrstr)
 {
 	m_statusCallback(RTSPStatus_DisConnect,std::string("rtsp socket disconnect"));
 }
 
-void RTSPProtocol::_tcpRecvCallback(Socket* , const char* , int len)
+void RTSPProtocol::_tcpRecvCallback(const shared_ptr<Socket>&, const char* , int len)
 {
 	uint32_t backlen = m_tcprecvBufferLen;
 	if (len > 0) m_tcprecvBufferLen += len;

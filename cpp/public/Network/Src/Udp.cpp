@@ -13,13 +13,15 @@ UDP::UDP()
 {
 	udpinternal = new UDPInternalPointer;
 }
-Public::Base::shared_ptr<Socket> UDP::create(const  Public::Base::shared_ptr<IOWorker>& worker)
+Public::Base::shared_ptr<Socket> UDP::create(const  Public::Base::shared_ptr<AsyncIOWorker>& worker)
 {
 	if (worker == NULL) return Public::Base::shared_ptr<Socket>();
 
 	Public::Base::shared_ptr<UDP> udp(new UDP());
 
-	udp->udpinternal->sock = new SocketInternal(worker->internal->manager, udp, NetType_Udp);
+	udp->udpinternal->sock = new SocketInternal(
+		worker == NULL ? Public::Base::shared_ptr<AsyncManager>() :
+		worker->internal->manager, udp, NetType_Udp);
 	return udp;
 }
 UDP::~UDP()
@@ -41,7 +43,27 @@ bool UDP::bind(const NetAddr& addr,bool reusedaddr)
 
 	return sockobj->bind(addr, reusedaddr);
 }
+bool UDP::setSocketTimeout(uint32_t recvTimeout, uint32_t sendTimeout)
+{
+	Public::Base::shared_ptr<SocketInternal> sockobj = udpinternal->sock;
+	if (sockobj == NULL)
+	{
+		return false;
+	}
 
+	return sockobj->setSocketTimeout(recvTimeout, sendTimeout);
+}
+
+bool UDP::getSocketTimeout(uint32_t& recvTimeout, uint32_t& sendTimeout) const
+{
+	Public::Base::shared_ptr<SocketInternal> sockobj = udpinternal->sock;
+	if (sockobj == NULL)
+	{
+		return false;
+	}
+
+	return sockobj->getSocketTimeout(recvTimeout, sendTimeout);
+}
 bool UDP::getSocketBuffer(uint32_t& recvSize, uint32_t& sendSize) const
 {
 	Public::Base::shared_ptr<SocketInternal> sockobj = udpinternal->sock;
@@ -73,11 +95,11 @@ int UDP::getHandle() const
 	return sockobj->getHandle();
 }
 
-NetType TCPClient::getNetType() const
+NetType UDP::getNetType() const
 {
 	return NetType_Udp;
 }
-NetAddr TCPClient::getMyAddr() const
+NetAddr UDP::getMyAddr() const
 {
 	Public::Base::shared_ptr<SocketInternal> sockobj = udpinternal->sock;
 	if (sockobj == NULL)

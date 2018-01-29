@@ -1,4 +1,4 @@
 {
 	"filename":"Network Dll",
-	"productname":"Ñ¶ÃÀVGSIIÍøÂç¿â"
+	"productname":"ÍøÂç¿â"
 }

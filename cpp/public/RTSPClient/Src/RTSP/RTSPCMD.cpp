@@ -58,18 +58,13 @@ std::string RTSPUrlInfo::buildAuthenString(const std::string& cmd)
 	{
 		std::string authyenstr = m_szUserName + ":" + m_szPassWord;
 
-		char* buffer = new char[Base64::encodelen(authyenstr.length()) + 100];
+		std::string buffer = Base64::encode(authyenstr);
 
-		int enclen = Base64::encode(buffer, authyenstr.c_str(), authyenstr.length());
-
-		authstring = std::string("Basic ") + std::string(buffer, enclen);
-		SAFE_DELETEARRAY(buffer);
+		authstring = std::string("Basic ") + buffer;
 	}
 	else
 	{
-		char authen1[256] = { 0 };
-		char authen2[256] = { 0 };
-		char authen3[256] = { 0 };
+		std::string authen1,authen2,authen3;
 		{
 			std::string strHash1src = m_szUserName + ":" + m_szRealm + ":" + m_szPassWord;
 
@@ -77,7 +72,7 @@ std::string RTSPUrlInfo::buildAuthenString(const std::string& cmd)
 			Md5 md5;
 			md5.init();
 			md5.update((uint8_t const*)strHash1src.c_str(), strHash1src.length());
-			md5.hex(authen1);
+			authen1 = md5.hex();
 		}
 
 		{
@@ -86,7 +81,7 @@ std::string RTSPUrlInfo::buildAuthenString(const std::string& cmd)
 			Md5 md5;
 			md5.init();
 			md5.update((uint8_t const*)strHash2src.c_str(), strHash2src.length());
-			md5.hex(authen2);
+			authen2 = md5.hex();
 		}
 
 		{
@@ -95,7 +90,7 @@ std::string RTSPUrlInfo::buildAuthenString(const std::string& cmd)
 			Md5 md5;
 			md5.init();
 			md5.update((uint8_t const*)strHash3src.c_str(), strHash3src.length());
-			md5.hex(authen3);
+			authen3 = md5.hex();
 		}
 
 		authstring = std::string("Digest username = \"") + m_szUserName + "\", realm=\"" + m_szRealm +"\", nonce=\"" + m_szNonce + "\", uri=\""

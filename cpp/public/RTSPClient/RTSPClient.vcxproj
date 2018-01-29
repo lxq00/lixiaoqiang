@@ -69,7 +69,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)\Include;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;Network/Network_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>
       </ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -106,7 +106,7 @@
     <ClCompile Include="Src\Analyzer\rtcpAnalyzer.cpp" />
     <ClCompile Include="Src\Analyzer\rtpH264Analyzer.cpp" />
     <ClCompile Include="Src\Analyzer\rtpJpegAnalyzer.cpp" />
-    <ClCompile Include="Src\Analyzer\rtpXunmeiAnalyzer.cpp" />
+    <ClCompile Include="Src\Analyzer\rtpPublicAnalyzer.cpp" />
     <ClCompile Include="Src\RTSPClient.cpp" />
     <ClCompile Include="Src\RTSPClientInternal.cpp" />
     <ClCompile Include="Src\RTSPClientSdk.cpp" />
@@ -128,7 +128,7 @@
     <ClInclude Include="Src\Analyzer\rtpAnalyzerStructs.h" />
     <ClInclude Include="Src\Analyzer\rtpH264Analyzer.h" />
     <ClInclude Include="Src\Analyzer\rtpJpegAnalyzer.h" />
-    <ClInclude Include="Src\Analyzer\rtpXunmeiAnalyzer.h" />
+    <ClInclude Include="Src\Analyzer\rtpPublicAnalyzer.h" />
     <ClInclude Include="Src\RTSPClientErrorCode.h" />
     <ClInclude Include="Src\RTSPClientInternal.h" />
     <ClInclude Include="Src\RTSPClientManagerInternal.h" />

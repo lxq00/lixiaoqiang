@@ -33,9 +33,6 @@
     <ClCompile Include="Src\Analyzer\rtpJpegAnalyzer.cpp">
       <Filter>Analyzer</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Analyzer\rtpXunmeiAnalyzer.cpp">
-      <Filter>Analyzer</Filter>
-    </ClCompile>
     <ClCompile Include="Src\StringParse\rtspResponseParse.cpp">
       <Filter>StringParse</Filter>
     </ClCompile>
@@ -60,6 +57,9 @@
     <ClCompile Include="Src\RTSP\RTSPProtocol.cpp">
       <Filter>RTSP</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Analyzer\rtpPublicAnalyzer.cpp">
+      <Filter>Analyzer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Include\RTSPClient\Version.tpl">
@@ -80,9 +80,6 @@
       <Filter>Analyzer</Filter>
     </ClInclude>
     <ClInclude Include="Src\Analyzer\rtpJpegAnalyzer.h">
-      <Filter>Analyzer</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Analyzer\rtpXunmeiAnalyzer.h">
       <Filter>Analyzer</Filter>
     </ClInclude>
     <ClInclude Include="Src\StringParse\rtspResponseParse.h">
@@ -123,6 +120,9 @@
     </ClInclude>
     <ClInclude Include="Src\RTSPCodeTarns.h">
       <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Analyzer\rtpPublicAnalyzer.h">
+      <Filter>Analyzer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

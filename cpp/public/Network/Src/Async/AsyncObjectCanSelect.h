@@ -25,12 +25,12 @@ private:
 
 			buildDoingEvent();
 
-			std::map<const Socket*, Public::Base::shared_ptr<DoingAsyncInfo> > doingtmp;
+			std::map<int, Public::Base::shared_ptr<DoingAsyncInfo> > doingtmp;
 			{
 				Guard locker(mutex);
 				doingtmp = doingList;
 			}
-			for (std::map<const Socket*, Public::Base::shared_ptr<DoingAsyncInfo> >::iterator iter = doingtmp.begin(); iter != doingtmp.end(); iter++)
+			for (std::map<int, Public::Base::shared_ptr<DoingAsyncInfo> >::iterator iter = doingtmp.begin(); iter != doingtmp.end(); iter++)
 			{
 				if (iter->second == NULL) continue;;
 
@@ -65,7 +65,7 @@ private:
 				continue;
 			}
 			{
-				for (std::map<const Socket*, Public::Base::shared_ptr<DoingAsyncInfo> >::iterator iter = doingtmp.begin(); iter != doingtmp.end(); iter++)
+				for (std::map<int, Public::Base::shared_ptr<DoingAsyncInfo> >::iterator iter = doingtmp.begin(); iter != doingtmp.end(); iter++)
 				{
 					if (iter->second == NULL) continue;;
 

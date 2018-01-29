@@ -39,7 +39,7 @@ RTSPClient::RTSPClientInternal::~RTSPClientInternal()
 	stop();
 }
 
-bool RTSPClient::RTSPClientInternal::start(const shared_ptr<IOWorker>& worker, uint32_t timeout, uint32_t startUdpport)
+bool RTSPClient::RTSPClientInternal::start(const shared_ptr<AsyncIOWorker>& worker, uint32_t timeout, uint32_t startUdpport)
 {
 	RTSPProtocol::m_ioworker = worker;
 
@@ -55,19 +55,19 @@ bool RTSPClient::RTSPClientInternal::start(const shared_ptr<IOWorker>& worker, u
 		m_audioUDPRecvBuffer = new char[MAXRECVBUFFERSIZE];
 		m_audioUDPCtrlRecvBuffer = new char[MAXCTRLBUFFERSIZE];
 
-		m_videoUDPRecv = new UDP(*RTSPProtocol::m_ioworker.get());
+		m_videoUDPRecv = UDP::create(RTSPProtocol::m_ioworker);
 		m_videoUDPRecv->bind(RTSPProtocol::m_udpRecvPort[0]);
 		m_videoUDPRecv->async_recvfrom(m_videoUDPRecvBuffer, MAXRECVBUFFERSIZE, Socket::RecvFromCallback(&RTSPClientInternal::onVideoUDPRecvCallback, this));
 
-		m_videoCtrlUDPRecv = new UDP(*RTSPProtocol::m_ioworker.get());
+		m_videoCtrlUDPRecv = UDP::create(RTSPProtocol::m_ioworker);
 		m_videoCtrlUDPRecv->bind(RTSPProtocol::m_udpRecvPort[1]);
 		m_videoCtrlUDPRecv->async_recvfrom(m_videoCtrlRecvBuffer, MAXCTRLBUFFERSIZE, Socket::RecvFromCallback(&RTSPClientInternal::onVideoCtrlUDPRecvCallback, this));
 
-		m_audioUDPRecv = new UDP(*RTSPProtocol::m_ioworker.get());
+		m_audioUDPRecv = UDP::create(RTSPProtocol::m_ioworker);
 		m_audioUDPRecv->bind(RTSPProtocol::m_udpRecvPort[2]);
 		m_audioUDPRecv->async_recvfrom(m_audioUDPRecvBuffer, MAXRECVBUFFERSIZE, Socket::RecvFromCallback(&RTSPClientInternal::onAudioUDPRecvCallback, this));
 
-		m_audioCtrlUDPRecv = new UDP(*RTSPProtocol::m_ioworker.get());
+		m_audioCtrlUDPRecv = UDP::create(RTSPProtocol::m_ioworker);
 		m_audioCtrlUDPRecv->bind(RTSPProtocol::m_udpRecvPort[3]);
 		m_audioCtrlUDPRecv->async_recvfrom(m_audioUDPCtrlRecvBuffer, MAXCTRLBUFFERSIZE, Socket::RecvFromCallback(&RTSPClientInternal::onAudioCtrlUDPRecvCallback, this));
 	}
@@ -220,21 +220,21 @@ void RTSPClient::RTSPClientInternal::onProtocolCallback(bool sender, const char*
 	m_protocolCallback(sender, buffer, len, m_userData);
 }
 
-void RTSPClient::RTSPClientInternal::onVideoUDPRecvCallback(Socket* sock, const char* buffer, int len, const NetAddr& addr)
+void RTSPClient::RTSPClientInternal::onVideoUDPRecvCallback(const shared_ptr<Socket>& sock, const char* buffer, int len, const NetAddr& addr)
 {
 	onVideoAndAudioTCPRecvCallback(buffer, len, true);
 	m_videoUDPRecv->async_recvfrom(m_videoUDPRecvBuffer, MAXRECVBUFFERSIZE, Socket::RecvFromCallback(&RTSPClientInternal::onVideoUDPRecvCallback, this));
 }
-void RTSPClient::RTSPClientInternal::onVideoCtrlUDPRecvCallback(Socket* sock, const char* buffer, int len, const NetAddr& addr)
+void RTSPClient::RTSPClientInternal::onVideoCtrlUDPRecvCallback(const shared_ptr<Socket>& sock, const char* buffer, int len, const NetAddr& addr)
 {
 	m_videoCtrlUDPRecv->async_recvfrom(m_videoCtrlRecvBuffer, MAXCTRLBUFFERSIZE, Socket::RecvFromCallback(&RTSPClientInternal::onVideoCtrlUDPRecvCallback, this));
 }
-void RTSPClient::RTSPClientInternal::onAudioUDPRecvCallback(Socket* sock, const char* buffer, int len, const NetAddr& addr)
+void RTSPClient::RTSPClientInternal::onAudioUDPRecvCallback(const shared_ptr<Socket>& sock, const char* buffer, int len, const NetAddr& addr)
 {
 	onVideoAndAudioTCPRecvCallback(buffer, len, false);
 	m_audioUDPRecv->async_recvfrom(m_audioUDPRecvBuffer, MAXRECVBUFFERSIZE, Socket::RecvFromCallback(&RTSPClientInternal::onAudioUDPRecvCallback, this));
 }
-void RTSPClient::RTSPClientInternal::onAudioCtrlUDPRecvCallback(Socket* sock, const char* buffer, int len, const NetAddr& addr)
+void RTSPClient::RTSPClientInternal::onAudioCtrlUDPRecvCallback(const shared_ptr<Socket>& sock, const char* buffer, int len, const NetAddr& addr)
 {
 	m_audioCtrlUDPRecv->async_recvfrom(m_audioUDPCtrlRecvBuffer, MAXCTRLBUFFERSIZE, Socket::RecvFromCallback(&RTSPClientInternal::onAudioCtrlUDPRecvCallback, this));
 }

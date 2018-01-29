@@ -8,13 +8,11 @@
 #ifndef __PublicNETWORK_H__
 #define __PublicNETWORK_H__
 #include "Network/Defs.h"
-#include "Network/Host.h"
 #include "Network/NetAddr.h"
 #include "Network/Socket.h"
 #include "Network/TcpClient.h"
 #include "Network/TcpServer.h"
 #include "Network/Udp.h"
-#include "Network/Guid.h"
 
 namespace Public{
 namespace Network{
@@ -23,7 +21,7 @@ class NETWORK_API NetworkSystem
 {
 public:
 	/// 打印 Base库 版本信息
-	void  printLibVersion();
+	static void  printVersion();
 
 	//初始化网络库
 	//当maxcpuCorePerTherad ！= 0 NETWORK线程数使用 maxcpuCorePerTherad*CPUCore 

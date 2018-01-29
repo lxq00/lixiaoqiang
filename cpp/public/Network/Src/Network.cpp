@@ -1,4 +1,3 @@
-#include "ASIOServerPool.h"
 #include "Network/Network.h"
 #include "Base/Base.h"
 #include "../version.inl"
@@ -22,7 +21,7 @@ namespace Network{
 //	return "";
 //}
 
-void  NetworkSystem::printLibVersion()
+void  NetworkSystem::printVersion()
 {
 	AppVersion appVersion("Network Lib", r_major, r_minor, r_build, versionalias, __DATE__);
 	appVersion.print();

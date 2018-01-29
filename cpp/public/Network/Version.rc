@@ -1,8 +1,8 @@
 #define APSTUDIO_READONLY_SYMBOLS 
-#include "afxres.h"
+#include "winres.h"
 #undef APSTUDIO_READONLY_SYMBOLS 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS) 
-LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED 
+LANGUAGE 4, 2
 #ifdef APSTUDIO_INVOKED 
 1 TEXTINCLUDE 
 BEGIN 
@@ -10,7 +10,7 @@ END
  
 2 TEXTINCLUDE 
 BEGIN 
-    "#include ""afxres.h""\r\n" 
+    "#include ""winres.h""\r\n"
     "\0" 
 END 
 3 TEXTINCLUDE  
@@ -37,14 +37,14 @@ BEGIN
     BEGIN 
         BLOCK "080404b0" 
         BEGIN 
-            VALUE "CompanyName", "讯美科技股份有限公司" 
+            VALUE "CompanyName", "" 
             VALUE "FileVersion", "5.0.1" 
             VALUE "InternalName", "Network Dll" 
             VALUE "LegalCopyright", "Public Copyright(C) 1998-2018" 
             VALUE "OriginalFilename", "Network Dll" 
-            VALUE "ProductName", "讯美VGSII网络库" 
+            VALUE "ProductName", "网络库" 
             VALUE "ProductVersion", "5.0.1" 
-            VALUE "FileDescription", "讯美VGSII网络库 5.0.1 " 
+            VALUE "FileDescription", "网络库 5.0.1 " 
         END 
     END 
     BLOCK "VarFileInfo" 

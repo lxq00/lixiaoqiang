@@ -16,7 +16,7 @@ public:
 	RTSPClientInternal(const std::string& rtspUrl);
 	~RTSPClientInternal();
 
-	bool start(const shared_ptr<IOWorker>& worker, uint32_t timeout,uint32_t startUdpport = 0);
+	bool start(const shared_ptr<AsyncIOWorker>& worker, uint32_t timeout,uint32_t startUdpport = 0);
 	bool stop();
 
 	void converRTSPCode(LPMEDIA_PARAMETER param);
@@ -44,10 +44,10 @@ private:
 	bool						m_firstHeatbeat;
 private:
 	static void onFreamCallBack(char *pFrameBuf, int nFrameSize, int nFreamType, long lTimestamp, uint64_t dwUser, void* lpUser);
-	void onVideoUDPRecvCallback(Socket* sock, const char* buffer, int len, const NetAddr& addr);
-	void onVideoCtrlUDPRecvCallback(Socket* sock, const char* buffer, int len, const NetAddr& addr);
-	void onAudioUDPRecvCallback(Socket* sock, const char* buffer, int len, const NetAddr& addr);
-	void onAudioCtrlUDPRecvCallback(Socket* sock, const char* buffer, int len, const NetAddr& addr);
+	void onVideoUDPRecvCallback(const shared_ptr<Socket>& sock, const char* buffer, int len, const NetAddr& addr);
+	void onVideoCtrlUDPRecvCallback(const shared_ptr<Socket>& sock, const char* buffer, int len, const NetAddr& addr);
+	void onAudioUDPRecvCallback(const shared_ptr<Socket>& sock, const char* buffer, int len, const NetAddr& addr);
+	void onAudioCtrlUDPRecvCallback(const shared_ptr<Socket>& sock, const char* buffer, int len, const NetAddr& addr);
 	void onVideoAndAudioTCPRecvCallback(const char* buffer, int len, bool isvideo);
 	void onProtocolStatusCallback(RTSPStatus_t status, const std::string& errorinfo);
 	void onProtocolCallback(bool sender, const char* buffer, uint32_t len);

@@ -20,7 +20,7 @@ class NETWORK_API UDP:public Socket
 	UDP(const UDP&);
 	UDP();
 public:	
-	static Public::Base::shared_ptr<Socket> create(const  Public::Base::shared_ptr<IOWorker>& worker);
+	static Public::Base::shared_ptr<Socket> create(const  Public::Base::shared_ptr<AsyncIOWorker>& worker);
 	virtual ~UDP();
 	
 	///绑定串口信息
@@ -29,6 +29,19 @@ public:
 	///return		true 成功、false 失败 
 	///注：不不建议使用该函数来判断串口是否被占用，端口判断推进使用host::checkPortIsNotUsed接口
 	virtual bool bind(const NetAddr& addr,bool reusedAddr = true);
+
+	///设置socket发送接受超时时间
+	///param[in]		recvTimeout		接收超时 单位：毫秒,-1不设置
+	///param[in]		sendTimeout		发送超时 单位：毫秒,-1不设置
+	///retun		 true 成功、false 失败 
+	virtual bool setSocketTimeout(uint32_t recvTimeout = -1, uint32_t sendTimeout = -1);
+
+	///获取socket发送接受超时时间
+	///param[in]		recvTimeout		接收超时 单位：毫秒
+	///param[in]		sendTimeout		发送超时 单位：毫秒
+	///retun		 true 成功、false 失败 
+	///注：异步IO不支持
+	virtual bool getSocketTimeout(uint32_t& recvTimeout, uint32_t& sendTimeout) const;
 
 	///获取socket缓冲区大小
 	///param[in]		readSize		读的缓冲区大小
@@ -40,25 +53,7 @@ public:
 	///param[in]		readSize		读的缓冲区大小
 	///param[in]		sendSize		发送缓冲区大小
 	///retun		 true 成功、false 失败 
-	virtual bool setSocketBuffer(uint32_t recvSize,uint32_t sendSize);
-
-	///获取socket发送接受超时时间
-	///param[in]		recvTimeout		接收超时 单位：毫秒
-	///param[in]		sendTimeout		发送超时 单位：毫秒
-	///retun		 true 成功、false 失败 
-	virtual bool getSocketTimeout(uint32_t& recvTimeout,uint32_t& sendTimeout) const;
-
-	///设置socket发送接受超时时间
-	///param[in]		recvTimeout		接收超时 单位：毫秒
-	///param[in]		sendTimeout		发送超时 单位：毫秒
-	///retun		 true 成功、false 失败 
-	virtual bool setSocketTimeout(uint32_t recvTimeout,uint32_t sendTimeout);
-
-
-	///设置socket堵塞、非堵塞模式
-	///param[in]		nonblock		true 堵塞模式  false 非赌赛模式
-	///return		true 成功、false 失败 
-	virtual bool nonBlocking(bool nonblock);
+	virtual bool setSocketBuffer(uint32_t recvSize = -1,uint32_t sendSize = -1);
 
 	///【异步】投递UDP数据接收事件 
 	///param[in]		buf				接收到的数据存储地址

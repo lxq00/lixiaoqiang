@@ -6,7 +6,7 @@
 namespace Public{
 namespace Network {
 
-struct IOWorker::IOWorkerInternal
+struct AsyncIOWorker::AsyncIOWorkerInternal
 {
 	Public::Base::shared_ptr<AsyncManager> manager;
 };

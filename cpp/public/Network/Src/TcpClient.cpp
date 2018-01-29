@@ -14,12 +14,15 @@ TCPClient::TCPClient()
 {
 	tcpclientinternal = new TCPClientInternalPointer();
 }
-Public::Base::shared_ptr<Socket> TCPClient::create(const Public::Base::shared_ptr<IOWorker>& worker)
+Public::Base::shared_ptr<Socket> TCPClient::create(const Public::Base::shared_ptr<AsyncIOWorker>& worker)
 {
 	if (worker == NULL) return Public::Base::shared_ptr<Socket>();
 
 	Public::Base::shared_ptr<TCPClient> client(new TCPClient());
-	client->tcpclientinternal->sock = new SocketInternal(worker->internal->manager, client, NetType_TcpClient);
+	client->tcpclientinternal->sock = new SocketInternal(
+		worker == NULL ? Public::Base::shared_ptr<AsyncManager>():
+		worker->internal->manager, client, NetType_TcpClient);
+
 	return client;
 }
 TCPClient::~TCPClient()
@@ -46,6 +49,27 @@ bool TCPClient::disconnect()
 		tcpclientinternal->sock = NULL;
 	}
 	return true;
+}
+bool TCPClient::setSocketTimeout(uint32_t recvTimeout, uint32_t sendTimeout)
+{
+	Public::Base::shared_ptr<SocketInternal> sockobj = tcpclientinternal->sock;
+	if (sockobj == NULL)
+	{
+		return false;
+	}
+
+	return sockobj->setSocketTimeout(recvTimeout, sendTimeout);
+}
+
+bool TCPClient::getSocketTimeout(uint32_t& recvTimeout, uint32_t& sendTimeout) const
+{
+	Public::Base::shared_ptr<SocketInternal> sockobj = tcpclientinternal->sock;
+	if (sockobj == NULL)
+	{
+		return false;
+	}
+
+	return sockobj->getSocketTimeout(recvTimeout, sendTimeout);
 }
 bool TCPClient::getSocketBuffer(uint32_t& recvSize,uint32_t& sendSize) const
 {

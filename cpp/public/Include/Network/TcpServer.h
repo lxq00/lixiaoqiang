@@ -19,7 +19,7 @@ class NETWORK_API TCPServer:public Socket
 	TCPServer(const TCPServer&);
 	TCPServer();
 public:
-	static Public::Base::shared_ptr<Socket> create(const shared_ptr<IOWorker>& worker);
+	static Public::Base::shared_ptr<Socket> create(const shared_ptr<AsyncIOWorker>& worker);
 
 	virtual ~TCPServer();
 
@@ -67,6 +67,19 @@ public:
 	///param in		
 	///return 自身bind的地址、未bind为空
 	virtual NetAddr getMyAddr() const;
+
+	///设置socket发送接受超时时间
+	///param[in]		recvTimeout		接收超时 单位：毫秒,-1不设置
+	///param[in]		sendTimeout		发送超时 单位：毫秒,-1不设置
+	///retun		 true 成功、false 失败 
+	virtual bool setSocketTimeout(uint32_t recvTimeout = -1, uint32_t sendTimeout = -1);
+
+	///获取socket发送接受超时时间
+	///param[in]		recvTimeout		接收超时 单位：毫秒
+	///param[in]		sendTimeout		发送超时 单位：毫秒
+	///retun		 true 成功、false 失败 
+	///注：异步IO不支持
+	virtual bool getSocketTimeout(uint32_t& recvTimeout, uint32_t& sendTimeout) const;
 private:
 	TCPServerInternalPointer* tcpserverinternal;
 };

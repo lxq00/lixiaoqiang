@@ -54,7 +54,7 @@ class RTSPCLIENT_API RTSPClientManager
 	struct RTSPClientManagerInternal;
 public:
 	//userContent 用户描述信息,threadNum 线程数，根据RTSP的用户量决定
-	RTSPClientManager(const std::string& userContent, const IOWorker::ThreadNum& threadNum = IOWorker::ThreadNum(1, 4, 16));
+	RTSPClientManager(const std::string& userContent, const AsyncIOWorker::ThreadNum& threadNum = AsyncIOWorker::ThreadNum(1, 4, 16));
 	~RTSPClientManager();
 	
 	//UDP的方式 端口范围,内部在这范围内自动分配

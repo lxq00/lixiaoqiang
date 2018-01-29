@@ -1,9 +1,9 @@
 #ifndef __ASYNCOBJECTIOCP_H__
 #define __ASYNCOBJECTIOCP_H__
-#include "AsyncObject.h"
 #ifdef WIN32
 #include <winsock2.h>
 #include <MSWSock.h>
+#include "AsyncObject.h"
 
 struct IOCPConnectCanEvent :public ConnectEvent
 {
@@ -194,6 +194,8 @@ struct IOCPRecvCanEvent :public RecvEvent
 				return false;
 			}
 		}
+
+		return true;
 	}
 	bool doCanEvent(const Public::Base::shared_ptr<Socket>& sock, int flag)
 	{
@@ -218,7 +220,7 @@ public:
 		{
 			return;
 		}
-		for (uint32_t i = 0; i < threadnum; i++)
+		for (int i = 0; i < threadnum; i++)
 		{
 			Public::Base::shared_ptr<Thread> thread = ThreadEx::creatThreadEx("AsyncObjectIOCP", ThreadEx::Proc(&AsyncObjectIOCP::doWorkThreadProc, this), NULL);
 			thread->createThread();
@@ -365,6 +367,8 @@ private:
 				iter++;
 			}
 		}
+
+		return true;
 	}
 	virtual void addSocketEvent(const Public::Base::shared_ptr<Socket>& sock, EventType type,const Public::Base::shared_ptr<DoingAsyncInfo>& doasyncinfo, const Public::Base::shared_ptr<ConnectEvent>& event)
 	{

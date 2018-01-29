@@ -20,7 +20,7 @@ class NETWORK_API TCPClient:public Socket
 	TCPClient(const TCPClient&);
 	TCPClient();
 public:
-	static Public::Base::shared_ptr<Socket> create(const Public::Base::shared_ptr<IOWorker>& worker);
+	static Public::Base::shared_ptr<Socket> create(const Public::Base::shared_ptr<AsyncIOWorker>& worker);
 	virtual ~TCPClient();
 
 	///断开socket连接，停止socket内部工作，关闭socket句柄等
@@ -34,6 +34,20 @@ public:
 	///注：不不建议使用该函数来判断串口是否被占用，端口判断推进使用host::checkPortIsNotUsed接口
 	virtual bool bind(const NetAddr& addr,bool reusedAddr = true);
 
+	///设置socket发送接受超时时间
+	///param[in]		recvTimeout		接收超时 单位：毫秒,-1不设置
+	///param[in]		sendTimeout		发送超时 单位：毫秒,-1不设置
+	///retun		 true 成功、false 失败 
+	virtual bool setSocketTimeout(uint32_t recvTimeout = -1, uint32_t sendTimeout = -1);
+
+	///获取socket发送接受超时时间
+	///param[in]		recvTimeout		接收超时 单位：毫秒
+	///param[in]		sendTimeout		发送超时 单位：毫秒
+	///retun		 true 成功、false 失败 
+	///注：异步IO不支持
+	virtual bool getSocketTimeout(uint32_t& recvTimeout, uint32_t& sendTimeout) const;
+
+
 	///获取socket缓冲区大小
 	///param[in]		readSize		读的缓冲区大小
 	///param[in]		sendSize		发送缓冲区大小
@@ -44,7 +58,7 @@ public:
 	///param[in]		readSize		读的缓冲区大小
 	///param[in]		sendSize		发送缓冲区大小
 	///retun		 true 成功、false 失败 
-	virtual bool setSocketBuffer(uint32_t recvSize,uint32_t sendSize);
+	virtual bool setSocketBuffer(uint32_t recvSize = -1,uint32_t sendSize = -1);
 
 	///【异步】启动TCP连接
 	///param[in]		addr			第三方的地址

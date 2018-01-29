@@ -18,10 +18,9 @@ using namespace Public::Base;
 namespace Public{
 namespace Network{
 
-#define INVALIDHANDLE -1
 
 ///socket工作需要的worker集合，主要在这定义当前socket工作需要的线程数信息
-class NETWORK_API IOWorker
+class NETWORK_API AsyncIOWorker
 {
 public:
 	class NETWORK_API ThreadNum
@@ -40,11 +39,11 @@ public:
 		uint32_t num;
 	};
 public:
-	IOWorker(const ThreadNum& num);
-	~IOWorker();
+	AsyncIOWorker(const ThreadNum& num);
+	~AsyncIOWorker();
 public:
-	struct IOWorkerInternal;
-	IOWorkerInternal* internal;
+	struct AsyncIOWorkerInternal;
+	AsyncIOWorkerInternal* internal;
 };
 
 
@@ -101,6 +100,19 @@ public:
 	///param[int] falg				监听缓冲池最大的个数
 	virtual bool listen(int flag = 100) { return false; }
 	
+	///设置socket发送接受超时时间
+	///param[in]		recvTimeout		接收超时 单位：毫秒,-1不设置
+	///param[in]		sendTimeout		发送超时 单位：毫秒,-1不设置
+	///retun		 true 成功、false 失败 
+	virtual bool setSocketTimeout(uint32_t recvTimeout = -1, uint32_t sendTimeout = -1) { return false; }
+
+	///获取socket发送接受超时时间
+	///param[in]		recvTimeout		接收超时 单位：毫秒
+	///param[in]		sendTimeout		发送超时 单位：毫秒
+	///retun		 true 成功、false 失败 
+	///注：异步IO不支持
+	virtual bool getSocketTimeout(uint32_t& recvTimeout, uint32_t& sendTimeout) const { return false; }
+
 	///获取socket缓冲区大小
 	///param[in]		readSize		读的缓冲区大小
 	///param[in]		sendSize		发送缓冲区大小
@@ -108,8 +120,8 @@ public:
 	virtual bool getSocketBuffer(uint32_t& recvSize,uint32_t& sendSize) const{return false;}
 	
 	///设置socket缓冲区大小
-	///param[in]		readSize		读的缓冲区大小
-	///param[in]		sendSize		发送缓冲区大小
+	///param[in]		readSize		读的缓冲区大小,-1不设置
+	///param[in]		sendSize		发送缓冲区大小,-1不设置
 	///retun		 true 成功、false 失败 
 	virtual bool setSocketBuffer(uint32_t recvSize,uint32_t sendSize){return false;}
 
@@ -120,6 +132,7 @@ public:
 	/// 1:只有tcpserver才支持
 	///	2:异步accept，accept产生的结果通过callback返回
 	/// 3:与accept函数不能同时使用
+	///注：仅异步IO支持
 	virtual bool async_accept(const AcceptedCallback& callback){return false;}
 
 
@@ -139,6 +152,7 @@ public:
 	///retun		 true 成功、false 失败  返回值为异步投递消息结果
 	///注：
 	/// 1:只有tcpclient才支持
+	///注：仅异步IO支持
 	virtual bool async_connect(const NetAddr& addr,const ConnectedCallback& callback){return false;}
 
 	///【同步】TCP连接
@@ -153,6 +167,7 @@ public:
 	///retun		 true 成功、false 失败 
 	///注：
 	/// 1:只有TCP才支持
+	///注：仅异步IO支持
 	virtual bool setDisconnectCallback(const DisconnectedCallback& disconnected){return false;}
 
 	///【异步】投递TCP接收数据事件
@@ -162,6 +177,7 @@ public:
 	///retun		 true 成功、false 失败 ，返回投递消息结果
 	///注：
 	///	1:只有连接成功后的TCP才支持
+	///注：仅异步IO支持
 	virtual bool async_recv(char *buf , uint32_t len,const ReceivedCallback& received){return false;}
 
 	///【同步】TCP接收
@@ -180,6 +196,7 @@ public:
 	///retun		 true 成功、false 失败 ，返回投递消息结果
 	///注：
 	///  1:只有连接成功后的TCP才支持
+	///注：仅异步IO支持
 	virtual bool async_send(const char * buf, uint32_t len,const SendedCallback& sended){return false;}
 
 	///【同步】TCP发送
@@ -200,6 +217,7 @@ public:
 	///注：
 	///	1:只有UDP，并且Bind后才支持/
 	///	2:received不能为空
+	///注：仅异步IO支持
 	virtual bool async_recvfrom(char *buf , uint32_t len,const RecvFromCallback& received){return false;}
 
 
@@ -222,6 +240,7 @@ public:
 	///retun		返回投递发送数据命令结果
 	///注：
 	///  1:只有UDP才支持
+	///注：仅异步IO支持
 	virtual bool async_sendto(const char * buf, uint32_t len,const NetAddr& other,const SendedCallback& sended){return false;}
 
 	///【同步】UDP发送
@@ -237,7 +256,7 @@ public:
 	
 	///获取Socket句柄
 	///return 句柄	、当socket创建失败 -1
-	virtual int getHandle() const {return INVALIDHANDLE;}
+	virtual int getHandle() const {return -1;}
 
 
 	///获取Socket网络类型

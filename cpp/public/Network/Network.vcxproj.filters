@@ -52,9 +52,6 @@
     <ClInclude Include="Src\IOWorkerInternal.h">
       <Filter>Src</Filter>
     </ClInclude>
-    <ClInclude Include="Src\IOWorker.cpp">
-      <Filter>Src</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Version.rc" />
@@ -89,6 +86,9 @@
       <Filter>Src</Filter>
     </ClCompile>
     <ClCompile Include="Src\Udp.cpp">
+      <Filter>Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\AsyncIOWorker.cpp">
       <Filter>Src</Filter>
     </ClCompile>
   </ItemGroup>

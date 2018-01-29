@@ -6,7 +6,7 @@ using namespace Public::RTSPClient;
 
 struct RTSPClientManager::RTSPClientManagerInternal
 {
-	shared_ptr<IOWorker> ioworker;
+	shared_ptr<AsyncIOWorker> ioworker;
 	std::string			 userContext;
 
 	uint32_t				m_udpStartPort;

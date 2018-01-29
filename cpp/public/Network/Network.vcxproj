@@ -26,7 +26,7 @@
     <ClInclude Include="Src\Async\AsyncObjectIOCP.h" />
     <ClInclude Include="Src\Async\IAsyncEvent.h" />
     <ClInclude Include="Src\Async\AsyncObject.h" />
-    <ClInclude Include="Src\IOWorker.cpp" />
+    <ClCompile Include="Src\AsyncIOWorker.cpp" />
     <ClInclude Include="Src\IOWorkerInternal.h" />
     <ClInclude Include="Src\SocketInternal.h" />
   </ItemGroup>
