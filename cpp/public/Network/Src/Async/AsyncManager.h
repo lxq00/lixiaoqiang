@@ -26,7 +26,6 @@ public:
 			async = new AsyncObjectCanEPoll(shared_from_this(), threadnum);
 			asyncList.push_back(async);
 		}
-#endif
 		else if (type & SuportType_POOL)
 		{
 			for (int i = 0; i < threadnum; i++)
@@ -35,6 +34,7 @@ public:
 				asyncList.push_back(async);
 			}
 		}
+#endif		
 		else if (type & SuportType_SELECT)
 		{
 			for (int i = 0; i < threadnum; i++)
@@ -54,16 +54,16 @@ public:
 
 	virtual bool deletSocket(const Public::Base::shared_ptr<AsyncObject>& asynctmp, int sockfd)
 	{
-		shared_ptr<AsyncObject> async = asynctmp;
+		Public::Base::shared_ptr<AsyncObject> async = asynctmp;
 		return async->deleteSocket(sockfd);
 	}
 
-	virtual shared_ptr<AsyncObject> addSocket(int sockfd)
+	virtual Public::Base::shared_ptr<AsyncObject> addSocket(const Public::Base::shared_ptr<Socket>& sock)
 	{
 		Guard locker(mutex);
 		
 		uint32_t idel = 0;
-		shared_ptr<AsyncObject> async;
+		Public::Base::shared_ptr<AsyncObject> async;
 		for (std::list<Public::Base::shared_ptr<AsyncObject> >::iterator iter = asyncList.begin(); iter != asyncList.end(); iter++)
 		{
 			if (async == NULL || (*iter)->getSocketCount() < idel)
@@ -72,7 +72,7 @@ public:
 				idel = (*iter)->getSocketCount();
 			}
 		}
-		async->addSocket(sockfd);
+		async->addSocket(sock);
 
 		return async;
 	}

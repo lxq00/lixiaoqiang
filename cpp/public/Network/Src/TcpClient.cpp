@@ -22,6 +22,7 @@ Public::Base::shared_ptr<Socket> TCPClient::create(const Public::Base::shared_pt
 	client->tcpclientinternal->sock = new SocketInternal(
 		worker == NULL ? Public::Base::shared_ptr<AsyncManager>():
 		worker->internal->manager, client, NetType_TcpClient);
+	client->tcpclientinternal->sock->init();
 
 	return client;
 }
@@ -29,7 +30,6 @@ TCPClient::~TCPClient()
 {
 	disconnect();
 	SAFE_DELETE(tcpclientinternal);
-	//shareptr ×Ô¶¯É¾³ý
 }
 bool TCPClient::bind(const NetAddr& addr,bool reusedaddr)
 {

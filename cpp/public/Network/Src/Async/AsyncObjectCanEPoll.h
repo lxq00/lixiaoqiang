@@ -2,6 +2,7 @@
 #define __ASYNCCANEPOLL_H__
 #include "AsyncObjectCan.h"
 #ifndef WIN32
+#include <sys/epoll.h>
 
 class AsyncObjectCanEPoll :public AsyncObjectCan, public Thread
 {
@@ -14,7 +15,7 @@ public:
 			return;
 		}
 
-		for (uint32_t i = 0; i < threadnum; i++)
+		for (int i = 0; i < threadnum; i++)
 		{
 			Public::Base::shared_ptr<Thread> thread = ThreadEx::creatThreadEx("doResultThreadProc", ThreadEx::Proc(&AsyncObjectCanEPoll::doResultThreadProc, this), NULL);
 			thread->createThread();
@@ -62,7 +63,7 @@ private:
 		{
 			pevent.events |= EPOLLHUP | EPOLLERR;
 		}
-		epoll_ctl(epollHandle, EPOLL_CTL_ADD, eventDo->getHandle(), &pevent);
+		epoll_ctl(epollHandle, EPOLL_CTL_ADD, sockfd, &pevent);
 	}
 	virtual void cleanSocketAllEvent(const Public::Base::shared_ptr<Socket>& sock)
 	{
@@ -72,9 +73,9 @@ private:
 	}
 	virtual bool deleteSocket(const Socket* sock)
 	{
-		AsyncObject::deleteSocket(sock);
-
 		int sockfd = sock->getHandle();
+
+		AsyncObject::deleteSocket(sockfd);		
 
 		cleanSocketByHandle(sockfd);
 		
@@ -137,7 +138,7 @@ private:
 				}
 			}
 
-			AsyncObject::buildDoingEvent(sock.get());
+			AsyncObject::buildDoingEvent(sock);
 		}
 	}
 	
@@ -148,7 +149,8 @@ private:
 
 		while (looping())
 		{
-			int pollSize = epoll_wait(epollHandle, workEpoolEvent, MAXEVENTNUM, 1000);
+			doThreadConnectProc();
+			int pollSize = epoll_wait(epollHandle, workEpoolEvent, MAXEVENTNUM, 10);
 			if (pollSize <= 0)
 			{
 				continue;
@@ -163,7 +165,7 @@ private:
 				
 				for (int i = 0; i < pollSize; i++)
 				{
-					int sockfd = (Socket*)workEpoolEvent[i].data.fd;
+					int sockfd = workEpoolEvent[i].data.fd;
 
 					cleanSocketByHandle(sockfd);
 

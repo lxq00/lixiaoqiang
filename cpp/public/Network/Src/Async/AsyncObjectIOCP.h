@@ -13,21 +13,24 @@ struct IOCPConnectCanEvent :public ConnectEvent
 	bool doPrevEvent(const Public::Base::shared_ptr<Socket>& sock)
 	{
 		memset(&overlped, 0, sizeof(OVERLAPPED));
-
+		int sockfd = sock->getHandle();
 		GUID connetEx = WSAID_CONNECTEX;
 		DWORD bytes = 0;
-		int ret = WSAIoctl(sock->getHandle(), SIO_GET_EXTENSION_FUNCTION_POINTER, &connetEx, sizeof(connetEx), &connectExFunc, sizeof(connectExFunc), &bytes, NULL, NULL);
+		connectExFunc = NULL;
+		int ret = WSAIoctl(sockfd, SIO_GET_EXTENSION_FUNCTION_POINTER, &connetEx, sizeof(connetEx), &connectExFunc, sizeof(connectExFunc), &bytes, NULL, NULL);
 
 		if (ret == SOCKET_ERROR)
 		{
 			connectExFunc = NULL;
 			return false;
 		}
-
-		if(!connectExFunc(sock->getHandle(), (const sockaddr*)otheraddr.getAddr(), otheraddr.getAddrLen(), NULL, 0, NULL, &overlped)
-			&& GetLastError() != WSA_IO_PENDING)
+		if (false == connectExFunc(sockfd, (const sockaddr*)otheraddr.getAddr(), otheraddr.getAddrLen(), NULL, 0, NULL, &overlped))
 		{
-			return false;
+			int errorno = GetLastError();
+			if (errorno != WSA_IO_PENDING)
+			{
+				return false;
+			}
 		}
 
 		return true;
@@ -36,6 +39,7 @@ struct IOCPConnectCanEvent :public ConnectEvent
 	{
 		return doResultEvent(sock);
 	}
+	virtual void* getFlag() { return &overlped; }
 };
 
 #define SWAPBUFFERLEN			64
@@ -112,6 +116,7 @@ struct IOCPAcceptCanEvent :public AcceptEvent
 
 		return doResultEvent(sock, newsocktmp);
 	}
+	virtual void* getFlag() { return &overlped; }
 };
 
 struct IOCPSendCanEvent :public SendEvent
@@ -153,6 +158,7 @@ struct IOCPSendCanEvent :public SendEvent
 	{
 		return doResultEvent(sock, flag);
 	}
+	virtual void* getFlag() { return &overlped; }
 };
 
 struct IOCPRecvCanEvent :public RecvEvent
@@ -208,12 +214,13 @@ struct IOCPRecvCanEvent :public RecvEvent
 		
 		return doResultEvent(sock, flag);
 	}
+	virtual void* getFlag() { return &overlped; }
 };
 
 class AsyncObjectIOCP :public AsyncObject
 {
 public:
-	AsyncObjectIOCP(const Public::Base::shared_ptr<AsyncManager>& _manager,int threadnum):AsyncObject(_manager)
+	AsyncObjectIOCP(const Public::Base::shared_ptr<AsyncManager>& _manager,int threadnum):AsyncObject(_manager,SuportType_IOCP)
 	{
 		iocpHandle = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
 		if (iocpHandle == NULL)
@@ -350,22 +357,27 @@ private:
 
 		{
 			Guard locker(iocpMutex);
-			for (std::map<void*, IOCPInfo>::iterator iter = iocpList.begin(); iter != iocpList.end();)
+			for (std::map<void*, Public::Base::shared_ptr<IOCPInfo> >::iterator iter = iocpList.begin(); iter != iocpList.end();)
 			{
-				Public::Base::shared_ptr<AsyncInfo> asyncinfo = iter->second.doasyncinfo->asyncInfo.lock();
-				if (asyncinfo == NULL)
-				{
-					iocpList.erase(iter++);
-					continue;
-				}
-				Public::Base::shared_ptr<Socket> sockobj = asyncinfo->sock.lock();
-				if (sockobj == NULL || sockobj->getHandle() == sockfd)
+				if (iter->second->sockfd == sockfd)
 				{
 					iocpList.erase(iter++);
 					continue;
 				}
 				iter++;
 			}
+		}
+
+		return true;
+	}
+	virtual bool addSocket(const Public::Base::shared_ptr<Socket>& sock)
+	{
+		AsyncObject::addSocket(sock);
+		int sockfd = sock->getHandle();
+		HANDLE iosock = ::CreateIoCompletionPort((HANDLE)sockfd, iocpHandle, (DWORD)sockfd, 0);
+		if (iosock == NULL)
+		{
+			return false;
 		}
 
 		return true;
@@ -377,18 +389,15 @@ private:
 			return;
 		}
 		{
-			IOCPInfo info;
-			info.doasyncinfo = doasyncinfo;
-			info.event = event;
+			Public::Base::shared_ptr<IOCPInfo> info(new IOCPInfo);
+			info->doasyncinfo = doasyncinfo;
+			info->event = event;
+			info->sockfd = sock->getHandle();
+
 			Guard locker(iocpMutex);
-			iocpList[event.get()] = info;
+			iocpList[event->getFlag()] = info;
 		}
 		event->doPrevEvent(sock);
-		HANDLE iosock = ::CreateIoCompletionPort((HANDLE)sock->getHandle(), iocpHandle, (DWORD)event.get(), 0);
-		if (iosock == NULL)
-		{
-			return;
-		}
 	}
 	void doWorkThreadProc(Thread* thread, void* param)
 	{
@@ -403,16 +412,22 @@ private:
 			}
 			if (key == 0) break;
 
-			IOCPInfo info;
+			Public::Base::shared_ptr<IOCPInfo> info;
 			{
 				Guard locker(iocpMutex);
-				std::map<void*, IOCPInfo>::iterator iter = iocpList.find((void*)key);
+				std::map<void*, Public::Base::shared_ptr<IOCPInfo> >::iterator iter = iocpList.find((void*)key);
 				if (iter == iocpList.end())
 				{
 					continue;
 				}
+				info = iter->second;
+				iocpList.erase(iter);
 			}
-			Public::Base::shared_ptr<AsyncInfo> asyncinfo = info.doasyncinfo->asyncInfo.lock();
+			if(info->doasyncinfo == NULL || info->event == NULL)
+			{
+				continue;
+			}
+			Public::Base::shared_ptr<AsyncInfo> asyncinfo = info->doasyncinfo->asyncInfo.lock();
 			if (asyncinfo == NULL)
 			{
 				continue;
@@ -423,7 +438,11 @@ private:
 				continue;
 			}
 
-			info.event->doCanEvent(sock);
+			info->event->doCanEvent(sock, bytes);
+
+			Public::Base::shared_ptr<AsyncEvent> disconnedEvent = info->doasyncinfo->disconnedEvent;
+			if (disconnedEvent != NULL) disconnedEvent->doCanEvent(sock);			
+				
 			AsyncObject::buildDoingEvent(sock);
 		}
 	}
@@ -433,12 +452,13 @@ private:
 
 	struct IOCPInfo
 	{
+		int										 sockfd;
 		Public::Base::shared_ptr<DoingAsyncInfo> doasyncinfo;
 		Public::Base::shared_ptr<ConnectEvent>  event;
 	};
 
 	Mutex							iocpMutex;
-	std::map<void*, IOCPInfo>		iocpList;
+	std::map<void*, Public::Base::shared_ptr<IOCPInfo> >		iocpList;
 };
 #endif
 #endif //__ASYNCOBJECTIOCP_H__

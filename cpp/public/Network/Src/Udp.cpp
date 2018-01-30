@@ -22,6 +22,8 @@ Public::Base::shared_ptr<Socket> UDP::create(const  Public::Base::shared_ptr<Asy
 	udp->udpinternal->sock = new SocketInternal(
 		worker == NULL ? Public::Base::shared_ptr<AsyncManager>() :
 		worker->internal->manager, udp, NetType_Udp);
+	udp->udpinternal->sock->init();
+
 	return udp;
 }
 UDP::~UDP()

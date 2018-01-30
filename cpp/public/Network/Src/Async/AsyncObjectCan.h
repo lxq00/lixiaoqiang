@@ -1,7 +1,9 @@
 #ifndef __IASYNCOBJECTCAN_H__
 #define __IASYNCOBJECTCAN_H__
 #include "AsyncObject.h"
-
+#ifdef WIN32
+typedef  int socklen_t;
+#endif
 struct ConnectCanEvent:public ConnectEvent
 {
 	bool doCanEvent(const Public::Base::shared_ptr<Socket>& sock, int flag)
@@ -13,6 +15,18 @@ struct ConnectCanEvent:public ConnectEvent
 		{
 			return false;
 		}
+
+#ifdef WIN32
+		{
+			int ionbio = 1;
+			ioctlsocket(sockfd, FIONBIO, (u_long*)&ionbio);
+		}
+#else
+		{
+			int flags = fcntl(sockfd, F_GETFL, 0);
+			fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
+		}
+#endif
 
 		return doResultEvent(sock);
 	}
@@ -29,7 +43,7 @@ struct AcceptCanEvent :public AcceptEvent
 		memset(&conaddr, 0, len);
 		conaddr.sin_family = AF_INET;
 		
-		int newsock = accept(sockfd, (sockaddr*)&conaddr, &len);
+		int newsock = accept(sockfd, (sockaddr*)&conaddr, (socklen_t*)&len);
 		if (newsock <= 0)
 		{
 			return false;
@@ -96,7 +110,7 @@ struct RecvCanEvent :public RecvEvent
 			memset(&conaddr, 0, len);
 			conaddr.sin_family = AF_INET;
 
-			recvlen = recvfrom(sockfd, buffer, bufferlen, 0, (sockaddr*)&conaddr, &len);
+			recvlen = recvfrom(sockfd, buffer, bufferlen, 0, (sockaddr*)&conaddr, (socklen_t*)&len);
 			if (recvlen > 0)
 			{
 				otheraddr = new NetAddr(*(SockAddr*)&conaddr);
@@ -120,8 +134,18 @@ struct RecvCanEvent :public RecvEvent
 class AsyncObjectCan:public AsyncObject
 {
 public:
-	AsyncObjectCan(const Public::Base::shared_ptr<AsyncManager>& _manager):AsyncObject(_manager) {}
+	AsyncObjectCan(const Public::Base::shared_ptr<AsyncManager>& _manager, AsyncSuportType _type):AsyncObject(_manager,_type){}
 	virtual ~AsyncObjectCan(){}
+
+	virtual bool deleteSocket(int sockfd)
+	{
+		{
+			Guard locker(connectmutex);
+			connectList.erase(sockfd);
+		}
+		AsyncObject::deleteSocket(sockfd);
+		return true;
+	}
 
 	virtual bool addConnectEvent(const Public::Base::shared_ptr<Socket>& sock, const NetAddr& othreaddr, const Socket::ConnectedCallback& callback)
 	{
@@ -129,12 +153,30 @@ public:
 		event->callback = callback;
 		event->otheraddr = othreaddr;
 		event->manager = manager;
+		event->asyncobj = shared_from_this();
+		{
+			Guard locker(mutex);
 
+			std::map<int, Public::Base::shared_ptr<AsyncInfo> >::iterator iter = socketList.find(sock->getHandle());
+			if (iter == socketList.end())
+			{
+				return false;
+			}
+		}
+#if 0
 		if (!AsyncObject::addConnectEvent(sock, event))
 		{
 			return false;
 		}
 		AsyncObject::buildDoingEvent(sock);
+#else
+		ConnectInfo connectInfo;
+		connectInfo.sock = sock;
+		connectInfo.event = event;
+
+		Guard locker(connectmutex);
+		connectList[sock->getHandle()] = connectInfo;
+#endif
 		return true;
 	}
 	virtual bool addAcceptEvent(const Public::Base::shared_ptr<Socket>& sock, const Socket::AcceptedCallback& callback)
@@ -218,7 +260,60 @@ public:
 		AsyncObject::buildDoingEvent(sock);
 		return true;
 	}
+protected:
+#define DEFAULTCANDOCONNECTTIMEOUT		10
+	void doThreadConnectProc()
+	{
+		std::map<int, ConnectInfo> connectListtmp;
+		{
+			Guard locker(mutex);
+			connectListtmp = connectList;
+		}
 
+		std::list<int> successList;
+		for (std::map<int, ConnectInfo>::iterator iter = connectListtmp.begin(); iter != connectListtmp.end(); iter++)
+		{
+			Public::Base::shared_ptr<Socket> sock = iter->second.sock.lock();
+			if (sock == NULL) continue;
+
+			int sendTimeout = 0;
+			int sockfd = sock->getHandle();
+			{
+				int sendlen = sizeof(uint32_t);
+				getsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, (char*)&sendTimeout, (socklen_t*)&sendlen);
+
+				int sendtimeouttmp = DEFAULTCANDOCONNECTTIMEOUT;
+				setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, (const char*)&sendtimeouttmp, sizeof(sendtimeouttmp));
+			}
+
+			if (iter->second.event == NULL ||  iter->second.event->doCanEvent(sock, 0))
+			{
+				successList.push_back(sock->getHandle());
+			}
+			else
+			{
+				setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, (const char*)&sendTimeout, sizeof(sendTimeout));
+			}
+		}
+
+		{
+			Guard locker(mutex);
+			for (std::list<int>::iterator iter = successList.begin(); iter != successList.end(); iter++)
+			{
+				connectList.erase(*iter);
+			}
+		}
+
+	}
+private:
+	struct ConnectInfo
+	{
+		Public::Base::weak_ptr<Socket>			  sock;
+		Public::Base::shared_ptr<ConnectCanEvent> event;
+	};
+	
+	Public::Base::Mutex			connectmutex;
+	std::map<int, ConnectInfo>	connectList;
 };
 
 

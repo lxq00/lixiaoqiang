@@ -1,15 +1,13 @@
 #ifndef __ASYNCCANPOLL_H__
 #define __ASYNCCANPOLL_H__
 #include "AsyncObjectCan.h"
-#ifdef WIN32
-#include <WinSock2.h>
-#endif
-
+#ifndef WIN32
+#include <poll.h>
 #define MAXPOLLSIZE		1024
 class AsyncObjectCanPoll :public AsyncObjectCan,public Thread
 {
 public:
-	AsyncObjectCanPoll(const Public::Base::shared_ptr<AsyncManager>& _manager):AsyncObjectCan(_manager), Thread("AsyncObjectCanPoll")
+	AsyncObjectCanPoll(const Public::Base::shared_ptr<AsyncManager>& _manager):AsyncObjectCan(_manager, SuportType_POOL), Thread("AsyncObjectCanPoll")
 	{
 		createThread();
 	}
@@ -23,7 +21,8 @@ private:
 		while (looping())
 		{
 			int timeout = 10;
-			pollfd fdset[MAXPOLLSIZE] = {0};
+			struct pollfd fdset[MAXPOLLSIZE];
+			memset(fdset,0,sizeof(fdset));
 			int fdnum = 0;
 
 			buildDoingEvent();
@@ -71,11 +70,9 @@ private:
 				}
 			}
 			
-#ifdef WIN32
-			int ret = WSAPoll(fdset, fdnum,timeout);
-#else
-			int ret = pool(fdset, fdnum, timeout);
-#endif
+			int ret = poll(fdset, fdnum, timeout);
+			
+
 			if (ret < 0)
 			{
 				Thread::sleep(10);
@@ -142,6 +139,6 @@ private:
 	}
 };
 
-
+#endif
 
 #endif //__ASYNCCANSELECT_H__

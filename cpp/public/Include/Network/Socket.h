@@ -96,9 +96,6 @@ public:
 	///注：不不建议使用该函数来判断串口是否被占用，端口判断推进使用host::checkPortIsNotUsed接口
 	virtual bool bind(const NetAddr& addr,bool reusedAddr = true){return false;}
 
-	///启动服务listen工作
-	///param[int] falg				监听缓冲池最大的个数
-	virtual bool listen(int flag = 100) { return false; }
 	
 	///设置socket发送接受超时时间
 	///param[in]		recvTimeout		接收超时 单位：毫秒,-1不设置

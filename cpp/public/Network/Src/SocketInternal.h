@@ -6,7 +6,7 @@
 class SocketInternal:public Socket,public Public::Base::enable_shared_from_this<SocketInternal>
 {
 public:
-	static bool init()
+	static bool initSocket()
 	{
 		static bool initStatus = false;
 		if (!initStatus)
@@ -38,8 +38,10 @@ public:
 	SocketInternal::SocketInternal(const Public::Base::shared_ptr<AsyncManager>& _manager,const Public::Base::shared_ptr<Socket>& _sock, NetType _type)
 		:type(_type),sockfd(-1),sock(_sock), manager(_manager)
 	{
+		initSocket();
 #ifdef WIN32
-		if (_manager != NULL)
+		int suporttype = SuportType();
+		if (_manager != NULL && suporttype & SuportType_IOCP)
 		{
 			int domain = (_type != NetType_Udp) ? SOCK_STREAM : SOCK_DGRAM;
 			int protocol = (_type != NetType_Udp) ? IPPROTO_TCP : IPPROTO_UDP;
@@ -74,16 +76,17 @@ public:
 			fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
 		}
 #endif
-		shared_ptr<AsyncManager> managertmp = _manager;
-		if(managertmp != NULL)
-			async = managertmp->addSocket(sockfd);
 	}
 	SocketInternal::SocketInternal(const Public::Base::shared_ptr<AsyncManager>& _manager,int _sockfd,const NetAddr& _otheraddr)
 		: type(NetType_TcpConnection),sockfd(_sockfd), otheraddr(_otheraddr), manager(_manager)
 	{
-		Public::Base::shared_ptr<AsyncManager> _managertmp = _manager;
-		if(_managertmp != NULL)
-			async = _manager->addSocket(sockfd);
+		
+	}
+	void init()
+	{
+		Public::Base::shared_ptr<AsyncManager> _managertmp = manager.lock();
+		if (_managertmp != NULL)
+			async = _managertmp->addSocket(sock.lock() == NULL ? shared_from_this() : sock.lock());
 	}
 	~SocketInternal()
 	{
@@ -148,6 +151,20 @@ public:
 
 		return ret >= 0;
 	}
+	bool async_connect(const NetAddr& addr, const ConnectedCallback& callback)
+	{
+		if (sockfd == -1 || async == NULL)
+		{
+			return false;
+		}
+
+		if (!myaddr.isValid() && async->asyncType() == SuportType_IOCP)
+		{
+			NetAddr addr(30000 + Time::getCurrentMilliSecond() % 2000);
+			bind(addr,true);
+		}
+		return async->addConnectEvent(shared_from_this(), addr, callback);
+	}
 	Public::Base::shared_ptr<Socket> accept()
 	{
 		Public::Base::shared_ptr<AsyncManager> _manager = manager.lock();
@@ -187,7 +204,7 @@ public:
 		{
 			return false;
 		}
-		if (recvTimeout != -1)
+		if (recvTimeout != (uint32_t)-1)
 		{
 			int ret = setsockopt(getHandle(), SOL_SOCKET, SO_RCVTIMEO, (const char*)&recvTimeout, sizeof(recvTimeout));
 			if (ret < 0)
@@ -195,7 +212,7 @@ public:
 				return false;
 			}
 		}
-		if (sendTimeout != -1)
+		if (sendTimeout != (uint32_t)-1)
 		{
 			int ret = setsockopt(getHandle(), SOL_SOCKET, SO_SNDTIMEO, (const char*)&sendTimeout, sizeof(sendTimeout));
 			if (ret < 0)
@@ -214,8 +231,8 @@ public:
 			return false;
 		}
 		int sendlen = sizeof(uint32_t), recvlen = sizeof(uint32_t);
-		int ret = getsockopt(getHandle(), SOL_SOCKET, SO_SNDTIMEO, (char*)&sendTimeout, &sendlen);
-		ret |= getsockopt(getHandle(), SOL_SOCKET, SO_RCVTIMEO, (char*)&recvTimeout, &recvlen);
+		int ret = getsockopt(getHandle(), SOL_SOCKET, SO_SNDTIMEO, (char*)&sendTimeout, (socklen_t*)&sendlen);
+		ret |= getsockopt(getHandle(), SOL_SOCKET, SO_RCVTIMEO, (char*)&recvTimeout, (socklen_t*)&recvlen);
 		return false; 
 	}
 
@@ -223,12 +240,12 @@ public:
 	{
 		if (sockfd == -1) return false;
 		int optlen = sizeof(sendSize);
-		int err = getsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, (char*)&sendSize, &optlen);
+		int err = getsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, (char*)&sendSize, (socklen_t*)&optlen);
 		if (err<0) {
 			return false;
 		}
 		optlen = sizeof(recvSize);
-		err = getsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, (char*)&recvSize, &optlen);
+		err = getsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, (char*)&recvSize, (socklen_t*)&optlen);
 		if (err<0) {
 			return false;
 		}
@@ -237,8 +254,8 @@ public:
 	}
 	bool setSocketBuffer(uint32_t recvSize, uint32_t sendSize)
 	{
-		if (sockfd == -1 || recvSize == -1 || sendSize == -1) return false;
-		if (recvSize != -1)
+		if (sockfd == -1 || recvSize == (uint32_t)-1 || sendSize == (uint32_t)-1) return false;
+		if (recvSize != (uint32_t)-1)
 		{
 			int optlen = sizeof(recvSize);
 			int err = setsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, (char *)&recvSize, optlen);
@@ -246,7 +263,7 @@ public:
 				return false;
 			}
 		}
-		if (sendSize != -1)
+		if (sendSize != (uint32_t)-1)
 		{
 			int optlen = sizeof(sendSize);
 			int err = setsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, (char *)&sendSize, optlen);
@@ -291,7 +308,7 @@ public:
 	}
 	int send(const char * buf, uint32_t len)
 	{
-		if (sockfd == NULL || buf == NULL || len == 0)
+		if (sockfd == -1 || buf == NULL || len == 0)
 		{
 			return -1;
 		}
@@ -334,7 +351,10 @@ inline Public::Base::shared_ptr<Socket> buildSocketBySock(const Public::Base::we
 		return Public::Base::shared_ptr<Socket>();
 	}
 
-	return Public::Base::shared_ptr<Socket>(new SocketInternal(_manager, sock, otheraaddr));
+	Public::Base::shared_ptr<SocketInternal> sockptr(new SocketInternal(_manager, sock, otheraaddr));
+	sockptr->init();
+
+	return sockptr;
 }
 
 

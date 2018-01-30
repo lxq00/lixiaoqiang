@@ -6,7 +6,7 @@ namespace Network{
 
 struct TCPServer::TCPServerInternalPointer
 {
-	shared_ptr<Socket> sock;
+	shared_ptr<SocketInternal> sock;
 };
 
 TCPServer::TCPServer()
@@ -22,6 +22,7 @@ Public::Base::shared_ptr<Socket> TCPServer::create(const shared_ptr<AsyncIOWorke
 	sock->tcpserverinternal->sock = new SocketInternal(
 		worker == NULL ? Public::Base::shared_ptr<AsyncManager>() :
 		worker->internal->manager, sock, NetType_TcpServer);
+	sock->tcpserverinternal->sock->init();
 
 	return sock;
 }
@@ -33,12 +34,18 @@ TCPServer::~TCPServer()
 bool TCPServer::bind(const NetAddr& addr,bool reusedaddr)
 {
 	Public::Base::shared_ptr<SocketInternal> sockobj = tcpserverinternal->sock;
-	if (sockobj == NULL)
+	if (sockobj == NULL || !addr.isValid())
 	{
 		return false;
 	}
 	
-	return sockobj->bind(addr,reusedaddr);
+	bool ret = sockobj->bind(addr,reusedaddr);
+	if (ret)
+	{
+		sockobj->listen(100);
+	}
+
+	return ret;
 }
 int TCPServer::getHandle() const
 {

@@ -4,7 +4,7 @@
 class AsyncObjectCanSelect :public AsyncObjectCan, public Thread
 {
 public:
-	AsyncObjectCanSelect(const Public::Base::shared_ptr<AsyncManager>& _manager):AsyncObjectCan(_manager), Thread("AsyncObjectSelect")
+	AsyncObjectCanSelect(const Public::Base::shared_ptr<AsyncManager>& _manager):AsyncObjectCan(_manager,SuportType_SELECT), Thread("AsyncObjectSelect")
 	{
 		createThread();
 	}
@@ -17,10 +17,12 @@ private:
 	{
 		while (looping())
 		{
+			doThreadConnectProc();
 			struct timeval tv = { 0, 10 };
-			fd_set   fdread, fdwrite;
+			fd_set   fdread, fdwrite, fderror;
 			FD_ZERO(&fdread);
 			FD_ZERO(&fdwrite);
+			FD_ZERO(&fderror);
 			int maxsock = 0;
 
 			buildDoingEvent();
@@ -53,8 +55,13 @@ private:
 					FD_SET(sockfd, &fdread);
 					maxsock = maxsock > sockfd ? maxsock : sockfd;
 				}
+				if (iter->second->disconnedEvent != NULL)
+				{
+					FD_SET(sockfd, &fderror);
+					maxsock = maxsock > sockfd ? maxsock : sockfd;
+				}
 			}
-			int ret = select(maxsock+ 1, &fdread, &fdwrite, NULL, &tv);
+			int ret = select(maxsock+ 1, &fdread, &fdwrite, &fderror, &tv);
 			if (ret < 0)
 			{
 				Thread::sleep(10);
@@ -100,6 +107,13 @@ private:
 						if (iter->second->sendEvent != NULL)
 						{
 							iter->second->sendEvent->doCanEvent(sock);
+						}
+					}
+					if (FD_ISSET(sockfd, &fderror))
+					{
+						if (iter->second->disconnedEvent != NULL)
+						{
+							iter->second->disconnedEvent->doCanEvent(sock);
 						}
 					}
 				}
