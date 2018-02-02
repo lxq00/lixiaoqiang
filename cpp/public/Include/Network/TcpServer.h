@@ -15,7 +15,7 @@ namespace Network{
 
 class NETWORK_API TCPServer:public Socket
 {
-	struct TCPServerInternalPointer;
+	struct TCPServerInternal;
 	TCPServer(const TCPServer&);
 	TCPServer();
 public:
@@ -81,7 +81,7 @@ public:
 	///注：异步IO不支持
 	virtual bool getSocketTimeout(uint32_t& recvTimeout, uint32_t& sendTimeout) const;
 private:
-	TCPServerInternalPointer* tcpserverinternal;
+	TCPServerInternal* internal;
 };
 
 

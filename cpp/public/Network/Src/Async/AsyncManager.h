@@ -52,12 +52,6 @@ public:
 		asyncList.clear();
 	}
 
-	virtual bool deletSocket(const Public::Base::shared_ptr<AsyncObject>& asynctmp, int sockfd)
-	{
-		Public::Base::shared_ptr<AsyncObject> async = asynctmp;
-		return async->deleteSocket(sockfd);
-	}
-
 	virtual Public::Base::shared_ptr<AsyncObject> addSocket(const Public::Base::shared_ptr<Socket>& sock)
 	{
 		Guard locker(mutex);

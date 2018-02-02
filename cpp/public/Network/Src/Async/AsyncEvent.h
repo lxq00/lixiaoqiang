@@ -36,31 +36,24 @@ inline int SuportType()
 class AsyncManager;
 class AsyncObject;
 inline Public::Base::shared_ptr<Socket> buildSocketBySock(const Public::Base::weak_ptr<AsyncManager>& manager,int sock,const NetAddr& otheraaddr);
-inline bool insertSocketResult(const Public::Base::weak_ptr<AsyncObject>& obj, int sock);
-inline void eraseSocketResult(const Public::Base::weak_ptr<AsyncObject>& obj, int sock);
+inline bool lockSocketUsing(const Public::Base::weak_ptr<AsyncObject>& obj, const Public::Base::shared_ptr<Socket>& sock);
+inline void unlockSocketUsing(const Public::Base::weak_ptr<AsyncObject>& obj, const Public::Base::shared_ptr<Socket>& sock);
 
-
-class AsynResultWaitObject
+class SocketUsingLocker
 {
 public:
-	AsynResultWaitObject(const Public::Base::weak_ptr<AsyncObject>& _obj, const Public::Base::shared_ptr<Socket>& sock):obj(_obj),sockfd(-1)
-	{
-		if (sock != NULL)
-		{
-			sockfd = sock->getHandle();
-		}
-	}
+	SocketUsingLocker(const Public::Base::weak_ptr<AsyncObject>& _obj, const Public::Base::shared_ptr<Socket>& _sock):obj(_obj), sock(_sock){}
 	bool lock()
 	{
-		return insertSocketResult(obj, sockfd);
+		return lockSocketUsing(obj, sock);
 	}
-	~AsynResultWaitObject()
+	~SocketUsingLocker()
 	{
-		eraseSocketResult(obj,sockfd);
+		unlockSocketUsing(obj, sock);
 	}
 private:
 	Public::Base::weak_ptr<AsyncObject> obj;
-	int sockfd;
+	Public::Base::shared_ptr<Socket>	sock;
 };
 
 typedef enum
@@ -94,12 +87,14 @@ struct ConnectEvent :public AsyncEvent
 	NetAddr						otheraddr;
 	Socket::ConnectedCallback	callback;
 
+	ConnectEvent() {}
+	virtual ~ConnectEvent() {}
 	virtual bool doResultEvent(const Public::Base::shared_ptr<Socket>& sock, int flag = 0, const std::string& context = "")
 	{
 		Public::Base::shared_ptr<Socket>		s = sock;
 		if (s != NULL)
 		{
-			AsynResultWaitObject wait(asyncobj, s);
+			SocketUsingLocker wait(asyncobj, s);
 			if(wait.lock()) callback(s);
 		}
 		doSuccess = true;
@@ -122,7 +117,7 @@ struct AcceptEvent :public AsyncEvent
 		Public::Base::shared_ptr<Socket>	s = sock;
 		if (s != NULL && ns != NULL)
 		{
-			AsynResultWaitObject wait(asyncobj, s);
+			SocketUsingLocker wait(asyncobj, s);
 			if (wait.lock()) callback(s, ns);
 		}
 
@@ -145,7 +140,7 @@ struct SendEvent :public AsyncEvent
 		Public::Base::shared_ptr<Socket>	s = sock;
 		if (s != NULL)
 		{
-			AsynResultWaitObject wait(asyncobj, s);
+			SocketUsingLocker wait(asyncobj, s);
 			if (wait.lock()) callback(s, buffer, flag);
 		}
 		doSuccess = true;
@@ -161,6 +156,8 @@ struct RecvEvent :public AsyncEvent
 	Socket::ReceivedCallback	recvCallback;
 	Socket::RecvFromCallback	recvFromCallback;
 
+	RecvEvent() {}
+	virtual ~RecvEvent() {}
 	virtual bool doResultEvent(const Public::Base::shared_ptr<Socket>& sock, int flag, const std::string& context = "")
 	{
 		shared_ptr<Socket>	s = sock;
@@ -168,12 +165,13 @@ struct RecvEvent :public AsyncEvent
 		{
 			if (otheraddr == NULL)
 			{
-				AsynResultWaitObject wait(asyncobj, s);
+				SocketUsingLocker wait(asyncobj, s);
 				if (wait.lock()) recvCallback(s, buffer, flag);
 			}
 			else
 			{
-				recvFromCallback(s, buffer, flag, *otheraddr.get());
+				SocketUsingLocker wait(asyncobj, s);
+				if (wait.lock()) recvFromCallback(s, buffer, flag, *otheraddr.get());
 			}
 		}
 		doSuccess = true;
@@ -184,6 +182,8 @@ struct RecvEvent :public AsyncEvent
 struct DisconnectEvent :public AsyncEvent
 {
 	Socket::DisconnectedCallback callback;
+	DisconnectEvent() {}
+	virtual ~DisconnectEvent() {}
 	virtual bool doCanEvent(const Public::Base::shared_ptr<Socket>& sock,int flag)
 	{
 		int sockfd = sock->getHandle();
@@ -216,7 +216,7 @@ struct DisconnectEvent :public AsyncEvent
 		Public::Base::shared_ptr<Socket>	s = sock;
 		if (s != NULL)
 		{
-			AsynResultWaitObject wait(asyncobj, s);
+			SocketUsingLocker wait(asyncobj, s);
 			if (wait.lock()) callback(s, context.c_str());
 		}
 		doSuccess = true;

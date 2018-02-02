@@ -6,6 +6,11 @@
 
 class AsyncObjectCanEPoll :public AsyncObjectCan, public Thread
 {
+	struct EpoolEvent
+	{
+		Public::Base::shared_ptr<DoingAsyncInfo>	doAsyncInfo;
+		int											events;
+	};
 public:
 	AsyncObjectCanEPoll(const Public::Base::shared_ptr<AsyncManager>& _manager,int threadnum) :AsyncObjectCan(_manager), Thread("AsyncObjectCanEPoll")
 	{
@@ -35,51 +40,89 @@ public:
 		destroyThread();
 	}
 private:
-	virtual void cleanSocketByHandle(int handle)
-	{
-		epoll_event pevent;
-		memset(&pevent, 0, sizeof(pevent));
-		pevent.data.fd = handle;
-
-		epoll_ctl(epollHandle, EPOLL_CTL_DEL, handle, &pevent);
-	}
-	virtual void addSocketAllEvent(const Public::Base::shared_ptr<Socket>& sock, int event)
-	{
-		int sockfd = sock->getHandle();
-
-		epoll_event pevent;
-		memset(&pevent, 0, sizeof(pevent));
-		pevent.data.fd = sockfd;
-		pevent.events = EPOLLET;
-		if (event & EventType_Read || event & EventType_Error)
+	virtual bool addSocket(const Public::Base::shared_ptr<Socket>& sock)
+	{	
 		{
-			pevent.events |= EPOLLIN | EPOLLPRI;
+			int sockfd = sock->getHandle();
+			epoll_event pevent;
+			memset(&pevent, 0, sizeof(pevent));
+			pevent.data.ptr = sock.get();
+			pevent.events = EPOLLET;
+			epoll_ctl(epollHandle, EPOLL_CTL_ADD, sockfd, &pevent);
 		}
-		if (event & EventType_Write)
-		{
-			pevent.events |= EPOLLOUT;
-		}
-		if (event & event & EventType_Error)
-		{
-			pevent.events |= EPOLLHUP | EPOLLERR;
-		}
-		epoll_ctl(epollHandle, EPOLL_CTL_ADD, sockfd, &pevent);
+
+		return AsyncObjectCan::addSocket(sock);
 	}
-	virtual void cleanSocketAllEvent(const Public::Base::shared_ptr<Socket>& sock)
-	{
-		int sockfd = sock->getHandle();
 
-		cleanSocketByHandle(sockfd);
+	virtual bool deleteSocket(Socket* sockptr, int sockfd)
+	{
+		{			
+			epoll_event pevent;
+			memset(&pevent, 0, sizeof(pevent));
+
+			epoll_ctl(epollHandle, EPOLL_CTL_DEL, sockfd, &pevent);
+		}
+
+		return AsyncObjectCan::deleteSocket(sockptr, sockfd);
 	}
-	virtual bool deleteSocket(const Socket* sock)
+
+	void _addSocketEvent(const Public::Base::shared_ptr<Socket>& sock, EventType type, const Public::Base::shared_ptr<DoingAsyncInfo>& doasyncinfo, const Public::Base::shared_ptr<AsyncEvent>& event)
 	{
-		int sockfd = sock->getHandle();
+		int events = EPOLLET;
 
-		AsyncObject::deleteSocket(sockfd);		
+		if (doasyncinfo->recvEvent != NULL || doasyncinfo->acceptEvent != NULL)
+		{
+			events |= EPOLLIN | EPOLLPRI;
+		}
+		if (doasyncinfo->sendEvent != NULL)
+		{
+			events |= EPOLLOUT;
+		}
+		if (doasyncinfo->disconnedEvent != NULL)
+		{
+			events |= EPOLLHUP | EPOLLERR;
+		}
 
-		cleanSocketByHandle(sockfd);
-		
-		return true;
+		if (doasyncinfo->events != events)
+		{
+			epoll_event pevent;
+			memset(&pevent, 0, sizeof(pevent));
+			pevent.data.ptr = sock.get();
+			pevent.events = events;
+			epoll_ctl(epollHandle, EPOLL_CTL_MOD, sock->getHandle(), &pevent);
+
+			doasyncinfo->events = events;
+		}	
+	}
+	void _cleanSocketDoingEvent(const Public::Base::shared_ptr<DoingAsyncInfo>& doasyncinfo, int pevents)
+	{
+		Public::Base::shared_ptr<Socket> sock = doasyncinfo->asyncInfo->sock.lock();
+		if (sock == NULL) return;
+
+		int events = doasyncinfo->events;
+		if (pevents & EPOLLIN || pevents & EPOLLPRI)
+		{
+			events &= ~(EPOLLIN | EPOLLPRI);
+		}
+		if (pevents & EPOLLOUT)
+		{
+			events &= ~(EPOLLOUT);
+		}
+		if (pevents & EPOLLHUP || pevents & EPOLLERR)
+		{
+			events &= ~(EPOLLHUP | EPOLLERR);
+		}
+
+		if (doasyncinfo->events != events)
+		{
+			epoll_event pevent;
+			memset(&pevent, 0, sizeof(pevent));
+			pevent.data.ptr = sock.get();
+			pevent.events = events;
+			epoll_ctl(epollHandle, EPOLL_CTL_MOD, sock->getHandle(), &pevent);
+
+			doasyncinfo->events = events;
+		}
 	}
 
 	void doResultThreadProc(Thread* thread, void*)
@@ -91,7 +134,7 @@ private:
 			EpoolEvent event;
 			{
 				Guard locker(eventMutex);
-				if (eventList.size())
+				if (eventList.size() <= 0)
 				{
 					continue;
 				}
@@ -99,46 +142,56 @@ private:
 				eventList.pop_front();
 			}
 
-			Public::Base::shared_ptr<AsyncInfo> asyncInfo = event.doAsyncInfo->asyncInfo.lock();
+			Public::Base::shared_ptr<AsyncInfo> asyncInfo = event.doAsyncInfo->asyncInfo;
 			if (asyncInfo == NULL) continue;
 			Public::Base::shared_ptr<Socket> sock = asyncInfo->sock.lock();
 			if (sock == NULL) continue;
 
+			Public::Base::shared_ptr<AsyncEvent> asyncevent;
+
 			if (event.events & EPOLLIN || event.events & EPOLLPRI)
-			{
-				if (event.doAsyncInfo->acceptEvent != NULL)
+			{				
+				asyncevent = event.doAsyncInfo->acceptEvent;
+				if (asyncevent != NULL)
 				{
-					event.doAsyncInfo->acceptEvent->doCanEvent(sock);
+					asyncevent->doCanEvent(sock);
+
+					//acceptD¨¨¨°a¡Á??¡¥¨¬¨ª?¨®
+					asyncevent->doSuccess = true;
+					AcceptCanEvent* acceptEvent = (AcceptCanEvent*)asyncevent.get();
+					addAccept(sock, acceptEvent->callback);
 				}
-				if (event.doAsyncInfo->recvEvent != NULL)
+				asyncevent = event.doAsyncInfo->recvEvent;
+				if (asyncevent != NULL)
 				{
-					event.doAsyncInfo->recvEvent->doCanEvent(sock);
-				}
-				if (event.doAsyncInfo->disconnedEvent != NULL)
-				{
-					event.doAsyncInfo->disconnedEvent->doCanEvent(sock);
+					if (!asyncevent->doCanEvent(sock))
+					{
+						Public::Base::shared_ptr<AsyncEvent> eventtmp = event.doAsyncInfo->disconnedEvent;
+						if (eventtmp != NULL && eventtmp != NULL)
+						{
+							eventtmp->doCanEvent(sock);
+						}
+					}
 				}
 			}
 			if (event.events & EPOLLOUT)
 			{
-				if (event.doAsyncInfo->sendEvent != NULL)
+				asyncevent = event.doAsyncInfo->sendEvent;
+				if (asyncevent != NULL)
 				{
-					event.doAsyncInfo->sendEvent->doCanEvent(sock);
-				}
-				if (event.doAsyncInfo->connectEvent != NULL)
-				{
-					event.doAsyncInfo->connectEvent->doCanEvent(sock);
+					asyncevent->doCanEvent(sock);
 				}
 			}
 			if (event.events & EPOLLHUP || event.events & EPOLLERR)
 			{
-				if (event.doAsyncInfo->disconnedEvent != NULL)
+				asyncevent = event.doAsyncInfo->disconnedEvent;
+				if (asyncevent != NULL && !asyncevent->doSuccess)
 				{
-					event.doAsyncInfo->disconnedEvent->doCanEvent(sock);
+					asyncevent->doCanEvent(sock);
 				}
 			}
 
-			AsyncObject::buildDoingEvent(sock);
+			AsyncObject::buildDoingEvent(asyncInfo->sockptr);
 		}
 	}
 	
@@ -157,23 +210,18 @@ private:
 			}
 
 			{
-				std::map<int, Public::Base::shared_ptr<DoingAsyncInfo> > doingSocktmp;
-				{
-					Guard locker(mutex);
-					doingSocktmp = doingList;
-				}
-				
+				Guard locker(mutex);
 				for (int i = 0; i < pollSize; i++)
 				{
-					int sockfd = workEpoolEvent[i].data.fd;
-
-					cleanSocketByHandle(sockfd);
-
-					std::map<int, Public::Base::shared_ptr<DoingAsyncInfo> >::iterator iter = doingSocktmp.find(sockfd);
-					if(iter == doingSocktmp.end())
+					Socket* sockptr = (Socket*)workEpoolEvent[i].data.ptr;
+					
+					std::map<Socket*, Public::Base::shared_ptr<DoingAsyncInfo> >::iterator iter = doingList.find(sockptr);
+					if(iter == doingList.end())
 					{
 						continue;
 					}
+
+					_cleanSocketDoingEvent(iter->second ,workEpoolEvent[i].events);
 
 					EpoolEvent event;
 					event.doAsyncInfo = iter->second;
@@ -192,15 +240,10 @@ private:
 	int 							epollHandle;
 	std::list<Public::Base::shared_ptr<Thread> >  threadlist;
 
-
-	struct EpoolEvent
-	{
-		Public::Base::shared_ptr<DoingAsyncInfo>		doAsyncInfo;
-		int								events;
-	};
-	std::list<EpoolEvent>			eventList;
-	Mutex							eventMutex;
+	std::list<EpoolEvent>						eventList;
+	Mutex										eventMutex;
 	Public::Base::Semaphore						eventSem;
+	bool										epoolquit;
 };
 
 #endif

@@ -1,8 +1,10 @@
 #ifndef __ASYNCCANPOLL_H__
 #define __ASYNCCANPOLL_H__
 #include "AsyncObjectCan.h"
+//#ifndef WIN32
 #ifndef WIN32
 #include <poll.h>
+#endif
 #define MAXPOLLSIZE		1024
 class AsyncObjectCanPoll :public AsyncObjectCan,public Thread
 {
@@ -20,25 +22,26 @@ private:
 	{
 		while (looping())
 		{
+			doThreadConnectProc();
+			
 			int timeout = 10;
 			struct pollfd fdset[MAXPOLLSIZE];
 			memset(fdset,0,sizeof(fdset));
 			int fdnum = 0;
 
 			buildDoingEvent();
-
-			std::vector<Public::Base::shared_ptr<DoingAsyncInfo> > doingsocklist;
+			std::map<int,Public::Base::shared_ptr<DoingAsyncInfo> > doingsocklist;
 			{
-				std::map<int, Public::Base::shared_ptr<DoingAsyncInfo> > doingtmp;
+				std::map<Socket*, Public::Base::shared_ptr<DoingAsyncInfo> > doingtmp;
 				{
 					Guard locker(mutex);
 					doingtmp = doingList;
 				}
-				for (std::map<int, Public::Base::shared_ptr<DoingAsyncInfo> >::iterator iter = doingtmp.begin(); iter != doingtmp.end() && fdnum < MAXPOLLSIZE; iter++)
+				for (std::map<Socket*, Public::Base::shared_ptr<DoingAsyncInfo> >::iterator iter = doingtmp.begin(); iter != doingtmp.end() && fdnum < MAXPOLLSIZE; iter++)
 				{
 					if (iter->second == NULL) continue;;
 
-					Public::Base::shared_ptr<AsyncInfo> asyncinfo = iter->second->asyncInfo.lock();
+					Public::Base::shared_ptr<AsyncInfo> asyncinfo = iter->second->asyncInfo;
 					if (asyncinfo == NULL) continue;
 
 					Public::Base::shared_ptr<Socket> sock = asyncinfo->sock.lock();
@@ -46,7 +49,7 @@ private:
 
 					int sockfd = sock->getHandle();
 
-					doingsocklist.push_back(iter->second);
+					doingsocklist[sockfd] = iter->second;
 
 					bool haveEvent = false;
 
@@ -59,19 +62,22 @@ private:
 						haveEvent = true;
 					}
 
-					if ((iter->second->connectEvent != NULL && iter->second->connectEvent->runTimes ++ % EVENTRUNTIMES == 0) || iter->second->sendEvent != NULL)
-					{
-						fdset[fdnum].fd = sockfd;
-						fdset[fdnum].events |= POLLOUT | POLLERR | POLLHUP | POLLNVAL;
+				if (/*(iter->second->connectEvent != NULL && iter->second->connectEvent->runTimes++ % EVENTRUNTIMES == 0) ||*/
+					iter->second->sendEvent != NULL)
+				{
+					fdset[fdnum].fd = sockfd;
+					fdset[fdnum].events |= POLLOUT | POLLERR | POLLHUP | POLLNVAL;
 
 						haveEvent = true;
 					}
 					if (haveEvent) fdnum++;
 				}
 			}
-			
+#ifdef WIN32
+			int ret = WSAPoll(fdset, fdnum, timeout);
+#else
 			int ret = poll(fdset, fdnum, timeout);
-			
+#endif		
 
 			if (ret < 0)
 			{
@@ -85,22 +91,19 @@ private:
 			{
 				for (int i = 0; i < fdnum; i++)
 				{
-					Public::Base::shared_ptr<DoingAsyncInfo> info = doingsocklist[i];
+					std::map<int, Public::Base::shared_ptr<DoingAsyncInfo> >::iterator iter = doingsocklist.find(fdset[i].fd);
+					if (iter == doingsocklist.end()) continue;
+
+					Public::Base::shared_ptr<DoingAsyncInfo> info = iter->second;
 					if (info == NULL) continue;
 
-					Public::Base::shared_ptr<AsyncInfo> asyncinfo = info->asyncInfo.lock();
+					Public::Base::shared_ptr<AsyncInfo> asyncinfo = info->asyncInfo;
 					if (asyncinfo == NULL) continue;
 
 					Public::Base::shared_ptr<Socket> sock = asyncinfo->sock.lock();
 					if (sock == NULL) continue;
-					int sockfd = sock->getHandle();
-
-					if (fdset[i].fd != sockfd)
-					{
-						assert(0);
-					}
-
-					if (fdset[i].events & POLLIN || fdset[i].events & POLLPRI)
+					
+					if (fdset[i].revents & POLLIN || fdset[i].revents & POLLPRI)
 					{
 						if (info->acceptEvent != NULL)
 						{
@@ -108,27 +111,29 @@ private:
 						}
 						if (info->recvEvent != NULL)
 						{
-							info->recvEvent->doCanEvent(sock);
-						}
-						if (info->disconnedEvent != NULL)
-						{
-							info->disconnedEvent->doCanEvent(sock);
+							if (!info->recvEvent->doCanEvent(sock))
+							{
+								if (info->disconnedEvent != NULL)
+								{
+									info->disconnedEvent->doCanEvent(sock);
+								}
+							}
 						}
 					}
-					if (fdset[i].events & POLLOUT)
+					if (fdset[i].revents & POLLOUT)
 					{
-						if (info->connectEvent != NULL)
+						/*if (info->connectEvent != NULL)
 						{
 							info->connectEvent->doCanEvent(sock);
-						}
+						}*/
 						if (info->sendEvent != NULL)
 						{
 							info->sendEvent->doCanEvent(sock);
 						}
 					}
-					if (fdset[i].events & POLLERR || fdset[i].events & POLLHUP || fdset[i].events & POLLNVAL)
+					if (fdset[i].revents & POLLERR || fdset[i].revents & POLLHUP || fdset[i].revents & POLLNVAL)
 					{
-						if (info->disconnedEvent != NULL)
+						if (info->disconnedEvent != NULL && !info->disconnedEvent->doSuccess)
 						{
 							info->disconnedEvent->doCanEvent(sock);
 						}
@@ -138,7 +143,5 @@ private:
 		}
 	}
 };
-
-#endif
-
+//#endif
 #endif //__ASYNCCANSELECT_H__

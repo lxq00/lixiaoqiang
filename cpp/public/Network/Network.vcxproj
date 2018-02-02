@@ -29,6 +29,7 @@
     <ClCompile Include="Src\AsyncIOWorker.cpp" />
     <ClInclude Include="Src\IOWorkerInternal.h" />
     <ClInclude Include="Src\SocketInternal.h" />
+    <ClInclude Include="Src\SocketObject.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Version.rc" />

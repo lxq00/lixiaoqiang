@@ -114,7 +114,17 @@ struct IOCPAcceptCanEvent :public AcceptEvent
 		int newsocktmp = newsock;
 		newsock = INVALID_SOCKET;
 
-		return doResultEvent(sock, newsocktmp);
+		doResultEvent(sock, newsocktmp);
+
+		Public::Base::shared_ptr<AsyncObject> async = asyncobj.lock();
+		if (async != NULL)
+		{
+			//IOCP需要反复循环投递消息
+			async->addAccept(sock, callback);
+		}
+		doSuccess = true;
+
+		return true;
 	}
 	virtual void* getFlag() { return &overlped; }
 };
@@ -249,7 +259,7 @@ public:
 		}
 	}
 private:
-	virtual bool addConnectEvent(const Public::Base::shared_ptr<Socket>& sock, const NetAddr& othreaddr, const Socket::ConnectedCallback& callback)
+	virtual bool addConnect(const Public::Base::shared_ptr<Socket>& sock, const NetAddr& othreaddr, const Socket::ConnectedCallback& callback)
 	{
 		Public::Base::shared_ptr<IOCPConnectCanEvent> event(new IOCPConnectCanEvent);
 		event->callback = callback;
@@ -263,7 +273,7 @@ private:
 		AsyncObject::buildDoingEvent(sock);
 		return true;
 	}
-	virtual bool addAcceptEvent(const Public::Base::shared_ptr<Socket>& sock, const Socket::AcceptedCallback& callback)
+	virtual bool addAccept(const Public::Base::shared_ptr<Socket>& sock, const Socket::AcceptedCallback& callback)
 	{
 		Public::Base::shared_ptr<IOCPAcceptCanEvent> event(new IOCPAcceptCanEvent());
 		event->callback = callback;
@@ -276,7 +286,7 @@ private:
 		AsyncObject::buildDoingEvent(sock);
 		return true;
 	}
-	virtual bool addRecvFromEvent(const Public::Base::shared_ptr<Socket>& sock, char* buffer, int bufferlen, const Socket::RecvFromCallback& callback)
+	virtual bool addRecvfrom(const Public::Base::shared_ptr<Socket>& sock, char* buffer, int bufferlen, const Socket::RecvFromCallback& callback)
 	{
 		Public::Base::shared_ptr<IOCPRecvCanEvent> event(new IOCPRecvCanEvent);
 		event->buffer = buffer;
@@ -291,7 +301,7 @@ private:
 		AsyncObject::buildDoingEvent(sock);
 		return true;
 	}
-	virtual bool addRecvEvent(const Public::Base::shared_ptr<Socket>& sock, char* buffer, int bufferlen, const Socket::ReceivedCallback& callback)
+	virtual bool addRecv(const Public::Base::shared_ptr<Socket>& sock, char* buffer, int bufferlen, const Socket::ReceivedCallback& callback)
 	{
 		Public::Base::shared_ptr<IOCPRecvCanEvent> event(new IOCPRecvCanEvent);
 		event->buffer = buffer;
@@ -306,7 +316,7 @@ private:
 		AsyncObject::buildDoingEvent(sock);
 		return true;
 	}
-	virtual bool addSendToEvent(const Public::Base::shared_ptr<Socket>& sock, const char* buffer, int bufferlen, const NetAddr& otheraddr, const Socket::SendedCallback& callback)
+	virtual bool addSendto(const Public::Base::shared_ptr<Socket>& sock, const char* buffer, int bufferlen, const NetAddr& otheraddr, const Socket::SendedCallback& callback)
 	{
 		Public::Base::shared_ptr<IOCPSendCanEvent> event(new IOCPSendCanEvent);
 		event->buffer = buffer;
@@ -322,7 +332,7 @@ private:
 		AsyncObject::buildDoingEvent(sock);
 		return true;
 	}
-	virtual bool addSendEvent(const Public::Base::shared_ptr<Socket>& sock, const char* buffer, int bufferlen, const Socket::SendedCallback& callback)
+	virtual bool addSend(const Public::Base::shared_ptr<Socket>& sock, const char* buffer, int bufferlen, const Socket::SendedCallback& callback)
 	{
 		Public::Base::shared_ptr<IOCPSendCanEvent> event(new IOCPSendCanEvent);
 		event->buffer = buffer;
@@ -337,7 +347,7 @@ private:
 		AsyncObject::buildDoingEvent(sock);
 		return true;
 	}
-	virtual bool addDisconnectEvent(const Public::Base::shared_ptr<Socket>& sock, const Socket::DisconnectedCallback& callback)
+	virtual bool addDisconnect(const Public::Base::shared_ptr<Socket>& sock, const Socket::DisconnectedCallback& callback)
 	{
 		Public::Base::shared_ptr<DisconnectEvent> event(new DisconnectEvent);
 		event->callback = callback;
@@ -351,9 +361,9 @@ private:
 		return true;
 	}
 private:
-	virtual bool deleteSocket(int sockfd)
+	virtual bool deleteSocket(Socket* sockptr, int sockfd)
 	{
-		AsyncObject::deleteSocket(sockfd);
+		AsyncObject::deleteSocket(sockptr,sockfd);
 
 		{
 			Guard locker(iocpMutex);
@@ -373,8 +383,7 @@ private:
 	virtual bool addSocket(const Public::Base::shared_ptr<Socket>& sock)
 	{
 		AsyncObject::addSocket(sock);
-		int sockfd = sock->getHandle();
-		HANDLE iosock = ::CreateIoCompletionPort((HANDLE)sockfd, iocpHandle, (DWORD)sockfd, 0);
+		HANDLE iosock = ::CreateIoCompletionPort((HANDLE)sock->getHandle(), iocpHandle, (DWORD)sock.get(), 0);
 		if (iosock == NULL)
 		{
 			return false;
@@ -384,7 +393,7 @@ private:
 	}
 	virtual void addSocketEvent(const Public::Base::shared_ptr<Socket>& sock, EventType type,const Public::Base::shared_ptr<DoingAsyncInfo>& doasyncinfo, const Public::Base::shared_ptr<ConnectEvent>& event)
 	{
-		if (iocpHandle == NULL)
+		if (iocpHandle == NULL || sock == NULL)
 		{
 			return;
 		}
@@ -427,7 +436,7 @@ private:
 			{
 				continue;
 			}
-			Public::Base::shared_ptr<AsyncInfo> asyncinfo = info->doasyncinfo->asyncInfo.lock();
+			Public::Base::shared_ptr<AsyncInfo> asyncinfo = info->doasyncinfo->asyncInfo;
 			if (asyncinfo == NULL)
 			{
 				continue;
@@ -440,8 +449,11 @@ private:
 
 			info->event->doCanEvent(sock, bytes);
 
+			if (bytes == 0)
+			{
 			Public::Base::shared_ptr<AsyncEvent> disconnedEvent = info->doasyncinfo->disconnedEvent;
 			if (disconnedEvent != NULL) disconnedEvent->doCanEvent(sock);			
+			}	
 				
 			AsyncObject::buildDoingEvent(sock);
 		}

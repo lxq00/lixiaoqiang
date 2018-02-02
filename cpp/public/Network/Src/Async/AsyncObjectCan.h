@@ -137,32 +137,28 @@ public:
 	AsyncObjectCan(const Public::Base::shared_ptr<AsyncManager>& _manager, AsyncSuportType _type):AsyncObject(_manager,_type){}
 	virtual ~AsyncObjectCan(){}
 
-	virtual bool deleteSocket(int sockfd)
+	virtual void _addSocketEvent(const Public::Base::shared_ptr<Socket>& sock, EventType type, const Public::Base::shared_ptr<DoingAsyncInfo>& doasyncinfo, const Public::Base::shared_ptr<AsyncEvent>& event) {}
+
+	virtual bool addSocket(const Public::Base::shared_ptr<Socket>& sock)
+	{
+		return AsyncObject::addSocket(sock);
+	}
+	virtual bool deleteSocket(Socket* sockptr, int sockfd)
 	{
 		{
 			Guard locker(connectmutex);
-			connectList.erase(sockfd);
+			connectList.erase(sockptr);
 		}
-		AsyncObject::deleteSocket(sockfd);
-		return true;
+		return AsyncObject::deleteSocket(sockptr, sockfd);
 	}
 
-	virtual bool addConnectEvent(const Public::Base::shared_ptr<Socket>& sock, const NetAddr& othreaddr, const Socket::ConnectedCallback& callback)
+	virtual bool addConnect(const Public::Base::shared_ptr<Socket>& sock, const NetAddr& othreaddr, const Socket::ConnectedCallback& callback)
 	{
 		Public::Base::shared_ptr<ConnectCanEvent> event(new ConnectCanEvent);
 		event->callback = callback;
 		event->otheraddr = othreaddr;
 		event->manager = manager;
 		event->asyncobj = shared_from_this();
-		{
-			Guard locker(mutex);
-
-			std::map<int, Public::Base::shared_ptr<AsyncInfo> >::iterator iter = socketList.find(sock->getHandle());
-			if (iter == socketList.end())
-			{
-				return false;
-			}
-		}
 #if 0
 		if (!AsyncObject::addConnectEvent(sock, event))
 		{
@@ -175,11 +171,11 @@ public:
 		connectInfo.event = event;
 
 		Guard locker(connectmutex);
-		connectList[sock->getHandle()] = connectInfo;
+		connectList[sock.get()] = connectInfo;
 #endif
 		return true;
 	}
-	virtual bool addAcceptEvent(const Public::Base::shared_ptr<Socket>& sock, const Socket::AcceptedCallback& callback)
+	virtual bool addAccept(const Public::Base::shared_ptr<Socket>& sock, const Socket::AcceptedCallback& callback)
 	{
 		Public::Base::shared_ptr<AcceptCanEvent> event(new AcceptCanEvent);
 		event->callback = callback;
@@ -192,7 +188,7 @@ public:
 		AsyncObject::buildDoingEvent(sock);
 		return true;
 	}
-	virtual bool addRecvFromEvent(const Public::Base::shared_ptr<Socket>& sock, char* buffer, int bufferlen, const Socket::RecvFromCallback& callback)
+	virtual bool addRecvfrom(const Public::Base::shared_ptr<Socket>& sock, char* buffer, int bufferlen, const Socket::RecvFromCallback& callback)
 	{
 		Public::Base::shared_ptr<RecvCanEvent> event(new RecvCanEvent);
 		event->buffer = buffer;
@@ -207,7 +203,7 @@ public:
 		AsyncObject::buildDoingEvent(sock);
 		return true;
 	}
-	virtual bool addRecvEvent(const Public::Base::shared_ptr<Socket>& sock, char* buffer, int bufferlen, const Socket::ReceivedCallback& callback)
+	virtual bool addRecv(const Public::Base::shared_ptr<Socket>& sock, char* buffer, int bufferlen, const Socket::ReceivedCallback& callback)
 	{
 		Public::Base::shared_ptr<RecvCanEvent> event(new RecvCanEvent);
 		event->buffer = buffer;
@@ -215,9 +211,14 @@ public:
 		event->recvCallback = callback;
 		event->manager = manager;
 
-		return AsyncObject::addRecvEvent(sock, event);
+		if (!AsyncObject::addRecvEvent(sock, event))
+		{
+			return false;
+		}
+		AsyncObject::buildDoingEvent(sock);
+		return true;
 	}
-	virtual bool addSendToEvent(const Public::Base::shared_ptr<Socket>& sock, const char* buffer, int bufferlen, const NetAddr& otheraddr, const Socket::SendedCallback& callback)
+	virtual bool addSendto(const Public::Base::shared_ptr<Socket>& sock, const char* buffer, int bufferlen, const NetAddr& otheraddr, const Socket::SendedCallback& callback)
 	{
 		Public::Base::shared_ptr<SendCanEvent> event(new SendCanEvent);
 		event->buffer = buffer;
@@ -233,7 +234,7 @@ public:
 		AsyncObject::buildDoingEvent(sock);
 		return true;
 	}
-	virtual bool addSendEvent(const Public::Base::shared_ptr<Socket>& sock, const char* buffer, int bufferlen, const Socket::SendedCallback& callback)
+	virtual bool addSend(const Public::Base::shared_ptr<Socket>& sock, const char* buffer, int bufferlen, const Socket::SendedCallback& callback)
 	{
 		Public::Base::shared_ptr<SendCanEvent> event(new SendCanEvent);
 		event->buffer = buffer;
@@ -248,7 +249,7 @@ public:
 		AsyncObject::buildDoingEvent(sock);
 		return true;
 	}
-	virtual bool addDisconnectEvent(const Public::Base::shared_ptr<Socket>& sock, const Socket::DisconnectedCallback& callback)
+	virtual bool addDisconnect(const Public::Base::shared_ptr<Socket>& sock, const Socket::DisconnectedCallback& callback)
 	{
 		Public::Base::shared_ptr<DisconnectEvent> event(new DisconnectEvent);
 		event->callback = callback;
@@ -264,14 +265,14 @@ protected:
 #define DEFAULTCANDOCONNECTTIMEOUT		10
 	void doThreadConnectProc()
 	{
-		std::map<int, ConnectInfo> connectListtmp;
+		std::map<Socket*, ConnectInfo> connectListtmp;
 		{
 			Guard locker(mutex);
 			connectListtmp = connectList;
 		}
 
-		std::list<int> successList;
-		for (std::map<int, ConnectInfo>::iterator iter = connectListtmp.begin(); iter != connectListtmp.end(); iter++)
+		std::list<Socket*> successList;
+		for (std::map<Socket*, ConnectInfo>::iterator iter = connectListtmp.begin(); iter != connectListtmp.end(); iter++)
 		{
 			Public::Base::shared_ptr<Socket> sock = iter->second.sock.lock();
 			if (sock == NULL) continue;
@@ -288,7 +289,7 @@ protected:
 
 			if (iter->second.event == NULL ||  iter->second.event->doCanEvent(sock, 0))
 			{
-				successList.push_back(sock->getHandle());
+				successList.push_back(iter->first);
 			}
 			else
 			{
@@ -298,12 +299,11 @@ protected:
 
 		{
 			Guard locker(mutex);
-			for (std::list<int>::iterator iter = successList.begin(); iter != successList.end(); iter++)
+			for (std::list<Socket*>::iterator iter = successList.begin(); iter != successList.end(); iter++)
 			{
 				connectList.erase(*iter);
 			}
 		}
-
 	}
 private:
 	struct ConnectInfo
@@ -312,8 +312,8 @@ private:
 		Public::Base::shared_ptr<ConnectCanEvent> event;
 	};
 	
-	Public::Base::Mutex			connectmutex;
-	std::map<int, ConnectInfo>	connectList;
+	Public::Base::Mutex				connectmutex;
+	std::map<Socket*, ConnectInfo>	connectList;
 };
 
 

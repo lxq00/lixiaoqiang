@@ -16,7 +16,7 @@ namespace Network{
 
 class NETWORK_API TCPClient:public Socket
 {
-	struct TCPClientInternalPointer;
+	struct TCPClientInternal;
 	TCPClient(const TCPClient&);
 	TCPClient();
 public:
@@ -137,7 +137,7 @@ public:
 	///return TCPConnection π”√
 	virtual NetAddr getOhterAddr() const;
 private:
-	TCPClientInternalPointer* tcpclientinternal;
+	TCPClientInternal* internal;
 };
 
 

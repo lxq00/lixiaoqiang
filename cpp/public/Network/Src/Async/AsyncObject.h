@@ -15,7 +15,7 @@ public:
 	{
 		Public::Base::weak_ptr<Socket>						sock;
 		std::list<Public::Base::shared_ptr<ConnectEvent> >	connectList;
-		std::list<Public::Base::shared_ptr<AcceptEvent> >		acceptList;
+		std::list<Public::Base::shared_ptr<AcceptEvent> >	acceptList;
 		std::list<Public::Base::shared_ptr<SendEvent> >		sendList;
 		std::list<Public::Base::shared_ptr<RecvEvent> >		recvList;
 		std::list<Public::Base::shared_ptr<DisconnectEvent> >	disconnectList;
@@ -23,72 +23,71 @@ public:
 protected:
 	struct DoingAsyncInfo
 	{
-		Public::Base::weak_ptr<AsyncInfo>			asyncInfo;
+		Public::Base::shared_ptr<AsyncInfo>			asyncInfo;
 		Public::Base::shared_ptr<AsyncEvent>		connectEvent;
 		Public::Base::shared_ptr<AsyncEvent>		acceptEvent;
 		Public::Base::shared_ptr<AsyncEvent>		recvEvent;
 		Public::Base::shared_ptr<AsyncEvent>		sendEvent;
 		Public::Base::shared_ptr<AsyncEvent>		disconnedEvent;
+		int											events;
+		DoingAsyncInfo():events(0) {}
 	};
 public:
 	AsyncObject(const Public::Base::shared_ptr<AsyncManager>& _manager, AsyncSuportType _type):manager(_manager),type(_type) {}
 	virtual ~AsyncObject() {}
 	virtual AsyncSuportType asyncType() { return type; }
-	bool insertSocketResult(int sock)
+	bool lockSocketUsing(const Public::Base::shared_ptr<Socket>& sock)
 	{
 		Guard locker(mutex);
-		std::map<int, Public::Base::shared_ptr<AsyncInfo> >::iterator siter = socketList.find(sock);
+		std::map<Socket*, Public::Base::shared_ptr<AsyncInfo> >::iterator siter = socketList.find(sock.get());
 		if (siter == socketList.end())
 		{
 			return false;
 		}
-		std::map<int, std::set<uint32_t> >::iterator iter = sockUsingList.find(sock);
+		std::map<Socket*, std::set<uint32_t> >::iterator iter = sockUsingList.find(sock.get());
 		if (iter == sockUsingList.end())
 		{
-			sockUsingList[sock] = std::set<uint32_t>();
-			iter = sockUsingList.find(sock);
+			sockUsingList[sock.get()] = std::set<uint32_t>();
+			iter = sockUsingList.find(sock.get());
 		}
 		iter->second.insert(Thread::getCurrentThreadID());
 
 		return true;
 	}
-	void eraseSocketResult(int sock)
+	void unlockSocketUsing(const Public::Base::shared_ptr<Socket>& sock)
 	{
 		Guard locker(mutex);
 
-		std::map<int, std::set<uint32_t> >::iterator iter = sockUsingList.find(sock);
+		std::map<Socket*, std::set<uint32_t> >::iterator iter = sockUsingList.find(sock.get());
 		if (iter != sockUsingList.end())
 		{
 			iter->second.erase(Thread::getCurrentThreadID());
 		}
 	}
-	virtual bool deleteSocket(int sockfd)
+	virtual bool deleteSocket(Socket* sockptr,int sockfd)
 	{
 		{
 			Guard locker(mutex);
-			socketList.erase(sockfd);
-			doingList.erase(sockfd);
+			socketList.erase(sockptr);
+			doingList.erase(sockptr);
 		}
 		while (true)
 		{
 			{
 				Guard locker(mutex);
 
-				std::map<int, std::set<uint32_t> >::iterator iter = sockUsingList.find(sockfd);
-				if (iter == sockUsingList.end() || iter->second.size() <= 0)
+				std::map<Socket*, std::set<uint32_t> >::iterator iter = sockUsingList.find(sockptr);
+				if (iter == sockUsingList.end())
 				{
 					break;
 				}
-				if (iter->second.size() == (uint32_t)1 && *iter->second.begin() == (uint32_t)Thread::getCurrentThreadID())
+				if (iter->second.size() <= 0 || 
+					(iter->second.size() == (uint32_t)1 && *iter->second.begin() == (uint32_t)Thread::getCurrentThreadID()))
 				{
-					break;
+					sockUsingList.erase(iter);
 				}
 			}
 			Thread::sleep(10);
-		}
-		{
-			Guard locker(mutex);
-			sockUsingList.erase(sockfd);
 		}
 		return true;
 	}
@@ -97,7 +96,7 @@ public:
 		Guard locker(mutex);
 		Public::Base::shared_ptr<AsyncInfo> asyncinfo(new AsyncInfo);
 		asyncinfo->sock = sock;
-		socketList[sock->getHandle()] = asyncinfo;
+		socketList[sock.get()] = asyncinfo;
 
 		return true;
 	}
@@ -106,105 +105,77 @@ public:
 		Guard locker(mutex);
 		return socketList.size();
 	}
-	virtual bool addConnectEvent(const Public::Base::shared_ptr<Socket>& sock, const NetAddr& othreaddr, const Socket::ConnectedCallback& callback) = 0;
-	virtual bool addAcceptEvent(const Public::Base::shared_ptr<Socket>& sock, const Socket::AcceptedCallback& callback) = 0;
-	virtual bool addRecvFromEvent(const Public::Base::shared_ptr<Socket>& sock, char* buffer, int bufferlen, const Socket::RecvFromCallback& callback) = 0;
-	virtual bool addRecvEvent(const Public::Base::shared_ptr<Socket>& sock, char* buffer, int bufferlen, const Socket::ReceivedCallback& callback) = 0;
-	virtual bool addSendToEvent(const Public::Base::shared_ptr<Socket>& sock, const char* buffer, int bufferlen, const NetAddr& otheraddr, const Socket::SendedCallback& callback) = 0;
-	virtual bool addSendEvent(const Public::Base::shared_ptr<Socket>& sock, const char* buffer, int bufferlen, const Socket::SendedCallback& callback) = 0;
-	virtual bool addDisconnectEvent(const Public::Base::shared_ptr<Socket>& sock, const Socket::DisconnectedCallback& callback) = 0;
+	virtual bool addConnect(const Public::Base::shared_ptr<Socket>& sock, const NetAddr& othreaddr, const Socket::ConnectedCallback& callback) = 0;
+	virtual bool addAccept(const Public::Base::shared_ptr<Socket>& sock, const Socket::AcceptedCallback& callback) = 0;
+	virtual bool addRecvfrom(const Public::Base::shared_ptr<Socket>& sock, char* buffer, int bufferlen, const Socket::RecvFromCallback& callback) = 0;
+	virtual bool addRecv(const Public::Base::shared_ptr<Socket>& sock, char* buffer, int bufferlen, const Socket::ReceivedCallback& callback) = 0;
+	virtual bool addSendto(const Public::Base::shared_ptr<Socket>& sock, const char* buffer, int bufferlen, const NetAddr& otheraddr, const Socket::SendedCallback& callback) = 0;
+	virtual bool addSend(const Public::Base::shared_ptr<Socket>& sock, const char* buffer, int bufferlen, const Socket::SendedCallback& callback) = 0;
+	virtual bool addDisconnect(const Public::Base::shared_ptr<Socket>& sock, const Socket::DisconnectedCallback& callback) = 0;
 protected:
-	virtual void cleanSocketEvent(const Public::Base::shared_ptr<Socket>& sock, EventType type,const Public::Base::shared_ptr<DoingAsyncInfo>& doasyncinfo,const Public::Base::shared_ptr<AsyncEvent>& event) {}
-	virtual void addSocketEvent(const Public::Base::shared_ptr<Socket>& sock, EventType type, const Public::Base::shared_ptr<DoingAsyncInfo>& doasyncinfo, const Public::Base::shared_ptr<AsyncEvent>& event) {}
-	virtual void cleanSocketAllEvent(const Public::Base::shared_ptr<Socket>& sock) {}
-	virtual void addSocketAllEvent(const Public::Base::shared_ptr<Socket>& sock, int event) {}
-	void cleanSuccessEvent(const Public::Base::shared_ptr<AsyncInfo>& asyfncinfo, const Public::Base::shared_ptr<DoingAsyncInfo>& doasyncinfo)
+	virtual void _cleanSocketEvent(const Public::Base::shared_ptr<Socket>& sock, EventType type,const Public::Base::shared_ptr<DoingAsyncInfo>& doasyncinfo,const Public::Base::shared_ptr<AsyncEvent>& event) {}
+	virtual void _addSocketEvent(const Public::Base::shared_ptr<Socket>& sock, EventType type, const Public::Base::shared_ptr<DoingAsyncInfo>& doasyncinfo, const Public::Base::shared_ptr<AsyncEvent>& event) {}
+	void _cleanSuccessEvent(const Public::Base::shared_ptr<Socket>& sock, const Public::Base::shared_ptr<AsyncInfo>& asyfncinfo, const Public::Base::shared_ptr<DoingAsyncInfo>& doasyncinfo)
 	{
-		Public::Base::shared_ptr<Socket> sock = asyfncinfo->sock.lock();
-		if (sock == NULL) return;
 		if (doasyncinfo->acceptEvent != NULL && doasyncinfo->acceptEvent->doSuccess)
 		{
-			cleanSocketEvent(sock, EventType_Read, doasyncinfo, doasyncinfo->acceptEvent);
+			_cleanSocketEvent(sock, EventType_Read, doasyncinfo, doasyncinfo->acceptEvent);
 			doasyncinfo->acceptEvent = NULL;
 		}
 		if (doasyncinfo->connectEvent != NULL && doasyncinfo->connectEvent->doSuccess)
 		{
-			cleanSocketEvent(sock, EventType_Write, doasyncinfo, doasyncinfo->connectEvent);
+			_cleanSocketEvent(sock, EventType_Write, doasyncinfo, doasyncinfo->connectEvent);
 			doasyncinfo->connectEvent = NULL;
 		}
 		if (doasyncinfo->recvEvent != NULL && doasyncinfo->recvEvent->doSuccess)
 		{
-			cleanSocketEvent(sock, EventType_Read, doasyncinfo, doasyncinfo->recvEvent);
+			_cleanSocketEvent(sock, EventType_Read, doasyncinfo, doasyncinfo->recvEvent);
 			doasyncinfo->recvEvent = NULL;
 		}
 		if (doasyncinfo->sendEvent != NULL && doasyncinfo->sendEvent->doSuccess)
 		{
-			cleanSocketEvent(sock, EventType_Write, doasyncinfo, doasyncinfo->sendEvent);
+			_cleanSocketEvent(sock, EventType_Write, doasyncinfo, doasyncinfo->sendEvent);
 			doasyncinfo->sendEvent = NULL;
 		}
 		if (doasyncinfo->disconnedEvent != NULL && doasyncinfo->disconnedEvent->doSuccess)
 		{
-			cleanSocketEvent(sock, EventType_Error, doasyncinfo, doasyncinfo->disconnedEvent);
+			_cleanSocketEvent(sock, EventType_Error, doasyncinfo, doasyncinfo->disconnedEvent);
 			doasyncinfo->disconnedEvent = NULL;
 		}
 	}
 	bool _rebuildDoingEvent(const Public::Base::shared_ptr<Socket>& sock,const Public::Base::shared_ptr<AsyncInfo>& asyncinfo,const Public::Base::shared_ptr<DoingAsyncInfo>& doasyncinfo)
 	{
-		cleanSocketAllEvent(sock);
-		cleanSuccessEvent(asyncinfo, doasyncinfo);
+		_cleanSuccessEvent(sock, asyncinfo, doasyncinfo);
 		if (asyncinfo->sendList.size() > 0 && doasyncinfo->sendEvent == NULL)
 		{
 			doasyncinfo->sendEvent = asyncinfo->sendList.front();
 			asyncinfo->sendList.pop_front();
-			addSocketEvent(sock, EventType_Write, doasyncinfo, doasyncinfo->sendEvent);
+			_addSocketEvent(sock, EventType_Write, doasyncinfo, doasyncinfo->sendEvent);
 		}
 		if (asyncinfo->recvList.size() > 0 && doasyncinfo->recvEvent == NULL)
 		{
 			doasyncinfo->recvEvent = asyncinfo->recvList.front();
 			asyncinfo->recvList.pop_front();
-			addSocketEvent(sock, EventType_Read, doasyncinfo, doasyncinfo->recvEvent);
+			_addSocketEvent(sock, EventType_Read, doasyncinfo, doasyncinfo->recvEvent);
 		}
 		if (asyncinfo->connectList.size() > 0 && doasyncinfo->connectEvent == NULL)
 		{
 			doasyncinfo->connectEvent = asyncinfo->connectList.front();
 			asyncinfo->connectList.pop_front();
-			addSocketEvent(sock, EventType_Write, doasyncinfo, doasyncinfo->connectEvent);
+			_addSocketEvent(sock, EventType_Write, doasyncinfo, doasyncinfo->connectEvent);
 		}
 		if (asyncinfo->acceptList.size() > 0 && doasyncinfo->acceptEvent == NULL)
 		{
 			doasyncinfo->acceptEvent = asyncinfo->acceptList.front();
 			asyncinfo->acceptList.pop_front();
-			addSocketEvent(sock, EventType_Read, doasyncinfo, doasyncinfo->acceptEvent);
+			_addSocketEvent(sock, EventType_Read, doasyncinfo, doasyncinfo->acceptEvent);
 		}
 		if (asyncinfo->disconnectList.size() > 0 && doasyncinfo->disconnedEvent == NULL)
 		{
 			doasyncinfo->disconnedEvent = asyncinfo->disconnectList.front();
 			asyncinfo->disconnectList.pop_front();
-			addSocketEvent(sock, EventType_Error, doasyncinfo, doasyncinfo->disconnedEvent);
+			_addSocketEvent(sock, EventType_Error, doasyncinfo, doasyncinfo->disconnedEvent);
 		}
-
-		int allevent = 0;
-		if (doasyncinfo->sendEvent != NULL)
-		{
-			allevent |= EventType_Write;
-		}
-		if (doasyncinfo->recvEvent != NULL)
-		{
-			allevent |= EventType_Read;
-		}
-		if (doasyncinfo->connectEvent != NULL && doasyncinfo->connectEvent->runTimes++ % EVENTRUNTIMES == 0)
-		{
-			allevent |= EventType_Write;
-		}
-		if (doasyncinfo->acceptEvent != NULL)
-		{
-			allevent |= EventType_Read;
-		}
-		if (doasyncinfo->disconnedEvent != NULL && doasyncinfo->disconnedEvent->runTimes++ % EVENTRUNTIMES == 0)
-		{
-			allevent |= EventType_Error;
-		}
-		addSocketAllEvent(sock, allevent);
 
 		return true;
 	}
@@ -212,20 +183,20 @@ protected:
 	{
 		Guard locker(mutex);
 
-		std::map<int, Public::Base::shared_ptr<AsyncInfo> >::iterator iter = socketList.find(sock->getHandle());
+		std::map<Socket*, Public::Base::shared_ptr<AsyncInfo> >::iterator iter = socketList.find(sock.get());
 		if (iter == socketList.end())
 		{
 			return true;
 		}
 		Public::Base::shared_ptr<DoingAsyncInfo> doasyncinfo;
-		std::map<int, Public::Base::shared_ptr<DoingAsyncInfo> >::iterator diter = doingList.find(iter->first);
+		std::map<Socket*, Public::Base::shared_ptr<DoingAsyncInfo> >::iterator diter = doingList.find(iter->first);
 		if (diter != doingList.end())
 		{
 			doasyncinfo = diter->second;
 		}
 		else
 		{
-			doasyncinfo = new DoingAsyncInfo;
+			doasyncinfo = new DoingAsyncInfo();
 			doasyncinfo->asyncInfo = iter->second;
 			doingList[iter->first] = doasyncinfo;
 		}
@@ -237,14 +208,14 @@ protected:
 	{
 		Guard locker(mutex);
 
-		std::map<int, Public::Base::shared_ptr<DoingAsyncInfo> >		doingtmp = doingList;
-		for (std::map<int, Public::Base::shared_ptr<AsyncInfo> >::iterator iter = socketList.begin(); iter != socketList.end(); iter++)
+		std::map<Socket*, Public::Base::shared_ptr<DoingAsyncInfo> >		doingtmp = doingList;
+		for (std::map<Socket*, Public::Base::shared_ptr<AsyncInfo> >::iterator iter = socketList.begin(); iter != socketList.end(); iter++)
 		{
 			Public::Base::shared_ptr<Socket> sock = iter->second->sock.lock();
 			if (sock == NULL) continue;
 
 			Public::Base::shared_ptr<DoingAsyncInfo> doasyncinfo;
-			std::map<int, Public::Base::shared_ptr<DoingAsyncInfo> >::iterator diter = doingList.find(iter->first);
+			std::map<Socket*, Public::Base::shared_ptr<DoingAsyncInfo> >::iterator diter = doingList.find(iter->first);
 			if (diter != doingList.end())
 			{
 				doasyncinfo = diter->second;
@@ -252,13 +223,13 @@ protected:
 			}
 			else
 			{
-				doasyncinfo = new DoingAsyncInfo;
+				doasyncinfo = new DoingAsyncInfo();
 				doasyncinfo->asyncInfo = iter->second;
 				doingList[iter->first] = doasyncinfo;
 			}
 			_rebuildDoingEvent(sock, iter->second, doasyncinfo);
 		}
-		for (std::map<int, Public::Base::shared_ptr<DoingAsyncInfo> >::iterator iter = doingtmp.begin(); iter != doingtmp.end(); iter++)
+		for (std::map<Socket*, Public::Base::shared_ptr<DoingAsyncInfo> >::iterator iter = doingtmp.begin(); iter != doingtmp.end(); iter++)
 		{
 			doingList.erase(iter->first);
 		}
@@ -269,7 +240,7 @@ protected:
 	{
 		Guard locker(mutex);
 
-		std::map<int, Public::Base::shared_ptr<AsyncInfo> >::iterator iter = socketList.find(sock->getHandle());
+		std::map<Socket*, Public::Base::shared_ptr<AsyncInfo> >::iterator iter = socketList.find(sock.get());
 		if (iter == socketList.end())
 		{
 			return false;
@@ -285,7 +256,7 @@ protected:
 	{
 		Guard locker(mutex);
 
-		std::map<int, Public::Base::shared_ptr<AsyncInfo> >::iterator iter = socketList.find(sock->getHandle());
+		std::map<Socket*, Public::Base::shared_ptr<AsyncInfo> >::iterator iter = socketList.find(sock.get());
 		if (iter == socketList.end())
 		{
 			return false;
@@ -304,7 +275,7 @@ protected:
 	{
 		Guard locker(mutex);
 
-		std::map<int, Public::Base::shared_ptr<AsyncInfo> >::iterator iter = socketList.find(sock->getHandle());
+		std::map<Socket*, Public::Base::shared_ptr<AsyncInfo> >::iterator iter = socketList.find(sock.get());
 		if (iter == socketList.end())
 		{
 			return false;
@@ -320,7 +291,7 @@ protected:
 	{
 		Guard locker(mutex);
 
-		std::map<int, Public::Base::shared_ptr<AsyncInfo> >::iterator iter = socketList.find(sock->getHandle());
+		std::map<Socket*, Public::Base::shared_ptr<AsyncInfo> >::iterator iter = socketList.find(sock.get());
 		if (iter == socketList.end())
 		{
 			return false;
@@ -335,7 +306,7 @@ protected:
 	{
 		Guard locker(mutex);
 
-		std::map<int, Public::Base::shared_ptr<AsyncInfo> >::iterator iter = socketList.find(sock->getHandle());
+		std::map<Socket*, Public::Base::shared_ptr<AsyncInfo> >::iterator iter = socketList.find(sock.get());
 		if (iter == socketList.end())
 		{
 			return false;
@@ -351,31 +322,31 @@ protected:
 		return true;
 	}
 protected:	
-	Mutex										mutex;
-	std::map<int, Public::Base::shared_ptr<AsyncInfo> >		socketList;
-	std::map<int, std::set<uint32_t> >			sockUsingList;
+	Mutex														mutex;
+	std::map<Socket*, Public::Base::shared_ptr<AsyncInfo> >		socketList;
+	std::map<Socket*, std::set<uint32_t> >						sockUsingList;
 protected:	
-	std::map<int, Public::Base::shared_ptr<DoingAsyncInfo> >	doingList;
+	std::map<Socket*, Public::Base::shared_ptr<DoingAsyncInfo> >	doingList;
 public:
 	Public::Base::weak_ptr<AsyncManager>						manager;
 	AsyncSuportType												type;
 };
 
-inline bool insertSocketResult(const Public::Base::weak_ptr<AsyncObject>& obj, int sock)
+inline bool lockSocketUsing(const Public::Base::weak_ptr<AsyncObject>& obj, const Public::Base::shared_ptr<Socket>& sock)
 {
 	Public::Base::shared_ptr<AsyncObject> asyncobj = obj.lock();
 	if (asyncobj != NULL && sock != -1)
 	{
-		return asyncobj->insertSocketResult(sock);
+		return asyncobj->lockSocketUsing(sock);
 	}
 	return false;
 }
-inline void eraseSocketResult(const Public::Base::weak_ptr<AsyncObject>& obj, int sock)
+inline void unlockSocketUsing(const Public::Base::weak_ptr<AsyncObject>& obj, const Public::Base::shared_ptr<Socket>& sock)
 {
 	Public::Base::shared_ptr<AsyncObject> asyncobj = obj.lock();
 	if (asyncobj != NULL)
 	{
-		asyncobj->eraseSocketResult(sock);
+		asyncobj->unlockSocketUsing(sock);
 	}
 }
 

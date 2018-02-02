@@ -1,25 +1,11 @@
+#include "SocketObject.h"
 #include "Network/Network.h"
 #include "Base/Base.h"
 #include "../version.inl"
-//#include "boost/Include/boost/locale.hpp"
 using namespace Public::Base;
 
 namespace Public{
 namespace Network{
-//
-//std::string baseCharsetEncodeEx(const std::string& inputstr,const std::string& fromcharset,const std::string& tocharset)
-//{
-//	if(strcasecmp(fromcharset.c_str(),"utf8") == 0 && strcasecmp(tocharset.c_str(),"gb2312") == 0)
-//	{
-//		return boost::locale::conv::from_utf(inputstr,"gb2312");
-//	}
-//	if(strcasecmp(fromcharset.c_str(),"gb2312") == 0 && strcasecmp(tocharset.c_str(),"utf8") == 0)
-//	{
-//		return boost::locale::conv::to_utf<char>(inputstr,"gb2312");
-//	}
-//
-//	return "";
-//}
 
 void  NetworkSystem::printVersion()
 {
@@ -29,11 +15,10 @@ void  NetworkSystem::printVersion()
 
 void NetworkSystem::init()
 {
-	//registeCharsetEncode(baseCharsetEncodeEx);
+	initNetwork();
 }
 void NetworkSystem::uninit()
 {
-	//registeCharsetEncode(NULL);
 }
 
 }

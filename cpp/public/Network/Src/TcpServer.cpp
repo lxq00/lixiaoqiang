@@ -4,129 +4,77 @@ using namespace std;
 namespace Public{
 namespace Network{
 
-struct TCPServer::TCPServerInternalPointer
+struct TCPServer::TCPServerInternal :public SocketInternal
 {
-	shared_ptr<SocketInternal> sock;
+	TCPServerInternal(const Public::Base::shared_ptr<AsyncIOWorker>& worker, const Public::Base::shared_ptr<Socket>& sockptr)
+		:SocketInternal(worker == NULL ? Public::Base::shared_ptr<AsyncManager>() : worker->internal->manager, NetType_TcpClient, sockptr) {}
 };
 
 TCPServer::TCPServer()
 {
-	tcpserverinternal = new TCPServerInternalPointer;
+	internal = NULL;
 }
 
 Public::Base::shared_ptr<Socket> TCPServer::create(const shared_ptr<AsyncIOWorker>& worker)
 {
-	if (worker == NULL) return Public::Base::shared_ptr<Socket>();
-
 	Public::Base::shared_ptr<TCPServer> sock(new TCPServer());
-	sock->tcpserverinternal->sock = new SocketInternal(
-		worker == NULL ? Public::Base::shared_ptr<AsyncManager>() :
-		worker->internal->manager, sock, NetType_TcpServer);
-	sock->tcpserverinternal->sock->init();
+	sock->internal = new TCPServerInternal(worker, sock);
+	sock->internal->init();
 
 	return sock;
 }
 TCPServer::~TCPServer()
 {
 	disconnect();
-	SAFE_DELETE(tcpserverinternal);
+	SAFE_DELETE(internal);
 }
 bool TCPServer::bind(const NetAddr& addr,bool reusedaddr)
 {
-	Public::Base::shared_ptr<SocketInternal> sockobj = tcpserverinternal->sock;
-	if (sockobj == NULL || !addr.isValid())
-	{
-		return false;
-	}
-	
-	bool ret = sockobj->bind(addr,reusedaddr);
+	bool ret = internal->bind(addr,reusedaddr);
 	if (ret)
 	{
-		sockobj->listen(100);
+		internal->listen(100);
 	}
 
 	return ret;
 }
 int TCPServer::getHandle() const
 {
-	Public::Base::shared_ptr<SocketInternal> sockobj = tcpserverinternal->sock;
-	if (sockobj == NULL)
-	{
-		return false;
-	}
-
-	return sockobj->getHandle();
+	return internal->getHandle();
 }
 
 NetType TCPServer::getNetType() const
 {
-	return NetType_TcpServer;
+	return internal->getNetType();
 }
 NetAddr TCPServer::getMyAddr() const
 {
-	Public::Base::shared_ptr<SocketInternal> sockobj = tcpserverinternal->sock;
-	if (sockobj == NULL)
-	{
-		return NetAddr();
-	}
-
-	return sockobj->getMyAddr();
+	return internal->getMyAddr();
 }
 bool TCPServer::disconnect()
 {
-	if (tcpserverinternal->sock != NULL)
-	{
-		tcpserverinternal->sock->disconnect();
-		tcpserverinternal->sock = NULL;
-	}
-
-	return true;
+	return internal->disconnect();
 }
 bool TCPServer::async_accept(const AcceptedCallback& accepted)
 {
-	Public::Base::shared_ptr<SocketInternal> sockobj = tcpserverinternal->sock;
-	if (sockobj == NULL)
-	{
-		return false;
-	}
-
-	return sockobj->async_accept(accepted);
+	return internal->async_accept(accepted);
 }
 
 Public::Base::shared_ptr<Socket> TCPServer::accept()
 {
-	Public::Base::shared_ptr<SocketInternal> sockobj = tcpserverinternal->sock;
-	if (sockobj == NULL)
-	{
-		return Public::Base::shared_ptr<Socket>();
-	}
-
-	return sockobj->accept();
+	return internal->accept();
 }
 
 bool TCPServer::setSocketTimeout(uint32_t recvTimeout, uint32_t sendTimeout)
 {
-	Public::Base::shared_ptr<SocketInternal> sockobj = tcpserverinternal->sock;
-	if (sockobj == NULL)
-	{
-		return false;
-	}
-
-	return sockobj->setSocketTimeout(recvTimeout, sendTimeout);
+	return internal->setSocketTimeout(recvTimeout, sendTimeout);
 }
 
 bool TCPServer::getSocketTimeout(uint32_t& recvTimeout, uint32_t& sendTimeout) const
 {
-	Public::Base::shared_ptr<SocketInternal> sockobj = tcpserverinternal->sock;
-	if (sockobj == NULL)
-	{
-		return false;
-	}
-
-	return sockobj->getSocketTimeout(recvTimeout, sendTimeout);
+	return internal->getSocketTimeout(recvTimeout, sendTimeout);
 }
 
 };
 };
-
 

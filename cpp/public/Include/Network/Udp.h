@@ -16,7 +16,7 @@ namespace Network{
 	
 class NETWORK_API UDP:public Socket
 {
-	struct UDPInternalPointer;
+	struct UDPInternal;
 	UDP(const UDP&);
 	UDP();
 public:	
@@ -111,7 +111,7 @@ public:
 	///return 自身bind的地址、未bind为空
 	virtual NetAddr getMyAddr() const;
 private:
-	UDPInternalPointer* udpinternal;
+	UDPInternal* internal;
 };
 
 

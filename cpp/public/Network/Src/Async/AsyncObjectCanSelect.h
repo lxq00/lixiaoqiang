@@ -18,8 +18,8 @@ private:
 		while (looping())
 		{
 			doThreadConnectProc();
-			struct timeval tv = { 0, 10 };
-			fd_set   fdread, fdwrite, fderror;
+			struct timeval tv = { 0, 10000 };
+			fd_set   fdread, fdwrite,fderror;
 			FD_ZERO(&fdread);
 			FD_ZERO(&fdwrite);
 			FD_ZERO(&fderror);
@@ -27,16 +27,16 @@ private:
 
 			buildDoingEvent();
 
-			std::map<int, Public::Base::shared_ptr<DoingAsyncInfo> > doingtmp;
+			std::map<Socket*, Public::Base::shared_ptr<DoingAsyncInfo> > doingtmp;
 			{
 				Guard locker(mutex);
 				doingtmp = doingList;
 			}
-			for (std::map<int, Public::Base::shared_ptr<DoingAsyncInfo> >::iterator iter = doingtmp.begin(); iter != doingtmp.end(); iter++)
+			for (std::map<Socket*, Public::Base::shared_ptr<DoingAsyncInfo> >::iterator iter = doingtmp.begin(); iter != doingtmp.end(); iter++)
 			{
 				if (iter->second == NULL) continue;;
 
-				Public::Base::shared_ptr<AsyncInfo> asyncinfo = iter->second->asyncInfo.lock();
+				Public::Base::shared_ptr<AsyncInfo> asyncinfo = iter->second->asyncInfo;
 				if (asyncinfo == NULL) continue;
 
 				Public::Base::shared_ptr<Socket> sock = asyncinfo->sock.lock();
@@ -72,11 +72,14 @@ private:
 				continue;
 			}
 			{
-				for (std::map<int, Public::Base::shared_ptr<DoingAsyncInfo> >::iterator iter = doingtmp.begin(); iter != doingtmp.end(); iter++)
+				for (std::map<Socket*, Public::Base::shared_ptr<DoingAsyncInfo> >::iterator iter = doingtmp.begin(); iter != doingtmp.end(); iter++)
 				{
-					if (iter->second == NULL) continue;;
+					if (iter->second == NULL) continue;
 
-					Public::Base::shared_ptr<AsyncInfo> asyncinfo = iter->second->asyncInfo.lock();
+					Public::Base::shared_ptr<DoingAsyncInfo> doasyncinfo = iter->second;
+					if (doasyncinfo == NULL) continue;
+
+					Public::Base::shared_ptr<AsyncInfo> asyncinfo = doasyncinfo->asyncInfo;
 					if (asyncinfo == NULL) continue;
 
 					Public::Base::shared_ptr<Socket> sock = asyncinfo->sock.lock();
@@ -85,35 +88,37 @@ private:
 					int sockfd = sock->getHandle();
 					if (FD_ISSET(sockfd, &fdread))
 					{
-						if (iter->second->recvEvent != NULL)
+						if (doasyncinfo->recvEvent != NULL)
 						{
-							iter->second->recvEvent->doCanEvent(sock);
+							if (!doasyncinfo->recvEvent->doCanEvent(sock))
+							{
+								if (doasyncinfo->disconnedEvent != NULL)
+								{
+									doasyncinfo->disconnedEvent->doCanEvent(sock);
+								}
+							}
 						}
-						if (iter->second->acceptEvent != NULL)
+						if (doasyncinfo->acceptEvent != NULL)
 						{
-							iter->second->acceptEvent->doCanEvent(sock);
-						}
-						if (iter->second->disconnedEvent != NULL)
-						{
-							iter->second->disconnedEvent->doCanEvent(sock);
+							doasyncinfo->acceptEvent->doCanEvent(sock);
 						}
 					}
 					if (FD_ISSET(sockfd, &fdwrite))
 					{
-						if (iter->second->connectEvent != NULL)
+						/*if (doasyncinfo->connectEvent != NULL)
 						{
-							iter->second->connectEvent->doCanEvent(sock);
-						}
-						if (iter->second->sendEvent != NULL)
+							doasyncinfo->connectEvent->doCanEvent(sock);
+						}*/
+						if (doasyncinfo->sendEvent != NULL)
 						{
-							iter->second->sendEvent->doCanEvent(sock);
+							doasyncinfo->sendEvent->doCanEvent(sock);
 						}
 					}
 					if (FD_ISSET(sockfd, &fderror))
 					{
-						if (iter->second->disconnedEvent != NULL)
+						if (doasyncinfo->disconnedEvent != NULL && !doasyncinfo->disconnedEvent->doSuccess)
 						{
-							iter->second->disconnedEvent->doCanEvent(sock);
+							doasyncinfo->disconnedEvent->doCanEvent(sock);
 						}
 					}
 				}
