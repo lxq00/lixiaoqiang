@@ -19,7 +19,7 @@ class NETWORK_API TCPServer:public Socket
 	TCPServer(const TCPServer&);
 	TCPServer();
 public:
-	static Public::Base::shared_ptr<Socket> create(const shared_ptr<AsyncIOWorker>& worker);
+	static Public::Base::shared_ptr<Socket> create(const shared_ptr<IOWorker>& worker);
 
 	virtual ~TCPServer();
 
@@ -80,6 +80,8 @@ public:
 	///retun		 true 成功、false 失败 
 	///注：异步IO不支持
 	virtual bool getSocketTimeout(uint32_t& recvTimeout, uint32_t& sendTimeout) const;
+
+	bool nonBlocking(bool nonblock);
 private:
 	TCPServerInternal* internal;
 };

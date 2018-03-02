@@ -1,113 +1,63 @@
-#ifndef __SOCKETTCP_H__
-#define __SOCKETTCP_H__
-#include "IOWorkerInternal.h"
-#include "Network/Socket.h"
-static bool initNetwork()
-{
-	static bool initStatus = false;
-	if (!initStatus)
-	{
-#ifdef WIN32
-		WSADATA wsaData;
-		WORD wVersionRequested;
+#ifndef __SOCKETTCPOBJECT_H__
+#define __SOCKETTCPOBJECT_H__
+#include "proactor_iocp.h"
+#include "proactor_reactor.h"
 
-		wVersionRequested = MAKEWORD(2, 2);
-		int errorCode = WSAStartup(wVersionRequested, &wsaData);
-		if (errorCode != 0)
-		{
-			return false;
-		}
-
-		if (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2)
-		{
-			WSACleanup();
-			return false;
-		}
-#else
-		signal(SIGPIPE, SIG_IGN);
-#endif
-	}
-	initStatus = true;
-	return true;
-}
-class SocketObject:public Socket,public Public::Base::enable_shared_from_this<SocketObject>
+class Socket_Object:public Socket,public Public::Base::enable_shared_from_this<Socket_Object>
 {
 public:	
-	SocketObject(const Public::Base::shared_ptr<AsyncManager>& _manager,NetType _type, const Public::Base::shared_ptr<Socket>& _sockptr)
-		:sockobj(_sockptr),sockptr(_sockptr.get()),type(_type),sockfd(-1),manager(_manager)
+	Socket_Object(const Public::Base::shared_ptr<Proactor>& _proactor,NetType _type,const Public::Base::shared_ptr<Socket>& ptr)
+		:type(_type),sockfd(-1), netstatus(NetStatus_notconnected),proactor(_proactor), sockobj(ptr),sockptr(ptr.get())
 	{
 		initNetwork();		
-#ifdef WIN32
-		int suporttype = SuportType();
-		if (_manager != NULL && suporttype & SuportType_IOCP)
+		
+		if (proactor != NULL)
 		{
-			int domain = (_type != NetType_Udp) ? SOCK_STREAM : SOCK_DGRAM;
-			int protocol = (_type != NetType_Udp) ? IPPROTO_TCP : IPPROTO_UDP;
-			sockfd = WSASocket(AF_INET, domain, protocol, NULL, 0, WSA_FLAG_OVERLAPPED);
-			if (sockfd <= 0)
-			{
-				perror("WSASocket");
-				return;
-			}			
+			sockfd = proactor->createSocket(type);
 		}
-		else
+		
+		if (_type == NetType_Udp)
 		{
-			int domain = (_type != NetType_Udp) ? SOCK_STREAM : SOCK_DGRAM;
-			sockfd = socket(AF_INET, domain, 0);
-			if (sockfd <= 0)
-			{
-				perror("socket");
-				return;
-			}
+			netstatus = NetStatus_connected;
 		}
-#else
-		initNetwork();	
-		int domain = (_type != NetType_Udp) ? SOCK_STREAM : SOCK_DGRAM;
-		sockfd = socket(AF_INET, domain, 0);
-		if (sockfd <= 0)
-		{
-			perror("socket");
-			return;
-		}
-		if (_manager != NULL)
-		{
-			int flags = fcntl(sockfd, F_GETFL, 0);
-			fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
-		}
-#endif
 	}
-	SocketObject(const Public::Base::shared_ptr<AsyncManager>& _manager, int _sockfd, const NetAddr& _otheraddr)
-		:sockptr(NULL),type(NetType_TcpConnection), sockfd(_sockfd), otheraddr(_otheraddr), manager(_manager) {}
+	Socket_Object(const Public::Base::shared_ptr<Proactor>& _proactor, int _sockfd, const NetAddr& _otheraddr)
+		:type(NetType_TcpConnection), sockfd(_sockfd), otheraddr(_otheraddr), netstatus(NetStatus_connected), proactor(_proactor), sockptr(NULL){}
 	bool initSocket()
 	{
-		Public::Base::shared_ptr<AsyncManager> _managertmp = manager.lock();
-		if (_managertmp != NULL)
-			async = _managertmp->addSocket(sockptr != NULL ? sockobj.lock() : shared_from_this());
+		UsingLocker::LockerManager::instance()->addSock(sockptr == NULL ? this : sockptr);
+		if (proactor != NULL)
+		{
+			proactorObj = proactor->addSocket(sockptr == NULL ? shared_from_this():sockobj.lock());
+			if (proactorObj == NULL) return false;
+		}
 
 		return true;
 	}
-	~SocketObject()
+	~Socket_Object()
 	{
 		disconnect();
 	}
+	bool nonBlocking(bool nonblock)
+	{
+		if (sockfd == -1) return false;
+		setSocketNoBlock(sockfd, nonblock);
+
+		return true;
+	}
 	bool disconnect()
 	{
-		if (async != NULL && sockfd != -1)
+		UsingLocker::LockerManager::instance()->delSock(sockptr == NULL ? this : sockptr);
+		if (proactorObj != NULL && sockfd != -1)
 		{
-			async->deleteSocket(sockptr == NULL ? this : sockptr,sockfd);
+			proactorObj->proactor()->delSocket(proactorObj, sockptr == NULL ? this : sockptr);
+			proactorObj = NULL;
 		}
 		if (sockfd != -1)
 		{
-#ifdef WIN32
 			closesocket(sockfd);
-#else
-			close(sockfd);
-#endif
 			sockfd = -1;
 		}
-		sockptr = NULL;
-		sockobj = Public::Base::weak_ptr<Socket>();
-		async = NULL;
 		return true;
 	}
 	
@@ -147,29 +97,24 @@ public:
 		if (ret >= 0)
 		{
 			otheraddr = addr;
+			netstatus = NetStatus_connected;
 		}
 
 		return ret >= 0;
 	}
 	bool async_connect(const NetAddr& addr, const ConnectedCallback& callback)
 	{
-		if (sockfd == -1 || async == NULL)
+		if (sockfd == -1 || proactorObj == NULL)
 		{
 			return false;
 		}
-
-		if (!myaddr.isValid() && async->asyncType() == SuportType_IOCP)
-		{
-			NetAddr addr(30000 + Time::getCurrentMilliSecond() % 2000);
-			bind(addr,true);
-		}
-		return async->addConnect(sockptr != NULL ? sockobj.lock() : shared_from_this(), addr, callback);
+		return proactorObj->proactor()->addConnect(proactorObj,addr, callback);
 	}
 	bool async_accept(const AcceptedCallback& callback)
 	{
-		if (sockfd == -1 || callback == NULL || type != NetType_TcpServer) return false;
+		if (sockfd == -1 || callback == NULL || type != NetType_TcpServer || proactorObj == NULL) return false;
 
-		return async->addAccept(sockptr != NULL ? sockobj.lock() : shared_from_this(), callback);
+		return proactorObj->proactor()->addAccept(proactorObj, callback);
 	}
 	Public::Base::shared_ptr<Socket> accept()
 	{
@@ -187,15 +132,16 @@ public:
 		}
 		NetAddr otheraaddr = NetAddr(*(SockAddr*)&conaddr);
 
-		return buildSocketBySock(manager, newsock, otheraaddr);
+		return buildSocketBySock(proactor, newsock, otheraaddr);
 	}
 	bool setDisconnectCallback(const DisconnectedCallback& disconnected)
 	{
-		return async->addDisconnect(sockptr != NULL ? sockobj.lock() : shared_from_this(), disconnected);
+		if (proactorObj == NULL) return false;
+		return proactorObj->proactor()->addDisconnect(proactorObj, disconnected);
 	}
 	bool setSocketTimeout(uint32_t recvTimeout, uint32_t sendTimeout)
 	{ 
-		if (sockfd == -1 || async != NULL)
+		if (sockfd == -1 || proactorObj != NULL)
 		{
 			return false;
 		}
@@ -221,7 +167,7 @@ public:
 
 	bool getSocketTimeout(uint32_t& recvTimeout, uint32_t& sendTimeout) const 
 	{
-		if (sockfd == -1 || async != NULL)
+		if (sockfd == -1 || proactorObj != NULL)
 		{
 			return false;
 		}
@@ -270,15 +216,15 @@ public:
 	}
 	bool async_recv(char *buf, uint32_t len, const ReceivedCallback& received)
 	{
-		if (sockfd == -1 || buf == NULL || len == 0 || type == NetType_Udp) return false;
+		if (sockfd == -1 || buf == NULL || len == 0 || type == NetType_Udp || proactorObj == NULL) return false;
 
-		return async->addRecv(sockptr != NULL ? sockobj.lock() : shared_from_this(), buf, len, received);
+		return proactorObj->proactor()->addRecv(proactorObj, buf, len, received);
 	}
 	bool async_send(const char * buf, uint32_t len, const SendedCallback& sended)
 	{
-		if (sockfd == -1 || buf == NULL || len == 0 || type == NetType_Udp) return false;
+		if (sockfd == -1 || buf == NULL || len == 0 || type == NetType_Udp || proactorObj == NULL) return false;
 
-		return async->addSend(sockptr != NULL ? sockobj.lock() : shared_from_this(), buf, len, sended);
+		return proactorObj->proactor()->addSend(proactorObj, buf, len, sended);
 	}
 	int recv(char *buf, uint32_t len)
 	{
@@ -315,16 +261,40 @@ public:
 	{
 		return otheraddr;
 	}
-private:
-	Public::Base::weak_ptr<Socket>			sockobj;
-	Socket*									sockptr;
-	NetType									type;
-	int										sockfd;
-	Public::Base::shared_ptr<AsyncObject>	async;
-	NetAddr									myaddr;
-	NetAddr									otheraddr;
+	NetStatus getStatus() const
+	{
+		return netstatus;
+	}
+public:
+	static Public::Base::shared_ptr<Socket> buildSocketBySock(const Public::Base::shared_ptr<Proactor>& _proactor, int _sockfd, const NetAddr& _otheraddr)
+	{
+		Public::Base::shared_ptr<Socket_Object> obj;
+		obj = new Socket_Object(_proactor, _sockfd, _otheraddr);
+		obj->initSocket();
 
-	Public::Base::weak_ptr<AsyncManager>	manager;
+		return obj;
+	}
+	static void updateSocketStatus(const Public::Base::shared_ptr<Socket>& obj, bool status)
+	{
+		Socket_Object* objptr = (Socket_Object*)obj.get();
+		if (objptr != NULL)
+		{
+			objptr->netstatus = status ? NetStatus_connected : NetStatus_error;
+		}
+	}
+private:
+	Public::Base::weak_ptr<Socket> sockobj;
+	Socket*					sockptr;
+	NetType					type;
+	int						sockfd;	
+	NetAddr					myaddr;
+	NetAddr					otheraddr;
+	NetStatus				netstatus;
+
+	Public::Base::shared_ptr<Proactor>		proactor;
+	Public::Base::shared_ptr<Proactor_Object> proactorObj;
 };
+
+
 
 #endif

@@ -20,7 +20,7 @@ class NETWORK_API UDP:public Socket
 	UDP(const UDP&);
 	UDP();
 public:	
-	static Public::Base::shared_ptr<Socket> create(const  Public::Base::shared_ptr<AsyncIOWorker>& worker);
+	static Public::Base::shared_ptr<Socket> create(const  Public::Base::shared_ptr<IOWorker>& worker);
 	virtual ~UDP();
 	
 	///绑定串口信息
@@ -110,6 +110,10 @@ public:
 	///param in		
 	///return 自身bind的地址、未bind为空
 	virtual NetAddr getMyAddr() const;
+
+	bool disconnect();
+
+	bool nonBlocking(bool nonblock);
 private:
 	UDPInternal* internal;
 };

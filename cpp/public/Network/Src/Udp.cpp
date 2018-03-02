@@ -1,30 +1,37 @@
 #include "SocketInternal.h"
 #include "Network/Udp.h"
-
+using namespace std;
 namespace Public{
 namespace Network{
 
 struct UDP::UDPInternal :public SocketInternal
 {
-	UDPInternal(const Public::Base::shared_ptr<AsyncIOWorker>& worker, const Public::Base::shared_ptr<Socket>& sockptr)
-		:SocketInternal(worker == NULL ? Public::Base::shared_ptr<AsyncManager>() : worker->internal->manager, NetType_TcpClient, sockptr) {}
+	UDPInternal(const Public::Base::shared_ptr<IOWorker>& worker, const Public::Base::shared_ptr<Socket>& ptr) :SocketInternal
+	(worker == NULL ? Public::Base::shared_ptr<Proactor>() : worker->internal->proactor, NetType_TcpClient, ptr) {}
 };
-UDP::UDP()
+Public::Base::shared_ptr<Socket> UDP::create(const Public::Base::shared_ptr<IOWorker>& worker)
 {
-	internal = NULL;
-}
-Public::Base::shared_ptr<Socket> UDP::create(const  Public::Base::shared_ptr<AsyncIOWorker>& worker)
-{
-	Public::Base::shared_ptr<UDP> udp(new UDP());
-	udp->internal = new UDPInternal(worker, udp);
-	udp->internal->init();
+	Public::Base::shared_ptr<UDP> client(new UDP());
+	client->internal = new UDPInternal(worker, client);
+	client->internal->init();
 
-	return udp;
+	return client;
+}
+UDP::UDP() :internal(NULL)
+{
 }
 UDP::~UDP()
 {
-	internal->disconnect();
+	disconnect();
 	SAFE_DELETE(internal);
+}
+bool UDP::disconnect()
+{
+	return internal->disconnect();
+}
+bool UDP::nonBlocking(bool nonblock)
+{
+	return internal->nonBlocking(nonblock);
 }
 bool UDP::bind(const NetAddr& addr,bool reusedaddr)
 {

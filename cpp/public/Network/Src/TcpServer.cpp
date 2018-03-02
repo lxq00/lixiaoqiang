@@ -6,28 +6,30 @@ namespace Network{
 
 struct TCPServer::TCPServerInternal :public SocketInternal
 {
-	TCPServerInternal(const Public::Base::shared_ptr<AsyncIOWorker>& worker, const Public::Base::shared_ptr<Socket>& sockptr)
-		:SocketInternal(worker == NULL ? Public::Base::shared_ptr<AsyncManager>() : worker->internal->manager, NetType_TcpClient, sockptr) {}
+	TCPServerInternal(const Public::Base::shared_ptr<IOWorker>& worker, const Public::Base::shared_ptr<Socket>& ptr) :SocketInternal
+	(worker == NULL ? Public::Base::shared_ptr<Proactor>() : worker->internal->proactor, NetType_TcpClient, ptr) {}
 };
-
-TCPServer::TCPServer()
+Public::Base::shared_ptr<Socket> TCPServer::create(const Public::Base::shared_ptr<IOWorker>& worker)
 {
-	internal = NULL;
+	Public::Base::shared_ptr<TCPServer> client(new TCPServer());
+	client->internal = new TCPServerInternal(worker, client);
+	client->internal->init();
+
+	return client;
 }
-
-Public::Base::shared_ptr<Socket> TCPServer::create(const shared_ptr<AsyncIOWorker>& worker)
+TCPServer::TCPServer() :internal(NULL)
 {
-	Public::Base::shared_ptr<TCPServer> sock(new TCPServer());
-	sock->internal = new TCPServerInternal(worker, sock);
-	sock->internal->init();
-
-	return sock;
 }
 TCPServer::~TCPServer()
 {
 	disconnect();
 	SAFE_DELETE(internal);
 }
+bool TCPServer::nonBlocking(bool nonblock)
+{
+	return internal->nonBlocking(nonblock);
+}
+
 bool TCPServer::bind(const NetAddr& addr,bool reusedaddr)
 {
 	bool ret = internal->bind(addr,reusedaddr);

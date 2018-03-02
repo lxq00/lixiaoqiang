@@ -1,15 +1,21 @@
 #ifndef __IOWORKERINTERNAL_H__
 #define __IOWORKERINTERNAL_H__
-#include "Async/AsyncManager.h"
-#include "Network/Socket.h"
+#include "SimpleIO/socket_object.h"
 
 namespace Public{
 namespace Network {
 
-struct AsyncIOWorker::AsyncIOWorkerInternal
+struct IOWorker::IOWorkerInternal
 {
-	Public::Base::shared_ptr<AsyncManager> manager;
+public:
+	Public::Base::shared_ptr<Proactor> proactor;
+
+	Public::Base::shared_ptr<Socket> _buildSocketCallback(int newsock, const NetAddr& otheraaddr)
+	{
+		return Socket_Object::buildSocketBySock(proactor, newsock, otheraaddr);
+	}
 };
+
 
 }
 }

@@ -20,7 +20,7 @@ namespace Network{
 
 
 ///socket工作需要的worker集合，主要在这定义当前socket工作需要的线程数信息
-class NETWORK_API AsyncIOWorker
+class NETWORK_API IOWorker
 {
 public:
 	class NETWORK_API ThreadNum
@@ -39,11 +39,11 @@ public:
 		uint32_t num;
 	};
 public:
-	AsyncIOWorker(const ThreadNum& num);
-	~AsyncIOWorker();
+	IOWorker(const ThreadNum& num);
+	~IOWorker();
 public:
-	struct AsyncIOWorkerInternal;
-	AsyncIOWorkerInternal* internal;
+	struct IOWorkerInternal;
+	IOWorkerInternal* internal;
 };
 
 
@@ -52,6 +52,13 @@ enum NetType{
 	NetType_TcpClient,				//Connect的TCP
 	NetType_TcpConnection,			//连接成功的TCP、Accept产生的TCP连接、或者Connect成功后变成TCP连接
 	NetType_Udp,					//udp
+};
+
+enum NetStatus
+{
+	NetStatus_notconnected,
+	NetStatus_connected,
+	NetStatus_error,
 };
 
 class NETWORK_API Socket
@@ -255,6 +262,8 @@ public:
 	///return 句柄	、当socket创建失败 -1
 	virtual int getHandle() const {return -1;}
 
+	///获取socket的状态
+	virtual NetStatus getStatus() const { return NetStatus_notconnected; }
 
 	///获取Socket网络类型
 	///param in		
@@ -270,6 +279,9 @@ public:
 	///param in		
 	///return TCPConnection使用
 	virtual NetAddr getOhterAddr() const{return NetAddr();}
+
+	///设置非阻塞
+	virtual bool nonBlocking(bool nonblock) { return false; }
 };
 
 };

@@ -2,25 +2,25 @@
 #include "Network/TcpClient.h"
 #include <memory>
 
+using namespace std;
 namespace Public{
 namespace Network{
 
 struct TCPClient::TCPClientInternal :public SocketInternal
 {
-	TCPClientInternal(const Public::Base::shared_ptr<AsyncIOWorker>& worker, const Public::Base::shared_ptr<Socket>& sockptr)
-		:SocketInternal(worker == NULL ? Public::Base::shared_ptr<AsyncManager>(): worker->internal->manager, NetType_TcpClient,sockptr) {}
+	TCPClientInternal(const Public::Base::shared_ptr<IOWorker>& worker,const Public::Base::shared_ptr<Socket>& ptr) :SocketInternal
+	(worker == NULL ? Public::Base::shared_ptr<Proactor> (): worker->internal->proactor, NetType_TcpClient,ptr) {}
 };
-TCPClient::TCPClient()
-{
-	internal = NULL;
-}
-Public::Base::shared_ptr<Socket> TCPClient::create(const Public::Base::shared_ptr<AsyncIOWorker>& worker)
+Public::Base::shared_ptr<Socket> TCPClient::create(const Public::Base::shared_ptr<IOWorker>& worker)
 {
 	Public::Base::shared_ptr<TCPClient> client(new TCPClient());
 	client->internal = new TCPClientInternal(worker, client);
 	client->internal->init();
 
 	return client;
+}
+TCPClient::TCPClient():internal(NULL)
+{
 }
 TCPClient::~TCPClient()
 {
@@ -97,8 +97,14 @@ int TCPClient::send(const char * buf, uint32_t len)
 {
 	return internal->send(buf,len);
 }
-
-
+bool TCPClient::nonBlocking(bool nonblock)
+{
+	return internal->nonBlocking(nonblock);
+}
+NetStatus TCPClient::getStatus() const
+{
+	return internal->getStatus();
+}
 };
 };
 

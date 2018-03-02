@@ -18,18 +18,19 @@
     <ClInclude Include="..\Include\Network\TcpClient.h" />
     <ClInclude Include="..\Include\Network\TcpServer.h" />
     <ClInclude Include="..\Include\Network\Udp.h" />
-    <ClInclude Include="Src\Async\AsyncEvent.h" />
-    <ClInclude Include="Src\Async\AsyncManager.h" />
-    <ClInclude Include="Src\Async\AsyncObjectCanEPoll.h" />
-    <ClInclude Include="Src\Async\AsyncObjectCanPoll.h" />
-    <ClInclude Include="Src\Async\AsyncObjectCan.h" />
-    <ClInclude Include="Src\Async\AsyncObjectCanSelect.h" />
-    <ClInclude Include="Src\Async\AsyncObjectIOCP.h" />
-    <ClInclude Include="Src\Async\AsyncObject.h" />
-    <ClCompile Include="Src\AsyncIOWorker.cpp" />
     <ClInclude Include="Src\IOWorkerInternal.h" />
+    <ClInclude Include="Src\SimpleIO\proactor.h" />
+    <ClInclude Include="Src\SimpleIO\proactor_iocp.h" />
+    <ClInclude Include="Src\SimpleIO\proactor_reactor.h" />
+    <ClInclude Include="Src\SimpleIO\reactor.h" />
+    <ClInclude Include="Src\SimpleIO\reactor_connecter.h" />
+    <ClInclude Include="Src\SimpleIO\reactor_epoll.h" />
+    <ClInclude Include="Src\SimpleIO\reactor_object.h" />
+    <ClInclude Include="Src\SimpleIO\reactor_poll.h" />
+    <ClInclude Include="Src\SimpleIO\reactor_select.h" />
+    <ClInclude Include="Src\SimpleIO\simpleio_def.h" />
+    <ClInclude Include="Src\SimpleIO\socket_object.h" />
     <ClInclude Include="Src\SocketInternal.h" />
-    <ClInclude Include="Src\SocketObject.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Version.rc" />
@@ -38,6 +39,7 @@
     <None Include="..\Include\Network\Version.tpl" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\IOWorker.cpp" />
     <ClCompile Include="Src\NetAddr.cpp" />
     <ClCompile Include="Src\Network.cpp" />
     <ClCompile Include="Src\TcpClient.cpp" />

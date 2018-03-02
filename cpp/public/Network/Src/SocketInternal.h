@@ -1,16 +1,16 @@
-#ifndef __SOCKETTCPOBJECT_H__
-#define __SOCKETTCPOBJECT_H__
-#include "SocketObject.h"
+#ifndef __SOCKETTCPOBJECTINTERNAL_H__
+#define __SOCKETTCPOBJECTINTERNAL_H__
+#include "IOWorkerInternal.h"
 class SocketInternal :public Socket
 {
 public:
-	SocketInternal(const Public::Base::shared_ptr<AsyncManager>& manager, NetType type, const Public::Base::shared_ptr<Socket>& sockptr)
+	SocketInternal(const Public::Base::shared_ptr<Proactor>& proactor, NetType type, const Public::Base::shared_ptr<Socket>& ptr)
 	{
-		sock = new SocketObject(manager, type, sockptr);
+		sock = new Socket_Object(proactor, type, ptr);
 	}
-	SocketInternal(const Public::Base::shared_ptr<AsyncManager>& manager, int _sock, const NetAddr& otheraaddr)
+	SocketInternal(const Public::Base::shared_ptr<Proactor>& proactor, int _sock, const NetAddr& otheraaddr)
 	{
-		sock = new SocketObject(manager, _sock, otheraaddr);
+		sock = new Socket_Object(proactor, _sock, otheraaddr);
 	}
 	bool init()
 	{
@@ -20,6 +20,16 @@ public:
 	{
 		disconnect();
 		sock = NULL;
+	}
+	bool nonBlocking(bool nonblock)
+	{
+		if (sock == NULL) return false;
+		return sock->nonBlocking(nonblock);
+	}
+	NetStatus getStatus() const
+	{
+		if (sock == NULL) return NetStatus_error;
+		return sock->getStatus();
 	}
 	bool bind(const NetAddr& addr, bool reusedaddr)
 	{
@@ -67,6 +77,7 @@ public:
 		if (sock == NULL) return false;
 		return sock->setSocketTimeout(recvTimeout, sendTimeout);
 	}
+
 	bool getSocketTimeout(uint32_t& recvTimeout, uint32_t& sendTimeout) const
 	{
 		if (sock == NULL) return false;
@@ -131,26 +142,7 @@ public:
 		return sock->sendto(buf, len, other);
 	}
 private:
-	Public::Base::shared_ptr<SocketObject> sock;
+	Public::Base::shared_ptr<Socket_Object> sock;
 };
-
-inline Public::Base::shared_ptr<Socket> buildSocketBySock(const Public::Base::weak_ptr<AsyncManager>& manager, int sock, const NetAddr& otheraaddr)
-{
-	Public::Base::shared_ptr<AsyncManager> _manager = manager.lock();
-	if (_manager == NULL)
-	{
-		return Public::Base::shared_ptr<Socket>();
-	}
-
-	Public::Base::shared_ptr<SocketInternal> sockptr(new SocketInternal(_manager,sock, otheraaddr));
-	if (sockptr != NULL)
-	{
-		sockptr->init();
-	}
-
-	return sockptr;
-}
-
-
 
 #endif

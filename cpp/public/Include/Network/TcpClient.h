@@ -20,7 +20,7 @@ class NETWORK_API TCPClient:public Socket
 	TCPClient(const TCPClient&);
 	TCPClient();
 public:
-	static Public::Base::shared_ptr<Socket> create(const Public::Base::shared_ptr<AsyncIOWorker>& worker);
+	static Public::Base::shared_ptr<Socket> create(const Public::Base::shared_ptr<IOWorker>& worker);
 	virtual ~TCPClient();
 
 	///断开socket连接，停止socket内部工作，关闭socket句柄等
@@ -136,6 +136,10 @@ public:
 	///param in		
 	///return TCPConnection使用
 	virtual NetAddr getOhterAddr() const;
+
+	bool nonBlocking(bool nonblock);
+
+	NetStatus getStatus() const;
 private:
 	TCPClientInternal* internal;
 };

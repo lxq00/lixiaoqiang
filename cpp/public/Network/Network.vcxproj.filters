@@ -22,37 +22,43 @@
     <ClInclude Include="..\Include\Network\Udp.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Async\AsyncObject.h">
-      <Filter>Src\Async</Filter>
+    <ClInclude Include="Src\SimpleIO\reactor.h">
+      <Filter>Src\SimpleIO</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Async\AsyncObjectCan.h">
-      <Filter>Src\Async</Filter>
+    <ClInclude Include="Src\SimpleIO\reactor_epoll.h">
+      <Filter>Src\SimpleIO</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Async\AsyncObjectCanSelect.h">
-      <Filter>Src\Async</Filter>
+    <ClInclude Include="Src\SimpleIO\reactor_poll.h">
+      <Filter>Src\SimpleIO</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Async\AsyncObjectCanPoll.h">
-      <Filter>Src\Async</Filter>
+    <ClInclude Include="Src\SimpleIO\reactor_select.h">
+      <Filter>Src\SimpleIO</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Async\AsyncObjectCanEPoll.h">
-      <Filter>Src\Async</Filter>
+    <ClInclude Include="Src\SimpleIO\proactor.h">
+      <Filter>Src\SimpleIO</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Async\AsyncManager.h">
-      <Filter>Src\Async</Filter>
+    <ClInclude Include="Src\SimpleIO\proactor_iocp.h">
+      <Filter>Src\SimpleIO</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Async\AsyncObjectIOCP.h">
-      <Filter>Src\Async</Filter>
+    <ClInclude Include="Src\SimpleIO\proactor_reactor.h">
+      <Filter>Src\SimpleIO</Filter>
     </ClInclude>
-    <ClInclude Include="Src\SocketInternal.h">
-      <Filter>Src</Filter>
+    <ClInclude Include="Src\SimpleIO\reactor_connecter.h">
+      <Filter>Src\SimpleIO</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\SimpleIO\reactor_object.h">
+      <Filter>Src\SimpleIO</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\SimpleIO\simpleio_def.h">
+      <Filter>Src\SimpleIO</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\SimpleIO\socket_object.h">
+      <Filter>Src\SimpleIO</Filter>
     </ClInclude>
     <ClInclude Include="Src\IOWorkerInternal.h">
       <Filter>Src</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Async\AsyncEvent.h">
-      <Filter>Src\Async</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\SocketObject.h">
+    <ClInclude Include="Src\SocketInternal.h">
       <Filter>Src</Filter>
     </ClInclude>
   </ItemGroup>
@@ -71,8 +77,8 @@
     <Filter Include="Src">
       <UniqueIdentifier>{c60eb28d-f2a0-489a-8819-926d1dd02589}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Src\Async">
-      <UniqueIdentifier>{b2942908-6a9e-44dc-a562-a54d400b630d}</UniqueIdentifier>
+    <Filter Include="Src\SimpleIO">
+      <UniqueIdentifier>{88a6cace-ddd6-4b43-b771-83fb3426b6e0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -91,7 +97,7 @@
     <ClCompile Include="Src\Udp.cpp">
       <Filter>Src</Filter>
     </ClCompile>
-    <ClCompile Include="Src\AsyncIOWorker.cpp">
+    <ClCompile Include="Src\IOWorker.cpp">
       <Filter>Src</Filter>
     </ClCompile>
   </ItemGroup>
