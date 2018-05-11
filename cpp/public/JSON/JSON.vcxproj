@@ -11,24 +11,36 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Src\json_batchallocator.h" />
+    <ClInclude Include="..\Include\JSON\Defs.h" />
+    <ClInclude Include="..\Include\JSON\JSON.h" />
+    <ClInclude Include="Src\jsoncpp\autolink.h" />
+    <ClInclude Include="Src\jsoncpp\config.h" />
+    <ClInclude Include="Src\jsoncpp\features.h" />
+    <ClInclude Include="Src\jsoncpp\forwards.h" />
+    <ClInclude Include="Src\jsoncpp\json.h" />
+    <ClInclude Include="Src\jsoncpp\json_batchallocator.h" />
+    <ClInclude Include="Src\jsoncpp\reader.h" />
+    <ClInclude Include="Src\jsoncpp\value.h" />
+    <ClInclude Include="Src\jsoncpp\writer.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Src\json_internalarray.inl" />
-    <None Include="Src\json_internalmap.inl" />
-    <None Include="Src\json_valueiterator.inl" />
+    <None Include="Src\jsoncpp\json_internalarray.inl" />
+    <None Include="Src\jsoncpp\json_internalmap.inl" />
+    <None Include="Src\jsoncpp\json_valueiterator.inl" />
+    <None Include="Src\jsoncpp\sconscript" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Src\json_reader.cpp" />
-    <ClCompile Include="Src\json_value.cpp" />
-    <ClCompile Include="Src\json_writer.cpp" />
+    <ClCompile Include="Src\JSON.cpp" />
+    <ClCompile Include="Src\jsoncpp\json_reader.cpp" />
+    <ClCompile Include="Src\jsoncpp\json_value.cpp" />
+    <ClCompile Include="Src\jsoncpp\json_writer.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{EB799E61-93E0-463E-8055-487689F1231A}</ProjectGuid>
     <RootNamespace>Base</RootNamespace>
     <Keyword>Win32Proj</Keyword>
     <ProjectName>JSON</ProjectName>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>7.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -38,7 +50,7 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <PlatformToolset>v110</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -83,7 +95,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(SolutionDir)\Include;</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;_DEBUG;_CRT_SECURE_NO_WARNINGS;XML_DLL_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;_DEBUG;_CRT_SECURE_NO_WARNINGS;JSON_DLL_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -92,8 +104,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>
-      </AdditionalDependencies>
+      <AdditionalDependencies>Base/Base_debug.lib</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName)_debug.dll</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateMapFile>false</GenerateMapFile>
