@@ -13,7 +13,7 @@ namespace Json {
    /** \brief Unserialize a <a HREF="http://www.json.org">JSON</a> document into a Value.
     *
     */
-   class JSON_API Reader
+   class Reader
    {
    public:
       typedef char Char;

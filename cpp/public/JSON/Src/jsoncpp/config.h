@@ -30,14 +30,6 @@
 #  endif
 # endif
 
-# ifdef JSON_IN_CPPTL
-#  define JSON_API CPPTL_API
-# elif defined(JSON_DLL_BUILD)
-#  define JSON_API __declspec(dllexport)
-# elif defined(JSON_DLL)
-#  define JSON_API __declspec(dllimport)
-# else
-#  define JSON_API
-# endif
+
 
 #endif // JSON_CONFIG_H_INCLUDED

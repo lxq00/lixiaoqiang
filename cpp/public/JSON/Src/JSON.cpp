@@ -20,7 +20,14 @@ struct JSONValue::JSONInternal
 		else return URI::Value();
 	}
 };
-	
+JSONValue::JSONValue(const std::string& val, Type Type)
+{
+	internal = new JSONInternal;
+	if (Type == Type_Int) internal->value = Json::Value(URI::Value(val).readInt());
+	else if(Type == Type_Double) internal->value = Json::Value(URI::Value(val).readFloat());
+	else if (Type == Type_Bool) internal->value = Json::Value(URI::Value(val).readBool());
+	else if (Type == Type_String) internal->value = Json::Value(val);
+}
 JSONValue::JSONValue()
 {
 	internal = new JSONInternal;
@@ -100,6 +107,17 @@ bool JSONValue::isString() const { return internal->value.isString(); }
 bool JSONValue::isArray() const { return internal->value.isArray(); }
 bool JSONValue::isObject() const { return internal->value.isObject(); }
 
+JSONValue::Type JSONValue::type() const
+{
+	if (internal->value.empty()) return Type_Empty;
+	else if (internal->value.isString()) return Type_String;
+	else if (internal->value.isInt() || internal->value.isUInt()) return Type_Int;
+	else if (internal->value.isBool()) return Type_Bool;
+	else if (internal->value.isDouble()) return Type_Double;
+	else if (internal->value.isArray()) return Type_Array;
+	else return Type_Object;
+}
+
 std::string JSONValue::asString() const { return internal->converToURIValue().readString(); }
 int JSONValue::asInt() const { return internal->converToURIValue().readInt(); }
 float JSONValue::asFloat() const { return internal->converToURIValue().readFloat(); }
@@ -115,7 +133,7 @@ bool JSONValue::empty() const { return internal->value.empty(); }
 
 void JSONValue::clear() { internal->value.clear(); }
 
-JSONValue JSONValue::operator[](const std::string &key)
+JSONValue JSONValue::operator[](const std::string &key) const
 {
 	JSONValue value;
 	value.internal->value = internal->value[key];

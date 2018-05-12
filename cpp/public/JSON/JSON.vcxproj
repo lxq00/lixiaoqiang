@@ -109,8 +109,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\_Output\Lib\win32;$(SolutionDir)\Lib\win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Message>Install文件，自己添加mk\UserInstallConfig.bat文件.使用方法见mk\WinInstall.bat</Message>

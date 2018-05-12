@@ -16,7 +16,19 @@ namespace JSON {
 class JSON_API JSONValue
 {
 public:
+	typedef enum
+	{
+		Type_Empty,
+		Type_String,
+		Type_Int,
+		Type_Double,
+		Type_Bool,
+		Type_Array,
+		Type_Object,
+	}Type;
+public:
 	JSONValue();
+	JSONValue(const std::string& val,Type Type);
 	JSONValue(const std::string& val);
 	JSONValue(char val);
 	JSONValue(const char* val);
@@ -39,6 +51,8 @@ public:
 	bool isArray() const;
 	bool isObject() const;
 
+	Type type() const;
+
 	std::string asString() const;
 	int asInt() const;
 	float asFloat() const;
@@ -47,22 +61,16 @@ public:
 	uint32_t asUint32() const;
 	uint64_t asUint64() const;
 
-	/// Number of values in array or object
 	uint32_t size() const;
 
-	/// \brief Return true if empty array, empty object, or null;
-	/// otherwise, false.
 	bool empty() const;
 
-	/// Remove all object members and array elements.
-	/// \pre type() is arrayValue, objectValue, or nullValue
-	/// \post type() is unchanged
 	void clear();
 
-	/// Access an object value by name, create a null member if it does not exist.
-	JSONValue operator[](const std::string &key);
+	JSONValue operator[](const std::string &key) const;
 	
 	std::string toStyledString() const;
+
 	bool parseFromFile(const std::string& filename);
 	bool parse(const std::string& buffer);
 

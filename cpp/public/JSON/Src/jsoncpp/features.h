@@ -9,7 +9,7 @@ namespace Json {
     * This configuration object can be used to force the Reader or Writer
     * to behave in a standard conforming way.
     */
-   class JSON_API Features
+   class Features
    {
    public:
       /** \brief A configuration that allows all features and assumes all strings are UTF-8.
