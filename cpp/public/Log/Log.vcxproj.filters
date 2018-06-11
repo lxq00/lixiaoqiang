@@ -1,0 +1,185 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Src\Log.cpp" />
+    <ClCompile Include="Src\log4cplus.cpp" />
+    <ClCompile Include="Src\log4cplus\src\appender.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\appenderattachableimpl.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\asyncappender.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\clogger.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\configurator.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\connectorthread.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\consoleappender.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\cygwin-win32.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\env.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\factory.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\fileappender.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\fileinfo.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\filter.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\global-init.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\hierarchy.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\hierarchylocker.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\layout.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\lockfile.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\log4judpappender.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\logger.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\loggerimpl.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\loggingevent.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\loggingmacros.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\loglevel.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\loglog.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\logloguser.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\mdc.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\ndc.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\nteventlogappender.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\nullappender.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\objectregistry.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\patternlayout.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\pointer.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\property.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\queue.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\rootlogger.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\sleep.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\snprintf.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\socket.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\socketappender.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\socketbuffer.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\socket-unix.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\socket-win32.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\stringhelper.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\stringhelper-clocale.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\stringhelper-cxxlocale.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\stringhelper-iconv.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\syncprims.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\syslogappender.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\threads.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\timehelper.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\tls.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\version.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\win32consoleappender.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\log4cplus\src\win32debugappender.cxx">
+      <Filter>log4cplus</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Include\Log\Defs.h" />
+    <ClInclude Include="Include\Log\Log.h" />
+    <ClInclude Include="Src\log4cplus.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Version.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="log4cplus">
+      <UniqueIdentifier>{dfe5d228-4cd3-4277-8a32-b37dc41ca72d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

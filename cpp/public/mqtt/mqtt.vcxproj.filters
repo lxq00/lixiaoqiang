@@ -1,0 +1,275 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ResourceCompile Include="Version.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="Src\c\VersionInfo.h.in">
+      <Filter>c</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Include">
+      <UniqueIdentifier>{4d9c7b57-8aad-4cde-8a53-976461c77cb9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="c">
+      <UniqueIdentifier>{32d23c21-203a-48b6-8787-cd878f2afbac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cpp">
+      <UniqueIdentifier>{b9a4700b-d1ec-4cb3-8572-e91bbf686fa2}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Include\mqtt\async_client.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\mqtt\buffer_ref.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\mqtt\buffer_view.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\mqtt\callback.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\mqtt\client.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\mqtt\connect_options.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\mqtt\delivery_token.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\mqtt\disconnect_options.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\mqtt\exception.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\mqtt\iaction_listener.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\mqtt\iasync_client.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\mqtt\iclient_persistence.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\mqtt\message.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\mqtt\response_options.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\mqtt\ssl_options.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\mqtt\string_collection.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\mqtt\thread_queue.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\mqtt\token.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\mqtt\topic.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\mqtt\types.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\mqtt\will_options.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\c\Clients.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\c\Heap.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\c\LinkedList.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\c\Log.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\c\Messages.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\c\MQTTAsync.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\c\MQTTClient.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\c\MQTTClientPersistence.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\c\MQTTPacket.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\c\MQTTPacketOut.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\c\MQTTPersistence.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\c\MQTTPersistenceDefault.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\c\MQTTProtocol.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\c\MQTTProtocolClient.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\c\MQTTProtocolOut.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\c\mutex_type.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\c\OsWrapper.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\c\Socket.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\c\SocketBuffer.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\c\SSLSocket.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\c\StackTrace.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\c\Thread.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\c\Tree.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\c\utf-8.h">
+      <Filter>c</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\Include\mqtt\CMakeLists.txt">
+      <Filter>Include</Filter>
+    </Text>
+    <Text Include="Src\c\CMakeLists.txt">
+      <Filter>c</Filter>
+    </Text>
+    <Text Include="Src\cpp\CMakeLists.txt">
+      <Filter>cpp</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Src\c\Clients.c">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\c\Heap.c">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\c\LinkedList.c">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\c\Log.c">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\c\Messages.c">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\c\MQTTAsync.c">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\c\MQTTClient.c">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\c\MQTTPacket.c">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\c\MQTTPacketOut.c">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\c\MQTTPersistence.c">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\c\MQTTPersistenceDefault.c">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\c\MQTTProtocolClient.c">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\c\MQTTProtocolOut.c">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\c\MQTTVersion.c">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\c\OsWrapper.c">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\c\Socket.c">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\c\SocketBuffer.c">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\c\SSLSocket.c">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\c\StackTrace.c">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\c\Thread.c">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\c\Tree.c">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\c\utf-8.c">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\cpp\async_client.cpp">
+      <Filter>cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\cpp\client.cpp">
+      <Filter>cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\cpp\connect_options.cpp">
+      <Filter>cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\cpp\disconnect_options.cpp">
+      <Filter>cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\cpp\iclient_persistence.cpp">
+      <Filter>cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\cpp\message.cpp">
+      <Filter>cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\cpp\response_options.cpp">
+      <Filter>cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\cpp\ssl_options.cpp">
+      <Filter>cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\cpp\string_collection.cpp">
+      <Filter>cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\cpp\token.cpp">
+      <Filter>cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\cpp\topic.cpp">
+      <Filter>cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\cpp\will_options.cpp">
+      <Filter>cpp</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

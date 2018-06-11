@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" InitialTargets="{name}_init">
+  <PropertyGroup Label="Default initializers for properties">
+    <Linkage-{name} Condition="'$(Linkage-{name})' == ''">dynamic</Linkage-{name}>
+    <CallingConvention-{name} Condition="'$(CallingConvention-{name})' == ''">cdecl</CallingConvention-{name}>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>{include_win32};%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>{include_win32};%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+	  <AdditionalLibraryDirectories>$(MSBuildThisFileDirectory)../..//build/native/lib/win32/;$(MSBuildThisFileDirectory)../..//build/native/lib/win32/{name};%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Label="Win32 and dynamic and Debug" Condition="'$(Platform.ToLower())' == 'win32' And '$(Linkage-{name}.ToLower())' == 'dynamic' And ( $(Configuration.ToLower().IndexOf('debug')) &gt; -1 )">
+    <Link>
+      <AdditionalDependencies>{lib_debug_win32};%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Label="Win32 and dynamic and Release" Condition="'$(Platform.ToLower())' == 'win32' And '$(Linkage-{name}.ToLower())' == 'dynamic' And ( $(Configuration.ToLower().IndexOf('debug')) == -1 )">
+    <Link>
+      <AdditionalDependencies>{lib_release_win32};%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <PropertyPageSchema Include="$(MSBuildThisFileDirectory)\default-propertiesui.xml" />
+  </ItemGroup>
+  <UsingTask TaskName="{name}_Contains" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll" TaskFactory="CodeTaskFactory">
+    <ParameterGroup>
+      <Text Output="false" ParameterType="System.String" />
+      <Library Output="false" Required="true" ParameterType="System.String" />
+      <Value Output="false" Required="true" ParameterType="System.String" />
+      <Result Output="true" ParameterType="System.String" />
+    </ParameterGroup>
+    <Task>
+      <Code>Result = ((Text ?? "").Split(';').Contains(Library) ) ? Value : String.Empty;</Code>
+    </Task>
+  </UsingTask>
+  <Target Name="{name}_init">
+    <{name}_Contains Text="Linkage-dynamic" Library="{name}" Value="dynamic" Condition="'$(Linkage-{name})'==''">
+      <Output TaskParameter="Result" PropertyName="Linkage-{name}" />
+    </{name}_Contains>
+    <{name}_Contains Text="Linkage-static" Library="{name}" Value="static" Condition="'$(Linkage-{name})'==''">
+      <Output TaskParameter="Result" PropertyName="Linkage-{name}" />
+    </{name}_Contains>
+    <{name}_Contains Text="Linkage-ltcg" Library="{name}" Value="ltcg" Condition="'$(Linkage-{name})'==''">
+      <Output TaskParameter="Result" PropertyName="Linkage-{name}" />
+    </{name}_Contains>
+    <{name}_Contains Text="Linkage-sxs" Library="{name}" Value="sxs" Condition="'$(Linkage-{name})'==''">
+      <Output TaskParameter="Result" PropertyName="Linkage-{name}" />
+    </{name}_Contains>
+    <{name}_Contains Text="CallingConvention-cdecl" Library="{name}" Value="cdecl" Condition="'$(CallingConvention-{name})'==''">
+      <Output TaskParameter="Result" PropertyName="CallingConvention-{name}" />
+    </{name}_Contains>
+    <{name}_Contains Text="CallingConvention-stdcall" Library="{name}" Value="stdcall" Condition="'$(CallingConvention-{name})'==''">
+      <Output TaskParameter="Result" PropertyName="CallingConvention-{name}" />
+    </{name}_Contains>
+    <{name}_Contains Text="CallingConvention-fastcall" Library="{name}" Value="fastcall" Condition="'$(CallingConvention-{name})'==''">
+      <Output TaskParameter="Result" PropertyName="CallingConvention-{name}" />
+    </{name}_Contains>
+    <{name}_Contains Text="CallingConvention-thiscall" Library="{name}" Value="thiscall" Condition="'$(CallingConvention-{name})'==''">
+      <Output TaskParameter="Result" PropertyName="CallingConvention-{name}" />
+    </{name}_Contains>
+    <{name}_Contains Text="CallingConvention-clrcall" Library="{name}" Value="clrcall" Condition="'$(CallingConvention-{name})'==''">
+      <Output TaskParameter="Result" PropertyName="CallingConvention-{name}" />
+    </{name}_Contains>
+  </Target>
+</Project>

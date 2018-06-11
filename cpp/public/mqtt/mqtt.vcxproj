@@ -1,0 +1,213 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Version.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="Src\c\VersionInfo.h.in" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Include\mqtt\async_client.h" />
+    <ClInclude Include="..\Include\mqtt\buffer_ref.h" />
+    <ClInclude Include="..\Include\mqtt\buffer_view.h" />
+    <ClInclude Include="..\Include\mqtt\callback.h" />
+    <ClInclude Include="..\Include\mqtt\client.h" />
+    <ClInclude Include="..\Include\mqtt\connect_options.h" />
+    <ClInclude Include="..\Include\mqtt\delivery_token.h" />
+    <ClInclude Include="..\Include\mqtt\disconnect_options.h" />
+    <ClInclude Include="..\Include\mqtt\exception.h" />
+    <ClInclude Include="..\Include\mqtt\iaction_listener.h" />
+    <ClInclude Include="..\Include\mqtt\iasync_client.h" />
+    <ClInclude Include="..\Include\mqtt\iclient_persistence.h" />
+    <ClInclude Include="..\Include\mqtt\message.h" />
+    <ClInclude Include="..\Include\mqtt\response_options.h" />
+    <ClInclude Include="..\Include\mqtt\ssl_options.h" />
+    <ClInclude Include="..\Include\mqtt\string_collection.h" />
+    <ClInclude Include="..\Include\mqtt\thread_queue.h" />
+    <ClInclude Include="..\Include\mqtt\token.h" />
+    <ClInclude Include="..\Include\mqtt\topic.h" />
+    <ClInclude Include="..\Include\mqtt\types.h" />
+    <ClInclude Include="..\Include\mqtt\will_options.h" />
+    <ClInclude Include="Src\c\Clients.h" />
+    <ClInclude Include="Src\c\Heap.h" />
+    <ClInclude Include="Src\c\LinkedList.h" />
+    <ClInclude Include="Src\c\Log.h" />
+    <ClInclude Include="Src\c\Messages.h" />
+    <ClInclude Include="Src\c\MQTTAsync.h" />
+    <ClInclude Include="Src\c\MQTTClient.h" />
+    <ClInclude Include="Src\c\MQTTClientPersistence.h" />
+    <ClInclude Include="Src\c\MQTTPacket.h" />
+    <ClInclude Include="Src\c\MQTTPacketOut.h" />
+    <ClInclude Include="Src\c\MQTTPersistence.h" />
+    <ClInclude Include="Src\c\MQTTPersistenceDefault.h" />
+    <ClInclude Include="Src\c\MQTTProtocol.h" />
+    <ClInclude Include="Src\c\MQTTProtocolClient.h" />
+    <ClInclude Include="Src\c\MQTTProtocolOut.h" />
+    <ClInclude Include="Src\c\mutex_type.h" />
+    <ClInclude Include="Src\c\OsWrapper.h" />
+    <ClInclude Include="Src\c\Socket.h" />
+    <ClInclude Include="Src\c\SocketBuffer.h" />
+    <ClInclude Include="Src\c\SSLSocket.h" />
+    <ClInclude Include="Src\c\StackTrace.h" />
+    <ClInclude Include="Src\c\Thread.h" />
+    <ClInclude Include="Src\c\Tree.h" />
+    <ClInclude Include="Src\c\utf-8.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\Include\mqtt\CMakeLists.txt" />
+    <Text Include="Src\cpp\CMakeLists.txt" />
+    <Text Include="Src\c\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Src\cpp\async_client.cpp" />
+    <ClCompile Include="Src\cpp\client.cpp" />
+    <ClCompile Include="Src\cpp\connect_options.cpp" />
+    <ClCompile Include="Src\cpp\disconnect_options.cpp" />
+    <ClCompile Include="Src\cpp\iclient_persistence.cpp" />
+    <ClCompile Include="Src\cpp\message.cpp" />
+    <ClCompile Include="Src\cpp\response_options.cpp" />
+    <ClCompile Include="Src\cpp\ssl_options.cpp" />
+    <ClCompile Include="Src\cpp\string_collection.cpp" />
+    <ClCompile Include="Src\cpp\token.cpp" />
+    <ClCompile Include="Src\cpp\topic.cpp" />
+    <ClCompile Include="Src\cpp\will_options.cpp" />
+    <ClCompile Include="Src\c\Clients.c" />
+    <ClCompile Include="Src\c\Heap.c" />
+    <ClCompile Include="Src\c\LinkedList.c" />
+    <ClCompile Include="Src\c\Log.c" />
+    <ClCompile Include="Src\c\Messages.c" />
+    <ClCompile Include="Src\c\MQTTAsync.c" />
+    <ClCompile Include="Src\c\MQTTClient.c" />
+    <ClCompile Include="Src\c\MQTTPacket.c" />
+    <ClCompile Include="Src\c\MQTTPacketOut.c" />
+    <ClCompile Include="Src\c\MQTTPersistence.c" />
+    <ClCompile Include="Src\c\MQTTPersistenceDefault.c" />
+    <ClCompile Include="Src\c\MQTTProtocolClient.c" />
+    <ClCompile Include="Src\c\MQTTProtocolOut.c" />
+    <ClCompile Include="Src\c\MQTTVersion.c" />
+    <ClCompile Include="Src\c\OsWrapper.c" />
+    <ClCompile Include="Src\c\Socket.c" />
+    <ClCompile Include="Src\c\SocketBuffer.c" />
+    <ClCompile Include="Src\c\SSLSocket.c" />
+    <ClCompile Include="Src\c\StackTrace.c" />
+    <ClCompile Include="Src\c\Thread.c" />
+    <ClCompile Include="Src\c\Tree.c" />
+    <ClCompile Include="Src\c\utf-8.c" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{56A5C59F-D237-4594-B744-27248C8E171B}</ProjectGuid>
+    <RootNamespace>Base</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v141_xp</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>11.0.60610.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)\Lib\win32\$(ProjectName)\</OutDir>
+    <IntDir>$(SolutionDir)\__Compile\win32\$(ProjectName)\$(Configuration)\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <TargetName>$(ProjectName)_debug</TargetName>
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)\Lib\win32\$(ProjectName)\</OutDir>
+    <IntDir>$(SolutionDir)\__Compile\win32\$(ProjectName)\$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Include;$(SolutionDir)\Include\mqtt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;_DEBUG;_CRT_SECURE_NO_WARNINGS;NETWORK_DLL_BUILD;BASE_DLL_USE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>iphlpapi.lib;ws2_32.lib;uuid.lib;rpcrt4.lib;mpr.lib;Base/Base_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(ProjectName)_debug.dll</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateMapFile>false</GenerateMapFile>
+      <MapExports>false</MapExports>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Lib\win32;Src\bostlib\win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Message>Install文件，自己添加mk\UserInstallConfig.bat文件.使用方法见mk\WinInstall.bat</Message>
+      <Command>.\mk\WinInstall.bat</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>$(SolutionDir)\_Output\Include;$(SolutionDir)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;NDEBUG;_CRT_SECURE_NO_WARNINGS;NETWORK_DLL_BUILD;BASE_DLL_USE</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>iphlpapi.lib;ws2_32.lib;uuid.lib;rpcrt4.lib;mpr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateMapFile>false</GenerateMapFile>
+      <MapExports>false</MapExports>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Lib\win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <OutputFile>$(OutDir)$(ProjectName).dll</OutputFile>
+    </Link>
+    <PostBuildEvent>
+      <Message>Install文件，自己添加mk\UserInstallConfig.bat文件.使用方法见mk\WinInstall.bat</Message>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

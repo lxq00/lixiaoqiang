@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Src\ASIOServerPool.cpp" />
+    <ClCompile Include="Src\ASIOSocketAcceptObject.cpp" />
+    <ClCompile Include="Src\ASIOSocketObject.cpp" />
+    <ClCompile Include="Src\ASIOSocketTCPObject.cpp" />
+    <ClCompile Include="Src\ASIOSocketUDPObject.cpp" />
+    <ClCompile Include="Src\NetAddr.cpp" />
+    <ClCompile Include="Src\Network.cpp" />
+    <ClCompile Include="Src\SocketTcp.cpp" />
+    <ClCompile Include="Src\TcpClient.cpp" />
+    <ClCompile Include="Src\TcpServer.cpp" />
+    <ClCompile Include="Src\Udp.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Include\Network\Defs.h" />
+    <ClInclude Include="Src\ASIOServerPool.h" />
+    <ClInclude Include="Src\ASIOSocketAcceptObject.h" />
+    <ClInclude Include="Src\ASIOSocketObject.h" />
+    <ClInclude Include="Src\ASIOSocketTCPObject.h" />
+    <ClInclude Include="Src\ASIOSocketUDPObject.h" />
+    <ClInclude Include="..\Include\Network\Defs.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Network\NetAddr.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Network\Network.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Network\Socket.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Network\TcpClient.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Network\TcpServer.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Network\Udp.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Version.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="..\Include\Network\Version.tpl">
+      <Filter>Include</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Include">
+      <UniqueIdentifier>{4d9c7b57-8aad-4cde-8a53-976461c77cb9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

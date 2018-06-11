@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/01/nuspec.xsd">
+    <metadata minClientVersion="2.5">
+        <id>{name}</id>
+        <version>{version}</version>
+        <title>{name}</title>
+        <authors>{authors}@cdxm.com</authors>
+        <owners>Xunmei Technology Co.Ltd</owners>
+        <licenseUrl>{giturl}</licenseUrl>
+        <projectUrl>{giturl}</projectUrl>
+        <requireLicenseAcceptance>true</requireLicenseAcceptance>
+        <description>{description}</description>
+        <summary>{summary}</summary>
+        <releaseNotes>{giturl}</releaseNotes>
+        <copyright>Xunmei Technology Co.Ltd</copyright>
+        <tags>native, {name}, C++</tags>
+        <dependencies>
+			{dependency}
+        </dependencies>
+    </metadata>
+    <files>
+		{files}
+    </files>
+</package>

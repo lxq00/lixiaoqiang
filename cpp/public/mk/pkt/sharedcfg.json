@@ -1,0 +1,10 @@
+{
+    "dependdir":"\\\\192.168.0.10\\vgsii_depends",
+    "buildlog":"\\\\192.168.0.10\\个人目录\\l李小强\\_buildlogs",
+    "linux":{
+        "username":"cd.xunmei.com/lixiaoqiang",
+        "password":"123abc!!!",
+        "dependmountdir":"/tmp/.vgsii_shared_pend",
+        "logmountdir":"/tmp/.vgsii_shared_buildlog"
+    }
+}

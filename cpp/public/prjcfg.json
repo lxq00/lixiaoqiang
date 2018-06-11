@@ -1,0 +1,9 @@
+{
+	"Version":"3.0",
+    "Project":[
+			{
+				"type":"lib",
+				"name":"public"
+			}
+    ]
+}

@@ -1,0 +1,61 @@
+#
+#  Copyright (c)1998-2012, Chongqing Xunmei Technology
+#  All Rights Reserved.
+#
+#	 Description:
+#  $Id$
+
+ifeq ($(strip ${ENABLESILIENT}), YES)
+	CPP	= @$(CROSS)g++
+	CC	= @$(CROSS)gcc
+	LD	= @$(CROSS)ld
+	AR  = @$(CROSS)ar
+	RM	= @rm -rfd
+	RMDIR	= @rm -rfd
+	STRIP	= $(CROSS)strip
+	COPY  = @cp -rfd
+	INSTALL = @install 
+else
+	CPP	= @echo " $(CROSS)g++ $@"; $(CROSS)g++
+	CC	= @echo " $(CROSS)gcc $@"; $(CROSS)gcc
+	LD	= @echo " $(CROSS)ld  $@"; $(CROSS)ld
+	AR  = @echo " $(CROSS)ar  $@"; $(CROSS)ar
+	RM	= @echo " rm  $@"; rm -rfd
+	RMDIR	= @echo " rm -rfd $@";rm -rf
+	STRIP	= @echo " $(CROSS)strip  $@"; $(CROSS)strip
+	COPY  = @echo " copy  $@";$cp -rf
+	INSTALL = install 
+endif
+
+ifeq ($(strip ${ENABLESILIENT}), YES)
+	CFLAGS += -w
+else
+	CFLAGS += -Wall 
+endif
+
+GCC_VERSION = $(shell $(CC) -dumpversion)
+GCPP_VERSION = $(shell $(CPP) -dumpversion)
+
+GCC_VERSION_MAJOR = $(shell $(CC) -dumpversion | cut -f1-1 -d.)
+GCC_VERSION_MINOR = $(shell $(CC) -dumpversion | cut -f2-2 -d.)
+GCC_VERSION_BUILD = $(shell $(CC) -dumpversion | cut -f3-3 -d.)
+
+GCPP_VERSION_MAJOR = $(shell $(CPP) -dumpversion | cut -f1-1 -d.)
+GCPP_VERSION_MINOR = $(shell $(CPP) -dumpversion | cut -f2-2 -d.)
+GCPP_VERSION_BUILD = $(shell $(CPP) -dumpversion | cut -f3-3 -d.)
+
+ifeq ($(strip ${GCPP_VERSION_MAJOR}), 5)
+        CPPFLAGS += -std=c++11
+endif
+
+CFLAGS += -DPLATFORM_X86 -D_REENTRANT 
+CFLAGS_NDBG = -g -Os -O1 -DNDEBUG
+CFLAGS_DBG = -g -DDEBUG
+
+
+LDFLAGS +=
+AFLAGS += -crs
+INSTALL_LIB_FLAGS = -cm 640 
+INSTALL_APP_FLAGS = -cm 755
+include ${PRJ_PATH}/mk/globe.mk
+

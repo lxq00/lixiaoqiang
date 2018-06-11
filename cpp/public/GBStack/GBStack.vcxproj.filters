@@ -1,0 +1,198 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="头文件\Base">
+      <UniqueIdentifier>{0b4d97cc-d908-4dbb-9567-d820206a7f14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="源文件\InterProtocol">
+      <UniqueIdentifier>{e3299b39-c24c-44b2-9c6a-bbae4ee3d5a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\GBStack">
+      <UniqueIdentifier>{3cbe4b13-b8b8-4e4c-97c3-9a774e89b4c0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Src\InterProtocol\AlarmNotifyReq.cpp">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\InterProtocol\AlarmNotifyResp.cpp">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\InterProtocol\AlarmQueryReq.cpp">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\InterProtocol\DecoderControlReq.cpp">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\InterProtocol\DecoderInfoQueryReq.cpp">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\InterProtocol\DecoderInfoQueryResp.cpp">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\InterProtocol\DeviceCatalogQueryReq.cpp">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\InterProtocol\DeviceCatalogQueryResp.cpp">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\InterProtocol\DeviceControlReq.cpp">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\InterProtocol\DeviceControlResp.cpp">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\InterProtocol\DeviceInfoQueryReq.cpp">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\InterProtocol\DeviceInfoQueryResp.cpp">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\InterProtocol\DeviceStatusQueryReq.cpp">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\InterProtocol\DeviceStatusQueryResp.cpp">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\InterProtocol\InterProtocol.cpp">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\InterProtocol\KeepAliveNotify.cpp">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\InterProtocol\MeidaStatusNotify.cpp">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\InterProtocol\MsgBaseFun.cpp">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\InterProtocol\RecordInfoQueryReq.cpp">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\InterProtocol\RecordInfoQueryResp.cpp">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\InterProtocol\Rtsp.cpp">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\InterProtocol\RtspResp.cpp">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GBStack\GBCallinfo.cpp">
+      <Filter>源文件\GBStack</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GBStack\GBEventPool.cpp">
+      <Filter>源文件\GBStack</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GBStack\GBRegister.cpp">
+      <Filter>源文件\GBStack</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GBStack\GBStack.cpp">
+      <Filter>源文件\GBStack</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GBStack\GBStackInternal.cpp">
+      <Filter>源文件\GBStack</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GBStack\publicid.cpp">
+      <Filter>源文件\GBStack</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Src\InterProtocol\AlarmNotifyReq.h">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\InterProtocol\AlarmNotifyResp.h">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\InterProtocol\AlarmQueryReq.h">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\InterProtocol\DecoderControlReq.h">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\InterProtocol\DecoderInfoQueryReq.h">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\InterProtocol\DecoderInfoQueryResp.h">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\InterProtocol\DeviceCatalogQueryReq.h">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\InterProtocol\DeviceCatalogQueryResp.h">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\InterProtocol\DeviceControlReq.h">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\InterProtocol\DeviceControlResp.h">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\InterProtocol\DeviceInfoQueryReq.h">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\InterProtocol\DeviceInfoQueryResp.h">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\InterProtocol\DeviceStatusQueryReq.h">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\InterProtocol\DeviceStatusQueryResp.h">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\InterProtocol\Format.h">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\InterProtocol\KeepAliveNotify.h">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\InterProtocol\MeidaStatusNotify.h">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\InterProtocol\MsgBaseFun.h">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\InterProtocol\Public.h">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\InterProtocol\RecordInfoQueryReq.h">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\InterProtocol\RecordInfoQueryResp.h">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\InterProtocol\Rtsp.h">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\InterProtocol\RtspResp.h">
+      <Filter>源文件\InterProtocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GBStack\GBCallinfo.h">
+      <Filter>源文件\GBStack</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GBStack\GBCommunication.h">
+      <Filter>源文件\GBStack</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GBStack\GBEventPool.h">
+      <Filter>源文件\GBStack</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GBStack\GBRegister.h">
+      <Filter>源文件\GBStack</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GBStack\GBStackInternal.h">
+      <Filter>源文件\GBStack</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
