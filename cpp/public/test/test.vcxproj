@@ -124,7 +124,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;iphlpapi.lib;ws2_32.lib;uuid.lib;rpcrt4.lib;mpr.lib;Base/Base_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;iphlpapi.lib;ws2_32.lib;uuid.lib;rpcrt4.lib;mpr.lib;Base/Base_debug.lib;HTTP/HTTP_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>

@@ -10,51 +10,12 @@ struct WebInterface;
 class HTTP_API HTTPServer
 {
 public:
-	class HTTP_API HTTPRequest
-	{
-		friend struct WebInterface;
-		friend class HTTPServer;
-	public:
-		HTTPRequest();
-		~HTTPRequest();
-		std::map<std::string, URI::Value> headers() const;
-		std::string header(const std::string& key) const;
-		std::string method() const;
-		shared_ptr<URL> url() const;
-		shared_ptr<HTTPBuffer> buffer() const;
-	private:
-		struct HTTPRequestInternal;
-		HTTPRequestInternal* internal;
-	};
-
-	class HTTP_API HTTPResponse
-	{
-		friend struct WebInterface;
-		friend class HTTPServer;
-	public:
-		HTTPResponse();
-		~HTTPResponse();
-
-		bool statusCode(uint32_t code, const std::string& statusMessage = "");
-
-		//设置头回复包头信息，Content-Length 无效
-		bool setHeader(const std::string& key, const URI::Value& val);
-
-		shared_ptr<HTTPBuffer> buffer();
-	private:
-		//end后将会发送数据，buffer操作将会无效
-		bool end();
-	private:
-		struct HTTPResponseInternal;
-		HTTPResponseInternal* internal;
-	};
-
 	typedef Function2<void,const shared_ptr<HTTPRequest>&, shared_ptr<HTTPResponse>&> HttpListenCallback;
 public:
 #ifndef GCCSUPORTC11
-	HTTPServer(const std::string &cert_file, const std::string &private_key_file, const std::string &verify_file = std::string(),HTTPBufferCacheType type = HTTPBufferCacheType_Mem);
+	HTTPServer(const std::string &cert_file, const std::string &private_key_file, const std::string &verify_file = std::string());
 #endif	
-	HTTPServer(HTTPBufferCacheType type = HTTPBufferCacheType_Mem);
+	HTTPServer();
 	~HTTPServer();	
 	
 	// path 为 请求的url,*为所有  ,callback监听消息的回掉,处理线程数据，先于run启用,path 格式为 regex
@@ -63,6 +24,9 @@ public:
 
 	//异步监听
 	bool run(uint32_t httpport, uint32_t threadNum = 4);
+public:
+	//function listen and map resource must usred before function run
+	std::map<std::string, std::map<std::string, HTTPServer::HttpListenCallback> > resource;
 private:
 	struct HTTPServrInternal;
 	HTTPServrInternal* internal;

@@ -228,7 +228,7 @@ public:
 	///	2:received不能为空
 	///注：仅异步IO支持
 	virtual bool async_recvfrom(char *buf , uint32_t len,const RecvFromCallback& received){return false;}
-
+	virtual bool async_recvfrom(const RecvFromCallback& received, int maxlen = 1024) { return false; }
 
 	///【同步】UDP接收
 	///param[in]		buf				接收到的数据存储地址

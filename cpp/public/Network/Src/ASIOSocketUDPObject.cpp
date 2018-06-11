@@ -264,7 +264,7 @@ bool UDPSocketObject::setSocketOpt(int level, int optname, const void *optval, i
 		return false;
 	}
 
-	return ::setsockopt(sockptr->native_handle(),level, optname, (const char*)optval, optlen);
+	return ::setsockopt(sockptr->native_handle(),level, optname, (const char*)optval, optlen) >= 0;
 }
 bool UDPSocketObject::getSocketOpt(int level, int optname, void *optval, int *optlen) const
 {
@@ -278,7 +278,7 @@ bool UDPSocketObject::getSocketOpt(int level, int optname, void *optval, int *op
 		return false;
 	}
 
-	return ::getsockopt(sockptr->native_handle(),level, optname, (char*)optval,(socklen_t*) optlen);
+	return ::getsockopt(sockptr->native_handle(),level, optname, (char*)optval,(socklen_t*) optlen) >= 0;
 }
 int UDPSocketObject::sendto(const char* buffer,int len,const NetAddr& otheraddr)
 {

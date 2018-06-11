@@ -79,7 +79,7 @@ public:
 
 	void doHeartBeat(HostIPCObject* obj, const Json::Value& data)
 	{
-		std::string svrtype = data[HOSTIPC_MESSAGE_HEADER_TYPE].asString();
+		std::string svrtype = data[HOSTIPC_MESSAGE_HEADER_CONTENT][HOSTIPC_MESSAGE_HEADER_TYPE].asString();
 
 		Guard locker(m_mutex);
 		for (std::list<ConnectInfo>::iterator iter = m_connectList.begin(); iter != m_connectList.end(); iter++)

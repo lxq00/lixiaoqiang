@@ -157,7 +157,7 @@ bool DBConnectionSQLite::disconnect()
 	return true;
 }
 
-bool DBConnectionSQLite::exec(const std::string& sql)
+bool DBConnectionSQLite::exec(const std::string& sql, bool transaction)
 {
 	Guard locker(internal->mutex);
 
@@ -165,8 +165,17 @@ bool DBConnectionSQLite::exec(const std::string& sql)
 	{
 		return false;
 	}
+	if (transaction)
+	{
+		internal->beginTransaction();
+	}
+	internal->exec(sql);
+	if (transaction)
+	{
+		internal->commitTransaction();
+	}
 
-	return internal->exec(sql);
+	return true;
 }
 
 bool DBConnectionSQLite::exec(const std::vector<std::string>& sql)

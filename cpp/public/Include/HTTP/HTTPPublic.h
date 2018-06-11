@@ -35,6 +35,9 @@ public:
 	URL(const URL& url);
 	virtual ~URL();
 
+	URL& operator = (const URL& url);
+	URL& operator = (const std::string& href);
+
 	void clean();
 
 	//http://user:pass@host.com:8080/p/a/t/h?query=string#hash
@@ -138,12 +141,13 @@ public:
 	//when end of file return ""
 	int read(char* buffer, int len) const;
 	int read(std::ofstream& outfile) const;
+	std::string read() const;
 	bool readToFile(const std::string& filename) const;
 
 
 	bool write(const char* buffer, int len);
+	bool write(const std::string& buffer);
 	bool write(const HTTPTemplate& temp);
-	bool write(std::ifstream& infile);
 	bool writeFromFile(const std::string& filename,bool deleteFile);
 
 	std::stringstream buf;

@@ -49,14 +49,8 @@
 #  define FUNCTION_COMMA ,
 #endif // FUNCTION_NUMBER > 0
 
-#ifndef GCCSUPORTC11
 
-#define FUNCTION_INVOKER MACRO_JOIN(function_invoker, FUNCTION_NUMBER)
-#define FUNCTION_VOID_INVOKER MACRO_JOIN(function_void_invoker, FUNCTION_NUMBER)
-#define GET_FUNCTION_INVODER MACRO_JOIN(get_function_invoker, FUNCTION_NUMBER)
-#define MEM_FUNCTION_INVOKER MACRO_JOIN(mem_function_invoker, FUNCTION_NUMBER)
-#define MEM_FUNCTION_VOID_INVOKER MACRO_JOIN(mem_function_void_invoker, FUNCTION_NUMBER)
-#define GET_MEM_FUNCTION_INVODER MACRO_JOIN(get_mem_function_invoker, FUNCTION_NUMBER)
+///////////////////////////////////默认返回值定义////////////////////////////////////////////
 #define FUNCTION_RETURN MACRO_JOIN(function_return,FUNCTION_NUMBER)
 
 template<class R>
@@ -70,6 +64,18 @@ struct FUNCTION_RETURN
 		return tmp;
 	}
 };
+
+#ifndef GCCSUPORTC11
+
+////////////////////////////////////全局定义//////////////////////////////////////////////////////
+#define FUNCTION_INVOKER MACRO_JOIN(function_invoker, FUNCTION_NUMBER)
+#define FUNCTION_VOID_INVOKER MACRO_JOIN(function_void_invoker, FUNCTION_NUMBER)
+#define GET_FUNCTION_INVODER MACRO_JOIN(get_function_invoker, FUNCTION_NUMBER)
+#define MEM_FUNCTION_INVOKER MACRO_JOIN(mem_function_invoker, FUNCTION_NUMBER)
+#define MEM_FUNCTION_VOID_INVOKER MACRO_JOIN(mem_function_void_invoker, FUNCTION_NUMBER)
+#define GET_MEM_FUNCTION_INVODER MACRO_JOIN(get_mem_function_invoker, FUNCTION_NUMBER)
+
+
 ////////////////////////////////////这一款为函数指针回调处理////////////////////////////////////////////
 
 template<FUNCTION_CLASS_TYPES> struct FUNCTION_INVOKER
@@ -162,14 +168,47 @@ template<> struct GET_MEM_FUNCTION_INVODER<void>
 ///////////////////////////////////这一块为std::function的支持/////////////////////////////////////////////
 
 #define STD_FUNCTION_INVOKER MACRO_JOIN(std_function_invoker, FUNCTION_NUMBER)
+#define STD_FUNCTION_VOID_INVOKER MACRO_JOIN(std_function_void_invoker, FUNCTION_NUMBER)
+#define GET_STD_FUNCTION_INVODER MACRO_JOIN(get_std_function_invoker, FUNCTION_NUMBER)
+
 
 template<FUNCTION_CLASS_TYPES> struct STD_FUNCTION_INVOKER
 {
 	static typename Detail::function_return_type<R>::type invoke(std::function<FUNCTION_STDFUNCTIONPTR>& f FUNCTION_COMMA FUNCTION_TYPE_ARGS)
 	{
+		if (!f)
+		{
+			return FUNCTION_RETURN<R>::getDefaultValue();
+		}
+
 		return f(FUNCTION_ARGS);
 	}
 };
+template<FUNCTION_CLASS_TYPES> struct STD_FUNCTION_VOID_INVOKER
+{
+	static typename Detail::function_return_type<R>::type invoke(std::function<FUNCTION_STDFUNCTIONPTR>& f FUNCTION_COMMA FUNCTION_TYPE_ARGS)
+	{
+		if(f)
+			f(FUNCTION_ARGS);
+	}
+};
+
+template<class RT> struct GET_STD_FUNCTION_INVODER
+{
+	template<FUNCTION_CLASS_TYPES> struct Invoker
+	{
+		typedef STD_FUNCTION_INVOKER<R FUNCTION_COMMA FUNCTION_TYPES> type;
+	};
+};
+
+template<> struct GET_STD_FUNCTION_INVODER<void>
+{
+	template<FUNCTION_CLASS_TYPES> struct Invoker
+	{
+		typedef STD_FUNCTION_VOID_INVOKER<R FUNCTION_COMMA FUNCTION_TYPES> type;
+	};
+};
+
 #endif
 
 /////////////////////////////////////函数定义///////////////////////////////////////////
@@ -447,8 +486,7 @@ public:
 			return Invoker::invoke((type == typeEmpty) ? NULL : function.ptrFunction FUNCTION_COMMA FUNCTION_ARGS);
 		}
 #else
-		
-		typedef typename STD_FUNCTION_INVOKER<R FUNCTION_COMMA FUNCTION_TYPES> Invoker;
+		typedef typename GET_STD_FUNCTION_INVODER<R>::template Invoker<R FUNCTION_COMMA FUNCTION_TYPES>::type Invoker;
 		return Invoker::invoke(function FUNCTION_COMMA FUNCTION_ARGS);
 #endif
 	}

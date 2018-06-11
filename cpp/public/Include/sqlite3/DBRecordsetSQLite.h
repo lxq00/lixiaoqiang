@@ -11,7 +11,7 @@ public:
 
 	bool connect(const std::string& dbname,bool create);
 	bool disconnect();
-	bool exec(const std::string& sql);
+	bool exec(const std::string& sql,bool transaction = false);
 	bool exec(const std::vector<std::string>& sql);
 
 	shared_ptr<DBRecordset> query(const std::string& sql);

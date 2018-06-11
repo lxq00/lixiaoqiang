@@ -20,10 +20,28 @@ URL::~URL()
 {
 }
 
+URL& URL::operator = (const URL& url)
+{
+	protocol = url.protocol;
+	pathname = url.pathname;
+	authen = url.authen;
+	port = url.port;
+	query = url.query;
+
+	return *this;
+}
+URL& URL::operator = (const std::string& _href)
+{
+	href(_href);
+
+	return *this;
+}
+
 void URL::clean()
 {
 	protocol = "http";
-	authen.Username = authen.Password = pathname = "";
+	authen.Username = authen.Password = "";
+	pathname = "/";
 	port = 80;
 	query.clear();
 }
@@ -87,6 +105,8 @@ void URL::href(const std::string& url)
 	}
 
 	setPath(urltmp);
+
+	if (pathname == "") pathname = "/";
 }
 
 const std::string& URL::getProtocol() const
@@ -250,7 +270,7 @@ HTTPBuffer::~HTTPBuffer() {}
 
 uint32_t HTTPBuffer::size()
 {
-	return buf.gcount();
+	return (uint32_t)buf.gcount();
 }
 
 //when end of file return ""
@@ -259,7 +279,7 @@ int HTTPBuffer::read(char* buffer, int len) const
 	if (buffer == NULL || len <= 0) return 0;
 
 	std::string stringbuf = buf.str();
-	int readlen = min(len, stringbuf.size());
+	int readlen = min(len, (int)stringbuf.size());
 	memcpy(buffer, stringbuf.c_str(), readlen);
 
 	return readlen;
@@ -271,6 +291,10 @@ int HTTPBuffer::read(std::ofstream& outfile) const
 	outfile.write(stringbuf.c_str(), stringbuf.length());
 	
 	return stringbuf.length();
+}
+std::string HTTPBuffer::read() const
+{
+	return buf.str();
 }
 bool HTTPBuffer::readToFile(const std::string& filename) const
 {
@@ -289,8 +313,11 @@ bool HTTPBuffer::write(const char* buffer, int len)
 {
 	if (buffer == NULL || len <= 0) return false;
 
-	buf << std::string(buffer, len);
-
+	return write(buffer, len);
+}
+bool HTTPBuffer::write(const std::string& buffer)
+{
+	buf << buffer;
 	return true;
 }
 bool HTTPBuffer::write(const HTTPTemplate& temp)
@@ -299,27 +326,21 @@ bool HTTPBuffer::write(const HTTPTemplate& temp)
 
 	return true;
 }
-bool HTTPBuffer::write(std::ifstream& infile)
+bool HTTPBuffer::writeFromFile(const std::string& filename, bool deleteFile)
 {
-	while (!infile.eof())
+	FILE* fd = fopen(filename.c_str(), "rb");
+	if (fd == NULL) return false;
+
+	while (1)
 	{
 		char buffer[1024];
-		streamsize readlen = infile.readsome(buffer, 1024);
-		if (readlen == 0) break;
+		int readlen = fread(buffer, 1, 1024, fd);
+		if (readlen <= 0) break;
 
 		buf << std::string(buffer, readlen);
 	}
 
-	return true;
-}
-bool HTTPBuffer::writeFromFile(const std::string& filename, bool deleteFile)
-{
-	ifstream infile;
-	infile.open(filename.c_str(), std::ofstream::in | std::ofstream::binary);
-	if (!infile.is_open()) return false;
-
-	write(infile);
-	infile.close();
+	fclose(fd);
 
 	return true;
 }

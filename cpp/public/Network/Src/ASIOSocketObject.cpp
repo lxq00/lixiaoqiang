@@ -185,7 +185,7 @@ bool ISocketObject::setSocketTimeout(uint32_t recvTimeout,uint32_t sendTimeout)
 	int ret = setsockopt(getHandle(),SOL_SOCKET,SO_SNDTIMEO,(const char*)&sendTimeout,sizeof(sendTimeout));
 	ret |= setsockopt(getHandle(),SOL_SOCKET,SO_RCVTIMEO,(const char*)&recvTimeout,sizeof(recvTimeout));
 
-	return ret == 0;
+	return ret >= 0;
 }
 bool ISocketObject::getSocketTimeout(uint32_t& recvTimeout,uint32_t& sendTimeout)
 {

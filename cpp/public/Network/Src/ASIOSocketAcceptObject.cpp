@@ -229,7 +229,7 @@ bool TCPServerSocketObject::setSocketTimeout(uint32_t recvTimeout,uint32_t sendT
 	int ret = setsockopt(getHandle(),SOL_SOCKET,SO_SNDTIMEO,(const char*)&sendTimeout,sizeof(sendTimeout));
 	ret |= setsockopt(getHandle(),SOL_SOCKET,SO_RCVTIMEO,(const char*)&recvTimeout,sizeof(recvTimeout));
 
-	return ret == 0;
+	return ret >= 0;
 }
 
 bool TCPServerSocketObject::getSocketTimeout(uint32_t& recvTimeout,uint32_t& sendTimeout)
@@ -252,7 +252,7 @@ bool TCPServerSocketObject::setSocketOpt(int level, int optname, const void *opt
 	{
 		return false;
 	}
-	return ::setsockopt(getHandle(), level, optname, (const char*)optval, optlen);
+	return ::setsockopt(getHandle(), level, optname, (const char*)optval, optlen) >= 0;
 }
 bool TCPServerSocketObject::getSocketOpt(int level, int optname, void *optval, int *optlen) const
 {
@@ -265,7 +265,7 @@ bool TCPServerSocketObject::getSocketOpt(int level, int optname, void *optval, i
 		return 0;
 	}
 
-	return ::getsockopt(acceptptr->native_handle(), level, optname, (char*)optval, (socklen_t*)optlen);
+	return ::getsockopt(acceptptr->native_handle(), level, optname, (char*)optval, (socklen_t*)optlen) >= 0;
 }
 bool TCPServerSocketObject::nonBlocking(bool nonblock)
 {

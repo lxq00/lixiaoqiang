@@ -85,7 +85,7 @@ public:
 	RecvInternal(Socket* _sock,char* addr,uint32_t len):recvBufferAlloc(NULL),recvBuffer((char*)addr),recvBufferLen(len),sock((Socket*)_sock){}
 	RecvInternal(Socket* _sock,uint32_t len) :recvBufferAlloc(NULL), recvBuffer(NULL), recvBufferLen(len), sock((Socket*)_sock) 
 	{
-		recvBufferAlloc = new (std::nothrow)char[len];
+		recvBufferAlloc = new (std::nothrow)char[len + 100];
 		recvBuffer = recvBufferAlloc;
 	}
 	virtual ~RecvInternal()

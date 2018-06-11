@@ -2,12 +2,12 @@
 using namespace Public::Base;
 #include <functional>
 #include <memory>
-
+#include "HTTP/HTTPClient.h"
 typedef void(*ptrtype)(int);
 
 struct Test
 {
-	void testfunc(int,int) {}
+	void testfunc(int) {}
 };
 
 template <typename Function>
@@ -25,19 +25,41 @@ struct function_traits < ReturnType(ClassType::*)(Args, Args2) const >
 
 int main()
 {
-	std::shared_ptr<Test> t(new Test);
 
-	//std::function<void(int)> test = std::bind(&Test::testfunc,t, std::placeholders::_1);
+	Public::HTTP::HTTPClient client("http://192.168.0.11");
+	shared_ptr<Public::HTTP::HTTPResponse> respse = client.request("get");
+
+	int a = 0;
+
+
+	/*ifstream infile;
+	infile.open("test.vcxproj.user", std::ofstream::in | std::ofstream::binary);
+	if (!infile.is_open()) return false;
+
+	while (!infile.eof())
+	{
+		char buffer[1024];
+		streamsize readlen = infile.readsome(buffer, 1024);
+		if (readlen == 0) break;
+	}
+
+
+	infile.close();*/
+
+
+	//std::shared_ptr<Test> testptr(new Test);
+
+	//Function1<void, int> testfunc = Function1<void, int>(&Test::testfunc, testptr.get());
 
 	//test(1);
 	
-	Function2<void,int, int> f = std::bind(&Test::testfunc, std::weak_ptr<Test>(t).lock(), std::placeholders::_1, std::placeholders::_2);
+	//Function2<void,int, int> f = std::bind(&Test::testfunc, std::weak_ptr<Test>(t).lock(), std::placeholders::_1, std::placeholders::_2);
 
-	Function1<void, int> f1 = [&](int) {
-		int a = 0;
-	};
+	//Function1<void, int> f1 = [&](int) {
+	//	int a = 0;
+	//};
 
-	std::function<void(int)> test1 = f1;
+	//std::function<void(int)> test1 = f1;
 
 	/*ptrtype ptrtmp = test;
 
