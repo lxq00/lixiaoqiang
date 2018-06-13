@@ -3,6 +3,8 @@
 
 #ifdef GCCSUPORTC11
 
+#define HAVE_OPENSSL
+
 #include "Simple-Web-Server-master/client_http.hpp"
 #ifdef HAVE_OPENSSL
 #include "Simple-Web-Server-master/client_https.hpp"
