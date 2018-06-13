@@ -81,8 +81,9 @@ namespace SimpleWeb {
       friend class ClientBase<socket_type>;
       friend class Client<socket_type>;
 
+    public:
       asio::streambuf streambuf;
-
+    private:
       Response(std::size_t max_response_streambuf_size) noexcept : streambuf(max_response_streambuf_size), content(streambuf) {}
 
     public:

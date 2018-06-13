@@ -60,13 +60,7 @@ public:
 	{
 		destroyThread();
 	}
-	static ThreadManagerInfo* instalce()
-	{
-		//return CreateSingleton<ThreadManagerInfo>(SINGLETON_Levl_Base,200);
-		Guard locker(ThreadManagerInfoMutex);
-		static ThreadManagerInfo info;
-		return &info;
-	}
+	
 	void addThread(const Thread* addr,const std::string& name,uint32_t threadId)
 	{
 		ThreadInfo info;

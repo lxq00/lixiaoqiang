@@ -12,20 +12,60 @@ namespace Public {
 namespace HTTP {
 
 typedef SimpleWeb::Server<SimpleWeb::HTTP> SIMPLEHTTPServer;
+typedef SimpleWeb::ServerBase<SimpleWeb::HTTP> SIMPLEHTTPServerBase;
 #ifdef HAVE_OPENSSL
 typedef SimpleWeb::Server<SimpleWeb::HTTPS> SIMPLEHTTPSServer;
+typedef SimpleWeb::ServerBase<SimpleWeb::HTTPS> SIMPLEHTTPSServerBase;
 #endif
 
+template<typename LISTENHTTPResponse>
+class ServerResponse:public HTTPResponse
+{
+public:
+	ServerResponse(const std::shared_ptr<LISTENHTTPResponse>& _response):response(_response)
+	{
+	}
+	~ServerResponse()
+	{
+		SimpleWeb::CaseInsensitiveMultimap ackhreaders;
+		for (std::map<std::string, URI::Value>::const_iterator iter = headers.begin(); iter != headers.end(); iter++)
+		{
+			ackhreaders.insert(make_pair(iter->first, iter->second.readString()));
+		}
 
-template<typename LISTENHTTPResponse,typename LISTENHTTPRequest, bool HTTPS>
+		if (statusCode != 200)
+		{
+			response->write((SimpleWeb::StatusCode)statusCode, errorMessage, ackhreaders);
+		}
+		else
+		{
+			response->write(SimpleWeb::StatusCode::success_ok, buf.read(),ackhreaders);
+		}
+	}
+private:
+	std::shared_ptr<LISTENHTTPResponse> response;
+};
+
 struct HTTPListenInfo
 {
 public:
-	HTTPListenInfo() {}
+	HTTPListenInfo(const HTTPServer::HttpListenCallback& _callback):callback(_callback) {}
 	~HTTPListenInfo() {}
-	void httpListenCallback(const std::shared_ptr<LISTENHTTPResponse>& response, const std::shared_ptr<LISTENHTTPRequest>& request)
+	void httpListenCallback(const std::shared_ptr<SIMPLEHTTPServerBase::Response>& response, const std::shared_ptr<SIMPLEHTTPServerBase::Request>& request)
 	{
-		shared_ptr<HTTPRequest> ack_request(new HTTPRequest);
+		doCallback<SIMPLEHTTPServerBase::Response, SIMPLEHTTPServerBase::Request, false>(response, request);
+	}
+#ifdef HAVE_OPENSSL
+	void httpsListenCallback(const std::shared_ptr<SIMPLEHTTPSServerBase::Response>& response, const std::shared_ptr<SIMPLEHTTPSServerBase::Request>& request)
+	{
+		doCallback<SIMPLEHTTPSServerBase::Response, SIMPLEHTTPSServerBase::Request, false>(response, request);
+	}
+#endif
+private:
+	template<typename LISTENHTTPResponse, typename LISTENHTTPRequest, bool HTTPS>
+	void doCallback(const std::shared_ptr<LISTENHTTPResponse>& response, const std::shared_ptr<LISTENHTTPRequest>& request)
+	{
+		shared_ptr<HTTPRequest> ack_request(new HTTPRequest());
 		{
 			std::string url = HTTPS ? "https://*" : "http://*";
 			url += request->path;
@@ -43,64 +83,23 @@ public:
 			}
 
 		}
-		shared_ptr<HTTPResponse> ack_response(new HTTPResponse());
-
-
+		shared_ptr<HTTPResponse> ack_response(new ServerResponse<LISTENHTTPResponse>(response));
 		callback(ack_request, ack_response);
-
-
-		SimpleWeb::CaseInsensitiveMultimap ackhreaders;
-		for (std::map<std::string, URI::Value>::const_iterator iter = ack_response->headers.begin(); iter != ack_response->headers.end(); iter++)
-		{
-			ackhreaders.insert(make_pair(iter->first, iter->second.readString()));
-		}
-
-		if (ack_response->statusCode != 200)
-		{
-			response->write((SimpleWeb::StatusCode)ack_response->statusCode, ack_response->errorMessage, ackhreaders);
-		}
-		else
-		{
-			response->write(ack_response->buf.buf.str(), ackhreaders);
-		}
 	}
+private:
 	HTTPServer::HttpListenCallback callback;
 };
 
 
-
-struct WebInterface
+struct WEBHTTPServer:public Thread
 {
-	WebInterface(){}
-	virtual ~WebInterface() {}
-
-	virtual bool resource(const std::string& path, const std::string& method, const HTTPServer::HttpListenCallback& callback) = 0;
-
-	virtual bool start(int port, int threadnum) = 0;
-
-	virtual void dosource(const std::map<std::string, std::map<std::string, HTTPServer::HttpListenCallback> >&resourceList) = 0;
-};
-
-template<typename SIMHTTPServer,bool HTTPS>
-struct WEBHTTPServer:public Thread,public WebInterface
-{
-	typedef typename SIMHTTPServer::Response LISTENHTTPResponse;
-	typedef typename SIMHTTPServer::Request  LISTENHTTPRequest;
-	typedef typename  HTTPListenInfo<LISTENHTTPResponse, LISTENHTTPRequest, HTTPS> WEBHTTPListen;
 public:
-	WEBHTTPServer(const std::string &cert_file, const std::string &private_key_file, const std::string &verify_file) :Thread("HTTPServer"), WebInterface()
+	WEBHTTPServer():Thread("HTTPServer")
 	{
-		server = make_shared<SIMHTTPServer>(cert_file,private_key_file,verify_file);
 	}
-
-	WEBHTTPServer():Thread("HTTPServer"),WebInterface()
-	{
-		server = make_shared<SIMHTTPServer>();
-	}
-	~WEBHTTPServer()
+	virtual ~WEBHTTPServer()
 	{
 		destroyThread();
-		server = NULL;
 		callbacklist.clear();
 	}
 
@@ -117,19 +116,14 @@ public:
 
 	virtual bool resource(const std::string& path, const std::string& method, const HTTPServer::HttpListenCallback& callback)
 	{
-		std::string flag = path + "--!!--" + method;
+		std::string flag = String::toupper(path + "--!!--" + method);
 
-		std::map<std::string, shared_ptr<WEBHTTPListen> >::iterator iter = callbacklist.find(flag);
+		std::map<std::string, shared_ptr<HTTPListenInfo> >::iterator iter = callbacklist.find(flag);
 		if (iter != callbacklist.end()) return false;
 
-		shared_ptr<WEBHTTPListen> info(new WEBHTTPListen());
-		info->callback = callback;
+		shared_ptr<HTTPListenInfo> info(new HTTPListenInfo(callback));
 
-		std::function<void(std::shared_ptr<SIMHTTPServer::Response>, std::shared_ptr<SIMHTTPServer::Request>)> listencallback
-			= std::bind(&WEBHTTPListen::httpListenCallback,info,std::placeholders::_1, std::placeholders::_2);
-		
-		if (path == "*" || path == "") (*server.get()).default_resource[method] = listencallback;
-		else (*server.get()).resource[path][method] = listencallback;
+		doResource(path, method, info);
 
 		callbacklist[flag] = info;
 
@@ -138,39 +132,101 @@ public:
 
 	virtual bool start(int port, int threadnum)
 	{
-		server->config.port = port;
-		server->config.thread_pool_size = threadnum;
-
 		return createThread();
 	}
 private:
-	void threadProc()
-	{
-		if (server != NULL) server->start();
-	}
-
+	virtual bool doResource(const std::string& path, const std::string& method, shared_ptr<HTTPListenInfo>& info) = 0;
 private:
-	shared_ptr<SIMPLEHTTPServer> server;
-	std::map<std::string, shared_ptr<WEBHTTPListen> > callbacklist;
+	virtual void threadProc() = 0;
+
+protected:
+	std::map<std::string,shared_ptr<HTTPListenInfo> > callbacklist;
 	
 };
 
+struct HTTPServerResource :public WEBHTTPServer
+{
+public:
+	HTTPServerResource()
+	{
+		server = make_shared<SIMPLEHTTPServer>();
+	}
+	virtual bool doResource(const std::string& path, const std::string& method, shared_ptr<HTTPListenInfo>& info)
+	{
+		std::function<void(std::shared_ptr<SIMPLEHTTPServerBase::Response>, std::shared_ptr<SIMPLEHTTPServerBase::Request>)> listencallback
+			= std::bind(&HTTPListenInfo::httpListenCallback, info, std::placeholders::_1, std::placeholders::_2);
+
+		if (path == "*" || path == "") (*server.get()).default_resource[String::toupper(method)] = listencallback;
+		else (*server.get()).resource[path][String::toupper(method)] = listencallback;
+		return true;
+	}
+private:
+	virtual void threadProc()
+	{
+		if (server != NULL) server->start();
+	}
+	virtual bool start(int port, int threadnum)
+	{
+		server->config.port = port;
+		server->config.thread_pool_size = threadnum;
+
+		return WEBHTTPServer::start(port,threadnum);
+	}
+private:
+	shared_ptr<SIMPLEHTTPServer> server;
+};
+
+#ifdef HAVE_OPENSSL
+struct HTTPSServerResource :public WEBHTTPServer
+{
+public:
+	HTTPSServerResource(const std::string &cert_file, const std::string &private_key_file, const std::string &verify_file)
+	{
+		server = make_shared<SIMPLEHTTPSServer>(cert_file, private_key_file, verify_file);
+	}
+	virtual bool doResource(const std::string& path, const std::string& method, shared_ptr<HTTPListenInfo>& info)
+	{
+		std::function<void(std::shared_ptr<SIMPLEHTTPSServerBase::Response>, std::shared_ptr<SIMPLEHTTPSServerBase::Request>)> listencallback
+			= std::bind(&HTTPListenInfo::httpsListenCallback, info, std::placeholders::_1, std::placeholders::_2);
+
+		if (path == "*" || path == "") (*server.get()).default_resource[String::toupper(method)] = listencallback;
+		else (*server.get()).resource[path][String::toupper(method)] = listencallback;
+
+		return true;
+	}
+private:
+	virtual void threadProc()
+	{
+		if (server != NULL) server->start();
+	}
+	virtual bool start(int port, int threadnum)
+	{
+		server->config.port = port;
+		server->config.thread_pool_size = threadnum;
+
+		return WEBHTTPServer::start(port, threadnum);
+	}
+private:
+	shared_ptr<SIMPLEHTTPSServer> server;
+};
+#endif
+
 struct HTTPServer::HTTPServrInternal
 {
-	shared_ptr<WebInterface> web;
+	shared_ptr<WEBHTTPServer> web;
 };
 #ifdef HAVE_OPENSSL
 HTTPServer::HTTPServer(const std::string &cert_file, const std::string &private_key_file, const std::string &verify_file)
 {
 	internal = new HTTPServrInternal();
-	internal->web = make_shared<WEBHTTPServer<SIMPLEHTTPSServer,true> >(cert_file, private_key_file, verify_file);
+	internal->web = make_shared<HTTPSServerResource>(cert_file, private_key_file, verify_file);
 }
 #endif
 
 HTTPServer::HTTPServer()
 {
 	internal = new HTTPServrInternal();
-	internal->web = make_shared<WEBHTTPServer<SIMPLEHTTPServer,false> >();
+	internal->web = make_shared<HTTPServerResource>();
 }
 
 HTTPServer::~HTTPServer()
@@ -183,10 +239,13 @@ bool HTTPServer::listen(const std::string& path, const std::string& method, cons
 {
 	return internal->web->resource(path, method, callback);
 }
+#include "boost/asio.hpp"
 
 //Òì²½¼àÌý
 bool HTTPServer::run(uint32_t httpport, uint32_t threadNum)
 {
+
+
 	internal->web->dosource(resource);
 
 	return internal->web->start(httpport,threadNum);

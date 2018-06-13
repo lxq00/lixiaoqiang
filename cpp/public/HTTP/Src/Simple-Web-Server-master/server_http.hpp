@@ -57,8 +57,9 @@ namespace SimpleWeb {
       friend class ServerBase<socket_type>;
       friend class Server<socket_type>;
 
+    public:
       asio::streambuf streambuf;
-
+    private:
       std::shared_ptr<Session> session;
       long timeout_content;
 
@@ -172,8 +173,9 @@ namespace SimpleWeb {
         }
       }
 
-    private:
+    public:
       asio::streambuf &streambuf;
+    private:
       Content(asio::streambuf &streambuf) noexcept : std::istream(&streambuf), streambuf(streambuf) {}
     };
 

@@ -88,7 +88,7 @@ class BASE_API RecourceProc
 public:
 	RecourceProc();
 	~RecourceProc();
-	void put(IResource* res,uint64_t timeout);
+	void put(IResource* res, uint64_t timeout);
 	static RecourceProc* instance();
 private:
 	RecourceProcInternal * internal;

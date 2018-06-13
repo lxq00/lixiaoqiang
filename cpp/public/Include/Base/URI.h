@@ -58,79 +58,74 @@ public:
 		struct ValueInternal;
 		ValueInternal * internal;
 	};
-	struct BASE_API URIObject
-	{
-		std::string	key;
-		Value		val;
-		//适用于Identifier
-		std::string toStringAsIdentifier();
-		//适用于ExtParameter和Parameter
-		std::string toStringAsParameter();
-	};
 public:
 	//protocol 协议 如：HTTP/FTP/VDR等
-	URI(const std::string& protocol,const Value& host,int port = 0);
-	URI(const URI& uri);
-	~URI();
+public:
+	struct BASE_API AuthenInfo
+	{
+		std::string Username;
+		std::string Password;
+	};
+public:
+	URI();
+	URI(const std::string& href);
+	URI(const URI& url);
+	virtual ~URI();
 
-	bool setProtocol(const std::string& protocol);
-	
-	bool setHost(const std::string& host,int port = 0);
+	URI& operator = (const URI& url);
+	URI& operator = (const std::string& href);
+
+	void clean();
+
+	//http://user:pass@host.com:8080/p/a/t/h?query=string#hash
+	std::string href() const;
+	void href(const std::string& url);
+
+	//http
+	std::string protocol;
+	const std::string& getProtocol() const;
+	void setProtocol(const std::string& protocolstr);
+
+	//user:pass
+	AuthenInfo	authen;
+	std::string getAuhen() const;
+	const AuthenInfo& getAuthenInfo() const;
+	void setAuthen(const std::string& authenstr);
+	void setAuthen(const std::string& username, std::string& password);
+	void setAuthen(const AuthenInfo& info);
 
 
-	//添加地址标识符 val不能为空
-	//VDR://local/dvsid/610001/Storages/C?camera=camera/1&date=2012-3-5
-	//dvsid/storages
-	bool addIdentifier(const std::string& mark,const Value& val);
+	//host.com:8080
+	std::string getHost() const;
+	void setHost(const std::string& hoststr);
 
-	//添加参数
-	//VDR://local/dvsid/610001/Storages/C?camera=camera/1&date=2012-3-5
-	//camera /date
-	bool addParameter(const std::string& key,const Value& val);
-		
+	//host.com
+	std::string hostname;
+	const std::string& getHostname() const;
+	void setHostname(const std::string& hostnamestr);
 
-	//删除一个地址标识符及对应的值
-	bool removeIndentifier(const std::string& mark);
-	//删除一个参数及对应的值
-	bool removeParameter(const std::string& key);
+	//8080
+	uint32_t port;
+	uint32_t getPort() const;
+	void setPort(uint32_t portnum);
 
-	//获取参数字符串
-	std::string getParmeterString() const;
-	//已字符的方式添加附加参数
-	bool addParmeterString(const std::string& exstring);
+	///p/a/t/h?query=string#hash
+	std::string getPath() const;
+	void setPath(const std::string& pathstr);
 
-	//获取一个地址标识符  NULL表示失败
-	Value* getIdentifier(const std::string& mark) const;
-	//获取一个参数 NULL表示失败
-	Value* getParameter(const std::string& key) const;
+	//p/a/t/h
+	std::string pathname;
+	const std::string& getPathname() const;
+	void setPathname(const std::string& pathnamestr);
 
+	//?query=string#hash
+	std::string getSearch() const;
+	void setSearch(const std::string& searchstr);
 
-	//获取地址标识符集合
-	std::list<URIObject> getIndentifierList() const;
-	//获取参数集合
-	std::list<URIObject> getParmeterList() const;
-
-	
-	//获取协议
-	std::string& getProtocol() const;
-	//获取协议
-	Value getHost() const;
-
-	//获取端口		0表示无
-	int getPort() const;
-	
-	//转成uri字符串
-	std::string toString() const;
-
-	///获取最基本的字符串，不包括参数及扩展参数
-	std::string getBasicString() const;
-
-	//协议uri字符串
-	bool parse(const std::string& uri);
-
-	URI& operator = (const URI& uri);
-private:
-	URIInternal* internal;
+	//<query,string#assh>
+	std::map<std::string, URI::Value> query;
+	const std::map<std::string, URI::Value>& getQuery() const;
+	void setQuery(const std::map<std::string, URI::Value>& queryobj);
 };
 
 

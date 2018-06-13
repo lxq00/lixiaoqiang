@@ -22,12 +22,25 @@ struct function_traits < ReturnType(ClassType::*)(Args, Args2) const >
 	typedef ReturnType(*pointer)(Args, Args2);
 	typedef std::function<ReturnType(Args, Args2)> function;
 };
-
+#include "boost/regex.hpp"
 int main()
 {
+	std::string url = "/api/entities/11";
+	std::string math = "^/api/entities/.+";
 
-	Public::HTTP::HTTPClient client("http://192.168.0.11");
-	shared_ptr<Public::HTTP::HTTPResponse> respse = client.request("get");
+	boost::regex  regex (math);
+
+	if (boost::regex_match(url, regex))
+	{
+		int a = 0;
+	}
+	else
+	{
+		int b = 0;
+	}
+
+	//Public::HTTP::HTTPClient client("http://192.168.0.11");
+	//shared_ptr<Public::HTTP::HTTPResponse> respse = client.request("get");
 
 	int a = 0;
 

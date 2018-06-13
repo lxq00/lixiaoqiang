@@ -63,19 +63,20 @@ namespace Log{
 	std::string("log4cplus.appender.ALL_MSGS.MaxSizeRollBackups=100\r\n") + \
 	std::string("log4cplus.appender.ALL_MSGS.MaxFileSize=1024KB\r\n") + \
 	std::string("\r\n ") + \
-	std::string("# CONSOLE\r\n ") + \
-	std::string("log4cplus.appender.CONSOLE=log4cplus::AsyncAppender\r\n ") + \
-	std::string("log4cplus.appender.CONSOLE=log4cplus::ConsoleAppender\r\n ") + \
-	std::string("log4cplus.appender.CONSOLE.layout=log4cplus::TTCCLayout\r\n ") + \
-	std::string("log4cplus.appender.CONSOLE.filters.1=log4cplus::spi::LogLevelRangeFilter\r\n ") + \
-	std::string("log4cplus.appender.CONSOLE.filters.1.LogLevelMin="PRINTMINTRANS"\r\n ") + \
-	std::string("log4cplus.appender.CONSOLE.filters.1.LogLevelMax=FATAL\r\n ") + \
-	std::string("log4cplus.appender.CONSOLE.filters.1.AcceptOnMatch=true\r\n ") + \
-	std::string("log4cplus.appender.CONSOLE.layout=log4cplus::PatternLayout\r\n ") + \
-	std::string("log4cplus.appender.CONSOLE.layout.ConversionPattern=%D{%Y-%m-%d %H:%M:%S} %-5p - %m%n\r\n ") + \
-	std::string("\r\n ") + \
 	std::string("\r\n ") + \
 	std::string("\r\n ");
+
+/*std::string("\r\n ") + \
+std::string("# CONSOLE\r\n ") + \
+std::string("log4cplus.appender.CONSOLE=log4cplus::AsyncAppender\r\n ") + \
+std::string("log4cplus.appender.CONSOLE=log4cplus::ConsoleAppender\r\n ") + \
+std::string("log4cplus.appender.CONSOLE.layout=log4cplus::TTCCLayout\r\n ") + \
+std::string("log4cplus.appender.CONSOLE.filters.1=log4cplus::spi::LogLevelRangeFilter\r\n ") + \
+std::string("log4cplus.appender.CONSOLE.filters.1.LogLevelMin="PRINTMINTRANS"\r\n ") + \
+std::string("log4cplus.appender.CONSOLE.filters.1.LogLevelMax=FATAL\r\n ") + \
+std::string("log4cplus.appender.CONSOLE.filters.1.AcceptOnMatch=true\r\n ") + \
+std::string("log4cplus.appender.CONSOLE.layout=log4cplus::PatternLayout\r\n ") + \
+std::string("log4cplus.appender.CONSOLE.layout.ConversionPattern=%D{%Y-%m-%d %H:%M:%S} %-5p - %m%n\r\n ") + \*/
 	
 ///////////////////////////////////////////////Log≈‰÷√»± °≈‰÷√–≈œ¢ END///////////////////////////
 

@@ -14,8 +14,10 @@ namespace Public {
 namespace HTTP {
 
 using SimpleHttpClient = SimpleWeb::Client<SimpleWeb::HTTP>;
+using SimpleHttpClientBaseResponse = SimpleWeb::ClientBase<SimpleWeb::HTTP>::Response;
 #ifdef HAVE_OPENSSL
 using SimpleHttpsClient = SimpleWeb::Client<SimpleWeb::HTTPS>;
+using SimpleHttpsClientBaseResponse = SimpleWeb::ClientBase<SimpleWeb::HTTPS>::Response;
 #endif
 
 class HTTPCallbackObjct
@@ -24,14 +26,14 @@ public:
 	HTTPCallbackObjct(const shared_ptr<HTTPRequest>& _req, const HTTPClient::AsynCallback& _callback) :callback(_callback), req(_req), endofwork(false) {}
 	~HTTPCallbackObjct() {}
 
-	void HTTPCallback(shared_ptr<SimpleHttpClient::Response> response, const SimpleWeb::error_code &ec)
+	void HTTPCallback(shared_ptr<SimpleHttpClientBaseResponse> response, const SimpleWeb::error_code &ec)
 	{
 		shared_ptr<HTTPResponse> resp = buildHTTPResponse(response, ec.value(), ec.message());
 		callback(req, resp);
 		endofwork = true;
 	}
 #ifdef HAVE_OPENSSL
-	void HTTPSCallback(shared_ptr<SimpleHttpsClient::Response> response, const SimpleWeb::error_code &ec)
+	void HTTPSCallback(shared_ptr<SimpleHttpsClientBaseResponse> response, const SimpleWeb::error_code &ec)
 	{
 		shared_ptr<HTTPResponse> resp = buildHTTPResponse(response, ec.value(), ec.message());
 		callback(req, resp);
@@ -77,8 +79,9 @@ public:
 template<typename T,bool HTTPS>
 class SIMPHTTPObject :public HTTPObject
 {
+	typedef typename T::Response SIMPHTTPResponse;
 public:
-	SIMPHTTPObject(const std::string& host,bool _https)
+	SIMPHTTPObject(const std::string& host)
 	{
 		client = make_shared<T>(host);
 
@@ -100,7 +103,7 @@ public:
 
 		try
 		{
-			shared_ptr<T::Response> response = client->request(req->method, req->url.getPath(),req->buf.buf.str() , ackhreaders);
+			shared_ptr<SIMPHTTPResponse> response = client->request(req->method, req->url.getPath(),req->buf.read() , ackhreaders);
 
 			int code = 200;
 			std::string msg;
@@ -115,7 +118,7 @@ public:
 			return HTTPCallbackObjct::buildHTTPResponse(response, code,msg);
 		}
 		catch (const SimpleWeb::system_error &e) {
-			return HTTPCallbackObjct::buildHTTPResponse(shared_ptr<T::Response>(), e.code().value(),e.code().message());
+			return HTTPCallbackObjct::buildHTTPResponse(shared_ptr<SIMPHTTPResponse>(), e.code().value(),e.code().message());
 		}
 
 		
@@ -129,18 +132,7 @@ public:
 			ackhreaders.insert(make_pair(iter->first, iter->second.readString()));
 		}
 
-		if (!HTTPS)
-		{
-			client->request(req->method, req->url.getPath(), req->buf.buf.str(), ackhreaders, 
-				std::bind(&HTTPCallbackObjct::HTTPCallback, callbackobj, std::placeholders::_1, std::placeholders::_2));
-		}
-#ifdef HAVE_OPENSSL
-		else
-		{
-			client->request(req->method, req->url.getPath(), req->buf.buf.str(), ackhreaders, 
-				std::bind(&HTTPCallbackObjct::HTTPSCallback, callbackobj, std::placeholders::_1, std::placeholders::_2));
-		}
-#endif
+		webRequest(req, ackhreaders, callbackobj);
 
 		{
 			Guard locker(m_mutex);
@@ -149,6 +141,8 @@ public:
 
 		return true;
 	}
+private:
+	virtual void webRequest(const shared_ptr<HTTPRequest>& req, SimpleWeb::CaseInsensitiveMultimap& ackhreaders, shared_ptr<HTTPCallbackObjct>& callbackobj) = 0;
 private:
 	void onPoolTimerProc(unsigned long)
 	{
@@ -165,17 +159,45 @@ private:
 			}
 		}
 	}
-private:
+protected:
 	shared_ptr<Timer>						  m_timer;
 	Mutex									  m_mutex;
 	shared_ptr<T>							  client;
 	std::list<shared_ptr<HTTPCallbackObjct> > responseList;
 };
 
+class WEBHTTPOBJECT :public SIMPHTTPObject<SimpleHttpClient, false>
+{
+public:
+	WEBHTTPOBJECT(const std::string& host, bool _https):SIMPHTTPObject(host){}
+	~WEBHTTPOBJECT() {}
+	void webRequest(const shared_ptr<HTTPRequest>& req, SimpleWeb::CaseInsensitiveMultimap& ackhreaders, shared_ptr<HTTPCallbackObjct>& callbackobj)
+	{
+		std::function<void(std::shared_ptr<SimpleHttpClientBaseResponse>, const SimpleWeb::error_code &)> funccall = std::bind(&HTTPCallbackObjct::HTTPCallback, callbackobj, std::placeholders::_1, std::placeholders::_2);
+		SimpleWeb::string_view data = req->buf.read();
+		client->request(String::toupper(req->method), req->url.getPath(), data, ackhreaders, static_cast<std::function<void(std::shared_ptr<SimpleHttpClientBaseResponse>, const SimpleWeb::error_code &)>&&>(funccall));
+	}
+};
+
+#ifdef HAVE_OPENSSL
+class WEBHTTPSOBJECT :public SIMPHTTPObject<SimpleHttpsClient, true>
+{
+public:
+	WEBHTTPSOBJECT(const std::string& host, bool _https) :SIMPHTTPObject(host) {}
+	~WEBHTTPSOBJECT() {}
+	void webRequest(const shared_ptr<HTTPRequest>& req, SimpleWeb::CaseInsensitiveMultimap& ackhreaders, shared_ptr<HTTPCallbackObjct>& callbackobj)
+	{
+		std::function<void(std::shared_ptr<SimpleHttpsClientBaseResponse>, const SimpleWeb::error_code &)> funccall = std::bind(&HTTPCallbackObjct::HTTPSCallback, callbackobj, std::placeholders::_1, std::placeholders::_2);
+		SimpleWeb::string_view data = req->buf.read();
+		client->request(String::toupper(req->method), req->url.getPath(), data, ackhreaders, static_cast<std::function<void(std::shared_ptr<SimpleHttpsClientBaseResponse>, const SimpleWeb::error_code &)>&&>(funccall));
+	}
+};
+#endif
+
 struct HTTPClient::HTTPClientInternal
 {
 	shared_ptr<HTTPObject>		clientObjct;
-	URL										 url;
+	URI							url;
 };
 
 HTTPClient::HTTPClient(const std::string& url)
@@ -184,20 +206,20 @@ HTTPClient::HTTPClient(const std::string& url)
 	internal->url.href(url);
 
 	stringstream reqstring;
-	reqstring << internal->url.getHostname() << ":" << internal->url.getPort();
+	reqstring << internal->url.getHost() << ":" << internal->url.getPort();
 	
-	if (strcasecmp(internal->url.protocol.c_str(), "http") == 0)
+	if (strcasecmp(internal->url.getProtocol().c_str(), "http") == 0)
 	{
-		internal->clientObjct = make_shared<SIMPHTTPObject<SimpleHttpClient, false> >(reqstring.str(), false);
+		internal->clientObjct = make_shared<WEBHTTPOBJECT>(reqstring.str(), false);
 	}
 #ifdef HAVE_OPENSSL
-	else if (strcasecmp(internal->url.protocol.c_str(), "https") == 0)
+	else if (strcasecmp(internal->url.getProtocol().c_str(), "https") == 0)
 	{
-		internal->clientObjct = make_shared<SIMPHTTPObject<SimpleHttpsClient,true> >(reqstring.str(), true);
+		internal->clientObjct = make_shared<WEBHTTPSOBJECT>(reqstring.str(), true);
 	}
 #endif
 }
-HTTPClient::HTTPClient(const URL& url):HTTPClient(url.href())
+HTTPClient::HTTPClient(const URI& url):HTTPClient(url.href())
 {
 }
 HTTPClient::~HTTPClient()
@@ -215,7 +237,7 @@ const shared_ptr<HTTPResponse> HTTPClient::request(const std::string & method, c
 	shared_ptr<HTTPRequest> req = make_shared<HTTPRequest>();
 	req->method = method;
 	req->url = internal->url;
-	req->buf.write(buf.buf.str());
+	req->buf.write(buf.read());
 	req->headers = headers;
 
 	return request(req);

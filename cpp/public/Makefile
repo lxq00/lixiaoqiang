@@ -21,10 +21,10 @@ ifneq ($(strip ${DISAPP}), YES)
 	SubFile += sqlite3/sqlite3.mk	
 	SubFile += HostIPC/HostIPC.mk	
 	SubFile += JSON/JSON.mk	
-#	SubFile += HTTP/HTTP.mk
+	SubFile += HTTP/HTTP.mk
 	SubFile += Log/Log.mk	
 	SubFile += zip/zip.mk	
-#	SubFile += mqtt/mqtt.mk	
+	SubFile += mqtt/mqtt.mk	
 	SubFile += SIPStack/SIPStack.mk
 	SubFile += GBStack/GBStack.mk
 	SubFile += RTSPClient/RTSPClient.mk

@@ -290,17 +290,5 @@ void DynamicMemPool::Free(void* addr)
 #endif
 }
 
-static Mutex	mutex;
-
-DynamicMemPool* DynamicMemPool::instance()
-{
-	Guard locker(mutex);
-	static DynamicMemPool mempool;
-
-	return &mempool;
-	//return CreateSingleton<DynamicMemPool>(SINGLETON_Levl_Base,3);
-}
-
-
 };
 };

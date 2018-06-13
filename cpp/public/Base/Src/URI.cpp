@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sstream>
 
 namespace Public{
 namespace Base{
@@ -11,7 +12,7 @@ namespace Base{
 #define strcasecmp _stricmp
 #define snprintf _snprintf
 #endif
-bool checkUrlKeyIsValid(const std::string& key)
+bool checkURIKeyIsValid(const std::string& key)
 {
 	char invaildList[] = {' ','/','?','@','~','!','#','$','^','*','&','(',')','[',']','{','}',
 		'/','\\','\r','\n','\t',';',':','\"',',','<','>','|','='};
@@ -377,434 +378,264 @@ bool URI::Value::isEmpty() const
 {
 	return internal->type == Type_Empty;
 }
-
-std::string URI::URIObject::toStringAsIdentifier()
+//http://user:pass@host.com:8080/p/a/t/h?query=string#hash
+URI::URI()
 {
-	return key + std::string("/") + val.readString();
+	clean();
 }
-std::string URI::URIObject::toStringAsParameter()
+URI::URI(const URI& URI)
 {
-	return key + std::string("=") + val.readString();
+	href(URI.href());
 }
-
-struct URI::URIInternal
+URI::URI(const std::string& URIstr)
 {
-	URIInternal():port(0){}
-	void clean()
-	{
-		protocol = "";
-		host = std::string("");
-		port = 0;
-		identifier.clear();
-		parameter.clear();
-	}
-
-	std::string protocol;
-	Value host;
-	int port;
-
-	std::list<URI::URIObject> identifier;
-	std::list<URI::URIObject> parameter;
-};
-
-URI::URI(const std::string& protocol,const Value& host,int port)
-{
-	internal = new URIInternal();
-	if(!checkUrlKeyIsValid(protocol))
-	{
-		internal->protocol = "VDR";
-	}
-	else
-	{
-		internal->protocol = protocol;
-	}
-	internal->protocol = protocol;
-	internal->host = host;
-	internal->port = port;
-}
-URI::URI(const URI& uri)
-{
-	internal = new URIInternal();
-	internal->protocol = uri.internal->protocol;
-	internal->host = uri.internal->host;
-	internal->port = uri.internal->port;
-	internal->identifier = uri.internal->identifier;
-	internal->parameter = uri.internal->parameter;
+	href(URIstr);
 }
 URI::~URI()
 {
-	delete internal;
 }
 
-URI& URI::operator = (const URI& uri)
+URI& URI::operator = (const URI& URI)
 {
-	internal->protocol = uri.internal->protocol;
-	internal->host = uri.internal->host;
-	internal->port = uri.internal->port;
-	internal->identifier = uri.internal->identifier;
-	internal->parameter = uri.internal->parameter;
+	protocol = URI.protocol;
+	pathname = URI.pathname;
+	authen = URI.authen;
+	port = URI.port;
+	query = URI.query;
 
 	return *this;
 }
-bool URI::setProtocol(const std::string& protocol)
+URI& URI::operator = (const std::string& _href)
 {
-	if(!checkUrlKeyIsValid(protocol))
+	href(_href);
+
+	return *this;
+}
+
+void URI::clean()
+{
+	protocol = "http";
+	authen.Username = authen.Password = "";
+	pathname = "/";
+	port = 80;
+	query.clear();
+}
+
+std::string URI::href() const
+{
+	stringstream sstream;
+
+	std::string hoststr = getHost();
+
+	if (hoststr != "")
 	{
-		return false;
+		if (protocol == "") sstream << "http";
+		else sstream << protocol;
+
+		sstream << "://";
+
+		std::string authenstr = getAuhen();
+		if (authenstr != "") sstream << authenstr;
+
+		sstream << hoststr;
 	}
+
+	std::string pathstr = getPath();
+	if (pathstr != "")
+	{
+		if (*pathstr.c_str() != '/') sstream << '/';
+		sstream << pathstr;
+	}
+
+	return sstream.str();
+}
+void URI::href(const std::string& URI)
+{
+	clean();
+
+	const char* URItmp = URI.c_str();
+	//解析协议
+	const char* tmp = strstr(URItmp, "://");
+	if (tmp != NULL)
+	{
+		setProtocol(std::string(URItmp, tmp - URItmp));
+		URItmp = tmp += 3;
+	}
+	//解析用户密码
+	tmp = strchr(URItmp, '@');
+	if (tmp != NULL)
+	{
+		setAuthen(std::string(URItmp, tmp - URItmp));
+		URItmp = tmp + 1;
+	}
+	//解析主机信息
+	if (*URItmp != '/')
+	{
+		tmp = strchr(URItmp, '/');
+		if (tmp == NULL) tmp = URItmp + strlen(URItmp);
+
+		setHost(std::string(URItmp, tmp - URItmp));
+
+		URItmp = tmp;
+	}
+
+	setPath(URItmp);
+
+	if (pathname == "") pathname = "/";
+}
+
+const std::string& URI::getProtocol() const
+{
+	return protocol;
+}
+void URI::setProtocol(const std::string& protocolstr)
+{
+	protocol = protocolstr;
+}
+
+std::string URI::getAuhen() const
+{
+	if (authen.Username == "" || authen.Password == "") return "";
+	if (authen.Password == "") return authen.Username;
+	return std::string(authen.Username) + ":" + authen.Password;
+}
+const URI::AuthenInfo& URI::getAuthenInfo() const
+{
+	return authen;
+}
+void URI::setAuthen(const std::string& authenstr)
+{
+	authen.Username = authenstr;
+	const char* authenstrtmp = authenstr.c_str();
+	const char* tmp1 = strchr(authenstrtmp, ':');
+	if (tmp1 != NULL)
+	{
+		authen.Username = std::string(authenstrtmp, tmp1 - authenstrtmp);
+		authen.Password = tmp1 + 1;
+	}
+}
+void URI::setAuthen(const std::string& username, std::string& password)
+{
+	authen.Username = username;
+	authen.Password = password;
+}
+void URI::setAuthen(const AuthenInfo& info)
+{
+	authen = info;
+}
+std::string URI::getHost() const
+{
+	stringstream sstream;
+	sstream << hostname;
+	if (port != 80) sstream << ":" << port;
+
+	return sstream.str();
+}
+void URI::setHost(const std::string& hoststr)
+{
+	std::string hostnamestr = hostname = hoststr;
+	const char* hostnametmp = hostnamestr.c_str();
+	const char* tmp1 = strchr(hostnametmp, ':');
+	if (tmp1 != NULL)
+	{
+		hostname = std::string(hostnametmp, tmp1 - hostnametmp);
+		port = atoi(tmp1 + 1);
+	}
+}
+
+const std::string& URI::getHostname() const
+{
+	return hostname;
+}
+void URI::setHostname(const std::string& hostnamestr)
+{
+	hostname = hostnamestr;
+}
+
+uint32_t URI::getPort() const
+{
+	return port;
+}
+void URI::setPort(uint32_t portnum)
+{
+	port = portnum;
+}
+
+std::string URI::getPath() const
+{
+	std::string querystr = getSearch();
+
+	return pathname + querystr;
+}
+void URI::setPath(const std::string& pathstr)
+{
+	pathname = pathstr;
+
+	const char* URItmp = pathstr.c_str();
+	const char* tmp = strchr(URItmp, '?');
+	if (tmp != NULL)
+	{
+		pathname = std::string(URItmp, tmp - URItmp);
+
+		setSearch(tmp + 1);
+	}
+}
+
+const std::string& URI::getPathname() const
+{
+	return pathname;
+}
+void URI::setPathname(const std::string& pathnamestr)
+{
+	pathname = pathnamestr;
+}
+
+std::string URI::getSearch() const
+{
+	stringstream sstream;
 	
-	internal->protocol = protocol;
+	for (std::map<std::string, URI::Value>::const_iterator iter = query.begin(); iter != query.end(); iter++)
+	{
+		sstream << (iter == query.begin() ? "?":"&") << iter->first << "=" << iter->second.readString();
+	}
 
-	return true;
+	return sstream.str();
 }
-bool URI::setHost(const std::string& host,int port)
+void URI::setSearch(const std::string& searchstr)
 {
-	internal->host = host;
-	internal->port = port;
+	const char* querystr = searchstr.c_str();
 
-	return true;
-}
-
-bool URI::addIdentifier(const std::string& mark,const Value& val)
-{
-	if(!checkUrlKeyIsValid(mark) || !checkUrlKeyIsValid(val.readString()) || val.isEmpty())
+	while (1)
 	{
-		return false;
-	}
+		const char* tmp1 = strchr(querystr, '&');
+		std::string querystrtmp = querystr;
+		if (tmp1 != NULL) querystrtmp = std::string(querystr, tmp1 - querystr);
 
-	std::list<URI::URIObject>::iterator iter;
-	for(iter = internal->identifier.begin();iter != internal->identifier.end();iter ++)
-	{
-		if(strcasecmp(iter->key.c_str(),mark.c_str()) == 0)
-		{
-			iter->val = val;
-			return true;
-		}
-	}
-
-	URI::URIObject obj;
-	obj.key = mark;
-	obj.val = val;
-	internal->identifier.push_back(obj);
-
-	return true;
-}
-bool URI::addParameter(const std::string& key,const Value& val)
-{
-	if(!checkUrlKeyIsValid(key))
-	{
-		return false;
-	}
-
-	std::list<URI::URIObject>::iterator iter;
-	for(iter = internal->parameter.begin();iter != internal->parameter.end();iter ++)
-	{
-		if(strcasecmp(iter->key.c_str(),key.c_str()) == 0)
-		{
-			iter->val = val;
-			return true;
-		}
-	}
-
-	URI::URIObject obj;
-	obj.key = key;
-	obj.val = val;
-	internal->parameter.push_back(obj);
-
-	return true;
-}
-
-bool URI::removeIndentifier(const std::string& mark)
-{
-	if(!checkUrlKeyIsValid(mark))
-	{
-		return false;
-	}
-
-	std::list<URI::URIObject>::iterator iter;
-	for(iter = internal->identifier.begin();iter != internal->identifier.end();iter ++)
-	{
-		if(strcasecmp(iter->key.c_str(),mark.c_str()) == 0)
-		{
-			internal->identifier.erase(iter);
-			break;
-		}
-	}
-
-	return true;
-}
-
-bool URI::removeParameter(const std::string& key)
-{
-	if(!checkUrlKeyIsValid(key))
-	{
-		return false;
-	}
-
-	std::list<URI::URIObject>::iterator iter;
-	for(iter = internal->parameter.begin();iter != internal->parameter.end();iter ++)
-	{
-		if(strcasecmp(iter->key.c_str(),key.c_str()) == 0)
-		{
-			internal->parameter.erase(iter);
-			break;
-		}
-	}
-
-	return true;
-}
-
-std::string URI::getParmeterString() const
-{
-#define URISTRINGMAXSIZE 2048
-	char strbufer[URISTRINGMAXSIZE] = {0};
-
-	std::list<URI::URIObject>::iterator iter;
-	for(iter = internal->parameter.begin();iter != internal->parameter.end();iter ++)
-	{
-		std::string tmp = URLEncoding::encode(iter->val.readString());
-		snprintf(strbufer + strlen(strbufer),URISTRINGMAXSIZE - strlen(strbufer),"%s%s=%s",
-			iter == internal->parameter.begin() ? "":"&",iter->key.c_str(),tmp.c_str());
-	}
-
-	return strbufer;
-}
-bool URI::addParmeterString(const std::string& exstring)
-{
-	const char* urltmp = exstring.c_str();
-	bool isEnd = false;
-	do{
-		std::string key;
+		std::string key = querystrtmp;
 		std::string val;
-		isEnd = false;
-
-		urltmp = findNodeInString(urltmp,key,"=","",isEnd);
-		if(!isEnd)
+		const char* querystrtmpstr = querystrtmp.c_str();
+		const char* tmp2 = strchr(querystrtmpstr, '=');
+		if (tmp2 != NULL)
 		{
-			urltmp = findNodeInString(urltmp,val,"&","",isEnd);
+			key = std::string(querystrtmpstr, tmp2 - querystrtmpstr);
+			val = tmp2 + 1;
 		}
-		
-		if(key != "")
-		{
-			URI::URIObject obj;
-			obj.key = key;
-			obj.val = URLEncoding::decode(val);
 
-			internal->parameter.push_back(obj);
-		}		
-	}while(!isEnd);
+		query[key] = val;
 
-	return true;
+		if (tmp1 == NULL) break;
+		querystr = tmp1 + 1;
+	}
 }
 
-URI::Value* URI::getIdentifier(const std::string& mark) const
+const std::map<std::string, URI::Value>& URI::getQuery() const
 {
-	if(!checkUrlKeyIsValid(mark))
-	{
-		return NULL;
-	}
-
-	std::list<URI::URIObject>::iterator iter;
-	for(iter = internal->identifier.begin();iter != internal->identifier.end();iter ++)
-	{
-		if(strcasecmp(iter->key.c_str(),mark.c_str()) == 0)
-		{
-			return &iter->val;
-		}
-	}
-
-	return NULL;
+	return query;
 }
-
-URI::Value* URI::getParameter(const std::string& key) const
+void URI::setQuery(const std::map<std::string, URI::Value>& queryobj)
 {
-	if(!checkUrlKeyIsValid(key))
-	{
-		return NULL;
-	}
-
-	std::list<URI::URIObject>::iterator iter;
-	for(iter = internal->parameter.begin();iter != internal->parameter.end();iter ++)
-	{
-		if(strcasecmp(iter->key.c_str(),key.c_str()) == 0)
-		{
-			return &iter->val;
-		}
-	}
-
-	return NULL;
+	query = queryobj;
 }
-
-std::string& URI::getProtocol() const
-{
-	return internal->protocol;
-}
-
-URI::Value URI::getHost() const
-{
-	return internal->host;
-}
-
-
-int URI::getPort() const
-{
-	return internal->port;
-}
-
-std::list<URI::URIObject> URI::getIndentifierList() const
-{
-	return internal->identifier;
-}
-
-std::list<URI::URIObject> URI::getParmeterList() const
-{
-	return internal->parameter;
-}
-
-std::string URI::toString() const
-{
-	if(internal->protocol == "")
-	{
-		internal->protocol = "VDR";
-	}
-#define URISTRINGMAXSIZE 2048
-	char strbufer[URISTRINGMAXSIZE] = {0};
-	snprintf(strbufer + strlen(strbufer),URISTRINGMAXSIZE - strlen(strbufer),"%s://%s",internal->protocol.c_str(),internal->host.readString().c_str());
-
-	if(internal->port != 0)
-	{
-		snprintf(strbufer + strlen(strbufer),URISTRINGMAXSIZE - strlen(strbufer),":%d",internal->port);
-	}
-
-	
-	std::list<URI::URIObject>::iterator iter;
-	for(iter = internal->identifier.begin();iter != internal->identifier.end();iter ++)
-	{
-		snprintf(strbufer + strlen(strbufer),URISTRINGMAXSIZE - strlen(strbufer),"/%s/%s",iter->key.c_str(),iter->val.readString().c_str());
-	}
-
-	for(iter = internal->parameter.begin();iter != internal->parameter.end();iter ++)
-	{
-		std::string tmp = URLEncoding::encode(iter->val.readString());
-		snprintf(strbufer + strlen(strbufer),URISTRINGMAXSIZE - strlen(strbufer),"%c%s=%s",
-			iter == internal->parameter.begin() ? '?':'&',iter->key.c_str(),tmp.c_str());
-	}
-
-	return strbufer;
-}
-
-std::string URI::getBasicString() const
-{
-	if(internal->protocol == "")
-	{
-		internal->protocol = "VDR";
-	}
-#define URISTRINGMAXSIZE 2048
-	char strbufer[URISTRINGMAXSIZE] = {0};
-	snprintf(strbufer + strlen(strbufer),URISTRINGMAXSIZE - strlen(strbufer),"%s://%s",internal->protocol.c_str(),internal->host.readString().c_str());
-
-	if(internal->port != 0)
-	{
-		snprintf(strbufer + strlen(strbufer),URISTRINGMAXSIZE - strlen(strbufer),":%d",internal->port);
-	}
-
-
-	std::list<URI::URIObject>::iterator iter;
-	for(iter = internal->identifier.begin();iter != internal->identifier.end();iter ++)
-	{
-		snprintf(strbufer + strlen(strbufer),URISTRINGMAXSIZE - strlen(strbufer),"/%s/%s",iter->key.c_str(),iter->val.readString().c_str());
-	}
-
-	return strbufer;
-}
-
-bool URI::parse(const std::string& uri)
-{
-	internal->clean();
-	
-	const char* urltmp = uri.c_str();
-
-	//先解析协议
-	const char* tmp = strstr(urltmp,"://");
-	if(tmp == NULL)
-	{
-		return false;
-	}
-
-	internal->protocol = std::string(urltmp,tmp-urltmp);
-
-	urltmp = tmp + 3;
-
-	//在解析host和port
-	tmp = strchr(urltmp,'/');
-	if(tmp == NULL)
-	{
-		return false;
-	}
-
-	std::string hoststr(urltmp,tmp - urltmp);
-	const char* porttmp = strchr(hoststr.c_str(),':');
-	if(porttmp == NULL)
-	{
-		internal->host = hoststr;
-	}
-	else
-	{
-		internal->host = std::string(hoststr.c_str(),porttmp - hoststr.c_str());
-		internal->port = atoi(porttmp + 1);
-	}
-
-	urltmp = tmp + 1;
-	bool isEnd = false;
-	//开始解析identifier
-	do{
-		std::string key;
-		std::string val;
-		isEnd = false;
-
-		urltmp = findNodeInString(urltmp,key,"/","?",isEnd);
-
-		if(!isEnd)
-		{
-			urltmp = findNodeInString(urltmp,val,"/","?",isEnd);
-		}
-		if(key != "")
-		{
-			URI::URIObject obj;
-			obj.key = key;
-			obj.val = val;
-
-			internal->identifier.push_back(obj);
-		}
-		
-	}while(!isEnd);
-
-
-	//开始解析parameter
-	do{
-		std::string key;
-		std::string val;
-		isEnd = false;
-
-		urltmp = findNodeInString(urltmp,key,"=","?",isEnd);
-		if(!isEnd)
-		{
-			urltmp = findNodeInString(urltmp,val,"&","?",isEnd);
-		}
-		
-		if(key != "")
-		{
-			URI::URIObject obj;
-			obj.key = key;
-			obj.val = URLEncoding::decode(val);
-
-			internal->parameter.push_back(obj);
-		}		
-	}while(!isEnd);
-
-	return internal->identifier.size() > 0;
-}
-
 
 
 }

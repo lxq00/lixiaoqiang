@@ -131,7 +131,7 @@ static LogPrintInfoInternal logmanager;
 
 std::string getLogTimeAndLevelString(LOG_Level lev)
 {
-	static const char* leveArray[]={"","fatal","error","warn","info","trace","debug"};
+	static const char* leveArray[]={"","FATAL","ERROR","WARN","INFO","TRACE","DEBUG"};
 
 	const char* levestring = "";
 	if(lev >= LOG_Level_FATAL && lev <= LOG_Level_DEBUG)
@@ -141,14 +141,13 @@ std::string getLogTimeAndLevelString(LOG_Level lev)
 
 	char fmttmp[64] = {0};
 	Time t = Time::getCurrentTime(); 
-	print_log_snprintf(fmttmp,64,"%02d:%02d:%02d %s ",t.hour, t.minute, t.second,levestring);
+	print_log_snprintf(fmttmp,64,"%04d-%02d-%02d %02d:%02d:%02d,%03u %s - ",t.year,t.month,t.day,t.hour, t.minute, t.second,(uint32_t)(Time::getCurrentMilliSecond() % 1000),levestring);
 
 	return fmttmp;
 }
 
 inline void print(LOG_Level lev,char const* s)
 {
-	if (logmanager.s_printList.size() == 0)
 	{
 		static int levelColor[] = { 0, COLOR_FATAL ,COLOR_FATAL ,COLOR_ERROR,COLOR_INFO,COLOR_TRACE,COLOR_DEBUG};
 
@@ -169,7 +168,6 @@ inline void print(LOG_Level lev,char const* s)
 
 		reset_console_color();
 	}
-	else
 	{
 		std::map<void*,Public::Base::LogPrinterProc>::iterator iter;
 		for(iter = logmanager.s_printList.begin();iter != logmanager.s_printList.end();iter ++)
@@ -233,7 +231,7 @@ void printer(LOG_Level level, const char* filename, const char* func, int line, 
 		else filenametmp = filenametmp + 1;
 
 		static char buffertmp[1024];
-		snprintf(buffertmp, 1023, "%s %s:%d ", filenametmp, func, line);
+		snprintf(buffertmp, 1023, "%s %s:%d - ", filenametmp, func, line);
 
 		std::string printstr = std::string(buffertmp) + buffer;
 

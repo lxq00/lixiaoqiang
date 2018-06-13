@@ -16,7 +16,7 @@
  public:
 	 typedef Function2<void, const shared_ptr<HTTPRequest>&, const shared_ptr<HTTPResponse>&> AsynCallback;
  public:
- 	HTTPClient(const URL& url);
+ 	HTTPClient(const URI& url);
 	HTTPClient(const std::string& url);
  	~HTTPClient();
 

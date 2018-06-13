@@ -20,78 +20,6 @@ namespace Public {
 namespace HTTP {
 
 
-//举例 http://user:pass@host.com:8080/p/a/t/h?query=string#hash
-class HTTP_API URL
-{
-public:
-	struct AuthenInfo
-	{
-		std::string Username;
-		std::string Password;
-	};
-public:
-	URL();
-	URL(const std::string& href);
-	URL(const URL& url);
-	virtual ~URL();
-
-	URL& operator = (const URL& url);
-	URL& operator = (const std::string& href);
-
-	void clean();
-
-	//http://user:pass@host.com:8080/p/a/t/h?query=string#hash
-	std::string href() const;
-	void href(const std::string& url);
-
-	//http
-	std::string protocol;
-	const std::string& getProtocol() const;
-	void setProtocol(const std::string& protocolstr);
-
-	//user:pass
-	AuthenInfo	authen;
-	std::string getAuhen() const;
-	const AuthenInfo& getAuthenInfo() const;
-	void setAuthen(const std::string& authenstr);
-	void setAuthen(const std::string& username, std::string& password);
-	void setAuthen(const AuthenInfo& info);
-	
-
-	//host.com:8080
-	std::string getHost() const;
-	void setHost(const std::string& hoststr);
-
-	//host.com
-	std::string hostname;
-	const std::string& getHostname() const;
-	void setHostname(const std::string& hostnamestr);
-
-	//8080
-	uint32_t port;
-	uint32_t getPort() const;
-	void setPort(uint32_t portnum);
-
-	///p/a/t/h?query=string#hash
-	std::string getPath() const;
-	void setPath(const std::string& pathstr);
-
-	//p/a/t/h
-	std::string pathname;
-	const std::string& getPathname() const;
-	void setPathname(const std::string& pathnamestr);
-
-	//?query=string#hash
-	std::string getSearch() const;
-	void setSearch(const std::string& searchstr);
-
-	//<query,string#assh>
-	std::map<std::string, URI::Value> query;
-	const std::map<std::string, URI::Value>& getQuery() const;
-	void setQuery(const std::map<std::string, URI::Value>& queryobj);
-};
-
-
 //HTML模板替换
 //{{name}}	变量名称为name
 //{{#starttmp}} {{/starttmp}}		循环的起始和结束 循环名称为starttmp
@@ -140,7 +68,6 @@ public:
 
 	//when end of file return ""
 	int read(char* buffer, int len) const;
-	int read(std::ofstream& outfile) const;
 	std::string read() const;
 	bool readToFile(const std::string& filename) const;
 
@@ -149,7 +76,7 @@ public:
 	bool write(const std::string& buffer);
 	bool write(const HTTPTemplate& temp);
 	bool writeFromFile(const std::string& filename,bool deleteFile);
-
+private:
 	std::stringstream buf;
 };
 
@@ -167,8 +94,8 @@ public:
 	std::string method;
 	virtual std::string getMethod() const;
 
-	URL url;
-	virtual const URL& getUrl() const;
+	URI url;
+	virtual const URI& getUrl() const;
 
 	HTTPBuffer buf;
 	virtual const HTTPBuffer& buffer() const;

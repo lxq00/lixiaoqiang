@@ -8,7 +8,7 @@
 #include "Base/Guard.h"
 #include "Base/PrintLog.h"
 #include "../version.inl"
-
+#include <algorithm>
 
 namespace Public{
 namespace Base {
@@ -47,6 +47,11 @@ typedef int socklen_t;
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
+#include <sys/ioctl.h>
+#include<net/if.h>  
+#include<net/if_arp.h>  
+#include<arpa/inet.h>  
+
 	static bool networkInitial()
 	{
 		return true;
@@ -91,12 +96,12 @@ std::string	Host::guessMyIpaddr(const std::string& destip)
 	servaddr.sin_addr.s_addr = inet_addr(destip == "" ? "202.98.96.68" : destip.c_str()); //·þÎñÆ÷µØÖ·  
 	servaddr.sin_port = htons(11111);
 
-	::connect(sockFd, (sockaddr*)&servaddr, sizeof(servaddr));
+	connect(sockFd, (sockaddr*)&servaddr, sizeof(servaddr));
 
 	std::string ipaddr = "";
 	struct sockaddr_in iface_out;
 	int len = sizeof(iface_out);
-	if (::getsockname(sockFd, (struct sockaddr *) &iface_out, (socklen_t*)&len) >= 0 && iface_out.sin_addr.s_addr != 0)
+	if (getsockname(sockFd, (struct sockaddr *) &iface_out, (socklen_t*)&len) >= 0 && iface_out.sin_addr.s_addr != 0)
 	{
 		ipaddr = inet_ntoa(iface_out.sin_addr);
 	}
@@ -990,7 +995,12 @@ bool Host::getDiskInfo(int& num,uint64_t& totalSize,uint64_t& freeSize)
 //{
 //	return LinuxNetWorkUsage::getNetUsage(inbps,outbps);
 //}
-
+static inline void rtrim(std::string &s)
+{
+	s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+		return !std::isspace(ch);
+	}).base(), s.end());
+}
 std::string netInfogetDefaultGateway()
 {
 	std::string gateway;
@@ -1017,7 +1027,7 @@ bool Host::getNetworkInfos(std::map<std::string, NetworkInfo>& infos, std::strin
 
 	std::string gatewaystr = netInfogetDefaultGateway();
 
-	struct ifreq buf[16];
+	struct ifreq buf[30];
 	struct ifconf ifc;
 	if (ioctl(fd, SIOCGIFCONF, (char *)&ifc) == 0)
 	{
@@ -1087,66 +1097,67 @@ bool Host::getNetworkInfos(std::map<std::string, NetworkInfo>& infos, std::strin
 			}
 		}
 	}
+}
 
-	bool Host::setIPInfo(const NetworkInfo& info, const std::string& adapterName)
+bool Host::setIPInfo(const NetworkInfo& info, const std::string& adapterName)
+{
+	std::string nwkinf = adapterName;
+	if (nwkinf == "")
 	{
-		std::string nwkinf = adapterName;
-		if (nwkinf == "")
+		do 
 		{
-			do 
-			{
-				std::map<std::string, NetworkInfo> infos;
-				std::string defaultMac;
+			std::map<std::string, NetworkInfo> infos;
+			std::string defaultMac;
 
-				getNetworkInfos(infos, defaultMac);
-				if (defaultMac != "")
+			getNetworkInfos(infos, defaultMac);
+			if (defaultMac != "")
+			{
+				std::map<std::string, NetworkInfo>::iterator iter = infos.find(defaultMac);
+				if (iter != infos.end())
 				{
-					std::map<std::string, NetworkInfo>::iterator iter = infos.find(defaultMac);
-					if (iter != infos.end())
-					{
-						nwkinf = iter->second.AdapterName;
-						break;
-					}
-				}
-				if (infos.size() > 0)
-				{
-					nwkinf = infos.begin()->second.AdapterName;
+					nwkinf = iter->second.AdapterName;
 					break;
 				}
-			} while (0);
-		}
-		if (nwkinf == "") return false;
-
-
-		char cmd[128];
-		//link down command in Linux
-		{
-			sprintf(cmd, "ip link set %s down", nwkinf.c_str());
-			system(cmd);
-		}
-		
-		//command to set ip address, netmask
-		if(info.Ip != "" && info.Netmask != "")
-		{
-			sprintf(cmd, "ifconfig %s %s netmask %s", nwkinf.c_str(), info.Ip.c_str(), info.Netmask.c_str());
-			system(cmd);
-		}
-
-		//command to set gateway
-		if(info.Gateway != "")
-		{
-			sprintf(cmd, "route add default gw %s %s", info.Gateway.c_str(), nwkinf.c_str());
-			system(cmd);
-		}
-
-		//link up command
-		{
-			sprintf(cmd, "ip link set %s up", nwkinf.c_str());
-			system(cmd);
-		}
-		
-		return true;
+			}
+			if (infos.size() > 0)
+			{
+				nwkinf = infos.begin()->second.AdapterName;
+				break;
+			}
+		} while (0);
 	}
+	if (nwkinf == "") return false;
+
+
+	char cmd[128];
+	//link down command in Linux
+	{
+		sprintf(cmd, "ip link set %s down", nwkinf.c_str());
+		system(cmd);
+	}
+		
+	//command to set ip address, netmask
+	if(info.Ip != "" && info.Netmask != "")
+	{
+		sprintf(cmd, "ifconfig %s %s netmask %s", nwkinf.c_str(), info.Ip.c_str(), info.Netmask.c_str());
+		system(cmd);
+	}
+
+	//command to set gateway
+	if(info.Gateway != "")
+	{
+		sprintf(cmd, "route add default gw %s %s", info.Gateway.c_str(), nwkinf.c_str());
+		system(cmd);
+	}
+
+	//link up command
+	{
+		sprintf(cmd, "ip link set %s up", nwkinf.c_str());
+		system(cmd);
+	}
+		
+	return true;
+}
 
 #endif
 };

@@ -12,7 +12,7 @@ class HTTP_API HTTPServer
 public:
 	typedef Function2<void,const shared_ptr<HTTPRequest>&, shared_ptr<HTTPResponse>&> HttpListenCallback;
 public:
-#ifndef GCCSUPORTC11
+#ifdef HAVE_OPENSSL
 	HTTPServer(const std::string &cert_file, const std::string &private_key_file, const std::string &verify_file = std::string());
 #endif	
 	HTTPServer();

@@ -13,7 +13,7 @@ namespace Public{
 namespace Base{
 
 ///内存池设定、用于Publicmedia、也可以其他地方使用
-class BASE_API DynamicMemPool
+class BASE_API DynamicMemPool :public IMallcFreeMemObjcPtr
 {
 	class MemPoolInternal;
 public:
@@ -31,35 +31,10 @@ public:
 
 	///配置内存池总大小、默认为128M
 //	static void config(uint32_t allSize);
-
-	static DynamicMemPool*	instance();
 private:
 	MemPoolInternal*	internal;
 };
 
-#define gDynamicMemPool							(*DynamicMemPool::instance())
-#define Dynamic_Malloc(size,realsize)				gDynamicMemPool.Malloc(size,realsize)
-#define Dynamic_Free(addr)							{gDynamicMemPool.Free(addr); addr = NULL;}
-
-class BASE_API DynamicMallocFreeMem:public IMallcFreeMemObjcPtr
-{
-public:
-	DynamicMallocFreeMem(){}
-	~DynamicMallocFreeMem(){}
-
-	void* Malloc(uint32_t size,uint32_t& realsize)
-	{
-		return Dynamic_Malloc(size,realsize);
-	}
-	void Free(void* addr)
-	{
-		Dynamic_Free(addr);
-	}
-};
-
-static DynamicMallocFreeMem dynamicMemObjc;
-
-#define GDynamicMemObjcPtr &dynamicMemObjc
 
 } // namespace Base
 } // namespace Public
