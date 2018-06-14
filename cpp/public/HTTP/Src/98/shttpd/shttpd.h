@@ -91,6 +91,7 @@ void shttpd_poll(struct shttpd_ctx *, int milliseconds);
 const char *shttpd_version(void);
 int shttpd_get_var(const char *var, const char *buf, int buf_len,
 		char *value, int value_len);
+void shttpd_get_headeraddr(struct shttpd_arg *arg, const char** start, const char** end);
 const char *shttpd_get_header(struct shttpd_arg *, const char *header_name);
 const char *shttpd_get_env(struct shttpd_arg *, const char *name);
 void shttpd_get_http_version(struct shttpd_arg *,

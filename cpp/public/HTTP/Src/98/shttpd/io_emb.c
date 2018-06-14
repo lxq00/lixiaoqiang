@@ -110,6 +110,14 @@ shttpd_printf(struct shttpd_arg *arg, const char *fmt, ...)
 	return (len);
 }
 
+void shttpd_get_headeraddr(struct shttpd_arg *arg, const char** start, const char** end)
+{
+	struct conn	*c = arg->priv;
+
+	*start = c->headers;
+	*end = c->request + c->rem.headers_len;
+}
+
 const char *
 shttpd_get_header(struct shttpd_arg *arg, const char *header_name)
 {

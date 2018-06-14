@@ -1,9 +1,7 @@
-#include "Base/Base.h"
+#include "Base/Defs.h"
 #include "HTTP/Defs.h"
-#ifndef GCCSUPORTC11
 
-#include "HTTPRequest_98.h"
-#include "HTTPResponse_98.h"
+#ifndef GCCSUPORTC11
 #include "shttpd/shttpd.h"
 #include "HTTP/HTTPServer.h"
 #include "HTTP/HTTPClient.h"
@@ -11,13 +9,16 @@
 #include <time.h>
 #include <sstream>
 
+#include "boost/regex.hpp"
+
 namespace Public {
 namespace HTTP {
 
+
 struct HTTPDataInfo
 {
-	shared_ptr<HTTPServer::HTTPRequest>		request;
-	shared_ptr<HTTPServer::HTTPResponse>	response;
+	shared_ptr<HTTPRequest>		request;
+	shared_ptr<HTTPResponse>	response;
 	uint64_t								prevTime;
 	struct shttpd_arg *						arg;
 	uint32_t								totalsize;
@@ -27,20 +28,55 @@ struct HTTPDataInfo
 	{
 		return shttpd_get_header(arg,key.c_str());
 	}
-};
 
-struct HTTPUserCallbackInfo
-{
-	void*							internal;
-	void*							listen;
-};
+	static void parseHeader(std::map<std::string, URI::Value>& headers, struct shttpd_arg *arg)
+	{
+		const char* startptr = NULL;
+		const char* endptr = NULL;
+		shttpd_get_headeraddr(arg, &startptr, &endptr);
 
-struct HTTPListenInfo
-{
-	std::string						listenUrl;
-	std::string						method;
-	HTTPServer::HttpListenCallback	callback;
-	shared_ptr<HTTPUserCallbackInfo> userData;
+		std::string headerstr(startptr, endptr);
+		const char* headerstrtmp = headerstr.c_str();
+
+		while (1)
+		{
+			bool endoffile = false;
+			
+			std::string headerline;
+			{
+				const char* endtmp = strstr(headerstrtmp, "\r\n");
+				if (endtmp == NULL)
+				{
+					endoffile = true;
+					headerline = headerstrtmp;
+				}
+				else
+				{
+					headerline = std::string(headerstrtmp, endtmp);
+					headerstrtmp = endtmp += 2;
+				}
+			}
+			
+			const char* valpos = strchr(headerline.c_str(), ':');
+			if (valpos == NULL) break;
+
+			std::string key = stip(std::string(headerline.c_str(), valpos - headerline.c_str()));
+			std::string val = stip(valpos + 1);
+
+			headers[key] = val;
+			if (endoffile) break;
+		}
+	}
+	static std::string stip(const std::string& tmp)
+	{
+		const char* starttmp = tmp.c_str();
+		while (*starttmp == ' ') starttmp++;
+
+		const char* endtmp = starttmp + strlen(starttmp);
+		while (endtmp > starttmp && (*endtmp == ' ' || *endtmp == '\r' || *endtmp == '\n')) endtmp--;
+
+		return std::string(starttmp, endtmp - starttmp);
+	}
 };
 
 
@@ -50,22 +86,27 @@ struct HTTPListenInfo
 struct HTTPServer::HTTPServrInternal:public Thread
 {
 	shared_ptr<Timer>						pooltimer;
-	std::string								cachediv;
 
 	Mutex									mutex;
-	
-	HttpListenCallback						defaultCallback;
-	shared_ptr<HTTPUserCallbackInfo>		defaultCallbackInfo;
-	
+	std::map<std::string,std::map<std::string, HTTPServer::HttpListenCallback> >	callbackList;
+	std::map<std::string, HTTPServer::HttpListenCallback>							defaultCallbackList;
+
 	std::map<void*,shared_ptr<HTTPDataInfo> >	dataList;
 
-	std::map<const HTTPListenInfo*,shared_ptr<HTTPListenInfo> >	callbackList;
-
 	uint32_t								listenport;
-	HTTPBufferCacheType						cachetype;
 
 
-	HTTPServrInternal():Thread("HTTPServrInternal"){}
+	HTTPServrInternal():Thread("HTTPServrInternal")
+	{
+		pooltimer = make_shared<Timer>("HTTPServer");
+		pooltimer->start(Timer::Proc(&HTTPServrInternal::poolTimerProc, this), 0, 5000);
+	}
+
+	~HTTPServrInternal()
+	{
+		destroyThread();
+		pooltimer = NULL;
+	}
 
 	void threadProc()
 	{
@@ -85,15 +126,7 @@ struct HTTPServer::HTTPServrInternal:public Thread
 			return;
 		}
 
-		{
-			Guard locker(mutex);
-			for (std::map<const HTTPListenInfo*, shared_ptr<HTTPListenInfo> >::iterator iter = callbackList.begin(); iter != callbackList.end(); iter++)
-			{
-				shttpd_register_uri(pCtx, iter->second->listenUrl.c_str(), RequestAvg, iter->second->userData.get());
-			}
-		}
-
-		shttpd_register_uri(pCtx,"*", RequestAvg, defaultCallbackInfo.get());
+		shttpd_register_uri(pCtx,"*", RequestAvg, this);
 
 		while(looping())
 		{
@@ -138,7 +171,7 @@ struct HTTPServer::HTTPServrInternal:public Thread
 		}
 
 		bool isFindContentType = false;
-		for (std::map<std::string, URI::Value>::iterator iter = response->internal->header.begin(); iter != response->internal->header.end(); iter++)
+		for (std::map<std::string, URI::Value>::iterator iter = response->headers.begin(); iter != response->headers.end(); iter++)
 		{
 			if (strcasecmp(iter->first.c_str(), "Content-Type") == 0)
 			{
@@ -149,95 +182,25 @@ struct HTTPServer::HTTPServrInternal:public Thread
 
 		if (!isFindContentType)
 		{
-			response->internal->header["Content-Type"] = URI::Value("text/html; charset=gb2312");
+			response->headers["Content-Type"] = URI::Value("text/html; charset=gb2312");
 		}
 
 		std::ostringstream stream;
-		stream << "HTTP/1.1 " << response->internal->code << " " << response->internal->error << "\r\n";
+		stream << "HTTP/1.1 " << response->statusCode << " " << response->errorMessage << "\r\n";
 
-		for (std::map<std::string, URI::Value>::iterator iter = response->internal->header.begin(); iter != response->internal->header.end(); iter++)
+		for (std::map<std::string, URI::Value>::iterator iter = response->headers.begin(); iter != response->headers.end(); iter++)
 		{
 			stream << iter->first << ":" << iter->second.readString() << "\r\n";
 		}
-		stream << "Content-Length:" << response->internal->buffer->totalSize() << "\r\n";
+		stream << "Content-Length:" << response->buf.size() << "\r\n";
 		stream << "Data:" << datestr << "\r\n";
 		stream << "\r\n";
 
 		return stream.str();
 	}
 
-	void doRequestAvr(struct shttpd_arg * arg,const HTTPListenInfo* listenInfo)
+	void doRequestAvrData(struct shttpd_arg * arg, shared_ptr<HTTPDataInfo>& info, HTTPServer::HttpListenCallback& callback)
 	{
-		shared_ptr<HTTPDataInfo> info;
-		
-		if(arg->state == NULL)
-		{
-			const char* contnetlen = shttpd_get_header(arg,"Content-Length");
-			if(contnetlen == NULL)
-			{
-				contnetlen = "0";
-			}
-
-			std::string strUrl = "http://";
-			strUrl += shttpd_get_header(arg, "Host");
-			const char* url = shttpd_get_env(arg,"REQUEST_URI");
-			if(url == NULL)
-			{
-				shttpd_printf(arg,"HTTP /1.0 511 Bad Required No Url");
-				arg->flags |= SHTTPD_END_OF_OUTPUT;
-				return;
-			}
-			strUrl += url;
-			const char* request = shttpd_get_env(arg, "QUERY_STRING");
-			if (request != NULL)
-			{
-				strUrl += "?";
-				strUrl += request;
-			}
-
-			const char* method = shttpd_get_env(arg, "REQUEST_METHOD");
-			if (method == NULL)
-			{
-				shttpd_printf(arg, "HTTP /1.0 511 Bad Required No Method");
-				arg->flags |= SHTTPD_END_OF_OUTPUT;
-				return;
-			}
-
-			info = make_shared<HTTPDataInfo>();
-			info->arg = arg;
-			info->totalsize = atoi(contnetlen);
-			info->prevTime = Time::getCurrentMilliSecond();
-			info->isRequest = true;
-
-			info->request = make_shared<HTTPServer::HTTPRequest>();
-			info->request->internal->init(strUrl,cachediv,QueryCallback(&HTTPDataInfo::queryHeaderCallback,info.get()));
-			info->request->internal->method = method;
-			
-			info->response = make_shared<HTTPServer::HTTPResponse>();
-
-			arg->state = info.get();
-
-			{
-				Guard locker(mutex);
-				dataList[info.get()] = info;
-			}			
-		}
-		else
-		{
-			Guard locker(mutex);
-			std::map<void*,shared_ptr<HTTPDataInfo> >::iterator iter = dataList.find(arg->state);
-			if(iter != dataList.end())
-			{
-				info = iter->second;
-			}
-		}
-
-		if(info == NULL)
-		{
-			arg->flags |= SHTTPD_END_OF_OUTPUT;
-			return;
-		}
-
 		info->prevTime = Time::getCurrentMilliSecond();
 
 		if(arg->flags & SHTTPD_CONNECTION_ERROR)
@@ -253,24 +216,14 @@ struct HTTPServer::HTTPServrInternal:public Thread
 		{
 			{
 				Guard locker(mutex);
-				info->request->buffer()->write(arg->in.buf, arg->in.len);
+				info->request->buf.write(arg->in.buf, arg->in.len);
 				arg->in.num_bytes = arg->in.len;
-				if (info->request->buffer()->totalSize() < info->totalsize)
+				if (info->request->buf.size() < info->totalsize)
 				{
 					return;
 				}
 			}			
 
-			HttpListenCallback callback = defaultCallback;
-
-			{
-				Guard locker(mutex);
-				std::map<const HTTPListenInfo*, shared_ptr<HTTPListenInfo> >::iterator iter = callbackList.find(listenInfo);
-				if (iter != callbackList.end())
-				{
-					callback = iter->second->callback;
-				}
-			}
 			info->isRequest = false;
 			callback(info->request,info->response);
 
@@ -294,12 +247,12 @@ struct HTTPServer::HTTPServrInternal:public Thread
 			}
 			int readlen = 0;
 			{
-				Guard locker(mutex);
-				readlen = info->response->internal->buffer->read(buf, bufSize);
+				readlen = info->response->buf.read(buf, bufSize);
 			}
 			if(readlen <= 0)
 			{
 				arg->flags |= SHTTPD_END_OF_OUTPUT;
+				
 				Guard locker(mutex);
 				dataList.erase(info.get());
 
@@ -310,82 +263,157 @@ struct HTTPServer::HTTPServrInternal:public Thread
 		}
 		
 	}
-
-	static void RequestAvg(struct shttpd_arg * arg)
+	void doRequestAvg(struct shttpd_arg * arg)
 	{
-		HTTPUserCallbackInfo* callbackinfo = (HTTPUserCallbackInfo*)arg->user_data;
-		if(callbackinfo == NULL || callbackinfo->internal == NULL)
+		shared_ptr<HTTPDataInfo> info;
+		HTTPServer::HttpListenCallback callback;
+		if (arg->state == NULL)
 		{
-			arg->flags |= SHTTPD_END_OF_OUTPUT;
-			return;
-		}
-		HTTPServrInternal* internal = (HTTPServrInternal*)callbackinfo->internal;
-		if (NULL == internal)
-		{
-			arg->flags |= SHTTPD_END_OF_OUTPUT;
-			return;
-		}
-
-		internal->doRequestAvr(arg,(const HTTPListenInfo*)callbackinfo->listen);
-	}
-};
-
-HTTPServer::HTTPServer(HTTPBufferCacheType type)
-{
-	internal = new HTTPServrInternal();
-	internal->cachediv = File::getExcutableFileFullPath() + "/._httpcache";
-	internal->defaultCallbackInfo = make_shared<HTTPUserCallbackInfo>();
-	internal->defaultCallbackInfo->internal = internal;
-	internal->defaultCallbackInfo->listen = NULL;
-	internal->cachetype = type;
-
-	{
-		File::removeDirectory(internal->cachediv.c_str());
-		File::makeDirectory(internal->cachediv.c_str());
-	}
-
-	internal->pooltimer = make_shared<Timer>("HTTPServer");
-	internal->pooltimer->start(Timer::Proc(&HTTPServrInternal::poolTimerProc,internal),0,5000);
-}
-HTTPServer::~HTTPServer()
-{
-	internal->destroyThread();
-	internal->pooltimer = NULL;	
-	SAFE_DELETE(internal);
-}
-
-// path 为 请求的url,*为所有  ,callback监听消息的回掉,处理线程数据
-bool HTTPServer::listen(const std::string& path, const std::string& method, const HttpListenCallback& callback)
-{
-	Guard locker(internal->mutex);
-	if(path == "*")
-	{
-		internal->defaultCallback = callback;
-	}
-	else
-	{
-		bool isFindListen = false;
-		for (std::map<const HTTPListenInfo*, shared_ptr<HTTPListenInfo> >::iterator iter = internal->callbackList.begin(); iter != internal->callbackList.end(); iter++)
-		{
-			if (strcasecmp(iter->second->listenUrl.c_str(), path.c_str()) == 0 && strcasecmp(iter->second->method.c_str(),method.c_str()) == 0)
+			const char* url = shttpd_get_env(arg, "REQUEST_URI");
+			if (url == NULL)
 			{
-				isFindListen = true;
-				break;
+				shttpd_printf(arg, "HTTP /1.0 511 Bad Required No Url");
+				arg->flags |= SHTTPD_END_OF_OUTPUT;
+				return;
+			}
+
+			const char* method = shttpd_get_env(arg, "REQUEST_METHOD");
+			if (method == NULL)
+			{
+				shttpd_printf(arg, "HTTP /1.0 511 Bad Required No Method");
+				arg->flags |= SHTTPD_END_OF_OUTPUT;
+				return;
+			}
+
+			{
+				std::map<std::string, std::map<std::string, HTTPServer::HttpListenCallback> > list;
+				{
+					Guard locker(mutex);
+					list = callbackList;
+				}
+				for (std::map<std::string, std::map<std::string, HTTPServer::HttpListenCallback> >::iterator iter = list.begin(); iter != list.end()&& callback != NULL; iter++)
+				{
+					boost::regex  regex(iter->first);
+
+					if (!boost::regex_match(String::tolower(url), regex))
+					{
+						continue;
+					}
+					for (std::map<std::string, HTTPServer::HttpListenCallback>::iterator miter = iter->second.begin(); miter != iter->second.end(); miter++)
+					{
+						if (String::tolower(method) == miter->first)
+						{
+							callback = miter->second;
+							break;
+						}
+					}
+				}
+				if (callback == NULL)
+				{
+					for (std::map<std::string, HTTPServer::HttpListenCallback>::iterator miter = defaultCallbackList.begin(); miter != defaultCallbackList.end(); miter++)
+					{
+						if (String::tolower(method) == miter->first)
+						{
+							callback = miter->second;
+							break;
+						}
+					}
+				}
+			}
+
+			if (callback == NULL)
+			{
+				shttpd_printf(arg, "HTTP /1.0 511 invild Required url");
+				arg->flags |= SHTTPD_END_OF_OUTPUT;
+				return;
+			}
+
+			const char* contnetlen = shttpd_get_header(arg, "Content-Length");
+			if (contnetlen == NULL)
+			{
+				contnetlen = "0";
+			}
+
+			std::string strUrl = "http://";
+			strUrl += shttpd_get_header(arg, "Host");
+			strUrl += url;
+			const char* request = shttpd_get_env(arg, "QUERY_STRING");
+			if (request != NULL)
+			{
+				strUrl += "?";
+				strUrl += request;
+			}
+			
+
+			info = make_shared<HTTPDataInfo>();
+			info->arg = arg;
+			info->totalsize = atoi(contnetlen);
+			info->prevTime = Time::getCurrentMilliSecond();
+			info->isRequest = true;
+
+			info->request = make_shared<HTTPRequest>();
+			info->request->url.href(strUrl);
+			HTTPDataInfo::parseHeader(info->request->headers, arg);
+			info->request->method = method;
+
+			info->response = make_shared<HTTPResponse>();
+			arg->state = info.get();
+
+			{
+				Guard locker(mutex);
+				dataList[info.get()] = info;
+			}
+		}
+		else
+		{
+			Guard locker(mutex);
+			std::map<void*, shared_ptr<HTTPDataInfo> >::iterator iter = dataList.find(arg->state);
+			if (iter != dataList.end())
+			{
+				info = iter->second;
 			}
 		}
 
-		if (!isFindListen)
+		if (info == NULL)
 		{
-			shared_ptr<HTTPListenInfo> listeninfo(new HTTPListenInfo);
-			listeninfo->listenUrl = path;
-			listeninfo->method = method;
-			listeninfo->callback = callback;
-			listeninfo->userData = make_shared<HTTPUserCallbackInfo>();
-			listeninfo->userData->internal = internal;
-			listeninfo->userData->listen = listeninfo.get();
-
-			internal->callbackList[listeninfo.get()] = listeninfo;
+			arg->flags |= SHTTPD_END_OF_OUTPUT;
+			return;
 		}
+
+		doRequestAvrData(arg, info, callback);
+	}
+
+	static void RequestAvg(struct shttpd_arg * arg)
+	{
+		HTTPServrInternal* internal = (HTTPServrInternal*)arg->user_data;
+		if(internal == NULL)
+		{
+			arg->flags |= SHTTPD_END_OF_OUTPUT;
+			return;
+		}
+		internal->doRequestAvg(arg);
+	}
+};
+
+HTTPServer::HTTPServer()
+{
+	internal = new HTTPServrInternal();
+}
+HTTPServer::~HTTPServer()
+{
+	SAFE_DELETE(internal);
+}
+
+bool HTTPServer::listen(const std::string& path, const std::string& method, const HttpListenCallback& callback)
+{
+	Guard locker(internal->mutex);
+	if(path == "*" || path == "")
+	{
+		internal->defaultCallbackList[String::tolower(method)] = callback;
+	}
+	else
+	{
+		internal->callbackList[String::tolower(path)][String::tolower(method)] = callback;
 	}
 
 	return true;
@@ -394,6 +422,14 @@ bool HTTPServer::listen(const std::string& path, const std::string& method, cons
 //异步监听
 bool HTTPServer::run(uint32_t httpport, uint32_t threadNum)
 {
+	for (std::map<std::string, std::map<std::string, HTTPServer::HttpListenCallback> >::iterator iter = resource.begin(); iter != resource.end(); iter++)
+	{
+		for (std::map<std::string, HTTPServer::HttpListenCallback>::iterator miter = iter->second.begin(); miter != iter->second.end(); miter++)
+		{
+			listen(iter->first, miter->first, miter->second);
+		}
+	}
+
 	internal->listenport = httpport;
 
 	internal->createThread();
@@ -403,4 +439,6 @@ bool HTTPServer::run(uint32_t httpport, uint32_t threadNum)
 
 }
 }
+
+
 #endif
