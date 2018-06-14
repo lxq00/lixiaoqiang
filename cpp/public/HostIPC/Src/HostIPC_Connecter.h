@@ -37,10 +37,10 @@ protected:
 		m_sock->setDisconnectCallback(Socket::DisconnectedCallback(&HostIPCConnecter::socketDisconnectCallback, this));
 	}
 public:
-	HostIPCConnecter(uint32_t threadNum)
+	HostIPCConnecter(const shared_ptr<Network::IOWorker>& worker)
 	{
 		m_prevtime = 0;
-		m_worker = make_shared<Network::IOWorker>(threadNum);
+		m_worker = worker;
 	}
 	~HostIPCConnecter()
 	{

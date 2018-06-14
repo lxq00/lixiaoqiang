@@ -5,6 +5,23 @@
 namespace Public {
 namespace HostIPC {
 
+static weak_ptr<Network::IOWorker>			g_ioworker;
+static Mutex								g_ioworkerMutex;
+
+inline shared_ptr<Network::IOWorker> g_allockIOWorker()
+{
+	Guard locker(g_ioworkerMutex);
+	
+	shared_ptr<Network::IOWorker> worker = g_ioworker.lock();
+	if (worker == NULL)
+	{
+		worker = make_shared<Network::IOWorker>(THREADNUM);
+		g_ioworker = worker;
+	}
+
+	return worker;
+}
+
 struct HostIPC::HostIpcInternal
 {
 	struct CallbackInfo
@@ -104,7 +121,7 @@ bool HostIPC::startConnect(uint32_t port, const std::string& svrtype, const std:
 	m_internal->m_port = port;
 	m_internal->m_svrtype = svrtype;
 	m_internal->m_svrname = svrname;
-	m_internal->m_connecter = make_shared<HostIPCConnecter>(THREADNUM);
+	m_internal->m_connecter = make_shared<HostIPCConnecter>(g_allockIOWorker());
 	m_internal->m_connecter->startConnect(port, svrtype,svrname,RecvPackageCallback(&HostIpcInternal::recvCallback,m_internal));
 
 	return true;
@@ -114,7 +131,7 @@ bool HostIPC::startListen(uint32_t port, const std::string& svrtype, const std::
 	m_internal->m_port = port;
 	m_internal->m_svrtype = svrtype;
 	m_internal->m_svrname = svrname;
-	m_internal->m_listener = make_shared<HostIPCListener>(THREADNUM);
+	m_internal->m_listener = make_shared<HostIPCListener>(g_allockIOWorker());
 	m_internal->m_listener->startListen(port, RecvPackageCallback(&HostIpcInternal::recvCallback, m_internal));
 
 	return true;

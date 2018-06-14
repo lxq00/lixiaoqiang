@@ -59,9 +59,9 @@ private:
 		}
 	}
 public:
-	HostIPCListener(uint32_t threadNum)
+	HostIPCListener(const shared_ptr<Network::IOWorker>& worker)
 	{
-		m_worker = make_shared<Network::IOWorker>(threadNum);
+		m_worker = worker;
 	}
 	~HostIPCListener()
 	{

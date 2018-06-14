@@ -13,7 +13,11 @@ namespace HostIPC {
 #define MAXBUFFERSIZE		MAXPACKAGELEN + 100
 
 #define HEARTBEATTIME		10000
+
 #define THREADNUM			8
+
+//是否采用綫程池
+//#define  USEDTHREADPOOL
 
 struct IPCProtocol
 {
@@ -43,6 +47,8 @@ static uint32_t allocMessageSn()
 	return g_messageSN;
 }
 
+
+
 class HostIPCObject
 {
 protected:	
@@ -54,32 +60,41 @@ protected:
 private:	
 	char*				m_recvBuffer;
 	uint32_t			m_bufferLen;	
+
+#ifdef USEDTHREADPOOL
+
 	std::list<shared_ptr<Json::Value> >m_messageList;
 	Semaphore			m_sem;
-
 	std::list<shared_ptr<Thread> > m_thread;
 	bool				m_quit;
+#endif
 public:
-	HostIPCObject():m_quit(false)
+	HostIPCObject()
 	{
 		m_recvBuffer = new char[MAXBUFFERSIZE + 10];
 		m_bufferLen = 0;
 		m_status = false;
 
+#ifdef USEDTHREADPOOL
+		m_quit = false;
 		for (int i = 0; i < THREADNUM; i++)
 		{
 			shared_ptr<Thread> thread = ThreadEx::creatThreadEx("HostIPCObject", ThreadEx::Proc(&HostIPCObject::threadDoProc, this), NULL);
 			m_thread.push_back(thread);
 			thread->createThread();
 		}
+#endif
 	}
 	~HostIPCObject()
 	{
-		m_quit = true;
 		SAFE_DELETEARRAY(m_recvBuffer);
 		m_bufferLen = 0;
 		m_sock = NULL;
+
+#ifdef USEDTHREADPOOL	
+		m_quit = true;
 		m_thread.clear();
+#endif
 	}
 	bool isConnected()
 	{
@@ -127,6 +142,7 @@ public:
 		}
 	}
 protected:
+#ifdef USEDTHREADPOOL
 	void threadDoProc(Thread*thread,void* param)
 	{
 		while (!m_quit)
@@ -145,6 +161,7 @@ protected:
 			callback(this,*val.get());
 		}
 	}
+#endif
 	void setSocketConnected()
 	{
 		Guard locker(m_mutex);
@@ -156,9 +173,15 @@ protected:
 	}
 	void socketRecvCallback(Socket* s, const char* buf, int len)
 	{
+#ifndef USEDTHREADPOOL
+		std::list<shared_ptr<Json::Value> >m_messageList;
+		RecvPackageCallback callback;
+#endif
+
 		do
 		{
 			Guard locker(m_mutex);
+			callback = m_callback;
 
 			if (buf == NULL || len < 0 || m_bufferLen + len > MAXBUFFERSIZE)
 			{
@@ -187,7 +210,9 @@ protected:
 				if(reader.parse(data,*val.get()))
 				{
 					m_messageList.push_back(val);
+#ifdef USEDTHREADPOOL
 					m_sem.post();
+#endif
 				}
 				buftmplen -= (buftmp - prostart) + sizeof(IPCProtocol) + header->len;
 				buftmp = prostart + sizeof(IPCProtocol) + header->len;
@@ -198,6 +223,14 @@ protected:
 			}
 			m_bufferLen = buftmplen;
 		} while (0);
+
+#ifndef USEDTHREADPOOL
+		for (std::list<shared_ptr<Json::Value> >::iterator iter = m_messageList.begin(); iter != m_messageList.end(); iter++)
+		{
+			callback(this, *iter->get());
+		}
+#endif
+
 		if (m_callback != NULL && m_status && m_sock != NULL)
 		{
 			m_sock->async_recv(Socket::ReceivedCallback(&HostIPCObject::socketRecvCallback, this));
