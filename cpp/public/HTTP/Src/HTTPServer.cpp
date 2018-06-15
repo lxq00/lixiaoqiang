@@ -148,9 +148,10 @@ protected:
 struct HTTPServerResource :public WEBHTTPServer
 {
 public:
-	HTTPServerResource()
+	HTTPServerResource(const shared_ptr<IOWorker>& worker)
 	{
 		server = make_shared<SIMPLEHTTPServer>();
+		server->io_service = *(shared_ptr<boost::asio::io_service>*)worker->getBoostASIOIOServerSharedptr();
 	}
 	virtual bool doResource(const std::string& path, const std::string& method, shared_ptr<HTTPListenInfo>& info)
 	{
@@ -181,9 +182,10 @@ private:
 struct HTTPSServerResource :public WEBHTTPServer
 {
 public:
-	HTTPSServerResource(const std::string &cert_file, const std::string &private_key_file, const std::string &verify_file)
+	HTTPSServerResource(const shared_ptr<IOWorker>& worker,const std::string &cert_file, const std::string &private_key_file, const std::string &verify_file)
 	{
 		server = make_shared<SIMPLEHTTPSServer>(cert_file, private_key_file, verify_file);
+		server->io_service = *(shared_ptr<boost::asio::io_service>*)worker->getBoostASIOIOServerSharedptr();
 	}
 	virtual bool doResource(const std::string& path, const std::string& method, shared_ptr<HTTPListenInfo>& info)
 	{
@@ -217,17 +219,29 @@ struct HTTPServer::HTTPServrInternal
 	shared_ptr<WEBHTTPServer> web;
 };
 #ifdef HAVE_OPENSSL
-HTTPServer::HTTPServer(const std::string &cert_file, const std::string &private_key_file, const std::string &verify_file)
+HTTPServer::HTTPServer(const shared_ptr<IOWorker>& _worker, const std::string &cert_file, const std::string &private_key_file, const std::string &verify_file)
 {
+	shared_ptr<IOWorker> worker = _worker;
+	if (worker == NULL)
+	{
+		worker = make_shared<IOWorker>(IOWorker::ThreadNum(2));
+	}
+
 	internal = new HTTPServrInternal();
-	internal->web = make_shared<HTTPSServerResource>(cert_file, private_key_file, verify_file);
+	internal->web = make_shared<HTTPSServerResource>(worker,cert_file, private_key_file, verify_file);
 }
 #endif
 
-HTTPServer::HTTPServer()
+HTTPServer::HTTPServer(const shared_ptr<IOWorker>& _worker)
 {
+	shared_ptr<IOWorker> worker = _worker;
+	if (worker == NULL)
+	{
+		worker = make_shared<IOWorker>(IOWorker::ThreadNum(2));
+	}
+
 	internal = new HTTPServrInternal();
-	internal->web = make_shared<HTTPServerResource>();
+	internal->web = make_shared<HTTPServerResource>(worker);
 }
 
 HTTPServer::~HTTPServer()
@@ -240,13 +254,9 @@ bool HTTPServer::listen(const std::string& path, const std::string& method, cons
 {
 	return internal->web->resource(path, method, callback);
 }
-#include "boost/asio.hpp"
-
 //Òì²½¼àÌý
 bool HTTPServer::run(uint32_t httpport, uint32_t threadNum)
 {
-
-
 	internal->web->dosource(resource);
 
 	return internal->web->start(httpport,threadNum);

@@ -189,11 +189,11 @@ namespace SimpleWeb {
         std::unique_lock<std::mutex> lock(concurrent_synchronous_requests_mutex);
         ++concurrent_synchronous_requests;
       }
-      io_service->run();
+      if(internal_io_service) io_service->run();
       {
         std::unique_lock<std::mutex> lock(concurrent_synchronous_requests_mutex);
         --concurrent_synchronous_requests;
-        if(!concurrent_synchronous_requests)
+        if(!concurrent_synchronous_requests && internal_io_service)
           io_service->reset();
       }
 
@@ -219,11 +219,11 @@ namespace SimpleWeb {
         std::unique_lock<std::mutex> lock(concurrent_synchronous_requests_mutex);
         ++concurrent_synchronous_requests;
       }
-      io_service->run();
+	  if(internal_io_service)   io_service->run();
       {
         std::unique_lock<std::mutex> lock(concurrent_synchronous_requests_mutex);
         --concurrent_synchronous_requests;
-        if(!concurrent_synchronous_requests)
+        if(!concurrent_synchronous_requests && internal_io_service)
           io_service->reset();
       }
 

@@ -5,14 +5,14 @@ using namespace Public::Base;
 namespace Public{
 namespace Network{
 
-TCPSocketObject::TCPSocketObject(IOWorker::IOWorkerInternal* worker,Socket* _sock,bool isConnection):ISocketObject(_sock),connectTime(0)
+TCPSocketObject::TCPSocketObject(const shared_ptr<IOWorker>& worker,Socket* _sock,bool isConnection):ISocketObject(_sock),connectTime(0)
 {
 	type = isConnection ? NetType_TcpClient : NetType_TcpConnection;
 	status = NetStatus_notconnected;
 
 	try
 	{
-		tcpsock = boost::shared_ptr<boost::asio::ip::tcp::socket>(new boost::asio::ip::tcp::socket(worker->getIOServer()));
+		tcpsock = boost::shared_ptr<boost::asio::ip::tcp::socket>(new boost::asio::ip::tcp::socket(**(shared_ptr<boost::asio::io_service>*)worker->getBoostASIOIOServerSharedptr()));
 	}
 	catch(const std::exception& e)
 	{

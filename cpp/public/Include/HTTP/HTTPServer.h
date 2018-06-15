@@ -12,10 +12,14 @@ class HTTP_API HTTPServer
 public:
 	typedef Function2<void,const shared_ptr<HTTPRequest>&, shared_ptr<HTTPResponse>&> HttpListenCallback;
 public:
-#ifdef HAVE_OPENSSL && GCCSUPORTC11
-	HTTPServer(const std::string &cert_file, const std::string &private_key_file, const std::string &verify_file = std::string());
+#if  defined(HAVE_OPENSSL) && defined(GCCSUPORTC11)
+	HTTPServer(const shared_ptr<IOWorker>& worker,const std::string &cert_file, const std::string &private_key_file, const std::string &verify_file = std::string());
 #endif	
-	HTTPServer();
+	HTTPServer(
+#ifdef GCCSUPORTC11
+		const shared_ptr<IOWorker>& worker
+#endif
+	);
 	~HTTPServer();	
 	
 	// path 为 请求的url,*为所有  ,callback监听消息的回掉,处理线程数据，先于run启用,path 格式为 regex

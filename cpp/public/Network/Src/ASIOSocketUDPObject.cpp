@@ -3,14 +3,14 @@
 namespace Public{
 namespace Network{
 
-UDPSocketObject::UDPSocketObject(IOWorker::IOWorkerInternal* worker,Socket* _sock):ISocketObject(_sock)
+UDPSocketObject::UDPSocketObject(const shared_ptr<IOWorker>& worker,Socket* _sock):ISocketObject(_sock)
 {
 	type = NetType_Udp;
 	status = NetStatus_connected;
 
 	try
 	{
-		udpsock = boost::shared_ptr<boost::asio::ip::udp::socket>(new boost::asio::ip::udp::socket(worker->getIOServer()));
+		udpsock = boost::shared_ptr<boost::asio::ip::udp::socket>(new boost::asio::ip::udp::socket(**(shared_ptr<boost::asio::io_service>*)worker->getBoostASIOIOServerSharedptr()));
 	}
 	catch(const std::exception& e)
 	{

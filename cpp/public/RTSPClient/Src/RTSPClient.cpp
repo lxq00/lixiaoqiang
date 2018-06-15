@@ -6,9 +6,20 @@
 using namespace Public::RTSPClient;
 
 RTSPClientManager::RTSPClientManager(const std::string& userContent, const IOWorker::ThreadNum& threadNum)
+	:RTSPClientManager(userContent, make_shared<IOWorker>(threadNum))
 {
+}
+
+RTSPClientManager::RTSPClientManager(const std::string& userContent, const shared_ptr<IOWorker>& _worker)
+{
+	shared_ptr<IOWorker> worker = _worker;
+	if (worker == NULL)
+	{
+		worker = make_shared<IOWorker>(IOWorker::ThreadNum(2));
+	}
+
 	internal = new RTSPClientManagerInternal();
-	internal->ioworker = make_shared<IOWorker>(threadNum);
+	internal->ioworker = worker;
 	internal->userContext = userContent;
 
 	initUDPRecvTypeStartPort();

@@ -21,6 +21,7 @@ namespace Network{
 #define INVALIDHANDLE -1
 
 ///socket工作需要的worker集合，主要在这定义当前socket工作需要的线程数信息
+//内部为boost::asio::io_work，可为boost::asio提供io_server
 class NETWORK_API IOWorker
 {
 public:
@@ -28,21 +29,29 @@ public:
 	{
 	public:
 		///指明工作线程的的个数 当num == 0 时 使用 num = 1
-		ThreadNum(uint32_t num);
+		ThreadNum(uint32_t _num) :num(_num) {};
 		///cpuCorePerThread 为一个cpucore上运行几个线程，总数为 cpuCorePerThread*cpucore
 		///minThread 最少的线程数,maxThread最大的线程数
 		///当计算出来线程数为0，使用1个线程
-		ThreadNum(uint32_t cpuCorePerThread,uint32_t minThread,uint32_t maxThread);
-		~ThreadNum();
+		ThreadNum(uint32_t cpuCorePerThread, uint32_t minThread, uint32_t maxThread)
+		{
+			num = cpuCorePerThread * Host::getProcessorNum();
+			num = num < minThread ? minThread : num;
+			num = num > maxThread ? maxThread : num;
+		}
+		~ThreadNum() {}
 
-		uint32_t getNum() const;
-	private:
+		uint32_t getNum() const { return num; }
+	public:
 		uint32_t num;
 	};
 public:
 	IOWorker(const ThreadNum& num);
 	~IOWorker();
-public:
+
+	//返回值为shared_ptr<boost::asio::io_service>*
+	void* getBoostASIOIOServerSharedptr() const;
+private:
 	class IOWorkerInternal;
 	IOWorkerInternal* internal;
 };

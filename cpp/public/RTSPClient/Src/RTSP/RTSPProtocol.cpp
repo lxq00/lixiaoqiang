@@ -24,7 +24,7 @@ RTSPProtocol::~RTSPProtocol()
 
 bool RTSPProtocol::startProtocol(uint32_t timeout)
 {
-	m_tcpsocket = make_shared<TCPClient>(*m_ioworker.get());
+	m_tcpsocket = make_shared<TCPClient>(m_ioworker);
 	m_tcpsocket->setSocketTimeout(timeout, timeout);
 
 	bool connectret = m_tcpsocket->connect(NetAddr(m_rtspInfo->m_szServerIp, m_rtspInfo->m_nServerPort));

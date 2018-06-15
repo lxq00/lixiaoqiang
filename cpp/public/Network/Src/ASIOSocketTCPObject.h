@@ -9,7 +9,7 @@ namespace Network{
 class TCPSocketObject:public ISocketObject,public boost::enable_shared_from_this<TCPSocketObject>
 {
 public:
-	TCPSocketObject(IOWorker::IOWorkerInternal* worker,Socket* sock,bool isConnection);
+	TCPSocketObject(const shared_ptr<IOWorker>& worker,Socket* sock,bool isConnection);
 	virtual ~TCPSocketObject();
 
 	void setDisconnectCallback(const Socket::DisconnectedCallback& callback) {disconnectCallback = callback;}

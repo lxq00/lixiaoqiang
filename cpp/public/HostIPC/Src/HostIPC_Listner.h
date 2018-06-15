@@ -70,7 +70,7 @@ public:
 	bool startListen(uint16_t falg, const RecvPackageCallback& recvcallback)
 	{
 		m_recvcalblack = recvcallback;
-		m_sock = make_shared<TCPServer>(*m_worker.get());
+		m_sock = make_shared<TCPServer>(m_worker);
 		m_sock->bind(NetAddr(falg));
 		m_sock->async_accept(Socket::AcceptedCallback(&HostIPCListener::acceptCallback, this));
 

@@ -7,7 +7,7 @@ namespace Network{
 class TCPServerSocketObject:public UserThreadInfo,public boost::enable_shared_from_this<TCPServerSocketObject>
 {
 public:
-	TCPServerSocketObject(IOWorker::IOWorkerInternal* worker,Socket* sock);
+	TCPServerSocketObject(const shared_ptr<IOWorker>& worker,Socket* sock);
 	~TCPServerSocketObject();
 
 	virtual int getHandle();
@@ -39,7 +39,7 @@ public:
 	boost::shared_ptr<TCPSocketObject>						acceptPtr;
 	Socket*													sock;
 	NetAddr													listenAddr;
-	IOWorker::IOWorkerInternal*								worker;
+	shared_ptr<IOWorker>									worker;
 };
 
 }

@@ -178,7 +178,11 @@ public:
 
 		char tszTemp[16];
 
-		if((rtReportType == REPORT_HEX) || (rtReportType == REPORT_HEX_SHORT))
+		if (rtReportType == REPORT_BIN)
+		{
+			memcpy(tszReport, m_digest, 20);
+		}
+		else if((rtReportType == REPORT_HEX) || (rtReportType == REPORT_HEX_SHORT))
 		{
 			sprintf(tszTemp, "%02X", m_digest[0]);
 			strcpy(tszReport, tszTemp);

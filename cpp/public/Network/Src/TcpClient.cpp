@@ -11,10 +11,16 @@ struct TCPClient::TCPClientInternalPointer:public SocketConnection
 	TCPClientInternalPointer():SocketConnection(){}
 	~TCPClientInternalPointer(){}
 };
-TCPClient::TCPClient(const IOWorker& worker)
+TCPClient::TCPClient(const shared_ptr<IOWorker>& _worker)
 {
+	shared_ptr<IOWorker> worker = _worker;
+	if (worker == NULL)
+	{
+		worker = make_shared<IOWorker>(IOWorker::ThreadNum(2));
+	}
+
 	tcpclientinternal = new TCPClientInternalPointer();
-	tcpclientinternal->internal = boost::make_shared<TCPSocketObject>(worker.internal,this,false);
+	tcpclientinternal->internal = boost::make_shared<TCPSocketObject>(worker,this,false);
 	tcpclientinternal->internal->create();
 }
 

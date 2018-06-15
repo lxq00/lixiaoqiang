@@ -14,7 +14,9 @@
 
 #include "Defs.h"
 #include "Base/Base.h"
+#include "Network/Network.h"
 using namespace Public::Base;
+using namespace Public::Network;
 
 namespace Public {
 namespace HTTP {

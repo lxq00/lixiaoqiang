@@ -101,12 +101,13 @@ const shared_ptr<HTTPResponse> HTTPClient::request(const shared_ptr<HTTPRequest>
 	return internal->response;
 }
 
-const shared_ptr<HTTPResponse> HTTPClient::request(const std::string& method, const HTTPBuffer& buf, const std::map<std::string, URI::Value>& headers)
+const shared_ptr<HTTPResponse> HTTPClient::request(const std::string& method, const HTTPBuffer& buf, const std::map<std::string, URI::Value>& headers, int timeout)
 {
 	shared_ptr<HTTPRequest> req = make_shared<HTTPRequest>();
 	req->method = method;
 	req->buf.write(buf.read());
 	req->headers = headers;
+	req->timeout = timeout;
 
 	return request(req);
 }

@@ -20,7 +20,7 @@ protected:
 		HostIPCObject::socketDisconnectCallback(s, str);
 
 		Guard locker(m_mutex);
-		m_sock = make_shared<TCPClient>(*m_worker.get());
+		m_sock = make_shared<TCPClient>(m_worker);
 		m_status = false;
 
 		m_sock->async_connect(NetAddr("127.0.0.1", m_svrPort), Socket::ConnectedCallback(&HostIPCConnecter::socketConnectCallback, this));

@@ -4,7 +4,7 @@
 namespace Public{
 namespace Network{
 
-TCPServerSocketObject::TCPServerSocketObject(IOWorker::IOWorkerInternal* _worker,Socket* _sock):sock(_sock),worker(_worker)
+TCPServerSocketObject::TCPServerSocketObject(const shared_ptr<IOWorker>& _worker,Socket* _sock):sock(_sock),worker(_worker)
 {
 }
 TCPServerSocketObject::~TCPServerSocketObject()
@@ -61,7 +61,7 @@ bool TCPServerSocketObject::create(const NetAddr& point,bool reusedaddr)
 	{
 		boost::asio::ip::tcp::endpoint bindaddr = boost::asio::ip::tcp::endpoint(point.getType() == NetAddr::netaddr_ipv4 ? boost::asio::ip::tcp::v4() : boost::asio::ip::tcp::v6(),point.getPort());
 			
-		acceptorServer = boost::shared_ptr<boost::asio::ip::tcp::acceptor>(new boost::asio::ip::tcp::acceptor(worker->getIOServer()));
+		acceptorServer = boost::shared_ptr<boost::asio::ip::tcp::acceptor>(new boost::asio::ip::tcp::acceptor(**(shared_ptr<boost::asio::io_service>*)worker->getBoostASIOIOServerSharedptr()));
 		acceptorServer->open(bindaddr.protocol());
 		acceptorServer->set_option(boost::asio::ip::tcp::acceptor::reuse_address(reusedaddr));
 		acceptorServer->bind(bindaddr);

@@ -18,7 +18,7 @@ class NETWORK_API TCPServer:public Socket
 	struct TCPServerInternalPointer;
 	TCPServer(const TCPServer&);
 public:
-	TCPServer(const IOWorker& worker,const NetAddr& addr = NetAddr());
+	TCPServer(const shared_ptr<IOWorker>& worker,const NetAddr& addr = NetAddr());
 
 	virtual ~TCPServer();
 

@@ -28,7 +28,8 @@ public:
 		REPORT_Normal = 0,
 		REPORT_HEX,
 		REPORT_DIGIT,
-		REPORT_HEX_SHORT
+		REPORT_HEX_SHORT,
+		REPORT_BIN,
 	}REPORT_TYPE;
 public:
 	Sha1();

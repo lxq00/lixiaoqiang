@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="源文件\protocol">
+      <UniqueIdentifier>{d202af13-c15f-464e-adc3-369a40965f93}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Include\OnvifClient\OnvifClient.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\onvif_device.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\OnvifClient\OnvifClientDefs.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\protocol\CmdGetCapabilities.h">
+      <Filter>源文件\protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\protocol\CmdGetDeviceInformation.h">
+      <Filter>源文件\protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\protocol\CmdGetProfiles.h">
+      <Filter>源文件\protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\protocol\CmdObject.h">
+      <Filter>源文件\protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\protocol\OnvifProtocol.h">
+      <Filter>源文件\protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\protocol\CmdGetStreamUri.h">
+      <Filter>源文件\protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\protocol\CmdGetSnapUri.h">
+      <Filter>源文件\protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\protocol\CmdGetNetworkInterfaces.h">
+      <Filter>源文件\protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\protocol\CmdGetVideoEncoderConfigurations.h">
+      <Filter>源文件\protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\protocol\CmdGetPresets.h">
+      <Filter>源文件\protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\protocol\CmdSetPreset.h">
+      <Filter>源文件\protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\protocol\CmdGotoPreset.h">
+      <Filter>源文件\protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\protocol\CmdGotoHomePosition.h">
+      <Filter>源文件\protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\protocol\CmdSetHomePosition.h">
+      <Filter>源文件\protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\protocol\CmdContinuousMove.h">
+      <Filter>源文件\protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\protocol\CmdAbsoluteMove.h">
+      <Filter>源文件\protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\protocol\CmdStop.h">
+      <Filter>源文件\protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\protocol\CmdGetConfigurations.h">
+      <Filter>源文件\protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\protocol\CmdGetConfigurationOptions.h">
+      <Filter>源文件\protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\protocol\CmdGetSystemDateAndTime.h">
+      <Filter>源文件\protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\protocol\CmdSetSystemDateAndTime.h">
+      <Filter>源文件\protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\protocol\CmdSystemReboot.h">
+      <Filter>源文件\protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\protocol\CmdStartRecvAlarm.h">
+      <Filter>源文件\protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\protocol\CmdGetAlarm.h">
+      <Filter>源文件\protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\protocol\CmdStopRecvAlarm.h">
+      <Filter>源文件\protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\protocol\CmdGetScopes.h">
+      <Filter>源文件\protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\protocol\CmdGetNode.h">
+      <Filter>源文件\protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\XMLNDocment.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Src\onvif_device.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

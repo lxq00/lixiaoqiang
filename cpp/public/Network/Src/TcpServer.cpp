@@ -12,10 +12,16 @@ struct TCPServer::TCPServerInternalPointer
 	boost::shared_ptr<TCPServerSocketObject> internal;
 };
 
-TCPServer::TCPServer(const IOWorker& worker,const NetAddr& addr)
+TCPServer::TCPServer(const shared_ptr<IOWorker>& _worker,const NetAddr& addr)
 {
+	shared_ptr<IOWorker> worker = _worker;
+	if (worker == NULL)
+	{
+		worker = make_shared<IOWorker>(IOWorker::ThreadNum(2));
+	}
+
 	tcpserverinternal = new TCPServerInternalPointer;
-	tcpserverinternal->internal = boost::make_shared<TCPServerSocketObject>(worker.internal,this);
+	tcpserverinternal->internal = boost::make_shared<TCPServerSocketObject>(worker,this);
 	
 	bind(addr);
 }

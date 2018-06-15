@@ -9,7 +9,7 @@ namespace Network{
 class UDPSocketObject:public ISocketObject,public boost::enable_shared_from_this<UDPSocketObject>
 {
 public:
-	UDPSocketObject(IOWorker::IOWorkerInternal* worker,Socket* sock);
+	UDPSocketObject(const shared_ptr<IOWorker>& worker,Socket* sock);
 	virtual ~UDPSocketObject();
 
 	virtual boost::asio::ip::udp::socket* getSocketPtr(){return udpsock.get();}

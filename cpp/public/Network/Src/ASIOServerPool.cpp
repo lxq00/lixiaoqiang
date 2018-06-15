@@ -18,16 +18,21 @@ using namespace Public::Base;
 namespace Public{
 namespace Network{
 
-IOWorker::ThreadNum::ThreadNum(uint32_t _num):num(_num){}
-IOWorker::ThreadNum::ThreadNum(uint32_t cpuCorePerThread,uint32_t minThread,uint32_t maxThread)
+class IOWorker::IOWorkerInternal
 {
-	num = cpuCorePerThread * Host::getProcessorNum();
-	num = num < minThread ? minThread : num;
-	num = num > maxThread ? maxThread : num;
-}
-IOWorker::ThreadNum::~ThreadNum(){}
-uint32_t IOWorker::ThreadNum::getNum() const {return num;}
-
+public:
+	IOWorkerInternal(uint32_t threadnum);
+	~IOWorkerInternal();
+private:
+	void threadRunProc(Thread* t, void* param);
+public:
+	shared_ptr<boost::asio::io_service>					ioserver;
+private:
+	Mutex												mutex;
+	shared_ptr<boost::asio::io_service::work>			worker;
+	std::list<shared_ptr<Thread> >						threadPool;
+	bool												poolQuit;
+};
 
 IOWorker::IOWorker(const ThreadNum& num)
 {
@@ -37,10 +42,16 @@ IOWorker::~IOWorker()
 {
 	SAFE_DELETE(internal);
 }
+void* IOWorker::getBoostASIOIOServerSharedptr() const
+{
+	return &internal->ioserver;
+}
+
 
 IOWorker::IOWorkerInternal::IOWorkerInternal(uint32_t num):poolQuit(false)
 {
-	worker = boost::shared_ptr<boost::asio::io_service::work>(new boost::asio::io_service::work(ioserver));
+	ioserver = make_shared<boost::asio::io_service>();
+	worker = make_shared<boost::asio::io_service::work>(*ioserver);
 
 	if(num == 0)
 	{
@@ -58,7 +69,8 @@ IOWorker::IOWorkerInternal::IOWorkerInternal(uint32_t num):poolQuit(false)
 IOWorker::IOWorkerInternal::~IOWorkerInternal()
 {
 	poolQuit = true;
-	worker = boost::shared_ptr<boost::asio::io_service::work>();
+	worker = NULL;
+	ioserver = NULL;
 	threadPool.clear();
 }
 void IOWorker::IOWorkerInternal::threadRunProc(Thread* t,void* param)
@@ -67,7 +79,7 @@ void IOWorker::IOWorkerInternal::threadRunProc(Thread* t,void* param)
 	{
 		try
 		{
-			ioserver.run();
+			ioserver->run();
 		}
 		catch(const std::exception& e)
 		{

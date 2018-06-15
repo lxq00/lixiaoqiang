@@ -81,9 +81,10 @@ class SIMPHTTPObject :public HTTPObject
 {
 	typedef typename T::Response SIMPHTTPResponse;
 public:
-	SIMPHTTPObject(const std::string& host)
+	SIMPHTTPObject(const shared_ptr<IOWorker>& worker, const std::string& host)
 	{
 		client = make_shared<T>(host);
+		client->io_service = *(shared_ptr<boost::asio::io_service>*)worker->getBoostASIOIOServerSharedptr();
 
 		m_timer = make_shared<Timer>("SIMPHTTPObject");
 		m_timer->start(Timer::Proc(&SIMPHTTPObject::onPoolTimerProc, this), 0, 10000);
@@ -103,6 +104,7 @@ public:
 
 		try
 		{
+			if (req->timeout != 0) client->config.timeout = req->timeout / 1000;
 			shared_ptr<SIMPHTTPResponse> response = client->request(req->method, req->url.getPath(),req->buf.read() , ackhreaders);
 
 			int code = 200;
@@ -169,12 +171,13 @@ protected:
 class WEBHTTPOBJECT :public SIMPHTTPObject<SimpleHttpClient, false>
 {
 public:
-	WEBHTTPOBJECT(const std::string& host, bool _https):SIMPHTTPObject(host){}
+	WEBHTTPOBJECT(const shared_ptr<IOWorker>& worker, const std::string& host, bool _https):SIMPHTTPObject(worker,host){}
 	~WEBHTTPOBJECT() {}
 	void webRequest(const shared_ptr<HTTPRequest>& req, SimpleWeb::CaseInsensitiveMultimap& ackhreaders, shared_ptr<HTTPCallbackObjct>& callbackobj)
 	{
 		std::function<void(std::shared_ptr<SimpleHttpClientBaseResponse>, const SimpleWeb::error_code &)> funccall = std::bind(&HTTPCallbackObjct::HTTPCallback, callbackobj, std::placeholders::_1, std::placeholders::_2);
 		SimpleWeb::string_view data = req->buf.read();
+		if (req->timeout != 0) client->config.timeout = req->timeout / 1000;
 		client->request(String::toupper(req->method), req->url.getPath(), data, ackhreaders, static_cast<std::function<void(std::shared_ptr<SimpleHttpClientBaseResponse>, const SimpleWeb::error_code &)>&&>(funccall));
 	}
 };
@@ -183,12 +186,13 @@ public:
 class WEBHTTPSOBJECT :public SIMPHTTPObject<SimpleHttpsClient, true>
 {
 public:
-	WEBHTTPSOBJECT(const std::string& host, bool _https) :SIMPHTTPObject(host) {}
+	WEBHTTPSOBJECT(const shared_ptr<IOWorker>& worker, const std::string& host, bool _https) :SIMPHTTPObject(worker,host) {}
 	~WEBHTTPSOBJECT() {}
 	void webRequest(const shared_ptr<HTTPRequest>& req, SimpleWeb::CaseInsensitiveMultimap& ackhreaders, shared_ptr<HTTPCallbackObjct>& callbackobj)
 	{
 		std::function<void(std::shared_ptr<SimpleHttpsClientBaseResponse>, const SimpleWeb::error_code &)> funccall = std::bind(&HTTPCallbackObjct::HTTPSCallback, callbackobj, std::placeholders::_1, std::placeholders::_2);
 		SimpleWeb::string_view data = req->buf.read();
+		if (req->timeout != 0) client->config.timeout = req->timeout / 1000;
 		client->request(String::toupper(req->method), req->url.getPath(), data, ackhreaders, static_cast<std::function<void(std::shared_ptr<SimpleHttpsClientBaseResponse>, const SimpleWeb::error_code &)>&&>(funccall));
 	}
 };
@@ -200,8 +204,14 @@ struct HTTPClient::HTTPClientInternal
 	URI							url;
 };
 
-HTTPClient::HTTPClient(const std::string& url)
+HTTPClient::HTTPClient(const shared_ptr<IOWorker>& _worker,const std::string& url)
 {
+	shared_ptr<IOWorker> worker = _worker;
+	if (worker == NULL)
+	{
+		worker = make_shared<IOWorker>(IOWorker::ThreadNum(2));
+	}
+
 	internal = new HTTPClientInternal;
 	internal->url.href(url);
 
@@ -210,16 +220,16 @@ HTTPClient::HTTPClient(const std::string& url)
 	
 	if (strcasecmp(internal->url.getProtocol().c_str(), "http") == 0)
 	{
-		internal->clientObjct = make_shared<WEBHTTPOBJECT>(reqstring.str(), false);
+		internal->clientObjct = make_shared<WEBHTTPOBJECT>(worker,reqstring.str(), false);
 	}
 #ifdef HAVE_OPENSSL
 	else if (strcasecmp(internal->url.getProtocol().c_str(), "https") == 0)
 	{
-		internal->clientObjct = make_shared<WEBHTTPSOBJECT>(reqstring.str(), true);
+		internal->clientObjct = make_shared<WEBHTTPSOBJECT>(worker,reqstring.str(), true);
 	}
 #endif
 }
-HTTPClient::HTTPClient(const URI& url):HTTPClient(url.href())
+HTTPClient::HTTPClient(const shared_ptr<IOWorker>& worker, const URI& url):HTTPClient(worker,url.href())
 {
 }
 HTTPClient::~HTTPClient()
@@ -232,13 +242,14 @@ const shared_ptr<HTTPResponse> HTTPClient::request(const shared_ptr<HTTPRequest>
 	req->url = internal->url;
 	return internal->clientObjct->request(req);
 }
-const shared_ptr<HTTPResponse> HTTPClient::request(const std::string & method, const HTTPBuffer& buf, const std::map<std::string, URI::Value>& headers)
+const shared_ptr<HTTPResponse> HTTPClient::request(const std::string & method, const HTTPBuffer& buf, const std::map<std::string, URI::Value>& headers, int timeout)
 {
 	shared_ptr<HTTPRequest> req = make_shared<HTTPRequest>();
 	req->method = method;
 	req->url = internal->url;
 	req->buf.write(buf.read());
 	req->headers = headers;
+	req->timeout = timeout;
 
 	return request(req);
 }
