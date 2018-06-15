@@ -6,7 +6,10 @@
 class CmdGetConfigurationOptions :public CmdObject
 {
 public:
-	CmdGetConfigurationOptions(const std::string& _token):token(_token) {}
+	CmdGetConfigurationOptions(const std::string& _token) :token(_token)
+	{
+		action = "http://www.onvif.org/ver20/ptz/wsdl/GetConfigurationOptions";
+	}
 	virtual ~CmdGetConfigurationOptions() {}
 
 	virtual std::string build(const URI& uri)

@@ -37,17 +37,11 @@ using namespace Public::Onvif;
 "<a:To s:mustUnderstand=\"1\">http://%s%s</a:To>"\
 "</s:Header>";
 
-#define NTYPE_TAG		0
-#define NTYPE_ATTRIB	1
-#define NTYPE_CDATA		2
-
-#define NTYPE_LAST		2
-#define NTYPE_UNDEF		-1
-
 class CmdObject
 {
 public:
 	const char*  recvbuffer;
+	std::string  action;
 public:
 	CmdObject():recvbuffer(NULL){}
 	virtual ~CmdObject() {}

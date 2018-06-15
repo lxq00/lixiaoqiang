@@ -3,7 +3,7 @@
 #include "CmdObject.h"
 
 
-class CMD_GetCapabilities :public CmdObject
+class CMDGetCapabilities :public CmdObject
 {
 public:
 	enum CapabilitiesType
@@ -17,8 +17,11 @@ public:
 		CAP_PTZ = 6,
 	};
 public:
-	CMD_GetCapabilities(CapabilitiesType _cap):cap(_cap) {}
-	virtual ~CMD_GetCapabilities() {}
+	CMDGetCapabilities(CapabilitiesType _cap = CAP_ALL) :cap(_cap)
+	{
+		action = "http://www.onvif.org/ver10/device/wsdl/GetCapabilities";
+	}
+	virtual ~CMDGetCapabilities() {}
 
 	virtual std::string build(const URI& uri)
 	{

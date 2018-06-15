@@ -6,7 +6,10 @@
 class CmdGetPresets :public CmdObject
 {
 public:
-	CmdGetPresets(){}
+	CmdGetPresets()
+	{
+		action = "http://www.onvif.org/ver20/ptz/wsdl/GetPresets";
+	}
 	virtual ~CmdGetPresets() {}
 
 	virtual std::string build(const URI& uri)

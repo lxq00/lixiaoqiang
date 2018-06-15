@@ -6,7 +6,10 @@
 class CmdStop :public CmdObject
 {
 public:
-	CmdStop(const OnvifClientDefs::PTZCtrl& _ptz,const std::string& _token):ptzctrl(_ptz),token(_token) {}
+	CmdStop(const OnvifClientDefs::PTZCtrl& _ptz, const std::string& _token) :ptzctrl(_ptz), token(_token)
+	{
+		action = "http://www.onvif.org/ver20/ptz/wsdl/Stop";
+	}
 	virtual ~CmdStop() {}
 
 	virtual std::string build(const URI& uri)

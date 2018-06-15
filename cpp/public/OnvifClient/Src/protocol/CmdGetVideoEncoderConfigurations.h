@@ -6,7 +6,10 @@
 class CmdGetVideoEncoderConfigurations :public CmdObject
 {
 public:
-	CmdGetVideoEncoderConfigurations(){}
+	CmdGetVideoEncoderConfigurations()
+	{
+		action = "http://www.onvif.org/ver10/media/wsdl/GetVideoEncoderConfigurations";
+	}
 	virtual ~CmdGetVideoEncoderConfigurations() {}
 
 	virtual std::string build(const URI& uri)
@@ -22,7 +25,8 @@ public:
 
 		return stream.str();
 	}
-	virtual bool parse(const std::string& data) = 0;
+	shared_ptr<OnvifClientDefs::VideoEncoderConfigurations> encoder;
+	virtual bool parse(XMLN * p_xml) { return false; }
 };
 
 

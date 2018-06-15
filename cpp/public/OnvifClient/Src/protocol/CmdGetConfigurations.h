@@ -6,7 +6,10 @@
 class CmdGetConfigurations :public CmdObject
 {
 public:
-	CmdGetConfigurations(){}
+	CmdGetConfigurations()
+	{
+		action = "http://www.onvif.org/ver20/ptz/wsdl/GetConfigurations";
+	}
 	virtual ~CmdGetConfigurations() {}
 
 	virtual std::string build(const URI& uri)

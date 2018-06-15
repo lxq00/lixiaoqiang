@@ -2,6 +2,7 @@
 #include "CmdAbsoluteMove.h"
 #include "CmdContinuousMove.h"
 #include "CmdGetAlarm.h"
+#include "CmdGetScopes.h"
 #include "CmdGetCapabilities.h"
 #include "CmdGetConfigurationOptions.h"
 #include "CmdGetConfigurations.h"

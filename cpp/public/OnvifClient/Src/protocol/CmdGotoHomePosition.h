@@ -6,7 +6,10 @@
 class CmdGotoHomePosition :public CmdObject
 {
 public:
-	CmdGotoHomePosition() {}
+	CmdGotoHomePosition()
+	{
+		action = "http://www.onvif.org/ver20/ptz/wsdl/GotoHomePosition";
+	}
 	virtual ~CmdGotoHomePosition() {}
 
 	virtual std::string build(const URI& uri)

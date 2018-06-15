@@ -6,7 +6,10 @@
 class CmdSetPreset :public CmdObject
 {
 public:
-	CmdSetPreset() {}
+	CmdSetPreset()
+	{
+		action = "http://www.onvif.org/ver20/ptz/wsdl/SetPreset";
+	}
 	virtual ~CmdSetPreset() {}
 
 	virtual std::string build(const URI& uri)

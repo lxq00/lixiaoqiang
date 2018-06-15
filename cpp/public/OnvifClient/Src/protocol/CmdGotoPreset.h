@@ -6,7 +6,10 @@
 class CmdGotoPreset :public CmdObject
 {
 public:
-	CmdGotoPreset() {}
+	CmdGotoPreset()
+	{
+		action = "http://www.onvif.org/ver20/ptz/wsdl/GotoPreset";
+	}
 	virtual ~CmdGotoPreset() {}
 
 	virtual std::string build(const URI& uri)

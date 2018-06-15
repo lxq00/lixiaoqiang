@@ -3,7 +3,7 @@
 #include "Base/Base.h"
 using namespace Public::Base;
 
-struct XMLN
+typedef struct XMLN
 {
 	const char *	name;
 	unsigned int	type;
@@ -17,7 +17,14 @@ struct XMLN
 	struct XMLN *	next;
 	struct XMLN *	f_attrib;
 	struct XMLN *	l_attrib;
-};
+}XMLN;
+
+#define NTYPE_TAG		0
+#define NTYPE_ATTRIB	1
+#define NTYPE_CDATA		2
+
+#define NTYPE_LAST		2
+#define NTYPE_UNDEF		-1
 
 
 static XMLN * xml_node_soap_get(XMLN * parent, const char * name)

@@ -6,7 +6,10 @@
 class CMDGetProfiles :public CmdObject
 {
 public:
-	CMDGetProfiles() {}
+	CMDGetProfiles()
+	{
+		action = "http://www.onvif.org/ver10/media/wsdl/GetProfiles";
+	}
 	virtual ~CMDGetProfiles() {}
 
 	virtual std::string build(const URI& uri)

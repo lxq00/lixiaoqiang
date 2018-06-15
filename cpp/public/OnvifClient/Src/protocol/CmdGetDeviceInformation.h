@@ -2,11 +2,14 @@
 #define __ONVIFPROTOCOL_DEVICEINFORMATSION_H__
 #include "CmdObject.h"
 
-class CMD_GetDeviceInformation :public CmdObject
+class CMDGetDeviceInformation :public CmdObject
 {
 public:
-	CMD_GetDeviceInformation() {}
-	virtual ~CMD_GetDeviceInformation() {}
+	CMDGetDeviceInformation()
+	{
+		action = "http://www.onvif.org/ver10/device/wsdl/GetDeviceInformation";
+	}
+	virtual ~CMDGetDeviceInformation() {}
 
 	virtual std::string build(const URI& uri)
 	{

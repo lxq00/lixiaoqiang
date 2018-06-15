@@ -6,7 +6,10 @@
 class CmdStopRecvAlarm :public CmdObject
 {
 public:
-	CmdStopRecvAlarm(){}
+	CmdStopRecvAlarm()
+	{
+		action = "http://www.onvif.org/ver10/events/wsdl/PullPointSubscription/PullMessagesRequest";
+	}
 	virtual ~CmdStopRecvAlarm() {}
 
 	virtual std::string build(const URI& uri)

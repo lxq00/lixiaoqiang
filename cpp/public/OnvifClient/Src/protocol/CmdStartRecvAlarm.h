@@ -6,7 +6,10 @@
 class CMDStartRecvAlarm :public CmdObject
 {
 public:
-	CMDStartRecvAlarm() {}
+	CMDStartRecvAlarm()
+	{
+		action = "http://www.onvif.org/ver10/events/wsdl/EventPortType/CreatePullPointSubscriptionRequest";
+	}
 	virtual ~CMDStartRecvAlarm() {}
 
 	virtual std::string build(const URI& uri)

@@ -6,7 +6,10 @@
 class CMDGetAlarm :public CmdObject
 {
 public:
-	CMDGetAlarm() {}
+	CMDGetAlarm()
+	{
+		action = "http://www.onvif.org/ver10/events/wsdl/PullPointSubscription/PullMessagesRequest";
+	}
 	virtual ~CMDGetAlarm() {}
 
 	virtual std::string build(const URI& uri)

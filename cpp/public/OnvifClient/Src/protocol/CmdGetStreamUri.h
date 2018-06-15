@@ -6,7 +6,10 @@
 class CmdGetStreamUri :public CmdObject
 {
 public:
-	CmdGetStreamUri(const std::string& _token):token(_token) {}
+	CmdGetStreamUri(const std::string& _token) :token(_token)
+	{
+		action = "http://www.onvif.org/ver10/media/wsdl/GetStreamUri";
+	}
 	virtual ~CmdGetStreamUri() {}
 
 	virtual std::string build(const URI& uri)

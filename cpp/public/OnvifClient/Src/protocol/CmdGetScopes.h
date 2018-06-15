@@ -6,7 +6,10 @@
 class CMDGetScopes :public CmdObject
 {
 public:
-	CMDGetScopes() {}
+	CMDGetScopes()
+	{
+		action = "http://www.onvif.org/ver10/device/wsdl/GetScopes";
+	}
 	virtual ~CMDGetScopes() {}
 
 	virtual std::string build(const URI& uri)
@@ -22,6 +25,7 @@ public:
 
 		return stream.str();
 	}
+	shared_ptr<OnvifClientDefs::Scopes> scopes;
 	virtual bool parse(XMLN * p_xml)
 	{
 		XMLN * p_res = xml_node_soap_get(p_xml, "tds:GetScopesResponse");

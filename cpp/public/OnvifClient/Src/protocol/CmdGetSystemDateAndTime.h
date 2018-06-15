@@ -6,7 +6,10 @@
 class CmdGetSystemDateAndTime :public CmdObject
 {
 public:
-	CmdGetSystemDateAndTime(){}
+	CmdGetSystemDateAndTime()
+	{
+		action = "http://www.onvif.org/ver10/device/wsdl/GetSystemDateAndTime";
+	}
 	virtual ~CmdGetSystemDateAndTime() {}
 
 	virtual std::string build(const URI& uri)
@@ -22,7 +25,8 @@ public:
 
 		return stream.str();
 	}
-	virtual bool parse(const std::string& data) = 0;
+	shared_ptr<Time> time;
+	virtual bool parse(XMLN * p_xml) { return false; }
 };
 
 

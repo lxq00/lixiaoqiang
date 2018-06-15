@@ -3,11 +3,14 @@
 #include "CmdObject.h"
 
 
-class CMD_SystemReboot :public CmdObject
+class CMDSystemReboot :public CmdObject
 {
 public:
-	CMD_SystemReboot() {}
-	virtual ~CMD_SystemReboot() {}
+	CMDSystemReboot()
+	{
+		action = "http://www.onvif.org/ver10/device/wsdl/SystemReboot";
+	}
+	virtual ~CMDSystemReboot() {}
 
 	virtual std::string build(const URI& uri)
 	{

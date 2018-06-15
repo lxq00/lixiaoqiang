@@ -25,7 +25,7 @@ class OnvifClientManager;
 class ONVIFCLIENT_API OnvifClient
 {
 	friend class OnvifClientManager;
-	OnvifClient();
+	OnvifClient(const URI& url,const shared_ptr<IOWorker>& worker,const std::string& useragent);
 public:
 	//@AlarmState 0:未知状态、1:报警发生、2:报警消失
 	//void,int alarmType, int alarmState, uint32_t& alarmCount, Time alarmTime
@@ -37,8 +37,8 @@ public:
 	shared_ptr<OnvifClientDefs::Capabilities> getCapabities(int timeoutms = 10000);	//获取设备能力集合，错误信息使用XM_GetLastError捕获
 	shared_ptr<OnvifClientDefs::Scopes> getScopes(int timeoutms = 10000); //获取描述信息，错误信息使用XM_GetLastError捕获
 	shared_ptr<OnvifClientDefs::Profiles> getProfiles(int timeoutms = 10000); //获取配置信息，错误信息使用XM_GetLastError捕获
-	std::string getStreamUrl(int timeoutms = 10000); //获取六信息,错误信息使用XM_GetLastError捕获
-	std::string getSnapUrl(int timeoutms = 10000);	//获取截图信息，错误信息使用XM_GetLastError捕获
+	std::string getStreamUrl(const std::string& streamtoken, int timeoutms = 10000); //获取六信息,错误信息使用XM_GetLastError捕获
+	std::string getSnapUrl(const std::string& snaptoken, int timeoutms = 10000);	//获取截图信息，错误信息使用XM_GetLastError捕获
 	shared_ptr<OnvifClientDefs::NetworkInterfaces> getNetworkInterfaces(int timeoutms = 10000);//网络信息，错误信息使用XM_GetLastError捕获
 	shared_ptr<OnvifClientDefs::VideoEncoderConfigurations> getVideoEncoderConfigurations(int timeoutms = 10000); //获取视频编码信息，错误信息使用XM_GetLastError捕获
 	shared_ptr<OnvifClientDefs::ContinuousMove> getContinuousMove(int timeoutms = 10000); //错误信息使用XM_GetLastError捕获
@@ -48,7 +48,7 @@ public:
 	shared_ptr<Time> GetSystemDatetime(int timeoutms = 10000); //错误信息使用XM_GetLastError捕获
 	bool SetSystemDatetime(const Time& time, int timeoutms = 10000); //错误信息使用XM_GetLastError捕获
 	bool SystemReboot(int timeoutms = 10000);//错误信息使用XM_GetLastError捕获
-	bool startRecvAlarm(const AlarmCallback& callback);
+	bool startRecvAlarm(/*const AlarmCallback& callback*/);
 	bool stopRecvAlarm();
 private:
 	struct OnvifClientInternal;

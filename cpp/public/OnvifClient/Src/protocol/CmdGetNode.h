@@ -6,7 +6,10 @@
 class CmdGetNode :public CmdObject
 {
 public:
-	CmdGetNode(const std::string& _token):token(_token) {}
+	CmdGetNode(const std::string& _token) :token(_token)
+	{
+		action = "http://www.onvif.org/ver20/ptz/wsdl/GetNode";
+	}
 	virtual ~CmdGetNode() {}
 
 	virtual std::string build(const URI& uri)

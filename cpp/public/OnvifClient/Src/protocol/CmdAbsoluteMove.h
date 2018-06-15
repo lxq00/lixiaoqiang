@@ -6,7 +6,10 @@
 class CmdAbsoluteMove :public CmdObject
 {
 public:
-	CmdAbsoluteMove(const OnvifClientDefs::PTZCtrl& _ptz,const std::string& _token):ptzctrl(_ptz),token(_token) {}
+	CmdAbsoluteMove(const OnvifClientDefs::PTZCtrl& _ptz,const std::string& _token):ptzctrl(_ptz),token(_token) 
+	{
+		action = "http://www.onvif.org/ver20/ptz/wsdl/AbsoluteMove";
+	}
 	virtual ~CmdAbsoluteMove() {}
 
 	virtual std::string build(const URI& uri)
@@ -28,7 +31,8 @@ public:
 
 		return stream.str();
 	}
-	virtual bool parse(const std::string& data) = 0;
+	shared_ptr<OnvifClientDefs::AbsoluteMove> move;
+	virtual bool parse(XMLN * p_xml) { return false; }
 
 private:
 	OnvifClientDefs::PTZCtrl		ptzctrl;

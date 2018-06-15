@@ -6,7 +6,10 @@
 class CmdSetSystemDateAndTime :public CmdObject
 {
 public:
-	CmdSetSystemDateAndTime(const Time& _time):time(_time){}
+	CmdSetSystemDateAndTime(const Time& _time) :time(_time)
+	{
+		action = "http://www.onvif.org/ver10/device/wsdl/SetSystemDateAndTime";
+	}
 	virtual ~CmdSetSystemDateAndTime() {}
 
 	virtual std::string build(const URI& uri)
@@ -37,7 +40,7 @@ public:
 
 		return stream.str();
 	}
-	virtual bool parse(const std::string& data) = 0;
+	virtual bool parse(XMLN * p_xml) { return false; }
 private:
 	Time time;
 };

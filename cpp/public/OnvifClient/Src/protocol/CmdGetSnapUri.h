@@ -6,7 +6,10 @@
 class CmdGetSnapUri :public CmdObject
 {
 public:
-	CmdGetSnapUri(const std::string& _token):token(_token) {}
+	CmdGetSnapUri(const std::string& _token) :token(_token)
+	{
+		action = "http://www.onvif.org/ver10/media/wsdl/GetSnapshotUri";
+	}
 	virtual ~CmdGetSnapUri() {}
 
 	virtual std::string build(const URI& uri)
