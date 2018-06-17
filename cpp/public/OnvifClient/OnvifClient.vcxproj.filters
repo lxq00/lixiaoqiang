@@ -21,9 +21,6 @@
     <ClInclude Include="..\Include\OnvifClient\OnvifClient.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Src\onvif_device.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
     <ClInclude Include="..\Include\OnvifClient\OnvifClientDefs.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -113,7 +110,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Src\onvif_device.cpp">
+    <ClCompile Include="Src\OnvifClient.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
