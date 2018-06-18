@@ -43,6 +43,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Excel", "Excel\Excel.vcxpro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OnvifClient", "OnvifClient\OnvifClient.vcxproj", "{DE48B5E2-9FA7-42B3-9E32-4C22013654C6}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RTSP", "RTSP\RTSP.vcxproj", "{1C8A59D0-96B3-4D3C-A229-8F79CD23C391}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -151,6 +153,12 @@ Global
 		{DE48B5E2-9FA7-42B3-9E32-4C22013654C6}.Release|Win32.ActiveCfg = Release|Win32
 		{DE48B5E2-9FA7-42B3-9E32-4C22013654C6}.Release|Win32.Build.0 = Release|Win32
 		{DE48B5E2-9FA7-42B3-9E32-4C22013654C6}.Release|x64.ActiveCfg = Release|Win32
+		{1C8A59D0-96B3-4D3C-A229-8F79CD23C391}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1C8A59D0-96B3-4D3C-A229-8F79CD23C391}.Debug|Win32.Build.0 = Debug|Win32
+		{1C8A59D0-96B3-4D3C-A229-8F79CD23C391}.Debug|x64.ActiveCfg = Debug|Win32
+		{1C8A59D0-96B3-4D3C-A229-8F79CD23C391}.Release|Win32.ActiveCfg = Release|Win32
+		{1C8A59D0-96B3-4D3C-A229-8F79CD23C391}.Release|Win32.Build.0 = Release|Win32
+		{1C8A59D0-96B3-4D3C-A229-8F79CD23C391}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
