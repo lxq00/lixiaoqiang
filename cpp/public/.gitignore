@@ -5,3 +5,4 @@ __Compile/*
 *.ilk
 Bin/*
 Lib/*
+.vscode/*
