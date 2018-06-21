@@ -45,6 +45,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OnvifClient", "OnvifClient\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RTSP", "RTSP\RTSP.vcxproj", "{1C8A59D0-96B3-4D3C-A229-8F79CD23C391}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RTMP", "RTMP\RTMP.vcxproj", "{B5B7BE88-CAAC-4E18-9406-E2F856F706AA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -159,6 +161,12 @@ Global
 		{1C8A59D0-96B3-4D3C-A229-8F79CD23C391}.Release|Win32.ActiveCfg = Release|Win32
 		{1C8A59D0-96B3-4D3C-A229-8F79CD23C391}.Release|Win32.Build.0 = Release|Win32
 		{1C8A59D0-96B3-4D3C-A229-8F79CD23C391}.Release|x64.ActiveCfg = Release|Win32
+		{B5B7BE88-CAAC-4E18-9406-E2F856F706AA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B5B7BE88-CAAC-4E18-9406-E2F856F706AA}.Debug|Win32.Build.0 = Debug|Win32
+		{B5B7BE88-CAAC-4E18-9406-E2F856F706AA}.Debug|x64.ActiveCfg = Debug|Win32
+		{B5B7BE88-CAAC-4E18-9406-E2F856F706AA}.Release|Win32.ActiveCfg = Release|Win32
+		{B5B7BE88-CAAC-4E18-9406-E2F856F706AA}.Release|Win32.Build.0 = Release|Win32
+		{B5B7BE88-CAAC-4E18-9406-E2F856F706AA}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

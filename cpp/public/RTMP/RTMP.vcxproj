@@ -1,0 +1,295 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Include\RTMP\Defs.h" />
+    <ClInclude Include="..\Include\RTMP\RTMP.h" />
+    <ClInclude Include="..\Include\RTMP\RTMPClient.h" />
+    <ClInclude Include="..\Include\RTMP\RTMPPusher.h" />
+    <ClInclude Include="..\Include\RTMP\RTMPServer.h" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_async_call.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_bandwidth.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_caster_flv.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_config.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_conn.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_dash.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_dvr.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_edge.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_empty.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_encoder.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_ffmpeg.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_forward.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_fragment.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_hds.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_heartbeat.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_hls.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_hourglass.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_http_api.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_http_client.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_http_conn.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_http_hooks.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_http_static.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_http_stream.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_ingest.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_kafka.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_listener.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_log.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_mpegts_udp.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_ng_exec.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_pithy_print.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_process.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_recv_thread.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_refer.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_reload.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_rtmp_conn.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_rtsp.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_security.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_server.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_source.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_st.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_statistic.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_thread.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_utility.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\core\srs_core.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\core\srs_core_autofree.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\core\srs_core_mem_watch.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\core\srs_core_performance.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_aac.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_balance.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_buffer.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_codec.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_consts.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_error.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_file.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_flv.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_io.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_log.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_mp3.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_mp4.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_stream.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_ts.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_utility.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\libs\srs_librtmp.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\libs\srs_lib_bandwidth.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\libs\srs_lib_simple_socket.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_http_stack.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_kafka_stack.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_protocol_amf0.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_protocol_format.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_protocol_io.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_protocol_json.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_protocol_kbps.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_protocol_stream.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_protocol_utility.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_raw_avc.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_rtmp_handshake.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_rtmp_msg_array.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_rtmp_stack.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_rtsp_stack.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\service\srs_service_conn.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\service\srs_service_http_client.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\service\srs_service_http_conn.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\service\srs_service_log.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\service\srs_service_rtmp_conn.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\service\srs_service_st.hpp" />
+    <ClInclude Include="Src\Simple-RTMP-Server\trunk\src\service\srs_service_utility.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Include\RTMP\Version.tpl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Src\RTMPClient.cpp" />
+    <ClCompile Include="Src\RTMPPusher.cpp" />
+    <ClCompile Include="Src\RTMPServer.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_async_call.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_bandwidth.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_caster_flv.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_config.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_conn.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_dash.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_dvr.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_edge.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_empty.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_encoder.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_ffmpeg.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_forward.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_fragment.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_hds.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_heartbeat.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_hls.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_hourglass.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_http_api.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_http_client.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_http_conn.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_http_hooks.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_http_static.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_http_stream.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_ingest.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_kafka.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_listener.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_log.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_mpegts_udp.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_ng_exec.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_pithy_print.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_process.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_recv_thread.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_refer.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_reload.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_rtmp_conn.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_rtsp.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_security.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_server.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_source.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_st.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_statistic.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_thread.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\app\srs_app_utility.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\core\srs_core.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\core\srs_core_autofree.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\core\srs_core_mem_watch.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\core\srs_core_performance.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_aac.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_balance.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_buffer.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_codec.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_consts.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_error.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_file.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_flv.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_io.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_log.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_mp3.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_mp4.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_stream.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_ts.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\kernel\srs_kernel_utility.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\libs\srs_librtmp.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\libs\srs_lib_bandwidth.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\libs\srs_lib_simple_socket.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_http_stack.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_kafka_stack.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_protocol_amf0.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_protocol_format.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_protocol_io.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_protocol_json.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_protocol_kbps.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_protocol_stream.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_protocol_utility.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_raw_avc.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_rtmp_handshake.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_rtmp_msg_array.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_rtmp_stack.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_rtsp_stack.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\service\srs_service_conn.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\service\srs_service_http_client.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\service\srs_service_http_conn.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\service\srs_service_log.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\service\srs_service_rtmp_conn.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\service\srs_service_st.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\service\srs_service_utility.cpp" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{B5B7BE88-CAAC-4E18-9406-E2F856F706AA}</ProjectGuid>
+    <RootNamespace>RtspClient</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v141_xp</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\Lib\win32\$(ProjectName)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\__Compile\win32\$(ProjectName)\$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\Lib\win32\$(ProjectName)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\__Compile\win32\$(ProjectName)\$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <TargetName>$(ProjectName)_debug</TargetName>
+    <TargetExt>.dll</TargetExt>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;_DEBUG;RTMP_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Include;src\Simple-RTMP-Server\trunk\src\service;src\Simple-RTMP-Server\trunk\src\protocol;src\Simple-RTMP-Server\trunk\src\libs;src\Simple-RTMP-Server\trunk\src\kernel;src\Simple-RTMP-Server\trunk\src\core;src\Simple-RTMP-Server\trunk\src\app;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ModuleDefinitionFile>
+      </ModuleDefinitionFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Lib\win32;</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;RTSPCLIENT_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Include;</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ModuleDefinitionFile>
+      </ModuleDefinitionFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Lib\win32</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="$(ProjectDir)packages-depend.targets" />
+  <ImportGroup Label="ExtensionTargets" />
+</Project>
