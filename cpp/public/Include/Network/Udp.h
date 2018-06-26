@@ -17,10 +17,9 @@ namespace Network{
 class NETWORK_API UDP:public Socket
 {
 	struct UDPInternalPointer;
-	UDP(const UDP&);
-	UDP();
-public:	
 	UDP(const shared_ptr<IOWorker>& worker);
+public:	
+	static shared_ptr<Socket> create(const shared_ptr<IOWorker>& worker);
 	virtual ~UDP();
 	
 	///断开socket连接，停止socket内部工作，关闭socket句柄等

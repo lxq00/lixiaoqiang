@@ -16,7 +16,7 @@ public:
 	//Á¬½Ó
 	bool connect();
 
-	int writePacket(const char* buffer, int maxlen);
+	bool writePacket(RTMPType type,uint32_t timestmap /*ms*/,const char* buffer, int maxlen);
 private:
 	struct RTMPPusherInternal;
 	RTMPPusherInternal *internal;

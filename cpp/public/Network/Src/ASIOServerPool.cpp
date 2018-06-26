@@ -26,10 +26,10 @@ public:
 private:
 	void threadRunProc(Thread* t, void* param);
 public:
-	shared_ptr<boost::asio::io_service>					ioserver;
+	boost::shared_ptr<boost::asio::io_service>					ioserver;
 private:
 	Mutex												mutex;
-	shared_ptr<boost::asio::io_service::work>			worker;
+	boost::shared_ptr<boost::asio::io_service::work>			worker;
 	std::list<shared_ptr<Thread> >						threadPool;
 	bool												poolQuit;
 };
@@ -42,6 +42,22 @@ IOWorker::~IOWorker()
 {
 	SAFE_DELETE(internal);
 }
+
+shared_ptr<IOWorker> IOWorker::defaultWorker()
+{
+	static weak_ptr<IOWorker> workerptr;
+	static Mutex workermutex;
+
+	Guard locker(workermutex);
+	shared_ptr<IOWorker> defaultworker = workerptr.lock();
+	if (defaultworker == NULL)
+	{
+		workerptr = defaultworker = make_shared<IOWorker>(ThreadNum(2));
+	}
+
+	return defaultworker;
+}
+
 void* IOWorker::getBoostASIOIOServerSharedptr() const
 {
 	return &internal->ioserver;
@@ -50,8 +66,8 @@ void* IOWorker::getBoostASIOIOServerSharedptr() const
 
 IOWorker::IOWorkerInternal::IOWorkerInternal(uint32_t num):poolQuit(false)
 {
-	ioserver = make_shared<boost::asio::io_service>();
-	worker = make_shared<boost::asio::io_service::work>(*ioserver);
+	ioserver = boost::make_shared<boost::asio::io_service>();
+	worker = boost::make_shared<boost::asio::io_service::work>(*ioserver);
 
 	if(num == 0)
 	{

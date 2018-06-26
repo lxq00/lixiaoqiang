@@ -565,5 +565,14 @@
     <ClCompile Include="Src\RTMPServer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\main\srs_main_ingest_hls.cpp">
+      <Filter>Simple-RTMP-Server</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\main\srs_main_mp4_parser.cpp">
+      <Filter>Simple-RTMP-Server</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\main\srs_main_server.cpp">
+      <Filter>Simple-RTMP-Server</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -27,23 +27,6 @@ typedef struct XMLN
 #define NTYPE_UNDEF		-1
 
 
-static XMLN * xml_node_soap_get(XMLN * parent, const char * name)
-{
-	if (parent == NULL || name == NULL)
-		return NULL;
-
-	XMLN * p_node = parent->f_child;
-	while (p_node != NULL)
-	{
-		if (soap_strcmp(p_node->name, name) == 0)
-			return p_node;
-
-		p_node = p_node->next;
-	}
-
-	return NULL;
-}
-
 static int soap_strcmp(const char * str1, const char * str2)
 {
 	if (strcmp(str1, str2) == 0)
@@ -59,6 +42,23 @@ static int soap_strcmp(const char * str1, const char * str2)
 		return strcmp(str1, ptr2 + 1);
 	else
 		return -1;
+}
+
+static XMLN * xml_node_soap_get(XMLN * parent, const char * name)
+{
+	if (parent == NULL || name == NULL)
+		return NULL;
+
+	XMLN * p_node = parent->f_child;
+	while (p_node != NULL)
+	{
+		if (soap_strcmp(p_node->name, name) == 0)
+			return p_node;
+
+		p_node = p_node->next;
+	}
+
+	return NULL;
 }
 
 static const char * xml_attr_get(XMLN * p_node, const char * name)

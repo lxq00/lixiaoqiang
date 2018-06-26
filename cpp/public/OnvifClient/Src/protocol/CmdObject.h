@@ -19,7 +19,7 @@ using namespace Public::Onvif;
 "<wsse:Nonce>%s</wsse:Nonce>"\
 "<wsu:Created>%s</wsu:Created>"\
 "</wsse:UsernameToken></wsse:Security>"\
-"</s:Header>";
+"</s:Header>"
 
 #define onvif_xml_headerCreate "<s:Header>"\
 "<a:Action s:mustUnderstand=\"1\">http://www.onvif.org/ver10/events/wsdl/PullPointSubscription/PullMessagesRequest</a:Action>"\
@@ -35,7 +35,7 @@ using namespace Public::Onvif;
 "<Created xmlns=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd\">%s</Created>"\
 "</UsernameToken></Security>"\
 "<a:To s:mustUnderstand=\"1\">http://%s%s</a:To>"\
-"</s:Header>";
+"</s:Header>"
 
 class CmdObject
 {

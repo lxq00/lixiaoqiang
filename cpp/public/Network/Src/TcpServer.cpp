@@ -1,4 +1,4 @@
-#include "ASIOSocketAcceptObject.h"
+#include "ASIOSocketAcceptor.h"
 #include "Network/TcpServer.h"
 using namespace std;
 namespace Public{
@@ -6,58 +6,33 @@ namespace Network{
 
 struct TCPServer::TCPServerInternalPointer
 {
-	TCPServerInternalPointer(){}
-	~TCPServerInternalPointer(){}
-	Mutex									mutex;
-	boost::shared_ptr<TCPServerSocketObject> internal;
+	boost::shared_ptr<ASIOSocketAcceptor> sock;
 };
-
-TCPServer::TCPServer(const shared_ptr<IOWorker>& _worker,const NetAddr& addr)
+shared_ptr<Socket> TCPServer::create(const shared_ptr<IOWorker>& _worker,const NetAddr& addr)
 {
-	shared_ptr<IOWorker> worker = _worker;
-	if (worker == NULL)
-	{
-		worker = make_shared<IOWorker>(IOWorker::ThreadNum(2));
-	}
+	shared_ptr<TCPServer> sock = shared_ptr<TCPServer>(new TCPServer(_worker,addr));
+	sock->tcpserverinternal->sock->initSocketptr(sock);
 
-	tcpserverinternal = new TCPServerInternalPointer;
-	tcpserverinternal->internal = boost::make_shared<TCPServerSocketObject>(worker,this);
-	
-	bind(addr);
+	return sock;
 }
-
+TCPServer::TCPServer(const shared_ptr<IOWorker>& _worker, const NetAddr& addr)
+{
+	tcpserverinternal = new TCPServerInternalPointer;
+	tcpserverinternal->sock = boost::make_shared<ASIOSocketAcceptor>(_worker);
+	tcpserverinternal->sock->create(addr,true);
+}
 TCPServer::~TCPServer()
 {
 	disconnect();
 	SAFE_DELETE(tcpserverinternal);
 }
-bool TCPServer::bind(const NetAddr& addr,bool reusedaddr)
-{
-	if(!addr.isValid())
-	{
-		return false;
-	}
-	boost::shared_ptr<TCPServerSocketObject> sockobj;
-
-	{
-		Guard locker(tcpserverinternal->mutex);
-		sockobj = tcpserverinternal->internal;
-	}
-	if(sockobj == NULL)
-	{
-		return false;
-	}
-	return sockobj->create(addr,reusedaddr);
-}
 int TCPServer::getHandle() const
 {
-	boost::shared_ptr<TCPServerSocketObject> sockobj;
-
+	boost::shared_ptr<ASIOSocketAcceptor> sockobj;
 	{
-		Guard locker(tcpserverinternal->mutex);
-		sockobj = tcpserverinternal->internal;
+		sockobj = tcpserverinternal->sock;
 	}
-	if(sockobj == NULL)
+	if (sockobj == NULL)
 	{
 		return false;
 	}
@@ -74,42 +49,35 @@ NetType TCPServer::getNetType() const
 }
 NetAddr TCPServer::getMyAddr() const
 {
-	boost::shared_ptr<TCPServerSocketObject> sockobj;
-
+	boost::shared_ptr<ASIOSocketAcceptor> sockobj;
 	{
-		Guard locker(tcpserverinternal->mutex);
-		sockobj = tcpserverinternal->internal;
+		sockobj = tcpserverinternal->sock;
 	}
-	if(sockobj == NULL)
+	if (sockobj == NULL)
 	{
-		return NetAddr();
+		return false;
 	}
 
 	return sockobj->getMyAddr();
 }
 bool TCPServer::disconnect()
 {
-	boost::shared_ptr<TCPServerSocketObject> sockobj;
-
+	boost::shared_ptr<ASIOSocketAcceptor> sockobj;
 	{
-		Guard locker(tcpserverinternal->mutex);
-		sockobj = tcpserverinternal->internal;
-		tcpserverinternal->internal = boost::shared_ptr<TCPServerSocketObject>();
+		sockobj = tcpserverinternal->sock;
 	}
-	if(sockobj != NULL)
+	if (sockobj != NULL)
 	{
-		sockobj->destory();
+		sockobj->disconnect();
 	}
 
 	return true;
 }
 bool TCPServer::async_accept(const AcceptedCallback& accepted)
 {
-	boost::shared_ptr<TCPServerSocketObject> sockobj;
-
+	boost::shared_ptr<ASIOSocketAcceptor> sockobj;
 	{
-		Guard locker(tcpserverinternal->mutex);
-		sockobj = tcpserverinternal->internal;
+		sockobj = tcpserverinternal->sock;
 	}
 	if(sockobj == NULL || !accepted)
 	{
@@ -119,13 +87,11 @@ bool TCPServer::async_accept(const AcceptedCallback& accepted)
 	return sockobj->startListen(accepted);
 }
 
-Socket* TCPServer::accept()
+shared_ptr<Socket> TCPServer::accept()
 {
-	boost::shared_ptr<TCPServerSocketObject> sockobj;
-
+	boost::shared_ptr<ASIOSocketAcceptor> sockobj;
 	{
-		Guard locker(tcpserverinternal->mutex);
-		sockobj = tcpserverinternal->internal;
+		sockobj = tcpserverinternal->sock;
 	}
 	if(sockobj == NULL)
 	{
@@ -137,11 +103,9 @@ Socket* TCPServer::accept()
 
 bool TCPServer::getSocketTimeout(uint32_t& recvTimeout,uint32_t& sendTimeout) const
 {
-	boost::shared_ptr<TCPServerSocketObject> sockobj;
-
+	boost::shared_ptr<ASIOSocketAcceptor> sockobj;
 	{
-		//Guard locker(tcpserverinternal->mutex);
-		sockobj = tcpserverinternal->internal;
+		sockobj = tcpserverinternal->sock;
 	}
 	if(sockobj == NULL)
 	{
@@ -152,11 +116,9 @@ bool TCPServer::getSocketTimeout(uint32_t& recvTimeout,uint32_t& sendTimeout) co
 }
 bool TCPServer::setSocketTimeout(uint32_t recvTimeout,uint32_t sendTimeout)
 {
-	boost::shared_ptr<TCPServerSocketObject> sockobj;
-
+	boost::shared_ptr<ASIOSocketAcceptor> sockobj;
 	{
-		Guard locker(tcpserverinternal->mutex);
-		sockobj = tcpserverinternal->internal;
+		sockobj = tcpserverinternal->sock;
 	}
 	if(sockobj == NULL)
 	{
@@ -167,11 +129,9 @@ bool TCPServer::setSocketTimeout(uint32_t recvTimeout,uint32_t sendTimeout)
 }
 bool TCPServer::nonBlocking(bool nonblock)
 {
-	boost::shared_ptr<TCPServerSocketObject> sockobj;
-
+	boost::shared_ptr<ASIOSocketAcceptor> sockobj;
 	{
-		Guard locker(tcpserverinternal->mutex);
-		sockobj = tcpserverinternal->internal;
+		sockobj = tcpserverinternal->sock;
 	}
 	if(sockobj == NULL)
 	{
@@ -182,11 +142,9 @@ bool TCPServer::nonBlocking(bool nonblock)
 }
 bool TCPServer::setSocketOpt(int level, int optname, const void *optval, int optlen)
 {
-	boost::shared_ptr<TCPServerSocketObject> sockobj;
-
+	boost::shared_ptr<ASIOSocketAcceptor> sockobj;
 	{
-		Guard locker(tcpserverinternal->mutex);
-		sockobj = tcpserverinternal->internal;
+		sockobj = tcpserverinternal->sock;
 	}
 	if (sockobj == NULL)
 	{
@@ -197,10 +155,9 @@ bool TCPServer::setSocketOpt(int level, int optname, const void *optval, int opt
 }
 bool TCPServer::getSocketOpt(int level, int optname, void *optval, int *optlen) const
 {
-	boost::shared_ptr<TCPServerSocketObject> sockobj;
+	boost::shared_ptr<ASIOSocketAcceptor> sockobj;
 	{
-		//Guard locker(mutex);
-		sockobj = tcpserverinternal->internal;
+		sockobj = tcpserverinternal->sock;
 	}
 	if (sockobj == NULL)
 	{

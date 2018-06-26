@@ -13,14 +13,15 @@
 namespace Public{
 namespace Network{
 
-
+class ASIOSocketAcceptor;
 class NETWORK_API TCPClient:public Socket
 {
+	friend class ASIOSocketAcceptor;
+
 	struct TCPClientInternalPointer;
-	TCPClient(const TCPClient&);
-	TCPClient();
-public:
 	TCPClient(const shared_ptr<IOWorker>& worker);
+public:
+	static shared_ptr<Socket> create(const shared_ptr<IOWorker>& worker);
 	virtual ~TCPClient();
 
 	///断开socket连接，停止socket内部工作，关闭socket句柄等

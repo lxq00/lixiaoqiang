@@ -175,6 +175,9 @@
     <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\libs\srs_librtmp.cpp" />
     <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\libs\srs_lib_bandwidth.cpp" />
     <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\libs\srs_lib_simple_socket.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\main\srs_main_ingest_hls.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\main\srs_main_mp4_parser.cpp" />
+    <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\main\srs_main_server.cpp" />
     <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_http_stack.cpp" />
     <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_kafka_stack.cpp" />
     <ClCompile Include="Src\Simple-RTMP-Server\trunk\src\protocol\srs_protocol_amf0.cpp" />

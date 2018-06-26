@@ -162,7 +162,7 @@ shared_ptr<OnvifClientDefs::VideoEncoderConfigurations> OnvifClient::getVideoEnc
 }
 shared_ptr<OnvifClientDefs::ContinuousMove> OnvifClient::getContinuousMove(int timeoutms)
 {
-	shared_ptr<CmdContinuousMove> cmd = make_shared<CmdContinuousMove>();
+	shared_ptr<CmdContinuousMove> cmd;// = make_shared<CmdContinuousMove>();
 
 	internal->sendOvifRequest(cmd.get(), timeoutms);
 
@@ -170,7 +170,7 @@ shared_ptr<OnvifClientDefs::ContinuousMove> OnvifClient::getContinuousMove(int t
 }
 shared_ptr<OnvifClientDefs::AbsoluteMove> OnvifClient::getAbsoluteMove(int timeoutms)
 {
-	shared_ptr<CmdAbsoluteMove> cmd = make_shared<CmdAbsoluteMove>();
+	shared_ptr<CmdAbsoluteMove> cmd;// = make_shared<CmdAbsoluteMove>();
 
 	internal->sendOvifRequest(cmd.get(), timeoutms);
 
@@ -186,7 +186,7 @@ shared_ptr<OnvifClientDefs::_PTZConfig> OnvifClient::getConfigurations(int timeo
 }
 shared_ptr<OnvifClientDefs::ConfigurationOptions> OnvifClient::getConfigurationOptions(int timeoutms)
 {
-	shared_ptr<CmdGetConfigurationOptions> cmd = make_shared<CmdGetConfigurationOptions>();
+	shared_ptr<CmdGetConfigurationOptions> cmd;// = make_shared<CmdGetConfigurationOptions>();
 
 	internal->sendOvifRequest(cmd.get(), timeoutms);
 
@@ -249,7 +249,7 @@ OnvifClientManager::~OnvifClientManager()
 
 shared_ptr<OnvifClient> OnvifClientManager::create(const URI& url)
 {
-	return make_shared<OnvifClient>(url, internal->worker, internal->useragent);
+	return shared_ptr<OnvifClient>(new OnvifClient(url, internal->worker, internal->useragent));
 }
 
 }
