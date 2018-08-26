@@ -1,0 +1,184 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Include\RTMP\Defs.h" />
+    <ClInclude Include="..\Include\RTMP\FlvParser.h" />
+    <ClInclude Include="..\Include\RTMP\RTMP.h" />
+    <ClInclude Include="..\Include\RTMP\RTMPPull.h" />
+    <ClInclude Include="..\Include\RTMP\RTMPPublish.h" />
+    <ClInclude Include="..\Include\RTMP\RTMPServer.h" />
+    <ClInclude Include="Src\libflv\amf0.h" />
+    <ClInclude Include="Src\libflv\amf3.h" />
+    <ClInclude Include="Src\libflv\flv-demuxer.h" />
+    <ClInclude Include="Src\libflv\flv-muxer.h" />
+    <ClInclude Include="Src\libflv\flv-parser.h" />
+    <ClInclude Include="Src\libflv\flv-proto.h" />
+    <ClInclude Include="Src\libflv\flv-reader.h" />
+    <ClInclude Include="Src\libflv\flv-writer.h" />
+    <ClInclude Include="Src\libflv\mp3-header.h" />
+    <ClInclude Include="Src\libflv\mpeg4-aac.h" />
+    <ClInclude Include="Src\libflv\mpeg4-avc.h" />
+    <ClInclude Include="Src\libflv\mpeg4-hevc.h" />
+    <ClInclude Include="Src\LibRTMPClient.h" />
+    <ClInclude Include="Src\libRTMPServer.h" />
+    <ClInclude Include="Src\librtmp\rtmp-chunk-header.h" />
+    <ClInclude Include="Src\librtmp\rtmp-client-invoke-handler.h" />
+    <ClInclude Include="Src\librtmp\rtmp-client.h" />
+    <ClInclude Include="Src\librtmp\rtmp-control-message.h" />
+    <ClInclude Include="Src\librtmp\rtmp-event.h" />
+    <ClInclude Include="Src\librtmp\rtmp-handshake.h" />
+    <ClInclude Include="Src\librtmp\rtmp-internal.h" />
+    <ClInclude Include="Src\librtmp\rtmp-msgtypeid.h" />
+    <ClInclude Include="Src\librtmp\rtmp-netconnection.h" />
+    <ClInclude Include="Src\librtmp\rtmp-netstream.h" />
+    <ClInclude Include="Src\librtmp\rtmp-server.h" />
+    <ClInclude Include="Src\librtmp\rtmp-util.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Include\RTMP\Version.tpl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Src\FlvFileReader.cpp" />
+    <ClCompile Include="Src\FlvFileWriter.cpp" />
+    <ClCompile Include="Src\FlvParser.cpp" />
+    <ClCompile Include="Src\H264ToFlv.cpp" />
+    <ClCompile Include="Src\libflv\amf0.c" />
+    <ClCompile Include="Src\libflv\amf3.c" />
+    <ClCompile Include="Src\libflv\flv-demuxer-script.c" />
+    <ClCompile Include="Src\libflv\flv-demuxer.c" />
+    <ClCompile Include="Src\libflv\flv-muxer.c" />
+    <ClCompile Include="Src\libflv\flv-parser.c" />
+    <ClCompile Include="Src\libflv\flv-reader.c" />
+    <ClCompile Include="Src\libflv\flv-writer.c" />
+    <ClCompile Include="Src\libflv\hevc-annexbtomp4.c" />
+    <ClCompile Include="Src\libflv\hevc-mp4toannexb.c" />
+    <ClCompile Include="Src\libflv\mp3-header.c" />
+    <ClCompile Include="Src\libflv\mpeg4-aac.c" />
+    <ClCompile Include="Src\libflv\mpeg4-annexbtomp4.c" />
+    <ClCompile Include="Src\libflv\mpeg4-avc.c" />
+    <ClCompile Include="Src\libflv\mpeg4-hevc.c" />
+    <ClCompile Include="Src\libflv\mpeg4-mp4toannexb.c" />
+    <ClCompile Include="Src\librtmp\rtmp-chunk-header.c" />
+    <ClCompile Include="Src\librtmp\rtmp-chunk-read.c" />
+    <ClCompile Include="Src\librtmp\rtmp-chunk-write.c" />
+    <ClCompile Include="Src\librtmp\rtmp-client.c" />
+    <ClCompile Include="Src\librtmp\rtmp-control-handler.c" />
+    <ClCompile Include="Src\librtmp\rtmp-control-message.c" />
+    <ClCompile Include="Src\librtmp\rtmp-event.c" />
+    <ClCompile Include="Src\librtmp\rtmp-handler.c" />
+    <ClCompile Include="Src\librtmp\rtmp-handshake.c" />
+    <ClCompile Include="Src\librtmp\rtmp-invoke-handler.c" />
+    <ClCompile Include="Src\librtmp\rtmp-netconnection.c" />
+    <ClCompile Include="Src\librtmp\rtmp-netstream.c" />
+    <ClCompile Include="Src\librtmp\rtmp-server.c" />
+    <ClCompile Include="Src\RTMPPull.cpp" />
+    <ClCompile Include="Src\RTMPPublish.cpp" />
+    <ClCompile Include="Src\RTMPServer.cpp" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{B5B7BE88-CAAC-4E18-9406-E2F856F706AA}</ProjectGuid>
+    <RootNamespace>RtspClient</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v141_xp</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v141_xp</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\Lib\win32\$(ProjectName)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\__Compile\win32\$(ProjectName)\$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\Lib\win32\$(ProjectName)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\__Compile\win32\$(ProjectName)\$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <TargetName>$(ProjectName)_debug</TargetName>
+    <TargetExt>.dll</TargetExt>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;_DEBUG;RTMP_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Include;src\Simple-RTMP-Server\trunk\src\service;src\Simple-RTMP-Server\trunk\src\protocol;src\Simple-RTMP-Server\trunk\src\libs;src\Simple-RTMP-Server\trunk\src\kernel;src\Simple-RTMP-Server\trunk\src\core;src\Simple-RTMP-Server\trunk\src\app;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ModuleDefinitionFile>
+      </ModuleDefinitionFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Lib\win32;</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;RTSPCLIENT_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Include;</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ModuleDefinitionFile>
+      </ModuleDefinitionFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Lib\win32</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="$(ProjectDir)packages-depend.targets" />
+  <ImportGroup Label="ExtensionTargets" />
+</Project>

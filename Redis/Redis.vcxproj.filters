@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="源文件\redisclient">
+      <UniqueIdentifier>{7e075789-9a61-4d05-a9cc-2de9f39ecfb4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Include\Redis\Defs.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Redis\Redis.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\redisclient\redisasyncclient.h">
+      <Filter>源文件\redisclient</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\redisclient\redisparser.h">
+      <Filter>源文件\redisclient</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\redisclient\redisvalue.h">
+      <Filter>源文件\redisclient</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\RedisDefine.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\redisclient\redissyncclient.h">
+      <Filter>源文件\redisclient</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\redisclient\redisclientimpl.h">
+      <Filter>源文件\redisclient</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Src\RedisClient.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RedisMQ.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RedisSet.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RedisKey.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RedisHash.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RedisList.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RedisSortedSet.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RedisNameMutex.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\redisclient\redisasyncclient.cpp">
+      <Filter>源文件\redisclient</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\redisclient\redisclientimpl.cpp">
+      <Filter>源文件\redisclient</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\redisclient\redisparser.cpp">
+      <Filter>源文件\redisclient</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\redisclient\redissyncclient.cpp">
+      <Filter>源文件\redisclient</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\redisclient\redisvalue.cpp">
+      <Filter>源文件\redisclient</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Version.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

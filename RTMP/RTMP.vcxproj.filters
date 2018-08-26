@@ -1,0 +1,236 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="源文件\librtmp">
+      <UniqueIdentifier>{8db62009-26b9-4db6-a826-d520bd08ffef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\libflv">
+      <UniqueIdentifier>{fc95912d-32d1-44d6-aca6-cce24ee54a2c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Include\RTMP\Defs.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\RTMP\RTMP.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\RTMP\RTMPServer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\librtmp\rtmp-chunk-header.h">
+      <Filter>源文件\librtmp</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\librtmp\rtmp-client.h">
+      <Filter>源文件\librtmp</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\librtmp\rtmp-client-invoke-handler.h">
+      <Filter>源文件\librtmp</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\librtmp\rtmp-control-message.h">
+      <Filter>源文件\librtmp</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\librtmp\rtmp-event.h">
+      <Filter>源文件\librtmp</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\librtmp\rtmp-handshake.h">
+      <Filter>源文件\librtmp</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\librtmp\rtmp-internal.h">
+      <Filter>源文件\librtmp</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\librtmp\rtmp-msgtypeid.h">
+      <Filter>源文件\librtmp</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\librtmp\rtmp-netconnection.h">
+      <Filter>源文件\librtmp</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\librtmp\rtmp-netstream.h">
+      <Filter>源文件\librtmp</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\librtmp\rtmp-server.h">
+      <Filter>源文件\librtmp</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\librtmp\rtmp-util.h">
+      <Filter>源文件\librtmp</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\libflv\amf0.h">
+      <Filter>源文件\libflv</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\libflv\amf3.h">
+      <Filter>源文件\libflv</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\libflv\flv-demuxer.h">
+      <Filter>源文件\libflv</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\libflv\flv-muxer.h">
+      <Filter>源文件\libflv</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\libflv\flv-parser.h">
+      <Filter>源文件\libflv</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\libflv\flv-proto.h">
+      <Filter>源文件\libflv</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\libflv\flv-reader.h">
+      <Filter>源文件\libflv</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\libflv\flv-writer.h">
+      <Filter>源文件\libflv</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\libflv\mp3-header.h">
+      <Filter>源文件\libflv</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\libflv\mpeg4-aac.h">
+      <Filter>源文件\libflv</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\libflv\mpeg4-avc.h">
+      <Filter>源文件\libflv</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\libflv\mpeg4-hevc.h">
+      <Filter>源文件\libflv</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\RTMP\RTMPPublish.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\libRTMPServer.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\LibRTMPClient.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\RTMP\RTMPPull.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\RTMP\FlvParser.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Include\RTMP\Version.tpl">
+      <Filter>头文件</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Src\RTMPServer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\librtmp\rtmp-chunk-header.c">
+      <Filter>源文件\librtmp</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\librtmp\rtmp-chunk-read.c">
+      <Filter>源文件\librtmp</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\librtmp\rtmp-chunk-write.c">
+      <Filter>源文件\librtmp</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\librtmp\rtmp-client.c">
+      <Filter>源文件\librtmp</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\librtmp\rtmp-control-handler.c">
+      <Filter>源文件\librtmp</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\librtmp\rtmp-control-message.c">
+      <Filter>源文件\librtmp</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\librtmp\rtmp-event.c">
+      <Filter>源文件\librtmp</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\librtmp\rtmp-handler.c">
+      <Filter>源文件\librtmp</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\librtmp\rtmp-handshake.c">
+      <Filter>源文件\librtmp</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\librtmp\rtmp-invoke-handler.c">
+      <Filter>源文件\librtmp</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\librtmp\rtmp-netconnection.c">
+      <Filter>源文件\librtmp</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\librtmp\rtmp-netstream.c">
+      <Filter>源文件\librtmp</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\librtmp\rtmp-server.c">
+      <Filter>源文件\librtmp</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\libflv\amf0.c">
+      <Filter>源文件\libflv</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\libflv\amf3.c">
+      <Filter>源文件\libflv</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\libflv\flv-demuxer.c">
+      <Filter>源文件\libflv</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\libflv\flv-demuxer-script.c">
+      <Filter>源文件\libflv</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\libflv\flv-muxer.c">
+      <Filter>源文件\libflv</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\libflv\flv-parser.c">
+      <Filter>源文件\libflv</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\libflv\flv-reader.c">
+      <Filter>源文件\libflv</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\libflv\flv-writer.c">
+      <Filter>源文件\libflv</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\libflv\hevc-annexbtomp4.c">
+      <Filter>源文件\libflv</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\libflv\hevc-mp4toannexb.c">
+      <Filter>源文件\libflv</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\libflv\mp3-header.c">
+      <Filter>源文件\libflv</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\libflv\mpeg4-aac.c">
+      <Filter>源文件\libflv</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\libflv\mpeg4-annexbtomp4.c">
+      <Filter>源文件\libflv</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\libflv\mpeg4-avc.c">
+      <Filter>源文件\libflv</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\libflv\mpeg4-hevc.c">
+      <Filter>源文件\libflv</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\libflv\mpeg4-mp4toannexb.c">
+      <Filter>源文件\libflv</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RTMPPublish.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RTMPPull.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\FlvParser.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\FlvFileReader.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\FlvFileWriter.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\H264ToFlv.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,7 @@
+.vs/*
+__Compile/*
+*.exp
+*.ilk
+Bin/*
+./Lib/win32/*
+.vscode/*
