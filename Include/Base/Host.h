@@ -21,13 +21,21 @@ public:
 	{
 		std::string		Id;
 		std::string		Name;
+		std::string		Alias; //别名
+		std::string		SerialNumber;//序列号
 		enum{
-			DiskType_Usb,
+			DiskType_Usb = 0,
 			DiskType_CDRom,
 			DiskType_Remove,
 			DiskType_Disk,
 			DiskType_Network,
 		}Type;
+		enum {
+			FormatType_Unkown = 0,
+			FormatType_FAT,
+			FormatType_NTFS,
+			FormatType_ext4,
+		}FormatType;
 		uint64_t		TotalSize;
 		uint64_t		FreeSize;
 	};
@@ -84,6 +92,9 @@ public:
 
 	static std::string	guessMyIpaddr(const std::string& destip = "");
 	static bool guessMyIpInfo(NetworkInfo& info);
+
+	//获取系统位数
+	static uint32_t getSystemBits();
 };
 
 };

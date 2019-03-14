@@ -105,19 +105,19 @@ void _RTSPClientMediaCallback(const MEDIA_PARAMETER& mediainfo, void* userdata)
 	}
 }
 
-int CALLBACK XM_RTSP_Init()
+int CALLBACK RTSP_Init()
 {
 	Guard locker(clientmutex);
 	if (clientManager == NULL)
 	{
 		BaseSystem::init();
 		NetworkSystem::init();
-		clientManager = make_shared<RTSPClientManager>("Xunmei RTSP Client");
+		clientManager = make_shared<RTSPClientManager>("Public RTSP Client");
 	}
 	return RTSP_ERR_NO_ERROR;
 }
 
-int CALLBACK XM_RTSP_UnInit()
+int CALLBACK RTSP_UnInit()
 {
 	Guard locker(clientmutex);
 	clientindex = 0;
@@ -130,7 +130,7 @@ int CALLBACK XM_RTSP_UnInit()
 	return RTSP_ERR_NO_ERROR;
 }
 
-int CALLBACK XM_RTSP_AddTask(char* pUrl, long* nTaskHandle )
+int CALLBACK RTSP_AddTask(char* pUrl, long* nTaskHandle )
 {
 	Guard locker(clientmutex);
 	if (clientManager == NULL)
@@ -164,7 +164,7 @@ int CALLBACK XM_RTSP_AddTask(char* pUrl, long* nTaskHandle )
 	return RTSP_ERR_NO_ERROR;
 }
 
-int CALLBACK XM_RTSP_DelTask( long nTaskHandle )
+int CALLBACK RTSP_DelTask( long nTaskHandle )
 {
 	shared_ptr<RTSPClient> client;
 	{
@@ -184,7 +184,7 @@ int CALLBACK XM_RTSP_DelTask( long nTaskHandle )
 
 	return RTSP_ERR_NO_ERROR;
 }
-int CALLBACK XM_RTSP_SetStreamCallbackFunction(long nTaskHandle, RtspClientDataCallBackFun pFunc, long nUserParam1, void* pUserParam2)
+int CALLBACK RTSP_SetStreamCallbackFunction(long nTaskHandle, RtspClientDataCallBackFun pFunc, long nUserParam1, void* pUserParam2)
 {
 	shared_ptr<RTSPUserInfo>  info;
 	{
@@ -208,7 +208,7 @@ int CALLBACK XM_RTSP_SetStreamCallbackFunction(long nTaskHandle, RtspClientDataC
 	return RTSP_ERR_NO_ERROR;
 }
 
-int CALLBACK XM_RTSP_SetConnectionCallbackFunction(long nTaskHandle, RTSP_CLIENT_CONNECT_CALLBACK_FUNCTION pFunc,long nUserParam1, void* pUserParam2)
+int CALLBACK RTSP_SetConnectionCallbackFunction(long nTaskHandle, RTSP_CLIENT_CONNECT_CALLBACK_FUNCTION pFunc,long nUserParam1, void* pUserParam2)
 {
 	shared_ptr<RTSPUserInfo>  info;
 	{
@@ -232,7 +232,7 @@ int CALLBACK XM_RTSP_SetConnectionCallbackFunction(long nTaskHandle, RTSP_CLIENT
 	return RTSP_ERR_NO_ERROR;
 }
 
-int CALLBACK XM_RTSP_StartRecv( long nTaskHandle, int nRecvType, LPMEDIA_PARAMETER lpMdeiaParam)
+int CALLBACK RTSP_StartRecv( long nTaskHandle, int nRecvType, LPMEDIA_PARAMETER lpMdeiaParam)
 {
 	if (lpMdeiaParam == NULL)
 	{
@@ -269,12 +269,12 @@ int CALLBACK XM_RTSP_StartRecv( long nTaskHandle, int nRecvType, LPMEDIA_PARAMET
 	return RTSP_ERR_NO_ERROR;
 }
 
-int CALLBACK XM_RTSP_StartRecvWithUserInfo(int nTaskHandle, char *pUserName, char* pPassword, int nRecvType, LPMEDIA_PARAMETER lpMdeiaParam)
+int CALLBACK RTSP_StartRecvWithUserInfo(int nTaskHandle, char *pUserName, char* pPassword, int nRecvType, LPMEDIA_PARAMETER lpMdeiaParam)
 {
-	return XM_RTSP_StartRecvWithUserInfoEX(nTaskHandle, pUserName, pPassword, nRecvType, lpMdeiaParam, 3, (char*)"", (char*)"");
+	return RTSP_StartRecvWithUserInfoEX(nTaskHandle, pUserName, pPassword, nRecvType, lpMdeiaParam, 3, (char*)"", (char*)"");
 }
 
-int CALLBACK XM_RTSP_StartRecvWithUserInfoEX(int nTaskHandle, char *pUserName, char* pPassword, int nRecvType, LPMEDIA_PARAMETER lpMdeiaParam, int nTimeType, char* pTartTime, char *pStopTime)
+int CALLBACK RTSP_StartRecvWithUserInfoEX(int nTaskHandle, char *pUserName, char* pPassword, int nRecvType, LPMEDIA_PARAMETER lpMdeiaParam, int nTimeType, char* pTartTime, char *pStopTime)
 {
 	if (lpMdeiaParam == NULL || pUserName == NULL || pPassword == NULL || pStopTime == NULL || pTartTime == NULL)
 	{
@@ -325,7 +325,7 @@ int CALLBACK XM_RTSP_StartRecvWithUserInfoEX(int nTaskHandle, char *pUserName, c
 	return RTSP_ERR_NO_ERROR;
 }
 
-int CALLBACK XM_RTSP_StopRecv( long nTaskHandle )
+int CALLBACK RTSP_StopRecv( long nTaskHandle )
 {
 	shared_ptr<RTSPUserInfo>  info;
 	{
@@ -348,7 +348,7 @@ int CALLBACK XM_RTSP_StopRecv( long nTaskHandle )
 	return RTSP_ERR_NO_ERROR;
 }
 
-int CALLBACK XM_RTSP_GetConnectState( long nTaskHandle )
+int CALLBACK RTSP_GetConnectState( long nTaskHandle )
 {
 	return RTSP_ERR_NO_ERROR;
 }

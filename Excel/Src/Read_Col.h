@@ -16,7 +16,7 @@ public:
 
 	//--------------数据相关
 	///获取数据,内容
-	virtual shared_ptr<Value> data(uint32_t rowNum) const;
+	virtual Value data(uint32_t rowNum) const;
 	//--------------当前列的最大的列号
 	uint32_t colNum();
 

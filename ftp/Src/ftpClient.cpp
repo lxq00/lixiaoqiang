@@ -17,7 +17,7 @@ namespace FTP{
 
 struct FtpClient::FtpClientInternal
 {
-	void *				_pConnect;
+    netbuf *			_pConnect;
 	std::string			_ftpServerIP;
 	int					_ftpServerPort;
 	bool				_bConnect;
@@ -30,26 +30,19 @@ void FtpClient::init()
 	FtpInit();
 }
 
-FtpClient::FtpClient(const std::string& addr)
+FtpClient::FtpClient(const std::string& ip,int port)
 {
 	internal = new FtpClientInternal();
-	std::string addrstr = addr;
-	internal->_ftpServerPort = 21;
-
-	const char* tmp = addr.c_str();
-	const char* tmp1 = strchr(tmp, ':');
-	if (tmp1 != NULL)
-	{
-		internal->_ftpServerIP = std::string(tmp, tmp1 - tmp);
-		internal->_ftpServerPort = atoi(tmp1 + 1);
-	}
+	internal->_ftpServerIP = ip;
+	internal->_ftpServerPort = port;
 }
 
 FtpClient::~FtpClient()
 {
 	if (internal->_pConnect)
 	{
-		FtpClose((netbuf *)internal->_pConnect);
+        FtpQuit(internal->_pConnect);
+		FtpClose(internal->_pConnect);
 		internal->_pConnect = NULL;
 	}
 	SAFE_DELETE(internal);
@@ -60,12 +53,12 @@ bool FtpClient::connect(const std::string& user, const std::string& pass, uint32
 	if (internal->_bConnect)
 		return true;
 		
-	int iRet = FtpConnect(internal->_ftpServerIP.c_str(), (netbuf **)&internal->_pConnect);
+	int iRet = FtpConnect((internal->_ftpServerIP+":"+Value(internal->_ftpServerPort).readString()).c_str(), &internal->_pConnect);
 	if (!iRet)
 		return false;
 
-	FtpOptions(FTPLIB_CONNMODE, FTPLIB_PASSIVE, (netbuf *)internal->_pConnect);
-	iRet = FtpLogin(user.c_str(), pass.c_str(), (netbuf *)internal->_pConnect);
+	FtpOptions(FTPLIB_CONNMODE, FTPLIB_PASSIVE, internal->_pConnect);
+	iRet = FtpLogin(user.c_str(), pass.c_str(), internal->_pConnect);
 	if (!iRet)
 		return false;
 
@@ -83,7 +76,7 @@ bool FtpClient::mkdir(const std::string& path)
 	if (!isConnected())
 		return false;
 
-	return FtpMkdir(path.c_str(), (netbuf *)internal->_pConnect);
+	return FtpMkdir(path.c_str(), internal->_pConnect);
 }
 
 bool FtpClient::cddir(const std::string & path)
@@ -91,7 +84,7 @@ bool FtpClient::cddir(const std::string & path)
 	if (!isConnected())
 		return false;
 
-	return FtpChdir(path.c_str(), (netbuf *)internal->_pConnect);
+	return FtpChdir(path.c_str(), internal->_pConnect);
 }
 
 bool FtpClient::cdup()
@@ -99,7 +92,7 @@ bool FtpClient::cdup()
 	if (!isConnected())
 		return false;
 
-	return FtpCDUp((netbuf *)internal->_pConnect);
+	return FtpCDUp(internal->_pConnect);
 }
 
 bool FtpClient::rmfile(const std::string& filename)
@@ -107,7 +100,7 @@ bool FtpClient::rmfile(const std::string& filename)
 	if (!isConnected())
 		return false;
 
-	return FtpDelete(filename.c_str(), (netbuf *)internal->_pConnect);
+	return FtpDelete(filename.c_str(), internal->_pConnect);
 }
 
 bool FtpClient::rmdir(const std::string& path)
@@ -115,7 +108,7 @@ bool FtpClient::rmdir(const std::string& path)
 	if (!isConnected())
 		return false;
 
-	return FtpRmdir(path.c_str(), (netbuf *)internal->_pConnect);
+	return FtpRmdir(path.c_str(), internal->_pConnect);
 }
 
 std::list<Directory::Dirent> FtpClient::dir(const std::string& path)
@@ -171,7 +164,7 @@ int64_t FtpClient::size(const std::string & path)
 
 	unsigned int size = 0;
 
-	int iRet = FtpSize(path.c_str(), &size, FTPLIB_BINARY, (netbuf *)internal->_pConnect);
+	int iRet = FtpSize(path.c_str(), &size, FTPLIB_BINARY, internal->_pConnect);
 	
 	return (iRet ? size : -1);
 }
@@ -191,7 +184,7 @@ bool FtpClient::put(const std::string & localfile, const std::string & remoteFil
 		return false;
 
 	netbuf * pTransChn = NULL;
-	int iRet = FtpAccess(remoteFile.c_str(), FTPLIB_FILE_WRITE, FTPLIB_BINARY, (netbuf *)internal->_pConnect, &pTransChn);
+	int iRet = FtpAccess(remoteFile.c_str(), FTPLIB_FILE_WRITE, FTPLIB_BINARY, internal->_pConnect, &pTransChn);
 	if (!iRet)
 		return false;
 
@@ -225,7 +218,7 @@ bool FtpClient::rename(const std::string& src, const std::string& dst)
 	if (!isConnected())
 		return false;
 
-	return FtpRename(src.c_str(), dst.c_str(), (netbuf *)internal->_pConnect);
+	return FtpRename(src.c_str(), dst.c_str(), internal->_pConnect);
 }
 
 

@@ -1,8 +1,8 @@
 #define APSTUDIO_READONLY_SYMBOLS 
-#include "afxres.h"
+#include "winres.h"
 #undef APSTUDIO_READONLY_SYMBOLS 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS) 
-LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED 
+LANGUAGE 4, 2
 #ifdef APSTUDIO_INVOKED 
 1 TEXTINCLUDE 
 BEGIN 
@@ -10,7 +10,7 @@ END
  
 2 TEXTINCLUDE 
 BEGIN 
-    "#include ""afxres.h""\r\n" 
+    "#include ""winres.h""\r\n"
     "\0" 
 END 
 3 TEXTINCLUDE  

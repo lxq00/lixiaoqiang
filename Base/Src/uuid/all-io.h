@@ -12,7 +12,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
-
 #include "c.h"
 
 static inline int write_all(int fd, const void *buf, size_t count)

@@ -14,7 +14,6 @@
 
 #include "Defs.h"
 #include "Base/IntTypes.h"
-using namespace Public::Base;
 
 namespace Public{
 namespace Base {

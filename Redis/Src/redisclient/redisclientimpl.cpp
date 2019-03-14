@@ -2,9 +2,7 @@
 namespace redisclient {
 
 RedisClientImpl::RedisClientImpl(const shared_ptr<IOWorker>& _worker):worker(_worker)
-{
-	parser = make_shared<RedisParser>();
-}
+{}
 
 RedisClientImpl::~RedisClientImpl()
 {
@@ -20,10 +18,9 @@ void RedisClientImpl::close()
 	{
 		Thread::sleep(10);
 	}
-	parser = NULL;
 }
 
-bool RedisClientImpl::connected() const
+bool RedisClientImpl::isConnected() const
 {
 	shared_ptr<Socket> tmp = sock;
 	if (tmp == NULL) return false;
@@ -31,18 +28,19 @@ bool RedisClientImpl::connected() const
 	return tmp->getStatus() == NetStatus_connected;
 }
 
-void RedisClientImpl::asyncConnect(const NetAddr& addr, const ConnectCallback& callback, const ErrorCallback& _errcallback)
+void RedisClientImpl::asyncConnect(const NetAddr& addr, const ConnectCallback& callback, const DisconnectCallback& discallback)
 {
 	Guard locker(mutex);
-	redisaddr = addr;
+	sublist.clear();
+
 	connectCallback = callback;
-	errcallback = _errcallback;
+	disconnectCallback = discallback;
 
 	sock = TCPClient::create(worker);
 	sock->async_connect(addr, Socket::ConnectedCallback(&RedisClientImpl::socketConnectCallback, this));
 }
 
-void RedisClientImpl::socketConnectCallback(const shared_ptr<Socket>&)
+void RedisClientImpl::socketConnectCallback(const weak_ptr<Socket>&)
 {
 	connectCallback();
 
@@ -53,12 +51,16 @@ void RedisClientImpl::socketConnectCallback(const shared_ptr<Socket>&)
 		socktmp->setDisconnectCallback(Socket::DisconnectedCallback(&RedisClientImpl::socketDisconnectCallback, this));
 		socktmp->async_recv(Socket::ReceivedCallback(&RedisClientImpl::socketRecvCallback, this));
 	}	
-}
-void RedisClientImpl::socketDisconnectCallback(const shared_ptr<Socket>& sock, const std::string&)
-{
-	errcallback();
 
-	asyncConnect(redisaddr, connectCallback, errcallback);
+	//连接成功要启动数据的发送
+	{
+		Guard locker(mutex);
+		_socketSendCmd();
+	}
+}
+void RedisClientImpl::socketDisconnectCallback(const weak_ptr<Socket>& sock, const std::string&)
+{
+	disconnectCallback();
 }
 void RedisClientImpl::doAsyncCommand(const std::string& cmdstr, const CmdCallback&  handler)
 {
@@ -71,7 +73,7 @@ void RedisClientImpl::doAsyncCommand(const std::string& cmdstr, const CmdCallbac
 	int nowcmdsize = cmdSendList.size();
 
 	cmdSendList.push_back(cmd);
-	cmdRecvList.push_back(cmd);
+	cmdWaitRecvList.push_back(cmd);
 
 	//还没命令，处理命令
 	if (nowcmdsize == 0)
@@ -90,7 +92,7 @@ void RedisClientImpl::_socketSendCmd()
 
 	socktmp->async_send(cmd->cmd.c_str(), cmd->cmd.length(), Socket::SendedCallback(&RedisClientImpl::socketSendCallback, this));
 }
-void RedisClientImpl::socketSendCallback(const shared_ptr<Socket>&s, const char* tmp, int len)
+void RedisClientImpl::socketSendCallback(const weak_ptr<Socket>&s, const char* tmp, int len)
 {
 	Guard locker(mutex);
 	if (cmdSendList.size() == 0) return;
@@ -99,19 +101,18 @@ void RedisClientImpl::socketSendCallback(const shared_ptr<Socket>&s, const char*
 
 	_socketSendCmd();
 }
-void RedisClientImpl::socketRecvCallback(const shared_ptr<Socket>&s, const char* tmp, int len)
+void RedisClientImpl::socketRecvCallback(const weak_ptr<Socket>&s, const char* tmp, int len)
 {
 	std::string tmpstr = std::string(tmp, len);
-	if (!parser->input(tmp, len))
+	if (!input(tmp, len))
 	{
-		errcallback();
 		assert(0);
 		return;
 	}
 
 	while (true)
 	{
-		shared_ptr<RedisValue> val = parser->result();
+		shared_ptr<RedisValue> val = result();
 		if (val == NULL) break;
 
 		doProcessMessage(val);
@@ -164,10 +165,10 @@ void RedisClientImpl::doProcessMessage(const shared_ptr<RedisValue>& v)
 				shared_ptr<CmdInfo> cmd;
 				{
 					Guard locker(mutex);
-					if (cmdRecvList.size() > 0)
+					if (cmdWaitRecvList.size() > 0)
 					{
-						cmd = cmdRecvList.front();
-						cmdRecvList.pop_front();
+						cmd = cmdWaitRecvList.front();
+						cmdWaitRecvList.pop_front();
 					}
 				}
 				if (cmd != NULL)
@@ -184,10 +185,10 @@ void RedisClientImpl::doProcessMessage(const shared_ptr<RedisValue>& v)
 		shared_ptr<CmdInfo> cmd;
 		{
 			Guard locker(mutex);
-			if (cmdRecvList.size() > 0)
+			if (cmdWaitRecvList.size() > 0)
 			{
-				cmd = cmdRecvList.front();
-				cmdRecvList.pop_front();
+				cmd = cmdWaitRecvList.front();
+				cmdWaitRecvList.pop_front();
 			}
 		}
 		if (cmd != NULL)

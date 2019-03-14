@@ -36,6 +36,18 @@
     <ClInclude Include="Src\HTTPDefine.h">
       <Filter>源文件</Filter>
     </ClInclude>
+    <ClInclude Include="Src\HTTPSession.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\HTTP\WebSocket.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\HTTP\HTTP.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\WebSocketProtocol.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Version.rc">
@@ -50,6 +62,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Src\HTTPServer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\WebSocket.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

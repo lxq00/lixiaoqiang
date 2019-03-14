@@ -161,7 +161,7 @@ NetAddr TCPClient::getMyAddr() const
 	}
 	return sockobj->getMyAddr();
 }
-NetAddr TCPClient::getOhterAddr() const
+NetAddr TCPClient::getOtherAddr() const
 {
 	boost::shared_ptr<ASIOSocketConneter> sockobj;
 
@@ -172,7 +172,7 @@ NetAddr TCPClient::getOhterAddr() const
 	{
 		return NetAddr();
 	}
-	return sockobj->getOhterAddr();
+	return sockobj->getOtherAddr();
 }
 bool TCPClient::async_connect(const NetAddr& addr,const ConnectedCallback& connected)
 {

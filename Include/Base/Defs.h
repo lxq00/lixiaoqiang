@@ -72,7 +72,8 @@ MS VC++ 5.0 _MSC_VER = 1100(VisualStudio 97)
 */
 #if _MSC_VER > 1500 
 
-#define GCCSUPORTC11
+#define GCCSUPORTC11	//是否支持C++标准
+#define STDSUPORTMOVE	//是否支持std::move接口
 
 #endif
 
@@ -85,11 +86,16 @@ MS VC++ 5.0 _MSC_VER = 1100(VisualStudio 97)
 /* Test for GCC > 3.2.0 */
 //#if GCC_VERSION > 30200
 
-#if __GNUC__ >= 5
+#if GCC_VERSION   >= 40800
 #define GCCSUPORTC11
 #endif
 
+#if GCC_VERSION >= 50000
+#define STDSUPORTMOVE
 #endif
+
+#endif
+
 
 
 #endif //__BASE_DEFS_H__

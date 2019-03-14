@@ -10,7 +10,7 @@ class BASE_API Value
 public:
 	typedef enum
 	{
-		Type_Empty,
+		Type_Empty = 0,
 		Type_String,
 		Type_Char,
 		Type_Int32,
@@ -28,9 +28,9 @@ public:
 	Value(int val);
 	Value(double val);
 	Value(bool val);
-	Value(long long val);
 	Value(uint32_t val);
 	Value(uint64_t val);
+	Value(int64_t val);
 	Value(const Value& val);
 	~Value();
 
@@ -39,6 +39,8 @@ public:
 	operator std::string() const;
 	operator uint64_t() const;
 	operator uint32_t() const;
+	operator int64_t() const;
+	operator int32_t() const;
 	operator bool() const;
 	operator double() const;
 	operator float() const;

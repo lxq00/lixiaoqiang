@@ -11,30 +11,70 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\miniZip\adler32.c" />
+    <ClCompile Include="Src\miniZip\compress.c" />
+    <ClCompile Include="Src\miniZip\crc32.c" />
+    <ClCompile Include="Src\miniZip\deflate.c" />
+    <ClCompile Include="Src\miniZip\gzclose.c" />
+    <ClCompile Include="Src\miniZip\gzlib.c" />
+    <ClCompile Include="Src\miniZip\gzread.c" />
+    <ClCompile Include="Src\miniZip\gzwrite.c" />
+    <ClCompile Include="Src\miniZip\infback.c" />
+    <ClCompile Include="Src\miniZip\inffast.c" />
+    <ClCompile Include="Src\miniZip\inflate.c" />
+    <ClCompile Include="Src\miniZip\inftrees.c" />
+    <ClCompile Include="Src\miniZip\ioapi.c" />
+    <ClCompile Include="Src\miniZip\iowin32.c" />
+    <ClCompile Include="Src\miniZip\mztools.c" />
+    <ClCompile Include="Src\miniZip\trees.c" />
+    <ClCompile Include="Src\miniZip\uncompr.c" />
+    <ClCompile Include="Src\miniZip\unzip.c" />
+    <ClCompile Include="Src\miniZip\zip.c" />
+    <ClCompile Include="Src\miniZip\zutil.c" />
     <ClCompile Include="Src\unzip.cpp" />
     <ClCompile Include="Src\zip.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Include\zip\zip.h" />
+    <ClInclude Include="Src\miniZip\crc32.h" />
+    <ClInclude Include="Src\miniZip\crypt.h" />
+    <ClInclude Include="Src\miniZip\deflate.h" />
+    <ClInclude Include="Src\miniZip\gzguts.h" />
+    <ClInclude Include="Src\miniZip\inffast.h" />
+    <ClInclude Include="Src\miniZip\inffixed.h" />
+    <ClInclude Include="Src\miniZip\inflate.h" />
+    <ClInclude Include="Src\miniZip\inftrees.h" />
+    <ClInclude Include="Src\miniZip\ioapi.h" />
+    <ClInclude Include="Src\miniZip\iowin32.h" />
+    <ClInclude Include="Src\miniZip\mztools.h" />
+    <ClInclude Include="Src\miniZip\trees.h" />
+    <ClInclude Include="Src\miniZip\unzip.h" />
+    <ClInclude Include="Src\miniZip\zconf.h" />
+    <ClInclude Include="Src\miniZip\zip.h" />
+    <ClInclude Include="Src\miniZip\zlib.h" />
+    <ClInclude Include="Src\miniZip\zutil.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B856B40A-333A-4BC0-9A2B-434792511145}</ProjectGuid>
     <RootNamespace>Base</RootNamespace>
     <Keyword>Win32Proj</Keyword>
     <ProjectName>zip</ProjectName>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>7.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <PlatformToolset>v110</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <PlatformToolset>v110</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <PlatformToolset>v141_xp</PlatformToolset>
@@ -74,24 +114,23 @@
     </PreBuildEvent>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Include;</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;_DEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Include;$(ProjectDir)\Src\</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;_DEBUG;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;ZIP_DLL_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <ObjectFileName>$(IntDir)%(RelativeDir)</ObjectFileName>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>
-      </AdditionalDependencies>
+      <AdditionalDependencies>Base/Base_debug.lib</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName)_debug.dll</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Lib\win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Message>Install文件，自己添加mk\UserInstallConfig.bat文件.使用方法见mk\WinInstall.bat</Message>
@@ -109,22 +148,23 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Include;</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;NDEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Include;$(ProjectDir)\Src\</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;NDEBUG;_CRT_SECURE_NO_WARNINGS;ZIP_DLL_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>
-      </AdditionalDependencies>
+      <AdditionalDependencies>Base/Base.lib</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Lib\win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Message>

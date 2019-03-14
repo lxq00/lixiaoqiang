@@ -15,7 +15,7 @@ namespace Log{
 
 #define MAXLOGFILESIZE		1024*1024
 #define ONEDAYTIME			(24*60*60)
-#define ONEHOURE				60*60
+#define ONEHOURE			(60*60)
 
 LogInternal::LogInternal():Thread("LogInternal"),currCheckLogDay(0)
 {}
@@ -94,6 +94,7 @@ void LogInternal::threadProc()
 	uint64_t logsize = 0;
 	uint64_t curfilehour = 0;
 	FILE* fd = NULL;
+	std::string currlogfilename;
 	while(looping())
 	{
 		checkAndDeleteLog();
@@ -110,11 +111,17 @@ void LogInternal::threadProc()
 				fclose(fd);
 				logindex = 0;
 				fd = NULL;
+				if (logsize == 0)
+				{
+					File::remove(currlogfilename);
+				}
+                logsize = 0;
 			}
 			else if (logsize >= MAXLOGFILESIZE)
 			{
 				fclose(fd);
 				logindex++;
+				logsize = 0;
 				fd = NULL;
 			}
 		}
@@ -134,8 +141,9 @@ void LogInternal::threadProc()
 			char buffer[256] = { 0 };
 			snprintf(buffer, 255, "%s/%s_logFile_%d_%04d-%02d-%02d_%02d%02d%02d_%02d.log", logPath.c_str(), appName.c_str(), Process::getProcessId(),
 				nowtime.year, nowtime.month, nowtime.day, nowtime.hour, nowtime.minute, nowtime.second, logindex);
-
-			fd = fopen(buffer, "wb+");
+			logsize = 0;
+			currlogfilename = buffer;
+			fd = fopen(currlogfilename.c_str(), "wb+");
 		}
 
 		if (fd == NULL)
@@ -162,25 +170,25 @@ void LogInternal::threadProc()
 		if (writelen > 0) logsize += writelen;
 		
 		char* logstr = (char*)info.logStr.c_str();
-		int logstrlen = strlen(logstr);
-		bool ishaveenter = false;
-		if (logstrlen > 1 && (logstr[logstrlen - 1] == '\n' || logstr[logstrlen - 1] == '\r'))
-		{
-			ishaveenter = true;
-		}
+		int logstrlen = info.logStr.length();
+		while (logstrlen > 0 && (logstr[logstrlen - 1] == '\n' || logstr[logstrlen - 1] == '\r')) logstrlen--;
+		
 		writelen = fwrite(logstr, 1, logstrlen, fd);
 		if (writelen > 0) logsize += writelen;
 
-		if (!ishaveenter)
-		{
-			writelen = fwrite("\r\n", 1, 2, fd);
-			if (writelen > 0) logsize += writelen;
-		}
+		writelen = fwrite("\r\n", 1, 2, fd);
+		if (writelen > 0) logsize += writelen;
+		
+		fflush(fd);
 	}
 
 	if (fd != NULL)
 	{
 		fclose(fd);
+		if (logsize == 0)
+		{
+			File::remove(currlogfilename);
+		}
 	}
 }
 
@@ -208,9 +216,13 @@ void LogInternal::checkAndDeleteLog()
 		}
 		if(dir.Type == Directory::Dirent::DirentType_File)
 		{
-			if(dir.CreatTime.makeTime() < lastLogFileTime)
+			if (dir.FileSize == 0)
 			{
-				File::remove((dir.Path + "/" + dir.Name).c_str());
+				File::remove((dir.Path + PATH_SEPARATOR + dir.Name).c_str());
+			}
+			else if(dir.CreatTime.makeTime() < lastLogFileTime)
+			{
+				File::remove((dir.Path + PATH_SEPARATOR + dir.Name).c_str());
 			}
 		}
 	}

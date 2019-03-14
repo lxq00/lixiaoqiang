@@ -6,12 +6,12 @@
 #  $Id: Base.mk 2055 2014-07-31 03:58:39Z lixiaoqiang $  
 #
 
-#可以自己写一个.platform 用于配置 平台，静态库拷贝的位置, 否则自己指定编译选项，参见.platform
+#�?以自己写一�?.platform 用于配置 平台，静态库拷贝的位�?, 否则�?己指定编译选项，参�?.platform
 -include .platform
 
 # 生成库的设置
 
-# 定义库的文件目录
+# 定义库的文件�?�?
    SRCS_PATH =  Src
 	
 # 库的名称
@@ -19,21 +19,21 @@
    STATICLIB_NAME = Network
 
 # 应用程序选项
-# 应用程序的代码路径
+# 应用程序的代码路�?
    APP_SRCS_PATH = 
 
 # 应用程序名称
    APP_NAME = 
 
-# 子目录编译需要的目录
-   SUB_INCLUDE = -ISrc
+# 子目录编译需要的�?�?
+   SUB_INCLUDE = -I ${PRJ_PATH}/boost/Include
 
 
-# 应用程序依赖的库(除了本身的编译的库)
+# 应用程序依赖的库(除了�?�?的编译的�?)
   LIBS = 
   LIBS_DBG = 
 
-#这个为第三方自动生成的库，不能修改
+#这个为�??三方�?动生成的库，不能�?�?
 #AutoAddOtherDefineStart
 LDLIBS =
 LDLIBS_DBG = 

@@ -6,6 +6,32 @@
 namespace Public{
 namespace Network{
 
+template<typename SocketType>
+struct SocketOthreadAddrObject
+{
+	static NetAddr getothearaddr(const boost::shared_ptr<SocketType> & sock) { return NetAddr(); }
+};
+
+template<>
+struct SocketOthreadAddrObject<boost::asio::ip::tcp::socket>
+{
+	static NetAddr getothearaddr(const boost::shared_ptr<boost::asio::ip::tcp::socket> & sock)
+	{
+		try
+		{
+			NetAddr otheraddr(sock->remote_endpoint().address().to_v4().to_string(), sock->remote_endpoint().port());
+
+			return otheraddr;
+		}
+		catch (const std::exception& e)
+		{
+			logdebug("%s %d sockptr->remote_endpoint() std::exception %s\r\n", __FUNCTION__, __LINE__, e.what());
+		}
+
+		return NetAddr();
+	}
+};
+
 ///asio socket操作的对象，该对象基类
 template<typename SocketProtocol,typename SocketType>
 class ASIOSocketObject:public UserThreadInfo,public Socket,public boost::enable_shared_from_this<ASIOSocketObject<SocketProtocol,SocketType> >
@@ -43,11 +69,14 @@ public:
 	{
 		boost::shared_ptr<SocketType> sockptr;
 		{
+			Guard locker(mutex);
+
 			sockptr = sock;
 			sock = NULL;
 			sockobjptr = weak_ptr<Socket>();
-			quit();
 		}
+		quit();
+		
 		///现在关闭应用，做相应的关闭回调处理
 		waitAllOtherCallbackThreadUsedEnd();
 
@@ -86,8 +115,10 @@ public:
 
 		try
 		{
+			typename SocketProtocol::endpoint sockendpoint(point.getType() == NetAddr::netaddr_ipv4 ? SocketProtocol::v4() : SocketProtocol::v6(), point.getPort());
+
 			sockptr->set_option(boost::asio::ip::tcp::acceptor::reuse_address(reusedaddr));
-			sockptr->bind(SocketProtocol::endpoint(point.getType() == NetAddr::netaddr_ipv4 ? SocketProtocol::v4() : SocketProtocol::v6(), point.getPort()));
+			sockptr->bind(sockendpoint);
 		}
 		catch (const std::exception& e)
 		{
@@ -111,7 +142,7 @@ public:
 
 		try
 		{
-			SocketProtocol::socket::non_blocking_io nonio(nonblock);
+			typename SocketProtocol::socket::non_blocking_io nonio(nonblock);
 			sockptr->io_control(nonio);
 		}
 		catch (const std::exception& e)
@@ -245,7 +276,7 @@ public:
 
 		return ::getsockopt(sock, level, optname, (char*)optval, (socklen_t*)optlen) >= 0;
 	}
-	NetAddr getMyAddr()
+	NetAddr getMyAddr() const
 	{
 		boost::shared_ptr<SocketType> sockptr;
 		{
@@ -269,7 +300,7 @@ public:
 
 		return NetAddr();
 	}
-	NetAddr getOtherAddr()
+	NetAddr getOtherAddr() const
 	{
 		boost::shared_ptr<SocketType> sockptr;
 		{
@@ -277,21 +308,10 @@ public:
 		}
 		if (sockptr == NULL)
 		{
-			return NetAddr();
+			return NetAddr(); 
 		}
 
-		try
-		{
-			NetAddr otheraddr(sockptr->remote_endpoint().address().to_v4().to_string(), sockptr->remote_endpoint().port());
-
-			return otheraddr;
-		}
-		catch (const std::exception& e)
-		{
-			logdebug("%s %d sockptr->remote_endpoint() std::exception %s\r\n", __FUNCTION__, __LINE__, e.what());
-		}
-
-		return NetAddr();
+		return SocketOthreadAddrObject<SocketType>::getothearaddr(sockptr);
 	}
 protected:
 	virtual void socketDisconnect(const char* error)
@@ -380,8 +400,7 @@ public:
 		}
 		else if (!er && needDoRecvInternal != NULL)
 		{
-			shared_ptr<Socket> _sockptr = sockobjptr.lock();
-			if (_sockptr != NULL) needDoRecvInternal->setRecvResult(_sockptr, length);
+			needDoRecvInternal->setRecvResult(sockobjptr, length);
 		}
 
 		///清除当前回调的记录信息
@@ -405,8 +424,7 @@ public:
 		bool sendover = true;
 		if (needDoSendInternal != NULL)
 		{
-			shared_ptr<Socket> _sockptr = sockobjptr.lock();
-			if (_sockptr != NULL) sendover = needDoSendInternal->setSendResultAndCheckIsOver(_sockptr, !er ? length : 0);
+			sendover = needDoSendInternal->setSendResultAndCheckIsOver(sockobjptr, !er ? length : 0);
 		}
 
 		{

@@ -172,15 +172,16 @@ public:
 		memcpy(pbDest20, m_digest, 20);
 		return true;
 	}
-	bool ReportHash(char* tszReport, REPORT_TYPE rtReportType) const
+	int ReportHash(char* tszReport, REPORT_TYPE rtReportType) const
 	{
-		if(tszReport == NULL) return false;
+		if(tszReport == NULL) return 0;
 
 		char tszTemp[16];
 
 		if (rtReportType == REPORT_BIN)
 		{
 			memcpy(tszReport, m_digest, 20);
+			return 20;
 		}
 		else if((rtReportType == REPORT_HEX) || (rtReportType == REPORT_HEX_SHORT))
 		{
@@ -193,6 +194,8 @@ public:
 				sprintf(tszTemp, lpFmt, m_digest[i]);
 				strcat(tszReport, tszTemp);
 			}
+
+			return strlen(tszReport);
 		}
 		else if(rtReportType == REPORT_DIGIT)
 		{
@@ -204,13 +207,12 @@ public:
 				sprintf(tszTemp, " %u", m_digest[i]);
 				strcat(tszReport, tszTemp);
 			}
-		}
-		else
-		{
-			return false;
-		}
 
-		return true;
+			return strlen(tszReport);
+		}
+		
+
+		return 0;
 	}
 private:
 	typedef union
@@ -281,12 +283,9 @@ std::string Sha1::report(REPORT_TYPE type)
 	internal->Final();
 
 	char tszOut[84] = { 0 };
-	const bool bResult = internal->ReportHash(tszOut, type);
-	if (!bResult)
-	{
-		return "";
-	}
-	return tszOut;
+	int len = internal->ReportHash(tszOut, type);
+	
+	return std::string(tszOut,len);
 }
 
 } // namespace Base

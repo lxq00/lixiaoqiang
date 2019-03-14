@@ -25,7 +25,12 @@ RedisNameMutex::~RedisNameMutex()
 }
 bool RedisNameMutex::trylock()
 {
-	return internal->key->setnx(internal->index,internal->keyflag, "1");
+	if (!internal->key->setnx(internal->index, internal->keyflag, "1"))
+	{
+		return false;
+	}
+	//设置过期时间为10s
+	return internal->key->expire(internal->index, internal->keyflag, 10 * 1000);
 }
 bool RedisNameMutex::lock()
 {

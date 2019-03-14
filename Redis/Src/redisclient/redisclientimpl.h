@@ -11,21 +11,21 @@ using namespace Public::Network;
 #include "redisvalue.h"
 #include "redisparser.h"
 
-namespace redisclient {
+namespace redisclient{
 
-typedef Function0<void> ErrorCallback;
 typedef Function0<void> ConnectCallback;
+typedef Function0<void> DisconnectCallback;
 typedef Function1<void, const RedisValue&> CmdCallback;
 
 typedef CmdCallback SubcribeHandler;
 
-class RedisClientImpl
+class RedisClientImpl :public RedisParser
 {
 public:
 	RedisClientImpl(const shared_ptr<IOWorker>& worker);
-	~RedisClientImpl();
+	virtual ~RedisClientImpl();
 
-	void asyncConnect(const NetAddr& addr, const ConnectCallback& callback,const ErrorCallback& errcallback);
+	void asyncConnect(const NetAddr& addr, const ConnectCallback& callback,const DisconnectCallback& discallback);
 
 	void* subscribe(const std::string &command, const std::string &channel, const SubcribeHandler&  subhandler, const CmdCallback& callback);
 
@@ -35,13 +35,13 @@ public:
 
 	void doAsyncCommand(const std::string& cmdstr, const CmdCallback&  handler);
 
-	bool connected() const;
+	bool isConnected() const;
 private:
 	void _socketSendCmd();
-	void socketConnectCallback(const shared_ptr<Socket>& sock);
-	void socketDisconnectCallback(const shared_ptr<Socket>& sock, const std::string&);
-	void socketSendCallback(const shared_ptr<Socket>&s, const char* tmp, int len);
-	void socketRecvCallback(const shared_ptr<Socket>&s, const char* tmp, int len);
+	void socketConnectCallback(const weak_ptr<Socket>& sock);
+	void socketDisconnectCallback(const weak_ptr<Socket>& sock, const std::string&);
+	void socketSendCallback(const weak_ptr<Socket>&s, const char* tmp, int len);
+	void socketRecvCallback(const weak_ptr<Socket>&s, const char* tmp, int len);
 	void doProcessMessage(const shared_ptr<RedisValue>& v);
 private:
 	struct CmdInfo
@@ -58,13 +58,11 @@ private:
 	Mutex																mutex;
 	shared_ptr<IOWorker>												worker;
 	shared_ptr<Socket>													sock;
-	ErrorCallback														errcallback;
 	ConnectCallback														connectCallback;
+	DisconnectCallback													disconnectCallback;
 	std::list<shared_ptr<CmdInfo> >										cmdSendList;
-	std::list<shared_ptr<CmdInfo> >										cmdRecvList;
-	shared_ptr<RedisParser>												parser;
+	std::list<shared_ptr<CmdInfo> >										cmdWaitRecvList;
 	std::map<std::string, std::map<void*, shared_ptr<SubcribeInfo> > >  sublist;
-	NetAddr																redisaddr;
 };
 }
 

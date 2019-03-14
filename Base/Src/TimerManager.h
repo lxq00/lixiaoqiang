@@ -14,7 +14,7 @@ public:
 	TimerObject() {}
 	virtual ~TimerObject() {}
 
-	virtual bool run() = 0;
+	virtual bool checkIsNeedRun() = 0;
 	virtual bool runFunc() = 0;
 	virtual int getPeriod() = 0;
 	virtual bool reset() = 0;
@@ -119,40 +119,9 @@ public:
 	}
 	bool removeTimer(TimerObject * pTimer)
 	{
-		while (1)
-		{
-			{
-				Guard locker(timerMutex);
-				std::set<TimerObject*>::iterator iter = waitAndDoingTimer.find(pTimer);
-				if (iter == waitAndDoingTimer.end())
-				{
-					timerList.erase(pTimer);
-					break;
-				}
-			}
-
-			Thread::sleep(10);
-		}
-
-		return true;
-	}
-	bool runTimer(TimerObject* pTimer)
-	{
 		Guard locker(timerMutex);
-
-		std::map<TimerObject*, TimerRunInfo>::iterator iter = timerList.find(pTimer);
-		if (iter == timerList.end())
-		{
-			return false;
-		}
-		std::set<TimerObject*>::iterator witer = waitAndDoingTimer.find(pTimer);
-		if (witer == waitAndDoingTimer.end())
-		{
-			needRunTimer.push_back(pTimer);
-			waitAndDoingTimer.insert(pTimer);
-
-			timerSem.post();
-		}
+		waitAndDoingTimer.erase(pTimer);
+		timerList.erase(pTimer);
 
 		return true;
 	}
@@ -183,6 +152,9 @@ private:
 
 		TimerObject * timer = needRunTimer.front();
 		needRunTimer.pop_front();
+
+		std::set<TimerObject*>::iterator iter = waitAndDoingTimer.find(timer);
+		if (iter == waitAndDoingTimer.end()) return NULL;
 
 		return timer;
 	}
@@ -230,36 +202,47 @@ private:
 	{
 #define MAXTIMERSLEEPTIME		10
 
-		int checkRunTimes = 0;
-		do
+		while (looping())
 		{
 			setTimeout(10000); // 设置超时时间为10秒钟，超时看门狗会重启
 			Thread::sleep(10);
 
+			
+			{
+				Guard locker(timerMutex);
+
+				uint64_t OldTime = curTime;
+				curTime = Time::getCurrentMilliSecond();
+
+				// 计时没有改变，可能是因为计时器精度不高
+				if (curTime == OldTime)
+				{
+					continue;
+				}
+
+				if (curTime < OldTime)
+				{
+					//	assert(0); // overflowd
+				}
+
+
+				for (std::map<TimerObject*, TimerRunInfo>::iterator iter = timerList.begin(); iter != timerList.end(); iter++)
+				{
+					std::set<TimerObject*>::iterator witer = waitAndDoingTimer.find(iter->first);
+					if (witer != waitAndDoingTimer.end()) continue;
+
+					if (iter->first->checkIsNeedRun())
+					{
+						needRunTimer.push_back(iter->first);
+						waitAndDoingTimer.insert(iter->first);
+
+						timerSem.post();
+					}
+				}
+			}
+
 			checkTimerThread();
-
-			Guard locker(timerMutex);
-
-			uint64_t OldTime = curTime;
-			curTime = Time::getCurrentMilliSecond();
-
-			// 计时没有改变，可能是因为计时器精度不高
-			if (curTime == OldTime)
-			{
-				continue;
-			}
-
-			if (curTime < OldTime)
-			{
-				//	assert(0); // overflowd
-			}
-
-
-			for (std::map<TimerObject*, TimerRunInfo>::iterator iter = timerList.begin(); iter != timerList.end(); iter++)
-			{
-				iter->first->run();
-			}
-		} while (looping());
+		}
 	}
 	
 	void checkTimerThread()

@@ -69,51 +69,51 @@ namespace Excel {
 
 	}
 	///获取数据,内容
-	shared_ptr<Value> Read_Sheet::data(uint32_t rowNum, uint32_t colNum) const
+	Value Read_Sheet::data(uint32_t rowNum, uint32_t colNum) const
 	{
 		if (pWorkSheet == NULL)
 		{
-			return shared_ptr<Value>();
+			return Value();
 		}
 
 		if ((int)rowNum >= pWorkSheet->rows.lastrow + 1)
 		{
-			return shared_ptr<Value>();
+			return Value();
 		}
 
 		if ((int)colNum >= (int)pWorkSheet->rows.row[rowNum].cells.count)
 		{
-			return shared_ptr<Value>();
+			return Value();
 		}
 
-		shared_ptr<Value> val;
+		Value val;
 
 		if (pWorkSheet->rows.row[rowNum].cells.cell[colNum].id == 638)//数字 638
 		{
 			if (pWorkSheet->rows.row[rowNum].cells.cell[colNum].d - (int)pWorkSheet->rows.row[rowNum].cells.cell[colNum].d == 0)
 			{
-				val = make_shared<Value>((int)pWorkSheet->rows.row[rowNum].cells.cell[colNum].d);
+				val = Value((int)pWorkSheet->rows.row[rowNum].cells.cell[colNum].d);
 			}
 			else
 			{
-				val = make_shared<Value>(pWorkSheet->rows.row[rowNum].cells.cell[colNum].d);
+				val = Value(pWorkSheet->rows.row[rowNum].cells.cell[colNum].d);
 			}
 		}
 		else if (pWorkSheet->rows.row[rowNum].cells.cell[colNum].id == 513 || pWorkSheet->rows.row[rowNum].cells.cell[colNum].str == NULL) //bool 513
 		{
 			if (pWorkSheet->rows.row[rowNum].cells.cell[colNum].d > 0.0)
 			{
-				val = make_shared<Value>(true);
+				val = Value(true);
 			}
 			else
 			{
-				val = make_shared<Value>("");
+				val = Value("");
 			}
 		}
 		else
 		{
 			const char* excelstr = (const char*)pWorkSheet->rows.row[rowNum].cells.cell[colNum].str;
-			val = make_shared<Value>(String::utf82ansi(excelstr == NULL ? "" : excelstr));
+			val = Value(excelstr == NULL ? "" : excelstr);
 		}
 
 		return val;

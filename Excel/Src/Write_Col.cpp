@@ -14,13 +14,6 @@ Write_Col::~Write_Col()
 
 }
 //设置数据，内容
-shared_ptr<WorkBook::Cell> Write_Col::setData(uint32_t rowNum, const shared_ptr<Value>& val)
-{
-	if (val == NULL)
-		return shared_ptr<WorkBook::Cell>();
-	return Write_Col::setData(rowNum, *val.get());
-}
-
 shared_ptr<WorkBook::Cell> Write_Col::setData(uint32_t rowNum, const Value& val)
 {
 	if (worksheet == NULL)

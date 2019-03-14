@@ -546,7 +546,7 @@ static int readresp(char c, netbuf *nControl)
 	ctrl->data = NULL;
 	ctrl->cmode = FTPLIB_DEFMODE;
 	ctrl->idlecb = NULL;
-	ctrl->idletime.tv_sec = ctrl->idletime.tv_usec = 0;
+	ctrl->idletime.tv_sec = ctrl->idletime.tv_usec = 1;
 	ctrl->idlearg = NULL;
 	ctrl->xfered = 0;
 	ctrl->xfered1 = 0;
@@ -625,7 +625,7 @@ static int readresp(char c, netbuf *nControl)
  *
  * return 1 if proper response received, 0 otherwise
  */
-static int FtpSendCmd(const char *cmd, char expresp, netbuf *nControl)
+static int FtpSendCmd(const char *cmd, netbuf *nControl)
 {
 	char buf[TMP_BUFSIZ];
 	if (nControl->dir != FTPLIB_CONTROL)
@@ -641,6 +641,17 @@ static int FtpSendCmd(const char *cmd, char expresp, netbuf *nControl)
 			perror("write");
 		return 0;
 	}
+	return 1;
+}
+
+/*
+ * FtpSendCmdAndWaitResp - send a command and wait for expected response
+ *
+ * return 1 if proper response received, 0 otherwise
+ */
+static int FtpSendCmdAndWaitResp(const char *cmd, char expresp, netbuf *nControl)
+{
+	if (FtpSendCmd(cmd, nControl) != 1) return 0;
 	return readresp(expresp, nControl);
 }
 
@@ -657,14 +668,14 @@ static int FtpSendCmd(const char *cmd, char expresp, netbuf *nControl)
 		((strlen(pass) + 7) > sizeof(tempbuf)))
 		return 0;
 	sprintf(tempbuf, "USER %s", user);
-	if (!FtpSendCmd(tempbuf, '3', nControl))
+	if (!FtpSendCmdAndWaitResp(tempbuf, '3', nControl))
 	{
 		if (nControl->response[0] == '2')
 			return 1;
 		return 0;
 	}
 	sprintf(tempbuf, "PASS %s", pass);
-	return FtpSendCmd(tempbuf, '2', nControl);
+	return FtpSendCmdAndWaitResp(tempbuf, '2', nControl);
 }
 
 /*
@@ -704,7 +715,7 @@ static int FtpOpenPort(netbuf *nControl, netbuf **nData, int mode, int dir)
 	{
 		memset(&sin, 0, l);
 		sin.in.sin_family = AF_INET;
-		if (!FtpSendCmd("PASV", '2', nControl))
+		if (!FtpSendCmdAndWaitResp("PASV", '2', nControl))
 			return -1;
 		cp = strchr(nControl->response, '(');
 		if (cp == NULL)
@@ -786,7 +797,7 @@ static int FtpOpenPort(netbuf *nControl, netbuf **nData, int mode, int dir)
 			(unsigned char)sin.sa.sa_data[5],
 			(unsigned char)sin.sa.sa_data[0],
 			(unsigned char)sin.sa.sa_data[1]);
-		if (!FtpSendCmd(buf, '2', nControl))
+		if (!FtpSendCmdAndWaitResp(buf, '2', nControl))
 		{
 			net_close(sData);
 			return -1;
@@ -914,7 +925,7 @@ static int FtpAcceptConnection(netbuf *nData, netbuf *nControl)
 		return 0;
 	}
 	sprintf(buf, "TYPE %c", mode);
-	if (!FtpSendCmd(buf, '2', nControl))
+	if (!FtpSendCmdAndWaitResp(buf, '2', nControl))
 		return 0;
 	switch (typ)
 	{
@@ -948,7 +959,7 @@ static int FtpAcceptConnection(netbuf *nData, netbuf *nControl)
 	}
 	if (FtpOpenPort(nControl, nData, mode, dir) == -1)
 		return 0;
-	if (!FtpSendCmd(buf, '1', nControl))
+	if (!FtpSendCmdAndWaitResp(buf, '1', nControl))
 	{
 		FtpClose(*nData);
 		*nData = NULL;
@@ -1080,7 +1091,7 @@ static int FtpAcceptConnection(netbuf *nData, netbuf *nControl)
 	if ((strlen(cmd) + 7) > sizeof(buf))
 		return 0;
 	sprintf(buf, "SITE %s", cmd);
-	if (!FtpSendCmd(buf, '2', nControl))
+	if (!FtpSendCmdAndWaitResp(buf, '2', nControl))
 		return 0;
 	return 1;
 }
@@ -1099,7 +1110,7 @@ static int FtpAcceptConnection(netbuf *nData, netbuf *nControl)
 	int l = max;
 	char *b = buf;
 	char *s;
-	if (!FtpSendCmd("SYST", '2', nControl))
+	if (!FtpSendCmdAndWaitResp("SYST", '2', nControl))
 		return 0;
 	s = &nControl->response[4];
 	while ((--l) && (*s != ' '))
@@ -1120,7 +1131,7 @@ static int FtpAcceptConnection(netbuf *nData, netbuf *nControl)
 	if ((strlen(path) + 6) > sizeof(buf))
 		return 0;
 	sprintf(buf, "MKD %s", path);
-	if (!FtpSendCmd(buf, '2', nControl))
+	if (!FtpSendCmdAndWaitResp(buf, '2', nControl))
 		return 0;
 	return 1;
 }
@@ -1137,7 +1148,7 @@ static int FtpAcceptConnection(netbuf *nData, netbuf *nControl)
 	if ((strlen(path) + 6) > sizeof(buf))
 		return 0;
 	sprintf(buf, "CWD %s", path);
-	if (!FtpSendCmd(buf, '2', nControl))
+	if (!FtpSendCmdAndWaitResp(buf, '2', nControl))
 		return 0;
 	return 1;
 }
@@ -1149,7 +1160,7 @@ static int FtpAcceptConnection(netbuf *nData, netbuf *nControl)
  */
  int FtpCDUp(netbuf *nControl)
 {
-	if (!FtpSendCmd("CDUP", '2', nControl))
+	if (!FtpSendCmdAndWaitResp("CDUP", '2', nControl))
 		return 0;
 	return 1;
 }
@@ -1166,7 +1177,7 @@ static int FtpAcceptConnection(netbuf *nData, netbuf *nControl)
 	if ((strlen(path) + 6) > sizeof(buf))
 		return 0;
 	sprintf(buf, "RMD %s", path);
-	if (!FtpSendCmd(buf, '2', nControl))
+	if (!FtpSendCmdAndWaitResp(buf, '2', nControl))
 		return 0;
 	return 1;
 }
@@ -1181,7 +1192,7 @@ static int FtpAcceptConnection(netbuf *nData, netbuf *nControl)
 	int l = max;
 	char *b = path;
 	char *s;
-	if (!FtpSendCmd("PWD", '2', nControl))
+	if (!FtpSendCmdAndWaitResp("PWD", '2', nControl))
 		return 0;
 	s = strchr(nControl->response, '"');
 	if (s == NULL)
@@ -1306,10 +1317,10 @@ static int FtpXfer(const char *localfile, const char *path,
 	if ((strlen(path) + 7) > sizeof(cmd))
 		return 0;
 	sprintf(cmd, "TYPE %c", mode);
-	if (!FtpSendCmd(cmd, '2', nControl))
+	if (!FtpSendCmdAndWaitResp(cmd, '2', nControl))
 		return 0;
 	sprintf(cmd, "SIZE %s", path);
-	if (!FtpSendCmd(cmd, '2', nControl))
+	if (!FtpSendCmdAndWaitResp(cmd, '2', nControl))
 		rv = 0;
 	else
 	{
@@ -1336,10 +1347,10 @@ static int FtpXfer(const char *localfile, const char *path,
 	if ((strlen(path) + 7) > sizeof(cmd))
 		return 0;
 	sprintf(cmd, "TYPE %c", mode);
-	if (!FtpSendCmd(cmd, '2', nControl))
+	if (!FtpSendCmdAndWaitResp(cmd, '2', nControl))
 		return 0;
 	sprintf(cmd, "SIZE %s", path);
-	if (!FtpSendCmd(cmd, '2', nControl))
+	if (!FtpSendCmdAndWaitResp(cmd, '2', nControl))
 		rv = 0;
 	else
 	{
@@ -1365,7 +1376,7 @@ static int FtpXfer(const char *localfile, const char *path,
 	if ((strlen(path) + 7) > sizeof(buf))
 		return 0;
 	sprintf(buf, "MDTM %s", path);
-	if (!FtpSendCmd(buf, '2', nControl))
+	if (!FtpSendCmdAndWaitResp(buf, '2', nControl))
 		rv = 0;
 	else
 		strncpy(dt, &nControl->response[4], max);
@@ -1407,10 +1418,10 @@ static int FtpXfer(const char *localfile, const char *path,
 		((strlen(dst) + 7) > sizeof(cmd)))
 		return 0;
 	sprintf(cmd, "RNFR %s", src);
-	if (!FtpSendCmd(cmd, '3', nControl))
+	if (!FtpSendCmdAndWaitResp(cmd, '3', nControl))
 		return 0;
 	sprintf(cmd, "RNTO %s", dst);
-	if (!FtpSendCmd(cmd, '2', nControl))
+	if (!FtpSendCmdAndWaitResp(cmd, '2', nControl))
 		return 0;
 	return 1;
 }
@@ -1427,7 +1438,7 @@ static int FtpXfer(const char *localfile, const char *path,
 	if ((strlen(fnm) + 7) > sizeof(cmd))
 		return 0;
 	sprintf(cmd, "DELE %s", fnm);
-	if (!FtpSendCmd(cmd, '2', nControl))
+	if (!FtpSendCmdAndWaitResp(cmd, '2', nControl))
 		return 0;
 	return 1;
 }
@@ -1441,7 +1452,8 @@ static int FtpXfer(const char *localfile, const char *path,
 {
 	if (nControl->dir != FTPLIB_CONTROL)
 		return;
-	FtpSendCmd("QUIT", '2', nControl);
+	FtpSendCmd("QUIT", nControl);
+//	FtpSendCmdAndWaitResp("QUIT", '2', nControl);
 	net_close(nControl->handle);
 	free(nControl->buf);
 	free(nControl);

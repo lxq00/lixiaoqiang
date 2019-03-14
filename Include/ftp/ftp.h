@@ -24,7 +24,7 @@ public:
 	static void init();
 
 public:
-	FtpClient(const std::string& addr);
+	FtpClient(const std::string& ip,int port = 21);
 	virtual ~FtpClient();
 
 	bool connect(const std::string& user, const std::string& pass,uint32_t timeout_ms = 5000);

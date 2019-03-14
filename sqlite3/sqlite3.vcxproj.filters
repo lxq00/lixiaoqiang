@@ -1,11 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="Src\DBRecordsetSQLite.cpp" />
     <ClCompile Include="Src\sqlite3.c" />
+    <ClCompile Include="Src\DBConnectionSQLite.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\sqlite3.h" />
     <ClInclude Include="Src\sqlite3ext.h" />
+    <ClInclude Include="..\Include\sqlite3\DBConnectionSQLite.h" />
+    <ClInclude Include="..\Include\sqlite3\Defs.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Include\sqlite3\Version.tpl" />
   </ItemGroup>
 </Project>

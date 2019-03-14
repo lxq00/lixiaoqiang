@@ -39,7 +39,7 @@ std::string SDPInfo::build(RTP_RECV_Type m_nRecvType)
 	char buffer[256];
 	if (RTP_RECV_TYPE_TCP == m_nRecvType)
 	{
-		snprintf_x(buffer, 255, "RTP/AVP/TCP;unicast;interleaved=%d-%d", channel, clientCtrolPort);
+		snprintf_x(buffer, 255, "RTP/AVP/TCP;unicast;interleaved=%d-%d", channel, ctrolChannel);
 	}
 	else if (RTP_RECV_TYPE_UDP == m_nRecvType)
 	{
@@ -93,7 +93,7 @@ std::string RTSPUrlInfo::buildAuthenString(const std::string& cmd)
 			authen3 = md5.hex();
 		}
 
-		authstring = std::string("Digest username=\"") + m_szUserName + "\", realm=\"" + m_szRealm +"\", nonce=\"" + m_szNonce + "\", URL=\""
+		authstring = std::string("Digest username=\"") + m_szUserName + "\", realm=\"" + m_szRealm +"\", nonce=\"" + m_szNonce + "\", uri=\""
 			+ m_szRtspUrl + "\", response=\"" + authen3 + "\"";
 	}
 
@@ -266,7 +266,7 @@ std::string CMDBuilder_SETUP::build(shared_ptr<RTSPUrlInfo>& url)
 	std::string buffer = cmd + " " + trackurl + " " + PROTOCOL + "\r\n"
 		+ "CSeq: " + Value(m_nCSeq).readString() + "\r\n"
 		+ url->buildAuthenString(cmd)
-		+ "nTransport: " + transport + "\r\n"
+		+ "Transport: " + transport + "\r\n"
 		+ sesionstr
 		+ "\r\n";
 

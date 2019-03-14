@@ -1,0 +1,109 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Src\RabbitmqClient.cpp" />
+    <ClCompile Include="Src\librabbitmq\amqp_api.c">
+      <Filter>librabbitmq</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\librabbitmq\amqp_connection.c">
+      <Filter>librabbitmq</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\librabbitmq\amqp_consumer.c">
+      <Filter>librabbitmq</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\librabbitmq\amqp_framing.c">
+      <Filter>librabbitmq</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\librabbitmq\amqp_hostcheck.c">
+      <Filter>librabbitmq</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\librabbitmq\amqp_mem.c">
+      <Filter>librabbitmq</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\librabbitmq\amqp_openssl.c">
+      <Filter>librabbitmq</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\librabbitmq\amqp_openssl_bio.c">
+      <Filter>librabbitmq</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\librabbitmq\amqp_openssl_hostname_validation.c">
+      <Filter>librabbitmq</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\librabbitmq\amqp_socket.c">
+      <Filter>librabbitmq</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\librabbitmq\amqp_table.c">
+      <Filter>librabbitmq</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\librabbitmq\amqp_tcp_socket.c">
+      <Filter>librabbitmq</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\librabbitmq\amqp_time.c">
+      <Filter>librabbitmq</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\librabbitmq\amqp_url.c">
+      <Filter>librabbitmq</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\librabbitmq\win32\threads.c">
+      <Filter>librabbitmq</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Include\RabbitMq\RabbitmqClient.h" />
+    <ClInclude Include="Src\include\amqp.h" />
+    <ClInclude Include="Src\include\amqp_framing.h" />
+    <ClInclude Include="Src\include\amqp_tcp_socket.h" />
+    <ClInclude Include="..\Include\RabbitMq\Defs.h" />
+    <ClInclude Include="Src\librabbitmq\amqp.h">
+      <Filter>librabbitmq</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\librabbitmq\amqp_framing.h">
+      <Filter>librabbitmq</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\librabbitmq\amqp_hostcheck.h">
+      <Filter>librabbitmq</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\librabbitmq\amqp_openssl_bio.h">
+      <Filter>librabbitmq</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\librabbitmq\amqp_openssl_hostname_validation.h">
+      <Filter>librabbitmq</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\librabbitmq\amqp_private.h">
+      <Filter>librabbitmq</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\librabbitmq\amqp_socket.h">
+      <Filter>librabbitmq</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\librabbitmq\amqp_ssl_socket.h">
+      <Filter>librabbitmq</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\librabbitmq\amqp_table.h">
+      <Filter>librabbitmq</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\librabbitmq\amqp_tcp_socket.h">
+      <Filter>librabbitmq</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\librabbitmq\amqp_time.h">
+      <Filter>librabbitmq</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\librabbitmq\win32\threads.h">
+      <Filter>librabbitmq</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="librabbitmq">
+      <UniqueIdentifier>{25cac25c-9d0f-4399-9860-0aed79535adc}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Src\librabbitmq\CMakeLists.txt">
+      <Filter>librabbitmq</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Src\librabbitmq\codegen.py">
+      <Filter>librabbitmq</Filter>
+    </None>
+  </ItemGroup>
+</Project>

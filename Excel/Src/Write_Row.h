@@ -25,7 +25,6 @@ public:
 	bool side(const WorkBook::Side& _sd);
 	bool side(const shared_ptr<WorkBook::Side>& _sd);
 	///设置数据，内容
-	shared_ptr<WorkBook::Cell> setData(uint32_t colNum, const shared_ptr<Value>& val);
 	shared_ptr<WorkBook::Cell> setData(uint32_t colNum, const Value& val);
 	//--------------区域，单行的指定行合并, 开始的行号，结束的行号
 	shared_ptr<WorkBook::Range> range(uint32_t startColNum, uint32_t stopColNum);

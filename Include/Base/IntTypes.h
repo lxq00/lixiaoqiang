@@ -124,6 +124,16 @@ public:
 }
 #endif
 
+template<typename T>
+const T& move(const T& tmp)
+{
+#ifdef STDSUPORTMOVE
+	return std::move(tmp);
+#else
+	return tmp;
+#endif 
+}
+
 }
 }
 

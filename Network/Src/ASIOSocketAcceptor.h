@@ -119,8 +119,7 @@ private:
 			socketobj->tcpclientinternal->sock->nonBlocking(true);
 			socketobj->tcpclientinternal->sock->nodelay();
 
-			shared_ptr<Socket> _sockptr = sockobjptr.lock();
-			if (_sockptr != NULL) callback(_sockptr, socketobj);
+			callback(sockobjptr, socketobj);
 		}
 		callbackThreadUsedEnd();
 

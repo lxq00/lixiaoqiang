@@ -211,21 +211,21 @@ void RTSPClient::RTSPClientInternal::onProtocolCallback(bool sender, const char*
 	m_protocolCallback(sender, buffer, len, m_userData);
 }
 
-void RTSPClient::RTSPClientInternal::onVideoUDPRecvCallback(const shared_ptr<Socket>& sock, const char* buffer, int len, const NetAddr& addr)
+void RTSPClient::RTSPClientInternal::onVideoUDPRecvCallback(const weak_ptr<Socket>& sock, const char* buffer, int len, const NetAddr& addr)
 {
 	onVideoAndAudioTCPRecvCallback(buffer, len, true);
 	m_videoUDPRecv->async_recvfrom(Socket::RecvFromCallback(&RTSPClientInternal::onVideoUDPRecvCallback, this), MAXRECVBUFFERSIZE);
 }
-void RTSPClient::RTSPClientInternal::onVideoCtrlUDPRecvCallback(const shared_ptr<Socket>& sock, const char* buffer, int len, const NetAddr& addr)
+void RTSPClient::RTSPClientInternal::onVideoCtrlUDPRecvCallback(const weak_ptr<Socket>& sock, const char* buffer, int len, const NetAddr& addr)
 {
 	m_videoCtrlUDPRecv->async_recvfrom(Socket::RecvFromCallback(&RTSPClientInternal::onVideoCtrlUDPRecvCallback, this), MAXRECVBUFFERSIZE);
 }
-void RTSPClient::RTSPClientInternal::onAudioUDPRecvCallback(const shared_ptr<Socket>& sock, const char* buffer, int len, const NetAddr& addr)
+void RTSPClient::RTSPClientInternal::onAudioUDPRecvCallback(const weak_ptr<Socket>& sock, const char* buffer, int len, const NetAddr& addr)
 {
 	onVideoAndAudioTCPRecvCallback(buffer, len, false);
 	m_audioUDPRecv->async_recvfrom(Socket::RecvFromCallback(&RTSPClientInternal::onAudioUDPRecvCallback, this), MAXRECVBUFFERSIZE);
 }
-void RTSPClient::RTSPClientInternal::onAudioCtrlUDPRecvCallback(const shared_ptr<Socket>& sock, const char* buffer, int len, const NetAddr& addr)
+void RTSPClient::RTSPClientInternal::onAudioCtrlUDPRecvCallback(const weak_ptr<Socket>& sock, const char* buffer, int len, const NetAddr& addr)
 {
 	m_audioCtrlUDPRecv->async_recvfrom(Socket::RecvFromCallback(&RTSPClientInternal::onAudioCtrlUDPRecvCallback, this), MAXRECVBUFFERSIZE);
 }

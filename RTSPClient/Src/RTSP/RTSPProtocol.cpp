@@ -49,12 +49,12 @@ bool RTSPProtocol::stopProcol()
 	return true;
 }
 
-void RTSPProtocol::_tcpSocketDisconnectCallback(const shared_ptr<Socket>& sock, const std::string& errrstr)
+void RTSPProtocol::_tcpSocketDisconnectCallback(const weak_ptr<Socket>& sock, const std::string& errrstr)
 {
 	m_statusCallback(RTSPStatus_DisConnect,std::string("rtsp socket disconnect"));
 }
 
-void RTSPProtocol::_tcpRecvCallback(const shared_ptr<Socket>&, const char* , int len)
+void RTSPProtocol::_tcpRecvCallback(const weak_ptr<Socket>&, const char* , int len)
 {
 	uint32_t backlen = m_tcprecvBufferLen;
 	if (len > 0) m_tcprecvBufferLen += len;

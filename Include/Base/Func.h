@@ -53,7 +53,7 @@ inline OutputClass horrible_cast(const InputClass input){
 	return u.out;
 }
 
-
+//默认返回值的特例化处理
 template<class R>
 struct FUNCTION_RETURN
 {
@@ -63,6 +63,15 @@ struct FUNCTION_RETURN
 		R tmp(*ptr);
 		delete ptr;
 		return tmp;
+	}
+};
+
+template<>
+struct FUNCTION_RETURN<void>
+{
+	static void getDefaultValue()
+	{
+		return void();
 	}
 };
 
@@ -185,6 +194,39 @@ struct FUNCTION_RETURN
 #undef  FUNCTION_STDFUNCTIONPTR
 #undef  FUNCTION_STDPLACEHOLDERS
 
+//Function7
+#define FUNCTION_NUMBER 7
+#define FUNCTION_CLASS_TYPES typename R, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7
+#define FUNCTION_TYPES T1, T2, T3, T4, T5, T6, T7
+#define FUNCTION_TYPE_ARGS T1 a1, T2 a2, T3 a3, T4 a4, T5 a5, T6 a6, T7 a7
+#define FUNCTION_ARGS a1, a2, a3, a4, a5, a6, a7
+#define FUNCTION_STDFUNCTIONPTR	R(FUNCTION_TYPES) 
+#define FUNCTION_STDPLACEHOLDERS std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7
+#include "FuncTempl.h"
+#undef  FUNCTION_NUMBER
+#undef  FUNCTION_CLASS_TYPES
+#undef	FUNCTION_TYPES
+#undef	FUNCTION_TYPE_ARGS
+#undef	FUNCTION_ARGS
+#undef  FUNCTION_STDFUNCTIONPTR
+#undef  FUNCTION_STDPLACEHOLDERS
+
+//Function8
+#define FUNCTION_NUMBER 8
+#define FUNCTION_CLASS_TYPES typename R, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8
+#define FUNCTION_TYPES T1, T2, T3, T4, T5, T6, T7, T8
+#define FUNCTION_TYPE_ARGS T1 a1, T2 a2, T3 a3, T4 a4, T5 a5, T6 a6, T7 a7, T8 a8
+#define FUNCTION_ARGS a1, a2, a3, a4, a5, a6, a7, a8
+#define FUNCTION_STDFUNCTIONPTR	R(FUNCTION_TYPES) 
+#define FUNCTION_STDPLACEHOLDERS std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7, std::placeholders::_8
+#include "FuncTempl.h"
+#undef  FUNCTION_NUMBER
+#undef  FUNCTION_CLASS_TYPES
+#undef	FUNCTION_TYPES
+#undef	FUNCTION_TYPE_ARGS
+#undef	FUNCTION_ARGS
+#undef  FUNCTION_STDFUNCTIONPTR
+#undef  FUNCTION_STDPLACEHOLDERS
 
 } // namespace Base
 } // namespace Public

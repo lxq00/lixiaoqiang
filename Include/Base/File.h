@@ -179,6 +179,12 @@ public:
 	/// \retval 实际得到的字符串,失败返回""
 	static std::string getExcutableFileFullPath();
 
+	//获取当前工作目录
+	static std::string getCurrentDirectory();
+
+	//设置当前工作目录
+	static bool setCurrentDirectory(const std::string& path);
+
 	/// 重命名文件
 	/// \param oldName [in] 旧的文件名
 	/// \param oldName [in] 新的文件名
@@ -228,6 +234,9 @@ public:
 	/// \retval false 失败
 	static bool stat(const std::string& path, FileInfo& info);
 
+	static bool copy(const std::string& srcfile, const std::string& tofile);
+
+	static std::string absPath(const std::string& path);
 protected:
 	struct FileInternal;
 	FileInternal* internal;

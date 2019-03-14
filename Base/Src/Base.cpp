@@ -50,11 +50,11 @@ void BaseSystem::autoExitDelayer(uint64_t delaySecond /* = 30 */)
 		processId
 	);
 
-	const char* execargv[3];
-	execargv[0] = "-c";
-	execargv[1] = tmpStr;
+	std::deque<std::string> execargv;
+	execargv.push_back("-c");
+	execargv.push_back(tmpStr);
 
-	Process::createProcess("/bin/sh", 2, execargv);
+	Process::createProcess("/bin/sh",execargv);
 #endif
 }
 

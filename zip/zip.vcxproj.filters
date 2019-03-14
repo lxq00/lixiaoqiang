@@ -1,0 +1,126 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="miniZip">
+      <UniqueIdentifier>{047f3c86-765e-4cfe-9c82-b88d080808b9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Src\miniZip\adler32.c">
+      <Filter>miniZip</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\miniZip\compress.c">
+      <Filter>miniZip</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\miniZip\crc32.c">
+      <Filter>miniZip</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\miniZip\deflate.c">
+      <Filter>miniZip</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\miniZip\gzclose.c">
+      <Filter>miniZip</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\miniZip\gzlib.c">
+      <Filter>miniZip</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\miniZip\gzread.c">
+      <Filter>miniZip</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\miniZip\gzwrite.c">
+      <Filter>miniZip</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\miniZip\infback.c">
+      <Filter>miniZip</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\miniZip\inffast.c">
+      <Filter>miniZip</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\miniZip\inflate.c">
+      <Filter>miniZip</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\miniZip\inftrees.c">
+      <Filter>miniZip</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\miniZip\ioapi.c">
+      <Filter>miniZip</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\miniZip\iowin32.c">
+      <Filter>miniZip</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\miniZip\mztools.c">
+      <Filter>miniZip</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\miniZip\trees.c">
+      <Filter>miniZip</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\miniZip\uncompr.c">
+      <Filter>miniZip</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\miniZip\unzip.c">
+      <Filter>miniZip</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\miniZip\zip.c">
+      <Filter>miniZip</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\miniZip\zutil.c">
+      <Filter>miniZip</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\unzip.cpp" />
+    <ClCompile Include="Src\zip.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Src\miniZip\crc32.h">
+      <Filter>miniZip</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\miniZip\crypt.h">
+      <Filter>miniZip</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\miniZip\deflate.h">
+      <Filter>miniZip</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\miniZip\gzguts.h">
+      <Filter>miniZip</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\miniZip\inffast.h">
+      <Filter>miniZip</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\miniZip\inffixed.h">
+      <Filter>miniZip</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\miniZip\inflate.h">
+      <Filter>miniZip</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\miniZip\inftrees.h">
+      <Filter>miniZip</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\miniZip\ioapi.h">
+      <Filter>miniZip</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\miniZip\iowin32.h">
+      <Filter>miniZip</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\miniZip\mztools.h">
+      <Filter>miniZip</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\miniZip\trees.h">
+      <Filter>miniZip</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\miniZip\unzip.h">
+      <Filter>miniZip</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\miniZip\zconf.h">
+      <Filter>miniZip</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\miniZip\zip.h">
+      <Filter>miniZip</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\miniZip\zlib.h">
+      <Filter>miniZip</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\miniZip\zutil.h">
+      <Filter>miniZip</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\zip\zip.h" />
+  </ItemGroup>
+</Project>

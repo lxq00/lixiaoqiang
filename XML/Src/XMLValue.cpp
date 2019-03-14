@@ -92,7 +92,7 @@ XMLObject::Value::Value(double val)
 	internal->empty = false;
 
 	char buffer[32];
-	sprintf(buffer,"%llf",val);
+	sprintf(buffer,"%lf",val);
 	internal->value = buffer;
 }
 XMLObject::Value::Value(const Value& val)
@@ -173,7 +173,7 @@ char XMLObject::Value::toChar() const
 double XMLObject::Value::toDouble() const
 {
 	double val;
-	if(internal->empty || sscanf(internal->value.c_str(),"%llf",&val) != 1)
+	if(internal->empty || sscanf(internal->value.c_str(),"%lf",&val) != 1)
 	{
 		return 0;
 	}

@@ -21,11 +21,8 @@ public:
 	std::string name();
 
 	///设置数据，内容
-	shared_ptr<WorkBook::Cell> setData(uint32_t rowNum, uint32_t colNum, const shared_ptr<Value>& val) /*{ return shared_ptr<WorkBook::Cell>(); }*/;
 	shared_ptr<WorkBook::Cell> setData(uint32_t rowNum, uint32_t colNum, const Value& val) /*{ return shared_ptr<WorkBook::Cell>(); }*/;
 
-
-	
 	//--------------最大的行数
 	uint32_t maxRowNum();
 	//--------------最大的列数

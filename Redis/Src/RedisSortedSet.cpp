@@ -86,6 +86,19 @@ bool RedisSortedSet::del(const Value& val)
 
 	return true;
 }
+uint32_t RedisSortedSet::size()
+{
+	shared_ptr<Redis_Client> client = internal->client.lock();
+	if (client == NULL) return 0;
+
+	RedisValue retval;
+	if (!client->command(internal->index, "ZCARD", { String::ansi2utf8(internal->key)}, &retval))
+	{
+		return 0;
+	}
+
+	return (uint32_t)retval.toInt();
+}
 
 }
 }

@@ -35,6 +35,7 @@
 #include "Base/Sha1.h"
 #include "Base/ShareMem.h"
 #include "Base/IPC.h"
+#include "Base/SqlDataBase.h"
 #include "Base/SimPipe.h"
 #include "Base/StaticMemPool.h"
 #include "Base/String.h"

@@ -164,7 +164,7 @@ inline void print(LOG_Level lev,char const* s)
 			ishaveenter = true;
 		}
 		fputs(info.logprex.c_str(), stdout);
-		fputs(info.logstr, stdout);
+		fputs(info.logstr.c_str(), stdout);
 		if(!ishaveenter)
 		{
 			fputs("\r\n", stdout);
@@ -225,7 +225,7 @@ void printer(LOG_Level level, const char* filename, const char* func, int line, 
 		
 		va_list ap; 
 		va_start(ap, fmt); 
-		int n = print_log_vsnprintf(buffer, MAXPRINTBUFFERLEN - 1, fmt, ap);
+		print_log_vsnprintf(buffer, MAXPRINTBUFFERLEN - 1, fmt, ap);
 		va_end(ap);	
 
 		const char* filenametmp = strrchr(filename, '/');

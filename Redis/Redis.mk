@@ -11,11 +11,11 @@
 
 # 生成库的设置
 # 定义库的文件目录
-   SRCS_PATH =  Src Src/Analyzer Src/RTSP Src/StringParse
+   SRCS_PATH =  Src Src/redisclient
 	
 # 库的名称
    SHARDLIB_NAME = 
-   STATICLIB_NAME = RTSPClient
+   STATICLIB_NAME = Redis
 
 # 应用程序选项
 # 应用程序的代码路径
@@ -25,7 +25,7 @@
    APP_NAME = 
 
 # 子目录编译需要的目录
-   SUB_INCLUDE = 
+   SUB_INCLUDE = -I ${PRJ_PATH}/boost/Include
 
 
 # 应用程序依赖的库(除了本身的编译的库)

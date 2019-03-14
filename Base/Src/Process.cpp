@@ -80,14 +80,14 @@ public:
 			{
 				prctl(PR_SET_PDEATHSIG,SIGHUP);
 			}
-			if (argc > 0)
+			if (argv.size() > 0)
 			{
-				char *args[argc + 2];
-				int i = 1;
+				char *args[argv.size() + 2];
+				uint32_t i = 1;
 				args[0] = (char *)name.c_str();
-				for (; i < argc + 1; i++)
+				for (; i < argv.size() + 1; i++)
 				{
-					args[i] = (char *)argv[i - 1];
+					args[i] = (char*)argv[i - 1].c_str();
 				}	
 				args[i] = NULL;
 				execv(name.c_str(), args);
@@ -552,7 +552,7 @@ unsigned int get_cpu_process_occupy(const pid_t p)
 	{
 		return 0;
 	}
-	fgets (line_buff, sizeof(line_buff), fd); //从fd文件中读取长度为buff的字符串再存到起始地址为buff这个空间里
+	if(fgets (line_buff, sizeof(line_buff), fd) == NULL){} //从fd文件中读取长度为buff的字符串再存到起始地址为buff这个空间里
 
 	sscanf(line_buff,"%u",&t.pid);//取得第一项
 	const char* q = get_items(line_buff,PROCESS_ITEM);//取得从第14项开始的起始指针
@@ -572,7 +572,7 @@ unsigned int get_cpu_total_occupy()
 	{
 		return 0;
 	}
-	fgets (buff, sizeof(buff), fd); //从fd文件中读取长度为buff的字符串再存到起始地址为buff这个空间里
+	if(fgets (buff, sizeof(buff), fd) == NULL){} //从fd文件中读取长度为buff的字符串再存到起始地址为buff这个空间里
 	/*下面是将buff的字符串根据参数format后转换为数据的结果存入相应的结构体参数 */
 	char name[16];//暂时用来存放字符串
 	sscanf (buff, "%s %u %u %u %u", name, &t.user, &t.nice,&t.system, &t.idle);

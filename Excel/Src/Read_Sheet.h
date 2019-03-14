@@ -20,7 +20,7 @@ namespace Excel {
 		//获取某一列中某一行的表格 
 		shared_ptr<WorkBook::Cell> cell(uint32_t rowNum, uint32_t colNum);
 		//获取数据,内容
-		shared_ptr<Value> data(uint32_t rowNum, uint32_t colNum) const;
+		Value data(uint32_t rowNum, uint32_t colNum) const;
 
 		//--------------最大的行数
 		uint32_t maxRowNum();

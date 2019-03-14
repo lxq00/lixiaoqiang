@@ -31,7 +31,7 @@ Value::Value(const std::string& val, Value::Type type)
 		case Type_Char:
 		case Type_Int32:
 		case Type_Int64:
-			sscanf(val.c_str(), "%llu", &internal->val._int);
+			sscanf(val.c_str(), "%llu", (long long unsigned int*)&internal->val._int);
 			break;		
 		case Type_String:
 			internal->val._str = new char[val.length() + 1];
@@ -42,6 +42,8 @@ Value::Value(const std::string& val, Value::Type type)
 			break;
 		case Type_Bool:
 			internal->val._bool = strcasecmp(val.c_str(), "true") == 0;
+			break;
+		default:
 			break;
 	}
 }
@@ -93,12 +95,6 @@ Value::Value(double val)
 	internal->type = Type_Double;
 	internal->val._float = (double)val;
 }
-Value::Value(long long val)
-{
-	internal = new ValueInternal();
-	internal->type = Type_Int64;
-	internal->val._int = (uint64_t)val;
-}
 Value::Value(uint32_t val)
 {
 	internal = new ValueInternal();
@@ -106,6 +102,12 @@ Value::Value(uint32_t val)
 	internal->val._int = (uint64_t)val;
 }
 Value::Value(uint64_t val)
+{
+	internal = new ValueInternal();
+	internal->type = Type_Int64;
+	internal->val._int = (uint64_t)val;
+}
+Value::Value(int64_t val)
 {
 	internal = new ValueInternal();
 	internal->type = Type_Int64;
@@ -134,6 +136,8 @@ Value::~Value()
 {
 	if (internal->type == Type_String)
 		delete[]internal->val._str;
+
+	SAFE_DELETE(internal);
 }
 
 Value& Value::operator = (const Value& val)
@@ -160,6 +164,8 @@ Value::Type Value::type() const
 Value::operator std::string() const { return readString(); }
 Value::operator uint64_t() const { return readUint64(); }
 Value::operator uint32_t() const { return readUint32(); }
+Value::operator int64_t() const { return readInt64(); }
+Value::operator int32_t() const { return readInt(); }
 Value::operator bool() const { return readBool(); }
 Value::operator double() const { return readFloat(); }
 Value::operator float() const { return readFloat(); }
@@ -183,7 +189,7 @@ std::string Value::readString(const std::string& fmt) const
 	case Type_Int64:
 	{
 		char buffer[32] = { 0 };
-		snprintf(buffer, 31, fmt == "" ? "%lld" : fmt.c_str(), (int64_t)internal->val._int);
+		snprintf(buffer, 31, fmt == "" ? "%lld" : fmt.c_str(), (long long int)internal->val._int);
 		return buffer;
 	}
 	case Type_String:
@@ -196,6 +202,8 @@ std::string Value::readString(const std::string& fmt) const
 	}
 	case Type_Bool:
 		return internal->val._bool ? "true" : "false";
+	default:
+		break;
 	}
 
 	return "";
@@ -218,6 +226,8 @@ int Value::readInt(const std::string& fmt) const
 		return (int)internal->val._float;
 	case Type_Bool:
 		return internal->val._bool ? 1 : 0;
+	default:
+		break;
 	}
 
 	return 0;
@@ -240,6 +250,8 @@ float Value::readFloat(const std::string& fmt) const
 		return (float)internal->val._float;
 	case Type_Bool:
 		return internal->val._bool ? (float)1.0 : (float)0.0;
+	default:
+		break;
 	}
 
 	return (float)0.0;
@@ -263,6 +275,8 @@ long long Value::readInt64(const std::string& fmt) const
 		return (long long)internal->val._float;
 	case Type_Bool:
 		return internal->val._bool ? 1 : 0;
+	default:
+		break;
 	}
 
 	return 0;
@@ -286,6 +300,8 @@ uint32_t Value::readUint32(const std::string& fmt) const
 		return (uint32_t)internal->val._float;
 	case Type_Bool:
 		return internal->val._bool ? 1 : 0;
+	default:
+		break;
 	}
 
 	return 0;
@@ -302,13 +318,15 @@ uint64_t Value::readUint64(const std::string& fmt) const
 	case Type_String:
 	{
 		uint64_t val = 0;
-		sscanf(internal->val._str, fmt == "" ? "%llu" : fmt.c_str(), &val);
+		sscanf(internal->val._str, fmt == "" ? "%llu" : fmt.c_str(), (long long unsigned int*)&val);
 		return val;
 	}
 	case Type_Double:
 		return (uint64_t)internal->val._float;
 	case Type_Bool:
 		return internal->val._bool ? 1 : 0;
+	default:
+		break;
 	}
 
 	return 0;
@@ -322,11 +340,13 @@ bool Value::readBool() const
 	case Type_Int64:
 		return internal->val._int != 0;
 	case Type_String:
-		return strcasecmp(internal->val._str, "true") == 0;
+		return strcasecmp(internal->val._str, "true") == 0 || atoi(internal->val._str) != 0;
 	case Type_Double:
 		return (int)internal->val._float != 0;
 	case Type_Bool:
 		return internal->val._bool;
+	default:
+		break;
 	}
 
 	return false;

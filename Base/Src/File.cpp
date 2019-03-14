@@ -175,8 +175,7 @@ uint64_t File::seek(int64_t lOff, SeekPosition nFrom)
 		return 0;
 	}
 	int origin = 0;
-	uint64_t position = lOff;
-
+	
 	switch(nFrom){
 	case begin:
 		origin = SEEK_SET;
@@ -283,7 +282,7 @@ std::string File::load(const std::string& pFileName)
 	std::string outputstr(buffer,readlen);
 	SAFE_DELETEARRAY(buffer);
 
-	return std::move(outputstr);
+	return move(outputstr);
 }
 
 bool File::save(const std::string& pFileName, const std::string& data)
@@ -369,6 +368,28 @@ std::string File::getExcutableFileFullPath()
 	}
 
 	return s;
+}
+std::string File::getCurrentDirectory()
+{
+	char buffer[256] = { 0 };
+#ifdef WIN32
+	GetCurrentDirectory(255, buffer);
+#else
+	if(getcwd(buffer, 255) == NULL) return "";
+#endif
+
+	return buffer;
+}
+
+bool File::setCurrentDirectory(const std::string& path)
+{
+#ifdef WIN32
+	SetCurrentDirectory(path.c_str());
+#else
+	if(chdir(path.c_str()) != 0) return false;
+#endif
+
+	return true;
 }
 bool File::remove(const std::string& fileName)
 {
@@ -486,8 +507,8 @@ bool File::stat(const std::string& path, FileInfo& info)
 {
 
 #ifdef WIN32
-	struct _stat s = {0};
-	int ret = _stat(path.c_str(), &s);
+	struct _stati64 s = {0};
+	int ret = _stati64(path.c_str(), &s);
 #else
 	struct stat s = {0};
 	int ret = ::stat(path.c_str(), &s);
@@ -505,6 +526,55 @@ bool File::stat(const std::string& path, FileInfo& info)
 	info.size = s.st_size;
 
 	return true;
+}
+
+bool File::copy(const std::string& srcfile, const std::string& tofile)
+{
+	FILE* srcfd = fopen(srcfile.c_str(), "rb");
+	FILE* tofd = fopen(tofile.c_str(), "wb+");
+
+	if (srcfd == NULL || tofd == NULL)
+	{
+		if (srcfd != NULL) fclose(srcfd);
+		if (tofd != NULL) fclose(tofd);
+
+		return false;
+	}
+
+	while (1)
+	{
+		char buffer[1024];
+		int readlen = fread(buffer, 1, 1024, srcfd);
+		if (readlen <= 0) break;
+
+		if ((int)fwrite(buffer, 1, readlen, tofd) != readlen)
+		{
+			if (srcfd != NULL) fclose(srcfd);
+			if (tofd != NULL) fclose(tofd);
+
+			return false;
+		}
+	}
+
+	fclose(srcfd);
+	fclose(tofd);
+
+	return true;
+}
+
+string File::absPath(const string& path)
+{
+#ifdef _WIN32
+#define max_path 4096
+	char resolved_path[max_path] = { 0 };
+	_fullpath(resolved_path, path.c_str(), max_path);
+#else
+	//linux release有个坑，需要大点的空间
+#define max_path 40960
+	char resolved_path[max_path] = { 0 };
+	realpath(path.c_str(), resolved_path);
+#endif
+	return string(resolved_path);
 }
 
 } // namespace Base

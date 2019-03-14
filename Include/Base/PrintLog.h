@@ -30,7 +30,7 @@ enum LOG_Level{
 
 struct LogPrintInfo
 {
-	const char*			logstr;
+	std::string			logstr;
 	LOG_Level			loglev;
 	std::string			logprex;
 };

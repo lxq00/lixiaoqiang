@@ -739,7 +739,7 @@ public:
 	}
 };
 
-inline nullptr_t nullptr;
+//typedef  nullptr_t nullptr;
 
 template<typename T>
 bool operator != (const nullptr_t& pointer, const shared_ptr<T>& ptr)

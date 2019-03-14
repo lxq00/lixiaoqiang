@@ -7,7 +7,6 @@ using namespace std;
 
 #include "Base/Defs.h"
 #include "Base/Thread.h"
-using namespace Public::Base;
 
 namespace Public {
 namespace Base {

@@ -12,7 +12,7 @@ struct RedisMQ::RedisMQInternal
 		MessageHandler	handler;
 		void onMessage(const RedisValue &buf)
 		{
-			handler(channel, buf.toString());
+			handler(channel, String::utf82ansi(buf.toString()));
 		}
 	};
 	struct AsyncSocketInfo
@@ -45,11 +45,19 @@ struct RedisMQ::RedisMQInternal
 		void initSocket()
 		{
 			Guard locker(mutex);
+			if (client == NULL)
+			{
+				client = make_shared<RedisAsyncClient>(worker);
+				event = AsyncEvent_Init;
+			}
+				
 			if (event == AsyncEvent_Init)
 			{
 				event = AsyncEvent_Connecting;
-				client = make_shared<RedisAsyncClient>(worker);
-				client->connect(redisaddr, ConnectCallback(&AsyncSocketInfo::connectCallback, this), ErrorCallback(&AsyncSocketInfo::disconnectCallback, this));
+				client->close();
+				
+				client->asyncConnect(redisaddr, ConnectCallback(&AsyncSocketInfo::connectCallback, this),
+					DisconnectCallback(&AsyncSocketInfo::disconnectCallback, this));
 			}
 			if (event == AsyncEvent_ConnectEnd)
 			{
@@ -74,6 +82,7 @@ struct RedisMQ::RedisMQInternal
 			Guard locker(mutex);
 			event = password == "" ? AsyncEvent_AuthenEnd : AsyncEvent_ConnectEnd;
 		}
+		//ÖØÁ¬
 		void disconnectCallback()
 		{
 			Guard locker(mutex);
@@ -150,7 +159,7 @@ void RedisMQ::publish(const std::string& channelName, const std::string& value)
 
 	shared_ptr<RedisAsyncClient> tmp = internal->publisher->client;
 	if(tmp != NULL)
-		tmp->publish(flag, value);
+		tmp->publish(flag, String::ansi2utf8(value));
 }
 void RedisMQ::subscrib(const std::string& channelName, const MessageHandler& handler)
 {

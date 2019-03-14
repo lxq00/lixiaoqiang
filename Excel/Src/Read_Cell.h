@@ -11,7 +11,7 @@ namespace Excel {
 		Read_Cell(const shared_ptr<WorkBook::Sheet>& sheet,uint32_t m_rowNum, uint32_t m_colNum);
 		~Read_Cell();
 		//获取数据,内容
-		shared_ptr<Value> data() const ;
+		Value data() const ;
 		///行号
 		unsigned int rowNum();
 		///列号

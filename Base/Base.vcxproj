@@ -55,6 +55,7 @@
     <ClInclude Include="..\Include\Base\Shared_ptr.h" />
     <ClInclude Include="..\Include\Base\ShareMem.h" />
     <ClInclude Include="..\Include\Base\SimPipe.h" />
+    <ClInclude Include="..\Include\Base\SqlDataBase.h" />
     <ClInclude Include="..\Include\Base\StaticMemPool.h" />
     <ClInclude Include="..\Include\Base\String.h" />
     <ClInclude Include="..\Include\Base\System.h" />
@@ -106,6 +107,7 @@
     <ClCompile Include="Src\Sha1.cpp" />
     <ClCompile Include="Src\ShareMem.cpp" />
     <ClCompile Include="Src\SimPipe.cpp" />
+    <ClCompile Include="Src\SqlDataBase.cpp" />
     <ClCompile Include="Src\StaticMemPool.cpp" />
     <ClCompile Include="Src\String.cpp" />
     <ClCompile Include="Src\SystemCall.cpp" />
@@ -125,7 +127,7 @@
     <None Include="..\Include\Base\Version.tpl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{1A207225-9188-4FCC-9198-E20188F87C4A}</ProjectGuid>
+    <ProjectGuid>{706A8C4E-1088-4F8B-BC9C-C3A3CABC2E64}</ProjectGuid>
     <RootNamespace>Base</RootNamespace>
     <Keyword>Win32Proj</Keyword>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>

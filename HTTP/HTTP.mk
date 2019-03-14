@@ -11,7 +11,7 @@
 
 # 生成库的设置
 # 定义库的文件目录
-	SRCS_PATH =  Src Src/ctemplate Src/ctemplate/base Src/ctemplate/htmlparser Src/curl Src/curl/vauth Src/curl/vtls Src/shttpd
+	SRCS_PATH =  Src 
 	
 # 库的名称
    SHARDLIB_NAME = 
@@ -25,7 +25,7 @@
    APP_NAME = 
 
 # 子目录编译需要的目录
-   SUB_INCLUDE = -DHAVE_OPENSSL -DBUILDING_LIBCURL -DCURL_DISABLE_LDAP -DCURL_STATICLIB -I Src/curl -I Src -I Src/ctemplate
+   SUB_INCLUDE = -I ${PRJ_PATH}/boost/Include
 
 
 # 应用程序依赖的库(除了本身的编译的库)

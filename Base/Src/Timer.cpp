@@ -80,7 +80,7 @@ public:
 		stopandwait();
 	}
 
-	bool run()
+	bool checkIsNeedRun()
 	{
 		uint64_t curTime = manager->curTime;
 
@@ -94,12 +94,6 @@ public:
 			runningTime = 0;
 			checkTime = curTime;
 			called = true;
-		}
-
-		if (!manager->runTimer(this))
-		{
-			Guard locker(mutex);
-			called = false;
 		}
 
 		return true;
@@ -123,11 +117,11 @@ public:
 
 	void stopandwait()
 	{
-		SAFE_DELETE(quitsem);
 		{
 			Guard locker(mutex);
+			SAFE_DELETE(quitsem);
 			started = false;
-			if (called && calledId != Thread::getCurrentThreadID())
+			if (called && calledId != 0 && calledId != Thread::getCurrentThreadID())
 			{
 				quitsem = new Semaphore();
 			}
@@ -138,12 +132,20 @@ public:
 			quitsem->pend();
 		}
 		manager->removeTimer(this);
-		called = false;
-		SAFE_DELETE(quitsem);
+		
+		{
+			Guard locker(mutex);
+			called = false;
+			SAFE_DELETE(quitsem);
+		}
 	}
 	bool runFunc()
 	{
-		calledId = Thread::getCurrentThreadID();
+		{
+			Guard locker(mutex);
+			calledId = Thread::getCurrentThreadID();
+		}
+		
 		fun(param);
 
 		return true;

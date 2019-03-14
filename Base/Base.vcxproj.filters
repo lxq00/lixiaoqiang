@@ -177,6 +177,9 @@
     <ClInclude Include="..\Include\Base\Directory.h">
       <Filter>头文件\Base</Filter>
     </ClInclude>
+    <ClInclude Include="..\Include\Base\SqlDataBase.h">
+      <Filter>头文件\Base</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\Base.cpp">
@@ -309,6 +312,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Src\Directory.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\SqlDataBase.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

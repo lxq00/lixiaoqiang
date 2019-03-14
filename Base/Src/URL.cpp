@@ -25,6 +25,7 @@ URL::~URL()
 
 URL& URL::operator = (const URL& URL)
 {
+	hostname = URL.hostname;
 	protocol = URL.protocol;
 	pathname = URL.pathname;
 	authen = URL.authen;

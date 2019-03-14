@@ -253,8 +253,7 @@ public:
 		if (!er && currStatus == NetStatus_notconnected)
 		{
 			checkTimer = boost::shared_ptr<Timer>();
-			shared_ptr<Socket> _sockptr = sockobjptr.lock();
-			if (_sockptr != NULL) connectCallback(_sockptr);
+			connectCallback(sockobjptr);
 		}
 		///清除当前回调的记录信息
 		callbackThreadUsedEnd();
@@ -292,8 +291,7 @@ public:
 				///记录当前回调的处理信息
 				_callbackThreadUsedStart();
 			}
-			shared_ptr<Socket> _sockptr = sockobjptr.lock();
-			if (_sockptr != NULL) disconnectCallback(_sockptr, "accept新产生的socket10秒未接受到数据，断开连接");
+			disconnectCallback(sockobjptr, "accept新产生的socket10秒未接受到数据，断开连接");
 
 			///清除当前回调的记录信息
 			callbackThreadUsedEnd();

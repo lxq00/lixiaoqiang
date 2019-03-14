@@ -85,6 +85,7 @@ public:
 	std::vector<Value> values(int startpos, int stoppos);
 	Value front();
 	bool del(const Value& val);
+	uint32_t size();
 private:
 	struct RedisSortedSetInternal;
 	RedisSortedSetInternal* internal;
@@ -111,6 +112,7 @@ public:
 	
 	bool setnx(int index,const std::string& key, const Value& val);
 	bool set(int index, const std::string& key,const Value& val);
+	bool expire(int index, const std::string& key, int ttl_ms);
 	Value get(int index, const std::string& key);
 	bool exists(int index, const std::string& key);
 	bool del(int index, const std::string& key);

@@ -29,7 +29,7 @@ struct Directory::DirectoryInternal
 	FileFind	find;
 	std::string	path;
 
-	DirectoryInternal(const std::string& _path):find(_path+"/*"),path(_path){}
+	DirectoryInternal(const std::string& _path):find(_path+ PATH_SEPARATOR +"*"),path(_path){}
 };
 
 Directory::Directory(const std::string& path)
@@ -121,7 +121,7 @@ bool Directory::read(Dirent& dir)
 		dir.Type = (dent->d_type & DT_DIR) ? Dirent::DirentType_Dir : Dirent::DirentType_File;
 		dir.Name = dent->d_name;
 		dir.Path = internal->path;
-		dir.CompletePath = dir.Path  + "/" + dir.Name;
+		dir.CompletePath = dir.Path  + PATH_SEPARATOR + dir.Name;
 		const char* tmp = strrchr(dir.Name.c_str(), '.');
 		if (tmp != NULL)
 		{

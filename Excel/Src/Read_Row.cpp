@@ -20,7 +20,7 @@ shared_ptr<WorkBook::Cell> Read_Row::cell(uint32_t colNum)
 
 //--------------数据相关
 ///获取数据,内容
-shared_ptr<Value> Read_Row::data(uint32_t colNum) const 
+Value Read_Row::data(uint32_t colNum) const
 {
 	return sheet->data(m_rowNum, colNum);
 }

@@ -6,7 +6,7 @@
 //	$Id: SystemCall.cpp 11 2013-01-22 08:42:03Z  $
 //
 
-#ifdef __linux__
+#ifndef WIN32
 	#include <errno.h>
 	#include <sys/wait.h>
 	#include <sys/types.h>
@@ -97,7 +97,7 @@ inline int windows_system(const char* cmd)
 namespace Public{
 namespace Base {
 
-int SystemCall(const std::string& command)
+int BASE_API SystemCall(const std::string& command)
 {
 #ifndef WIN32
 	return linux_system(command.c_str());

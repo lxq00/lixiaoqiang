@@ -48,40 +48,42 @@ namespace HTTP {
 //	HTTPTemplateInternal* internal;
 //};
 
+class FileMediaInfo;
 
-class HTTP_API HTTPBuffer
+class HTTP_API HTTPContent
 {
 public:
 	typedef enum {
-		HTTPBufferType_String,
-		HTTPBufferType_File,
-		HTTPBufferType_Stream
-	}HTTPBufferType;
-	typedef Function3<void, HTTPBuffer*, const char*, int> StreamCallback;
+		HTTPContentType_Normal = 0,
+		HTTPContentType_Chunk,
+	}HTTPContentType;
+	typedef Function0<bool> CheckConnectionIsOk;
 public:
-	HTTPBuffer(HTTPBufferType type = HTTPBufferType_String);
-	virtual ~HTTPBuffer();
+	HTTPContent(FileMediaInfo* info,const CheckConnectionIsOk& check = CheckConnectionIsOk());
+	virtual ~HTTPContent();
 
-	//-1 not support
 	int size();
-
+	
 	//when end of file return ""
-	HTTPBufferType readtype();
-	std::string read(int start, int maxlen);
+	bool setReadToFile(const std::string& filename,bool deletefile = false);
+	std::string cacheFileName() const;
+	int read(char* buffer, int maxlen);
 	std::string read();
-	bool readToFile(const std::string& filename, bool deleteFile = false);
-	void setReadCallback(const StreamCallback& callback);
+	bool readToFile(const std::string& filename);
 
 
-	HTTPBufferType writetype();
-	void writetype(HTTPBufferType type);
+	HTTPContentType& writetype();
+	bool setChunkEOF();
 	bool write(const char* buffer, int len);
 	bool write(const std::string& buffer);
 	/*bool write(const HTTPTemplate& temp);*/
-	bool writeFromFile(const std::string& filename,bool deleteFile);
+	//writeFromFile chanegd writetype to HTTPContentType_Normal 
+	bool writeFromFile(const std::string& filename,bool needdeletefile = false);
+
+	const char* inputAndParse(const char* buffer, int len,bool chunked,bool& chunedfinish);
 private:
-	struct HTTPBufferInternal;
-	HTTPBufferInternal* internal;
+	struct HTTPContentInternal;
+	HTTPContentInternal* internal;
 };
 
 
@@ -90,7 +92,7 @@ class HTTP_API HTTPRequest
 public:
 	typedef Function2<void, HTTPRequest*, const std::string&> DisconnectCallback;
 public:
-	HTTPRequest(HTTPBuffer::HTTPBufferType type = HTTPBuffer::HTTPBufferType_String);
+	HTTPRequest();
 	virtual ~HTTPRequest();
 
 	std::map<std::string, Value>& headers();
@@ -100,7 +102,7 @@ public:
 
 	URL& url();
 
-	shared_ptr<HTTPBuffer>& content();
+	shared_ptr<HTTPContent>& content();
 
 	uint32_t& timeout();
 
@@ -119,7 +121,9 @@ private:
 class HTTP_API HTTPResponse
 {
 public:
-	HTTPResponse(HTTPBuffer::HTTPBufferType type = HTTPBuffer::HTTPBufferType_String);
+	typedef Function2<void, HTTPResponse*, const std::string&> DisconnectCallback;
+public:
+	HTTPResponse(const HTTPContent::CheckConnectionIsOk& check = HTTPContent::CheckConnectionIsOk());
 	virtual ~HTTPResponse();
 
 	uint32_t& statusCode();
@@ -128,9 +132,11 @@ public:
 	std::map<std::string, Value>& headers();
 	Value header(const std::string& key);
 
-	shared_ptr<HTTPBuffer>& content();
+	shared_ptr<HTTPContent>& content();
 
 	virtual bool push();
+
+	DisconnectCallback&	discallback();
 private:
 	struct HTTPResponseInternal;
 	HTTPResponseInternal* internal;

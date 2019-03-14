@@ -78,37 +78,15 @@ class FUNCTION_TEMPL
 	//函数指针的定义
 	struct FUNCTION_POINTER :public FUNCTION_OBJECT
 	{
-		template<class RT> struct FUNCTION_INVODER
-		{
-			static RT invoke(PTR_FUNCTION f FUNCTION_COMMA FUNCTION_TYPE_ARGS)
-			{
-				if (f == NULL)
-				{
-					return FUNCTION_RETURN<RT>::getDefaultValue();
-				}
-				return f(FUNCTION_ARGS);
-			}
-		};
-
-		template<> struct FUNCTION_INVODER<void>
-		{
-			static void invoke(PTR_FUNCTION f FUNCTION_COMMA FUNCTION_TYPE_ARGS)
-			{
-				if (f == NULL)
-				{
-					return;
-				}
-				f(FUNCTION_ARGS);
-			}
-		};
-
 		FUNCTION_POINTER(PTR_FUNCTION _f) :f(_f) {}
 
 		virtual bool empty() const { return f == NULL; }
 
 		virtual R invoke(FUNCTION_TYPE_ARGS)
 		{
-			return FUNCTION_INVODER<R>::invoke(f FUNCTION_COMMA FUNCTION_ARGS);
+			if(f == NULL) return FUNCTION_RETURN<R>::getDefaultValue();
+
+			return f(FUNCTION_ARGS);
 		}
 		virtual shared_ptr<FUNCTION_OBJECT> clone()
 		{
@@ -131,31 +109,6 @@ class FUNCTION_TEMPL
 	{
 		typedef R(O::*MEM_FUNCTION)(FUNCTION_TYPES);
 
-		template<class RT> struct MEM_FUNCTION_INVODER
-		{
-			static RT invoke(O* o, MEM_FUNCTION f FUNCTION_COMMA FUNCTION_TYPE_ARGS)
-			{
-				if (o == NULL || f == NULL)
-				{
-					return FUNCTION_RETURN<R>::getDefaultValue();
-				}
-
-				return (o->*f)(FUNCTION_ARGS);
-			}
-		};
-
-		template<> struct MEM_FUNCTION_INVODER<void>
-		{
-			static void invoke(O* o, MEM_FUNCTION f FUNCTION_COMMA FUNCTION_TYPE_ARGS)
-			{
-				if (o == NULL || f == NULL)
-				{
-					return;
-				}
-				(o->*f)(FUNCTION_ARGS);
-			}
-		};
-
 		FUNCTION_MEMBER(MEM_FUNCTION _f, const O * _o):f(_f),o((O *)_o){}
 		FUNCTION_MEMBER(MEM_FUNCTION _f, const shared_ptr<O>& _ptr) :f(_f), o(NULL), ptr(_ptr) {}
 
@@ -168,8 +121,12 @@ class FUNCTION_TEMPL
 			shared_ptr<O> ptrtmp = ptr.lock();
 			if (ptrtmp != NULL) optr = ptrtmp.get();
 
+			if (optr == NULL || f == NULL)
+			{
+				return FUNCTION_RETURN<R>::getDefaultValue();
+			}
 
-			return MEM_FUNCTION_INVODER<R>::invoke(optr,f FUNCTION_COMMA FUNCTION_ARGS);
+			return (optr->*f)(FUNCTION_ARGS);
 		}
 		virtual shared_ptr<FUNCTION_OBJECT> clone()
 		{
@@ -204,35 +161,17 @@ class FUNCTION_TEMPL
 #ifdef GCCSUPORTC11
 	struct FUNCTION_STDFUNCTION :public FUNCTION_OBJECT
 	{
-		template<class RT> struct STD_FUNCTION_INVODER
-		{
-			static RT invoke(STD_FUNCTION& f FUNCTION_COMMA FUNCTION_TYPE_ARGS)
-			{
-				if (!f)
-				{
-					return FUNCTION_RETURN<RT>::getDefaultValue();
-				}
-
-				return f(FUNCTION_ARGS);
-			}
-		};
-
-		template<> struct STD_FUNCTION_INVODER<void>
-		{
-			static void invoke(STD_FUNCTION& f FUNCTION_COMMA FUNCTION_TYPE_ARGS)
-			{
-				if (f)
-					f(FUNCTION_ARGS);
-			}
-		};
-
-
 		FUNCTION_STDFUNCTION(const STD_FUNCTION& f) :stdf(f) {}
-		virtual bool empty() const { return !f; }
+		virtual bool empty() const { return !stdf; }
 
 		virtual R invoke(FUNCTION_TYPE_ARGS)
 		{
-			return STD_FUNCTION_INVODER<R>::invoke(stdf FUNCTION_COMMA FUNCTION_ARGS);
+			if (!stdf)
+			{
+				return FUNCTION_RETURN<R>::getDefaultValue();
+			}
+
+			return stdf(FUNCTION_ARGS);
 		}
 		virtual shared_ptr<FUNCTION_OBJECT> clone()
 		{
@@ -372,13 +311,13 @@ public:
 	}
 
 	/// 重载()运算符，可以以函数对象的形式来调用保存的函数指针。
-	inline typename R operator()(FUNCTION_TYPE_ARGS)
+	inline R operator()(FUNCTION_TYPE_ARGS)
 	{
 		shared_ptr<FUNCTION_OBJECT> tmp = function;
 
 		if (tmp == NULL)
 		{
-			return FUNCTION_POINTER::FUNCTION_INVODER<R>::invoke(NULL FUNCTION_COMMA FUNCTION_ARGS);
+			return FUNCTION_RETURN<R>::getDefaultValue();
 		}
 
 		return tmp->invoke(FUNCTION_ARGS);

@@ -1,6 +1,5 @@
 #include "HTTP/HTTPClient.h"
-#include "HTTPParser.h"
-#include "HTTPBuilder.h"
+#include "HTTPSession.h"
 
 #ifdef WIN32
 #define socklen_t int
@@ -10,199 +9,200 @@
 namespace Public {
 namespace HTTP {
 
-struct HTTPRequestObject :public HTTPParser<HTTPResponse>, public HTTPBuilder<HTTPRequest>
+struct HTTPClientObject
 {
-public:
-	typedef Function1<void, HTTPRequest*> CloseCallbak;
-private:
-	shared_ptr<HTTPRequest>	req;
-	HTTPCallback			httpcallback;
+	shared_ptr<IOWorker>	worker;
 	shared_ptr<Socket>		sock;
-	HTTPBuffer::HTTPBufferType readtype;
-	CloseCallbak			 closecallback;
-	uint64_t				starttime;
-	std::string				outfilename;
-public:
-	HTTPRequestObject(const shared_ptr<HTTPRequest>& _req,const shared_ptr<Socket>& _sock,const HTTPCallback& _callback,const CloseCallbak& close, const std::string& useragent, HTTPBuffer::HTTPBufferType type, const std::string& outfile)
-		:HTTPBuilder(_sock,useragent),req(_req),sock(_sock), httpcallback(_callback), closecallback(close),outfilename(outfile)
-	{
-		sock->setSocketTimeout(1000, 1000);
-		req->headers()[CONNECTION] = CONNECTION_Close;
-		readtype = type;
-		starttime = Time::getCurrentMilliSecond();
-	}
-	~HTTPRequestObject(){}
-	shared_ptr<HTTPRequest> reqeust() { return req; }
-	HTTPRequest* getObject()
-	{
-		return req.get();
-	}
-	uint64_t prevtime() { return starttime; }
-	bool startConnect()
-	{
-		sock->async_connect(NetAddr(req->url().getHostname(), req->url().getPort(80)), Socket::ConnectedCallback(&HTTPRequestObject::connectCallback, this));
+	NetAddr					addr;
+	shared_ptr<HTTPSession> session;
+	std::string				useragent;
+	bool					disconnectflag;
+	shared_ptr<HTTPRequest>	request;
+	std::string				saveToFile;
 
-		return true;
-	}
-	bool start()
+	char					buffer[MAXRECVBUFFERLEN];
+	int						bufferlen;
+
+	HTTPClientObject(const shared_ptr<IOWorker>& _worker, const std::string& _useragent):disconnectflag(false)
 	{
-		bool ret = sock->connect(NetAddr(req->url().getHostname(), req->url().getPort(80)));
-		if (!ret)
+		worker = _worker;
+		bufferlen = 0;
+		useragent = _useragent;
+	}
+	~HTTPClientObject()
+	{
+		sock = NULL;
+	}
+	shared_ptr<HTTPResponse> getResponse()
+	{
+		shared_ptr<HTTPSession> sessiontmp = session;
+		shared_ptr<HTTPResponse> response;
+		if (sessiontmp != NULL)
 		{
-			object->statusCode() = 503;
-			object->errorMessage() = "Connect Server Error";
-
-			return false;
-		}
-
-		startsenddata();
-
-		return true;
-	}
-private:
-	void startsenddata()
-	{
-	//	void getMyAddr()
-		{
-			struct sockaddr_in iface_out;
-			int len = sizeof(iface_out);
-			if (getsockname(sock->getHandle(), (struct sockaddr *) &iface_out, (socklen_t*)&len) >= 0 && iface_out.sin_addr.s_addr != 0)
-			{
-				req->myAddr() = NetAddr(iface_out);
-			}
-		}
-		req->headers()["Host"] = req->url().getHost();
-		sock->setDisconnectCallback(Socket::DisconnectedCallback(&HTTPRequestObject::disconnectCallback, this));
-		sock->async_recv(readfbuffer(), readbufferlen(), Socket::ReceivedCallback(&HTTPRequestObject::recvCallback, this));
-
-		if (req->content()->writetype() != HTTPBuffer::HTTPBufferType_String)
-		{
-			req->content()->setReadCallback(HTTPBuffer::StreamCallback(&HTTPBuilder::readBufferCallback, (HTTPBuilder*)this));
+			response = sessiontmp->response;
 		}
 		else
 		{
-			HTTPBuilder::startasyncsend(shared_ptr<Socket>(), NULL, 0);
+			response = make_shared<HTTPResponse>();
 		}
-	}
-private:
-	void connectCallback(const shared_ptr<Socket>& sock)
-	{
-		startsenddata();
-	}
-	void disconnectCallback(const shared_ptr<Socket>& sock, const std::string& err)
-	{
-		req->discallback()(req.get(), err);
-		closecallback(req.get());
-	}
-	void recvCallback(const shared_ptr<Socket>& sock, const char* buffer, int len)
-	{
-		starttime = Time::getCurrentMilliSecond();
-
-		intpulen(len);
-		
-		if (!headerIsOk())
+		if (sessiontmp != NULL && !sessiontmp->isFinish() && disconnectflag)
 		{
-			if (parseHeader())
+			response->statusCode() = 500;
+			response->errorMessage() = "Socket Disconnect";
+		}
+		else if (sessiontmp == NULL || !sessiontmp->isFinish())
+		{
+			response->statusCode() = 408;
+			response->errorMessage() = "Request Timeout";
+		}
+
+		return response;
+	}
+
+	virtual void start(const shared_ptr<HTTPRequest>& req, const std::string& saveasfile)
+	{
+		request = req;
+		request->headers()[CONNECTION] = CONNECTION_KeepAlive;
+		request->headers()["Host"] = req->url().getHost();
+		saveToFile = saveasfile;
+		NetAddr toaddr = NetAddr(request->url().getHostname(), request->url().getPort(80));
+
+		if (toaddr.getIP() != addr.getIP() || toaddr.getPort() != addr.getPort() || sock == NULL)
+		{
+			session = NULL;
+			sock = TCPClient::create(worker);
+
+			sock->async_connect(NetAddr(request->url().getHostname(), request->url().getPort(80)), Socket::ConnectedCallback(&HTTPClientObject::connectCallback, this));
+		}
+		else if (sock != NULL && sock->getStatus() == NetStatus_connected)
+		{
+			connectCallback(sock);
+		}
+		addr = toaddr;
+	}
+
+	virtual void connectCallback(const weak_ptr<Socket>&)
+	{
+		shared_ptr<Socket> socktmp = sock;
+		if(socktmp != NULL)
+		{
+			struct sockaddr_in iface_out;
+			int len = sizeof(iface_out);
+			if (getsockname(socktmp->getHandle(), (struct sockaddr *) &iface_out, (socklen_t*)&len) >= 0 && iface_out.sin_addr.s_addr != 0)
 			{
-				if (readtype != HTTPBuffer::HTTPBufferType_String)
-				{
-					if (readtype == HTTPBuffer::HTTPBufferType_File && outfilename != "")
-					{
-						HTTPParser::object->content()->readToFile(outfilename);
-					}
-					httpcallback(req,HTTPParser::object);
-				}
+				request->myAddr() = NetAddr(iface_out);
 			}
-		}
-		if (parseContent())
-		{
-			if (readtype == HTTPBuffer::HTTPBufferType_String)
-			{
-				httpcallback(req, HTTPParser::object);
-			}
-			closecallback(req.get());
-		}
-		
-		sock->async_recv(readfbuffer(), readbufferlen(), Socket::ReceivedCallback(&HTTPRequestObject::recvCallback, this));
 
+
+			shared_ptr<HTTPSession> sessiontmp  = make_shared<HTTPSession_Client>(request, socktmp, useragent);
+
+			if (saveToFile != "")
+				sessiontmp->response->content()->setReadToFile(saveToFile);
+
+
+			socktmp->setDisconnectCallback(Socket::DisconnectedCallback(&HTTPClientObject::socketDisconnect, this));
+			socktmp->async_recv(buffer, MAXRECVBUFFERLEN, Socket::ReceivedCallback(&HTTPClientObject::socketRecv, this));
+
+			session = sessiontmp;
+
+		}
 	}
-	const char* parseFirstLine(const char* buffer, int len)
+	virtual void socketDisconnect(const weak_ptr<Socket>&, const std::string&)
 	{
-		int pos = String::indexOf(buffer, len, HTTPHREADERLINEEND);
-		if (pos == -1) return NULL;
+		disconnectflag = true;
+	}
+	void socketRecv(const weak_ptr<Socket>& s, const char* , int len)
+	{
+		shared_ptr<HTTPSession> sessiontmp = session;
+		if (len <= 0 || sessiontmp == NULL) return socketDisconnect(s, "socket recv error");
 
-		std::vector<std::string> tmp = String::split(buffer, pos, " ");
-		if (tmp.size() < 2) return NULL;
+		bufferlen += len;
 
-		HTTPParser::object->statusCode() = Value(tmp[1]).readInt();
+		const char* usedbuf = sessiontmp->inputData(buffer, bufferlen);
 
-		std::string errstr;
-		for (uint32_t i = 2; i < tmp.size(); i++)
+		bufferlen = buffer + bufferlen - usedbuf;
+		if (bufferlen > 0 && usedbuf != buffer)
 		{
-			errstr += (i == 2 ? "" : " ")+tmp[i];
+			memmove(buffer, usedbuf, bufferlen);
 		}
 
-		HTTPParser::object->errorMessage() = errstr;
+		int recvlen = MAXRECVBUFFERLEN - bufferlen;
+		if(recvlen <= 0)  return socketDisconnect(s, "socket recv buffer full");
 
-		return buffer + pos + strlen(HTTPHREADERLINEEND);
-	}
-	virtual std::string buildFirstLine()
-	{
-		std::string path = req->url().getPath();
-		if (path == "") path = "/";
-		return String::toupper(req->method()) + " " + path + " " + HTTPVERSION + HTTPHREADERLINEEND;
+		shared_ptr<Socket> socktmp = sock;
+		if(socktmp != NULL)
+			socktmp->async_recv(buffer + bufferlen,recvlen,Socket::ReceivedCallback(&HTTPClientObject::socketRecv, this));
 	}
 };
 
-struct HTTPClient::HTTPClientInternal
+struct HTTPClient::HTTPClientInternal:public HTTPClientObject
 {
-	shared_ptr<IOWorker>	worker;
-	shared_ptr<HTTPRequestObject> obj;
-	bool					worksuccess;
-	Base::Semaphore 		sem;
-	std::string				useragent;
+	uint64_t	startTime;
+	bool		finish;
 	
-	HTTPClientInternal() :worksuccess(false) {}
-	void _successCallback(const shared_ptr<HTTPRequest>&, shared_ptr<HTTPResponse>&)
+	HTTPClientInternal(const shared_ptr<IOWorker>& _worker, const std::string& _useragent):HTTPClientObject(_worker,_useragent)
 	{
-		worksuccess = true;
-		sem.post();
+		startTime = Time::getCurrentMilliSecond();
+		finish = false;
+	}
+	~HTTPClientInternal() 
+	{
+	}
+	virtual void start(const shared_ptr<HTTPRequest>& req, const std::string& saveasfile)
+	{
+		startTime = Time::getCurrentMilliSecond();
+		finish = false;
+
+		HTTPClientObject::start(req, saveasfile);
+	}
+	void pend(uint32_t timeout)
+	{
+		while (!finish)
+		{
+			shared_ptr<HTTPSession> sessiontmp = session;
+			uint64_t nowtime = Time::getCurrentMilliSecond();
+			if (nowtime - startTime > timeout) break;
+
+			if (sessiontmp != NULL)
+			{
+				sessiontmp->onPoolTimerProc();
+				if (sessiontmp->isFinish())
+				{
+					finish = true; 
+					break;
+				}
+			}
+
+			Thread::sleep(10);
+		}
+	}
+private:
+	virtual void socketDisconnect(const weak_ptr<Socket>& socktmp, const std::string& err)
+	{
+		HTTPClientObject::socketDisconnect(socktmp, err);
+
+		finish = true;
 	}
 };
 
 HTTPClient::HTTPClient(const shared_ptr<IOWorker>& worker, const std::string& useragent)
 {
-	internal = new HTTPClientInternal();
-	internal->worker = worker;
-	internal->useragent = useragent;
+	internal = new HTTPClientInternal(worker, useragent);
 }
 HTTPClient::~HTTPClient()
 {
 	SAFE_DELETE(internal);
 }
 
-const shared_ptr<HTTPResponse> HTTPClient::request(const shared_ptr<HTTPRequest>& req, HTTPBuffer::HTTPBufferType type, const std::string& outfile)
+const shared_ptr<HTTPResponse> HTTPClient::request(const shared_ptr<HTTPRequest>& req, const std::string& saveasfile)
 {
-	internal->obj = make_shared<HTTPRequestObject>(req,TCPClient::create(internal->worker), 
-		HTTPCallback(&HTTPClientInternal::_successCallback, internal),
-		HTTPRequestObject::CloseCallbak(),internal->useragent, type,outfile);
+	internal->start(req,saveasfile);
+
+	internal->pend(req->timeout());
 	
-	bool ret = internal->obj->start();
-	if (!ret)
-	{
-		return internal->obj->object;
-	}
-
-	internal->sem.pend(internal->obj->getObject()->timeout());
-	if (!internal->worksuccess)
-	{
-		internal->obj->object->statusCode() = 408;
-		internal->obj->object->errorMessage() = "Request Timeout";
-	}
-
-	return internal->obj->object;
+	return internal->getResponse();
 }
-const shared_ptr<HTTPResponse> HTTPClient::request(const std::string& url, const std::string& method, const shared_ptr<HTTPBuffer> buf, const std::map<std::string, Value>& headers, int timeout, HTTPBuffer::HTTPBufferType type, const std::string& outfile)
+const shared_ptr<HTTPResponse> HTTPClient::request(const std::string& url, const std::string& method, const shared_ptr<HTTPContent>& buf, const std::map<std::string, Value>& headers, int timeout)
 {
 	shared_ptr<HTTPRequest> req = make_shared<HTTPRequest>();
 	req->url() = url;
@@ -212,110 +212,140 @@ const shared_ptr<HTTPResponse> HTTPClient::request(const std::string& url, const
 	req->headers() = headers;
 	req->timeout() = timeout;
 
-	return request(req,type,outfile);
+	return request(req);
 }
 
-struct HTTPAsyncClient::HTTPAsyncClientInternal
+struct HTTPAsyncObject :public HTTPClientObject
 {
-	struct ObjectInfo
+	HTTPCallback					callback;
+	bool							connectSuccess;
+	uint64_t						prevusedtime;
+
+	HTTPAsyncObject(const HTTPCallback& _callback,const shared_ptr<IOWorker>& _worker, const std::string& _useragent)
+		:HTTPClientObject(_worker, _useragent),callback(_callback), connectSuccess(false), prevusedtime(Time::getCurrentMilliSecond()){}
+	~HTTPAsyncObject() {}
+
+	virtual void connectCallback(const weak_ptr<Socket>& socktmp)
 	{
-		HTTPCallback					callback;
-		shared_ptr<HTTPRequestObject>	obj;
-	};
+		connectSuccess = true;
+		HTTPClientObject::connectCallback(socktmp);
+
+		prevusedtime = Time::getCurrentMilliSecond();
+	}
+
+	uint64_t prevAliveTime()
+	{
+		if (session == NULL) return prevusedtime;
+
+		return max(prevusedtime, session->prevAliveTime());
+	}
+};
+
+struct HTTPAsyncClient::HTTPAsyncClientInternal:public Thread
+{
 	shared_ptr<IOWorker>	worker;
-	shared_ptr<Timer>		timer;
 	std::string				useragent;
 
 	Mutex					mutex;
-	std::map<HTTPRequest*, ObjectInfo> objectlist;
+	std::map<HTTPRequest*, shared_ptr<HTTPAsyncObject> > objectlist;
 
-
-	void poolTimerProc(unsigned long)
+	HTTPAsyncClientInternal() :Thread("HTTPAsyncClientInternal") 
 	{
-		std::list<ObjectInfo> timeoutlist;
-
-		{
-			Guard locker(mutex);
-
-			uint64_t nowtime = Time::getCurrentMilliSecond();
-			for (std::map<HTTPRequest*, ObjectInfo>::iterator iter = objectlist.begin(); iter != objectlist.end();)
-			{
-				if (nowtime > iter->second.obj->prevtime() && nowtime - iter->second.obj->prevtime() > iter->second.obj->reqeust()->timeout())
-				{
-					timeoutlist.push_back(iter->second);
-					objectlist.erase(iter++);
-				}
-				else
-				{
-					iter++;
-				}
-			}
-		}
-		for (std::list<ObjectInfo>::iterator iter = timeoutlist.begin(); iter != timeoutlist.end(); iter++)
-		{
-			iter->obj->object->statusCode() = 408;
-			iter->obj->object->errorMessage() = "Request Timeout";
-
-			iter->callback(iter->obj->reqeust(), iter->obj->object);
-		}
+		createThread();
 	}
-	void _closeCallback(HTTPRequest* req)
+	~HTTPAsyncClientInternal() 
 	{
-		ObjectInfo info;
-		{
-			Guard locker(mutex);
-			std::map<HTTPRequest*, ObjectInfo>::iterator iter = objectlist.find(req);
-			if (iter == objectlist.end())
-			{
-				return;
-			}
-			info = iter->second;
-			objectlist.erase(iter);
-		}
+		destroyThread();
 	}
-	void _successCallback(const shared_ptr<HTTPRequest>& req, shared_ptr<HTTPResponse>& resp)
-	{
-		ObjectInfo obj;
 
+	void threadProc()
+	{
+		while (looping())
 		{
-			Guard locker(mutex);
-			std::map<HTTPRequest*, ObjectInfo>::iterator iter = objectlist.find(req.get());
-			if (iter == objectlist.end())
+			Thread::sleep(100);
+
 			{
-				return;
+				std::map<HTTPRequest*, shared_ptr<HTTPAsyncObject> > poolList;
+				{
+					Guard locker(mutex);
+					poolList = objectlist;
+				}
+				for (std::map<HTTPRequest*, shared_ptr<HTTPAsyncObject> >::iterator iter = poolList.begin(); iter != poolList.end(); iter++)
+				{
+					if (iter->second->connectSuccess && iter->second->session != NULL)
+						iter->second->session->onPoolTimerProc();
+				}
 			}
-			obj = iter->second;
+			std::list<shared_ptr<HTTPAsyncObject> > finishlist;
+			std::list<shared_ptr<HTTPAsyncObject> > timeoutlist;
+			std::list<shared_ptr<HTTPAsyncObject> > disconnectlist;
+			{
+				Guard locker(mutex);
+
+				uint64_t nowtime = Time::getCurrentMilliSecond();
+				for (std::map<HTTPRequest*, shared_ptr<HTTPAsyncObject> >::iterator iter = objectlist.begin(); iter != objectlist.end();)
+				{
+					uint64_t prevtime = iter->second->prevAliveTime();
+					if (nowtime > prevtime && nowtime - prevtime > iter->second->request->timeout())
+					{
+						timeoutlist.push_back(iter->second);
+						objectlist.erase(iter++);
+					}
+					else if (iter->second->session != NULL && iter->second->session->isFinish())
+					{
+						finishlist.push_back(iter->second);
+						objectlist.erase(iter++);
+					}
+					else if (iter->second->disconnectflag)
+					{
+						disconnectlist.push_back(iter->second);
+						objectlist.erase(iter++);
+					}
+					else
+					{
+						iter++;
+					}
+				}
+			}
+			for (std::list<shared_ptr<HTTPAsyncObject> >::iterator iter = timeoutlist.begin(); iter != timeoutlist.end(); iter++)
+			{
+				shared_ptr<HTTPResponse> response = (*iter)->getResponse();
+				(*iter)->callback((*iter)->request, response);
+			}
+			for (std::list<shared_ptr<HTTPAsyncObject> >::iterator iter = finishlist.begin(); iter != finishlist.end(); iter++)
+			{
+				shared_ptr<HTTPResponse> response = (*iter)->getResponse();
+				(*iter)->callback((*iter)->request, response);
+			}
+			for (std::list<shared_ptr<HTTPAsyncObject> >::iterator iter = disconnectlist.begin(); iter != disconnectlist.end(); iter++)
+			{
+				shared_ptr<HTTPRequest> request = (*iter)->request;
+				request->discallback()(request.get(), "socket disconnect");
+			}
 		}
-		obj.callback(req, resp);
 	}
 };
 
 
 HTTPAsyncClient::HTTPAsyncClient(const shared_ptr<IOWorker>& worker, const std::string& useragent)
 {
-	internal = new HTTPAsyncClientInternal;
-	internal->timer = make_shared<Timer>("HTTPAsyncClientInternal");
-	internal->timer->start(Timer::Proc(&HTTPAsyncClientInternal::poolTimerProc, internal), 0, 1000);
-
+	internal = new HTTPAsyncClientInternal();
+	internal->worker = worker;
+	internal->useragent = useragent;
 }
 HTTPAsyncClient::~HTTPAsyncClient()
 {
 	SAFE_DELETE(internal);
 }
-bool HTTPAsyncClient::request(const shared_ptr<HTTPRequest>& req, const HTTPCallback& callback, HTTPBuffer::HTTPBufferType type, const std::string& outfile)
+bool HTTPAsyncClient::request(const shared_ptr<HTTPRequest>& req, const HTTPCallback& callback, const std::string& saveasfile)
 {
-	HTTPAsyncClientInternal::ObjectInfo obj;
-	obj.obj = make_shared<HTTPRequestObject>(req,TCPClient::create(internal->worker), 
-		HTTPCallback(&HTTPAsyncClientInternal::_successCallback, internal),
-		HTTPRequestObject::CloseCallbak(&HTTPAsyncClientInternal::_closeCallback,internal),
-		internal->useragent,type,outfile);
-	obj.callback = callback;
+	shared_ptr<HTTPAsyncObject> object = make_shared<HTTPAsyncObject>(callback,internal->worker, internal->useragent);
+	object->start(req,saveasfile);
 
-	{
-		Guard locker(internal->mutex);
-		internal->objectlist[req.get()] = obj;
-	}
-	return obj.obj->startConnect();
+	Guard locker(internal->mutex);
+	internal->objectlist[req.get()] = object;
+
+	return true;
 }
 
 }

@@ -16,7 +16,7 @@ public:
 
 	//--------------数据相关
 	///获取数据,内容
-	shared_ptr<Value> data(uint32_t colNum) const ;
+	Value data(uint32_t colNum) const ;
 	//--------------当前行最大的列数
 	uint32_t maxColNum();
 

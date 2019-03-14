@@ -6,33 +6,33 @@
 #  $Id: Base.mk 2055 2014-07-31 03:58:39Z lixiaoqiang $  
 #
 
-#可以自己写一个.platform 用于配置 平台，静态库拷贝的位置, 否则自己指定编译选项，参见.platform
+#�����Լ�дһ��.platform �������� ƽ̨����̬�⿽����λ��, �����Լ�ָ������ѡ��μ�.platform
 -include .platform
 
-# 生成库的设置
-# 定义库的文件目录
+# ���ɿ������
+# �������ļ�Ŀ¼
    SRCS_PATH =  Src Src/Expression Src/uuid
 	
-# 库的名称
+# �������
    SHARDLIB_NAME = 
    STATICLIB_NAME = Base
 
-# 应用程序选项
-# 应用程序的代码路径
+# Ӧ�ó���ѡ��
+# Ӧ�ó���Ĵ���·��
    APP_SRCS_PATH = 
 
-# 应用程序名称
+# Ӧ�ó�������
    APP_NAME = 
 
-# 子目录编译需要的目录
+# ��Ŀ¼������Ҫ��Ŀ¼
    SUB_INCLUDE = 
 
 
-# 应用程序依赖的库(除了本身的编译的库)
+# Ӧ�ó��������Ŀ�(���˱����ı���Ŀ�)
   LIBS = 
   LIBS_DBG = 
 
-#这个为第三方自动生成的库，不能修改
+#���Ϊ�������Զ����ɵĿ⣬�����޸�
 #AutoAddOtherDefineStart
 LDLIBS = 
 LDLIBS_DBG = 

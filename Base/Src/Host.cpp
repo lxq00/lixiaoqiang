@@ -7,6 +7,8 @@
 #include "Base/Host.h"
 #include "Base/Guard.h"
 #include "Base/PrintLog.h"
+#include "Base/Value.h"
+#include "Base/String.h"
 #include "../version.inl"
 #include <algorithm>
 
@@ -136,6 +138,16 @@ bool Host::guessMyIpInfo(NetworkInfo& info)
 
 #ifdef WIN32
 
+uint32_t Host::getSystemBits()
+{
+	SYSTEM_INFO si;
+	GetNativeSystemInfo(&si);
+	if (si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64 ||
+		si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_IA64)
+		return 64;
+	else
+		return 32;
+}
 bool Host::checkPortIsNotUsed(uint16_t port,SocketType type)
 {
 	bool haveFind = false;
@@ -493,7 +505,7 @@ bool Host::getDiskInfos(std::vector<DiskInfo>& infos)
 	DWORD len = GetLogicalDriveStringsA(255,buffer);
 	for(unsigned i = 0; i < len ;i += 4)
 	{
-		DiskInfo info = {"","",DiskInfo::DiskType_Disk,0,0};
+		DiskInfo info;
 
 		{
 			char diskid[32];
@@ -524,6 +536,8 @@ bool Host::getDiskInfos(std::vector<DiskInfo>& infos)
 			}
 		}
 		{
+			info.TotalSize = info.FreeSize = 0;
+
 			ULARGE_INTEGER freeavilable,totalnum,totalfreenum;
 
 			BOOL flag = GetDiskFreeSpaceEx(pathname.c_str(),&freeavilable,&totalnum,&totalfreenum);
@@ -535,9 +549,32 @@ bool Host::getDiskInfos(std::vector<DiskInfo>& infos)
 			}
 			else
 			{
-				int error = GetLastError();
-				logerror("GetDiskFreeSpaceEx %s error %d\r\n",pathname.c_str(),error);
+				//int error = GetLastError();
+			//	logerror("GetDiskFreeSpaceEx %s error %d\r\n",pathname.c_str(),error);
 			}
+		}
+
+		{
+			info.FormatType = DiskInfo::FormatType_Unkown;
+
+			CHAR volumeNmaeBuff[MAX_PATH] = {0};
+			DWORD volumeSerialNumber = 0;
+			DWORD maximumComponentLength = 0;
+			DWORD fileSystemFlag = 0;
+			CHAR fileSystemName[MAX_PATH] = { 0 };
+
+			if (GetVolumeInformation(pathname.c_str(),volumeNmaeBuff,MAX_PATH,&volumeSerialNumber,&maximumComponentLength,&fileSystemFlag,fileSystemName,MAX_PATH))
+			{
+				info.Alias = volumeNmaeBuff;
+				info.SerialNumber = Value((uint64_t)volumeSerialNumber).readString();
+				if (strcasecmp(fileSystemName, "ntfs") == 0) info.FormatType = DiskInfo::FormatType_NTFS;
+				else if (strncasecmp(fileSystemName, "fat", 3) == 0) info.FormatType = DiskInfo::FormatType_FAT;
+			}
+			else
+			{
+				//int b = 0;
+			}
+
 		}
 
 		infos.push_back(info);
@@ -724,9 +761,9 @@ bool Host::setIPInfo(const NetworkInfo& info, const std::string& adapterName)
 	char mszNetMask[100];
 	char mszNetGate[100];
 
-	strncpy(mszIPAddress, info.Ip.c_str(), 98);
-	strncpy(mszNetMask, info.Netmask.c_str(), 98);
-	strncpy(mszNetGate, info.Gateway.c_str(), 98);
+	::strncpy(mszIPAddress, info.Ip.c_str(), 98);
+	::strncpy(mszNetMask, info.Netmask.c_str(), 98);
+	::strncpy(mszNetGate, info.Gateway.c_str(), 98);
 
 	int nIP, nMask, nGate;
 
@@ -1097,6 +1134,7 @@ bool Host::getNetworkInfos(std::map<std::string, NetworkInfo>& infos, std::strin
 			}
 		}
 	}
+	return true;
 }
 
 bool Host::setIPInfo(const NetworkInfo& info, const std::string& adapterName)
@@ -1133,27 +1171,27 @@ bool Host::setIPInfo(const NetworkInfo& info, const std::string& adapterName)
 	//link down command in Linux
 	{
 		sprintf(cmd, "ip link set %s down", nwkinf.c_str());
-		system(cmd);
+		if(system(cmd) == 0){}
 	}
 		
 	//command to set ip address, netmask
 	if(info.Ip != "" && info.Netmask != "")
 	{
 		sprintf(cmd, "ifconfig %s %s netmask %s", nwkinf.c_str(), info.Ip.c_str(), info.Netmask.c_str());
-		system(cmd);
+		if(system(cmd) == 0){}
 	}
 
 	//command to set gateway
 	if(info.Gateway != "")
 	{
 		sprintf(cmd, "route add default gw %s %s", info.Gateway.c_str(), nwkinf.c_str());
-		system(cmd);
+		if(system(cmd) == 0){}
 	}
 
 	//link up command
 	{
 		sprintf(cmd, "ip link set %s up", nwkinf.c_str());
-		system(cmd);
+		if(system(cmd) == 0){}
 	}
 		
 	return true;

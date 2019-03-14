@@ -103,7 +103,7 @@ public:
 
 		//--------------数据相关
 		///获取数据,内容
-		virtual shared_ptr<Value> data() const { return shared_ptr<Value>(); };
+		virtual Value data() const { return Value(); };
 
 		//--------------行数相关
 		///行号
@@ -169,9 +169,8 @@ public:
 
 		//--------------数据相关
 		///获取数据,内容
-		virtual shared_ptr<Value> data(uint32_t colNum) const { return shared_ptr<Value>(); };
+		virtual Value data(uint32_t colNum) const { return Value(); };
 		///设置数据，内容
-		virtual shared_ptr<Cell> setData(uint32_t colNum, const shared_ptr<Value>& val) { return shared_ptr<Cell>(); };
 		virtual shared_ptr<Cell> setData(uint32_t colNum, const Value& val) { return shared_ptr<Cell>(); };
 
 		//--------------字体相关		
@@ -211,9 +210,8 @@ public:
 
 		//--------------数据相关
 		///获取数据,内容
-		virtual shared_ptr<Value> data(uint32_t rowNum) const { return shared_ptr<Value>(); };
+		virtual Value data(uint32_t rowNum) const { return Value(); };
 		///设置数据，内容
-		virtual shared_ptr<Cell> setData(uint32_t rowNum, const shared_ptr<Value>& val) { return shared_ptr<Cell>(); };
 		virtual shared_ptr<Cell> setData(uint32_t rowNum, const Value& val) { return shared_ptr<Cell>(); };
 
 		//--------------字体相关		
@@ -268,9 +266,8 @@ public:
 
 		//--------------数据相关
 		///获取数据,内容
-		virtual shared_ptr<Value> data(uint32_t rowNum, uint32_t colNum) const { return shared_ptr<Value>(); };
+		virtual Value data(uint32_t rowNum, uint32_t colNum) const { return Value(); };
 		///设置数据，内容
-		virtual shared_ptr<Cell> setData(uint32_t rowNum, uint32_t colNum, const shared_ptr<Value>& val) { return shared_ptr<Cell>(); };
 		virtual shared_ptr<Cell> setData(uint32_t rowNum, uint32_t colNum, const Value& val) { return shared_ptr<Cell>(); };
 
 		//--------------字体相关		

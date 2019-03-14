@@ -179,6 +179,14 @@ public:
 		return true;
 	}
 
+	void clearBuffer()
+	{
+		conver->clearBuffer();
+	}
+	void setTimeStamp(uint32_t timeStamp)
+	{
+		conver->setTimestamp(timeStamp);
+	}
 	void sourceDataCallback(Source*, void* data, uint32_t len)
 	{
 		conver->sourceInput(data, len);
@@ -196,6 +204,16 @@ Conver::Conver(const shared_ptr<Source>& source, const shared_ptr<Target>& targe
 	internal->target = target;
 	internal->conver = make_shared<ffmpegConver>();
 }
+
+Conver::Conver(const shared_ptr<Source>& source, const shared_ptr<Target>& target, uint32_t hls_timeSecond, uint32_t recordTotalTime, const std::string &hls_Path, const std::string& m3u8name)
+{
+    internal = new ConverInternal();
+	internal->source = source;
+	internal->target = target;
+	internal->conver = make_shared<ffmpegConver>(hls_timeSecond, recordTotalTime, hls_Path, m3u8name);
+	
+}
+
 Conver::~Conver()
 {
 	internal->conver = NULL;
@@ -225,6 +243,25 @@ bool Conver::stop()
 	return internal->stop();
 }
 
+void Conver::clearBuffer()
+{
+	if (internal->conver == NULL || internal->target == NULL || internal->source == NULL)
+	{
+		return;
+	}
+
+	return internal->clearBuffer();
+}
+
+void Conver::setTimeStamp(uint32_t timestamp)
+{
+	if (internal->conver == NULL || internal->target == NULL || internal->source == NULL)
+	{
+		return;
+	}
+
+	internal->setTimeStamp(timestamp);
+}
 
 }
 }

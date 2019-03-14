@@ -13,7 +13,7 @@ namespace Excel {
 	{
 	}
 	///获取数据,内容
-	shared_ptr<Value> Read_Cell::data() const
+	Value Read_Cell::data() const
 	{
 		return sheet->data(m_rowNum, m_colNum);
 	}

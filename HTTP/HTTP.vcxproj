@@ -20,12 +20,16 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\HTTP\Defs.h" />
+    <ClInclude Include="..\Include\HTTP\HTTP.h" />
     <ClInclude Include="..\Include\HTTP\HTTPClient.h" />
     <ClInclude Include="..\Include\HTTP\HTTPPublic.h" />
     <ClInclude Include="..\Include\HTTP\HTTPServer.h" />
+    <ClInclude Include="..\Include\HTTP\WebSocket.h" />
     <ClInclude Include="Src\HTTPBuilder.h" />
     <ClInclude Include="Src\HTTPDefine.h" />
     <ClInclude Include="Src\HTTPParser.h" />
+    <ClInclude Include="Src\HTTPSession.h" />
+    <ClInclude Include="Src\WebSocketProtocol.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Version.rc" />
@@ -34,6 +38,7 @@
     <ClCompile Include="Src\HTTPClient.cpp" />
     <ClCompile Include="Src\HTTPPublic.cpp" />
     <ClCompile Include="Src\HTTPServer.cpp" />
+    <ClCompile Include="Src\WebSocket.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Include\HTTP\Version.tpl" />
@@ -130,8 +135,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Include;Src\98;Src\ctemplate;$(SolutionDir)\openssl\include;Src;$(SolutionDir)\boost\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;_DEBUG;_CRT_SECURE_NO_WARNINGS;HTTP_DLL_BUILD;HAVE_OPENSSL;BUILDING_LIBCURL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Include;$(SolutionDir)\openssl\include;Src;$(SolutionDir)\boost\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;_DEBUG;_CRT_SECURE_NO_WARNINGS;HTTP_DLL_BUILD;HAVE_OPENSSL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -237,22 +242,22 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Include;Src;Src\ctemplate;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Include;$(SolutionDir)\openssl\include;Src;$(SolutionDir)\boost\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;NDEBUG;_CRT_SECURE_NO_WARNINGS;BUILDING_LIBCURL</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;NDEBUG;_CRT_SECURE_NO_WARNINGS;HTTP_DLL_BUILD;HAVE_OPENSSL</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;ws2_32.lib;wldap32.lib;JSON/JSON.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;ws2_32.lib;wldap32.lib;base/base.lib;network/network.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <AdditionalLibraryDirectories>$(SolutionDir)\_Output\Lib\win32;$(SolutionDir)\Lib\win32</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Lib\win32;$(SolutionDir)\boost\Lib\win32;$(SolutionDir)\openssl\lib\win32</AdditionalLibraryDirectories>
       <OutputFile>$(OutDir)$(ProjectName).dll</OutputFile>
     </Link>
     <PostBuildEvent>

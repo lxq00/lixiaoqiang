@@ -56,21 +56,24 @@ private:
 	bool								 asyncSendingFlag;
 	std::list<shared_ptr<RTMPDataInfo> > sendcache;
 
-	void onSocketRecvCallback(const shared_ptr<Socket>& sock,const char* buffer, int len)
+	void onSocketRecvCallback(const weak_ptr<Socket>& sock,const char* buffer, int len)
 	{
+		shared_ptr<Socket> socktmp = sock.lock();
+		if (socktmp == NULL) return;
+
 		Guard locker(mutex);
 		if(rtmp != NULL)
 		{
 			rtmp_server_input(rtmp, (const uint8_t*)buffer, len);
 		}
 
-		sock->async_recv(Socket::ReceivedCallback(&LibRTMPServer::onSocketRecvCallback, this));
+		socktmp->async_recv(Socket::ReceivedCallback(&LibRTMPServer::onSocketRecvCallback, this));
 	}
-	void onSocketDisconnectCallback(const shared_ptr<Socket>& sock, const std::string& errorinfo)
+	void onSocketDisconnectCallback(const weak_ptr<Socket>& sock, const std::string& errorinfo)
 	{
 		disconnectcallback();
 	}
-	void asyncSendCallback(const shared_ptr<Socket>& /*sock*/, const char* tmp, int len)
+	void asyncSendCallback(const weak_ptr<Socket>& /*sock*/, const char* tmp, int len)
 	{
 		{
 			Guard locker(mutex);

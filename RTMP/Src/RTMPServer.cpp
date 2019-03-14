@@ -145,7 +145,7 @@ struct RTMPServer::RTMPServerInternal
 		}
 	}
 
-	void socketAcceptCallback(const shared_ptr<Socket>& oldsock, const shared_ptr<Socket>& newsock)
+	void socketAcceptCallback(const weak_ptr<Socket>& oldsock, const shared_ptr<Socket>& newsock)
 	{
 		Guard locker(mutex);
 

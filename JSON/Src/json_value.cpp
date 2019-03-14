@@ -392,7 +392,19 @@ Value::Value(long long value)
 	snprintf(buffer, 63, "%lld", value);
 	value_.string_ = valueAllocator()->duplicateStringValue(buffer,(unsigned int)strlen(buffer));
 }
-Value::Value(unsigned long long value)
+Value::Value(long long unsigned int value)
+	: type_(stringValue)
+	, allocated_(true)
+	, comments_(0)
+# ifdef JSON_VALUE_USE_INTERNAL_MAP
+	, itemIsUsed_(0)
+#endif
+{
+	char buffer[64];
+	snprintf(buffer, 63, "%llu", value);
+	value_.string_ = valueAllocator()->duplicateStringValue(buffer, (unsigned int)strlen(buffer));
+}
+Value::Value(long unsigned int value)
 	: type_(stringValue)
 	, allocated_(true)
 	, comments_(0)

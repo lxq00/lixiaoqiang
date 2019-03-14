@@ -38,8 +38,8 @@ private:
 	void addFlowList(const shared_ptr<CMDBuilder>& builder);
 	void doFlowList();
 	void doDispatcherCMD(const RTSP_RESPONSE& repose);
-	void _tcpRecvCallback(const shared_ptr<Socket>& sock, const char* buf, int len);
-	void _tcpSocketDisconnectCallback(const shared_ptr<Socket>& sock, const std::string& errmsg);
+	void _tcpRecvCallback(const weak_ptr<Socket>& sock, const char* buf, int len);
+	void _tcpSocketDisconnectCallback(const weak_ptr<Socket>& sock, const std::string& errmsg);
 protected:
 	MediaDataCallback			m_dataCallback;
 	StatusCallback				m_statusCallback;

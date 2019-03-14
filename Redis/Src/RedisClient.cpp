@@ -47,6 +47,16 @@ public:
 					return false;
 				}
 			}
+			{
+				OperationResult ec;
+				RedisValue ret = client->command("PING", { }, ec);
+				std::string respstr = ret.toString();
+				if (!ec ||strstr(respstr.c_str(),"PONG") == NULL)
+				{
+					client->disconnect();
+					return false;
+				}
+			}
 			_selectIndex(index);
 		}
 

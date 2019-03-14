@@ -146,7 +146,7 @@ public:
 	///获取Socket对方的地址
 	///param in		
 	///return TCPConnection使用
-	virtual NetAddr getOhterAddr() const;
+	virtual NetAddr getOtherAddr() const;
 
 	//设置socket属性
 	virtual bool setSocketOpt(int level, int optname, const void *optval, int optlen);

@@ -34,18 +34,21 @@ private:
 			poolTimer->stop();
 		}
 	}
-	void onSocketConnectCallback(const shared_ptr<Socket>& sock)
+	void onSocketConnectCallback(const weak_ptr<Socket>& sock)
 	{
 		poolTimer = NULL;
 		connectCallback(true, "");
 	}
-	void onSocketRecvCallback(const shared_ptr<Socket>& sock,const char* buffer, int len)
+	void onSocketRecvCallback(const weak_ptr<Socket>& sock,const char* buffer, int len)
 	{
+		shared_ptr<Socket> socktmp = sock.lock();
+		if (socktmp == NULL) return;
+
 		rtmp_client_input(rtmp, buffer, len);
 
-		sock->async_recv(Socket::ReceivedCallback(&LibRTMPClient::onSocketRecvCallback, this));
+		socktmp->async_recv(Socket::ReceivedCallback(&LibRTMPClient::onSocketRecvCallback, this));
 	}
-	void onSocketDisconnectCallback(const shared_ptr<Socket>& sock, const std::string& errorinfo)
+	void onSocketDisconnectCallback(const weak_ptr<Socket>& sock, const std::string& errorinfo)
 	{
 		disconnectcallback();
 	}

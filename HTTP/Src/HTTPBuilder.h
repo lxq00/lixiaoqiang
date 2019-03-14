@@ -4,126 +4,133 @@
 namespace Public {
 namespace HTTP {
 
-
-#define CONNECTION	"Connection"
-#define CONNECTION_Close	"Close"
-#define CONNECTION_KeepAlive	"keep-alive"
+template<typename OBJECT>
+struct buildFirstLine
+{
+	static std::string build(const shared_ptr<OBJECT>&obj) { return ""; }
+};
+template<>
+struct buildFirstLine<HTTPRequest>
+{
+	static std::string build(const shared_ptr<HTTPRequest>&req)
+	{
+		std::string path = req->url().getPath();
+		if (path == "") path = "/";
+		return String::toupper(req->method()) + " " + path + " " + HTTPVERSION + HTTPHREADERLINEEND;
+	}
+};
+template<>
+struct buildFirstLine<HTTPResponse>
+{
+	static std::string build(const shared_ptr<HTTPResponse>&resp)
+	{
+		return std::string(HTTPVERSION) + " " + Value(resp->statusCode()).readString() + " " + resp->errorMessage() + HTTPHREADERLINEEND;
+	}
+};
 
 template<typename OBJECT>
 class HTTPBuilder
 {
+	Mutex					 mutex;
 	bool					 headerIsBuild;
-	std::string				 readstring;
-	int						 readpos;
+	int						 sendpos;
 	weak_ptr<Socket>		 sock;
 	std::string				 useragent;
+	bool					 issending;
+	int						 sendcontentlen;
+	int						 sendheaderlen;
+	weak_ptr<OBJECT>		 object;
+	uint64_t				 socketUsedTime;
+
+	char					 sendbuffercache[MAXRECVBUFFERLEN];
 public:
-	HTTPBuilder(const shared_ptr<Socket>& _sock, const std::string& _useragent):headerIsBuild(false), readpos(0),sock(_sock),useragent(_useragent){}
+	HTTPBuilder(const shared_ptr<OBJECT>& _obj,const shared_ptr<Socket>& _sock, const std::string& _useragent)
+		: headerIsBuild(false), sendpos(0),sock(_sock),useragent(_useragent)
+		, issending(false), sendcontentlen(-1), sendheaderlen(0),object(_obj), socketUsedTime(Time::getCurrentMilliSecond())
+	{}
 	virtual ~HTTPBuilder() {}
-	void readBufferCallback(HTTPBuffer*, const char* buf, int len)
-	{
-		if (!headerIsBuild)
-		{
-			buildHeaderAndsend();
-		}
-		sendBuffer(buf, len);
-	}
-	void startasyncsend(const shared_ptr<Socket>&,const char* ,int len)
-	{
-		if (!headerIsBuild)
-		{
-			buildHeaderAndsend();
-		}
 
-		OBJECT* object = getObject();
-		if (object == NULL) return;
+	bool isFinish(uint32_t objectsize = 1)
+	{
+		if (sendcontentlen == -1 && objectsize == 1) return true;
+		else if (sendpos == sendcontentlen && objectsize == 1) return true;
 
-		readstring = object->content()->read(readpos, MAXRECVBUFFERLEN);
-		if (readstring.length() > 0)
-		{
-			readpos += readstring.length();
-			beginSendBuffer(readstring.c_str(), readstring.length(), Socket::SendedCallback(&HTTPBuilder::startasyncsend, this));
-		}
+		return false;
 	}
+
+	void onPoolTimerProc()
+	{
+		checkSendCallback(sock, NULL, 0);
+	}
+
+	uint64_t  prevAliveTime() { return socketUsedTime; }
 private:
-	virtual std::string buildFirstLine() = 0;
-	virtual OBJECT* getObject() = 0;
-	virtual bool sendBuffer(const char* buffer, int len)
+	void checkSendCallback(const weak_ptr<Socket>&, const char* tmp, int len)
 	{
+		Guard locker(mutex);
+
+		shared_ptr<OBJECT>  objecttmp = object.lock();
 		shared_ptr<Socket> socket = sock.lock();
-		if (socket != NULL)
+		if (objecttmp == NULL || socket == NULL) return;
+
+		if (tmp != NULL && len >= 0) issending = false;
+
+		if (issending) return;
+
+		//需要将头的长度减下来
+		if (len >= sendheaderlen && sendheaderlen > 0)
 		{
-			int times = 0;
-			while (len > 0 && times++ <= 1000)
-			{
-				int sendlen  = socket->send(buffer, len);
-				if (sendlen > 0)
-				{
-					len -= sendlen;
-					buffer += sendlen;
-				}
-				else
-				{
-					Thread::sleep(10);
-				}
-			}
+			len -= sendheaderlen;
+			sendheaderlen = 0;
 		}
 
-		return true;
+		sendpos += len;
+
+		int sendlen = 0;
+		if (!headerIsBuild)
+		{
+			sendlen = sendheaderlen = buildHeader(sendbuffercache,objecttmp,socket);
+		}
+		{
+			int readlen = objecttmp->content()->read(sendbuffercache + sendlen, MAXRECVBUFFERLEN - sendlen);
+			if (readlen > 0) sendlen += readlen;
+		}
+		if(sendlen > 0)
+		{
+			socketUsedTime = Time::getCurrentMilliSecond();
+			socket->async_send(sendbuffercache, sendlen, Socket::SendedCallback(&HTTPBuilder::checkSendCallback, this));
+
+			issending = true;
+		}
 	}
-	virtual void beginSendBuffer(const char* buffer, int len, const Socket::SendedCallback& callback)
+	int buildHeader(char* buffer,shared_ptr<OBJECT>& object, shared_ptr<Socket>& socket)
 	{
-		shared_ptr<Socket> socket = sock.lock();
-		if (socket != NULL)
+		if (object->content()->writetype() == HTTPContent::HTTPContentType_Chunk)
 		{
-			socket->async_send(buffer, len,callback);
+			object->headers()[Transfer_Encoding] = CHUNKED;
 		}
-	}
-	bool buildHeaderAndsend()
-	{
-		std::string str = buildFirstLine();
+		else
+		{
+			object->headers()[Content_Length] = object->content()->size();
+		}
 
-		OBJECT* object = getObject();
-		if (object == NULL) return false;
-		
-		std::map<std::string, Value> headerstmp = object->headers();
-		int contentlen = object->content()->size();
-		if (contentlen != -1)
-		{
-			bool haveFind = false;
-			for (std::map<std::string, Value>::iterator iter = headerstmp.begin(); iter != headerstmp.end(); iter++)
-			{
-				if (strcasecmp(iter->first.c_str(), Content_Length) == 0)
-				{
-					iter->second = contentlen;
-					haveFind = true;
-					break;
-				}
-			}
-
-			if(!haveFind)	headerstmp[Content_Length] = contentlen;
-		}
-		//如果是流模式，那么connection自动切换为close方式
-		if(object->content()->writetype() == HTTPBuffer::HTTPBufferType_Stream)
-		{
-			object->headers()[CONNECTION] = CONNECTION_Close;
-		}
 		if (useragent != "")
 		{
-			headerstmp["User-Agent"] = useragent;
+			object->headers()["User-Agent"] = useragent;
 		}
 
-		for (std::map<std::string, Value>::iterator iter = headerstmp.begin();iter != headerstmp.end();iter ++)
+		std::string str = buildFirstLine<OBJECT>::build(object);
+		for (std::map<std::string, Value>::iterator iter = object->headers().begin();iter != object->headers().end();iter ++)
 		{
 			str += iter->first + ": " + iter->second.readString() + HTTPHREADERLINEEND;
 		}
 		str += HTTPHREADERLINEEND;
 
-		sendBuffer(str.c_str(), str.length());
-
 		headerIsBuild = true;
 
-		return true;
+		memcpy(buffer, str.c_str(), str.length());
+
+		return str.length();
 	}
 };
 

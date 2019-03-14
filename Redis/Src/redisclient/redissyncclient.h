@@ -5,16 +5,13 @@
 
 
 namespace redisclient {
-class RedisSyncClient{
+class RedisSyncClient:public RedisClientImpl{
 public:
      RedisSyncClient(const shared_ptr<IOWorker>& worker);
      ~RedisSyncClient();
 
     // Connect to redis server
      bool connect(const NetAddr& addr);
-
-    // Return true if is connected to redis.
-     bool isConnected() const;
 
     // disconnect from redis
      void disconnect();
@@ -24,16 +21,9 @@ public:
 
      RedisSyncClient &setConnectTimeout(int timeout);
      RedisSyncClient &setCommandTimeout(int timeout);
-protected:
-	void redisErrorCallback();
 private:
-	Mutex				 mutex;
-	shared_ptr<IOWorker> worker;
 	int					 connectimeout;
 	int					 cmdtimeout;
-
-	shared_ptr<RedisClientImpl> impl;
-	shared_ptr<RedisClientImpl> impltmp;
 };
 
 }

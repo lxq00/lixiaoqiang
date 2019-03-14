@@ -22,7 +22,7 @@ public:
 	{
 	}
 	///设置发送的结果，并检测是否已经发送结束
-	virtual bool setSendResultAndCheckIsOver(const shared_ptr<Socket>& sock,int sendlen)
+	virtual bool setSendResultAndCheckIsOver(const weak_ptr<Socket>& sock,int sendlen)
 	{
 		sendCallback(sock,buffer,sendlen);
 		
@@ -49,7 +49,7 @@ public:
 		:SendInternal(addr,size,sended,_newbuffer){sendBuffer = buffer;sendBufferLen = bufferLen;}
 	virtual ~RepeatSendInternal(){}
 	///设置发送的结果，并检测是否已经发送结束
-	virtual bool setSendResultAndCheckIsOver(const shared_ptr<Socket>& sock, int sendlen)
+	virtual bool setSendResultAndCheckIsOver(const weak_ptr<Socket>& sock, int sendlen)
 	{
 		if(sendlen > 0)
 		{
@@ -92,7 +92,7 @@ public:
 		SAFE_DELETEARRAY(recvBufferAlloc);
 	}
 
-	virtual void setRecvResult(const shared_ptr<Socket>& sock, int recvLen) = 0;
+	virtual void setRecvResult(const weak_ptr<Socket>& sock, int recvLen) = 0;
 	char* getRecvBuffer() const {return recvBuffer;}
 	uint32_t getRecvBufferLen() const {return recvBufferLen;}
 	boost::asio::ip::udp::endpoint& getRecvPoint() {return recvpoint;}
@@ -110,7 +110,7 @@ public:
 	TCPRecvInternal(char* addr,uint32_t len,const Socket::ReceivedCallback& recved):RecvInternal(addr,len),recvCallback(recved){}
 	TCPRecvInternal(uint32_t len, const Socket::ReceivedCallback& recved) :RecvInternal(len), recvCallback(recved) {}
 	~TCPRecvInternal(){}
-	virtual void setRecvResult(const shared_ptr<Socket>& sock, int recvLen)
+	virtual void setRecvResult(const weak_ptr<Socket>& sock, int recvLen)
 	{
 		recvCallback(sock,recvBuffer,recvLen);
 	}
@@ -125,7 +125,7 @@ public:
 	udpRecvInternal(char* addr,uint32_t len,const Socket::RecvFromCallback& recved):RecvInternal(addr,len),recvCallback(recved){}
 	udpRecvInternal(uint32_t len, const Socket::RecvFromCallback& recved):RecvInternal(len), recvCallback(recved) {}
 	~udpRecvInternal(){}
-	virtual void setRecvResult(const shared_ptr<Socket>& sock, int recvLen)
+	virtual void setRecvResult(const weak_ptr<Socket>& sock, int recvLen)
 	{
 		NetAddr recvaddr(recvpoint.address().to_string(),recvpoint.port());
 		recvCallback(sock,recvBuffer,recvLen,recvaddr);

@@ -10,129 +10,183 @@
 #include "Base/BaseTemplate.h"
 namespace Public{
 namespace Base {
-	
-static const unsigned char pr2six[256] =
-{
-    /* ASCII table */
-    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
-    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
-    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 62, 64, 64, 64, 63,
-    52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 64, 64, 64, 64, 64, 64,
-    64,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
-    15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 64, 64, 64, 64, 64,
-    64, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-    41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 64, 64, 64, 64, 64,
-    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
-    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
-    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
-    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
-    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
-    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
-    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
-    64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64
-};
-static const char basis_64[] =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"; 
-	
+
+const char base[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+
+/* Base64 ±àÂë */ 
+char *base64_encode(const char* data, int data_len) 
+{     
+	int prepare = 0;     
+	int ret_len;     
+	int temp = 0;     
+	char *ret = NULL;     
+	char *f = NULL;     
+	int tmp = 0;     
+	char changed[4];     
+	int i = 0;     
+	ret_len = data_len / 3;     
+	temp = data_len % 3;     
+	if (temp > 0)     
+	{         
+		ret_len += 1;     
+	}     
+	ret_len = ret_len*4 + 1;     
+	ret = (char *)malloc(ret_len);           
+	if ( ret == NULL)     
+	{
+		return NULL;
+	}     
+	memset(ret, 0, ret_len);    
+	f = ret;     
+	while (tmp < data_len)     
+	{        
+		temp = 0;         
+		prepare = 0;         
+		memset(changed, '\0', 4);         
+		while (temp < 3)         
+		{
+			//printf("tmp = %d\n", tmp);             
+			if (tmp >= data_len)             
+			{                 
+				break;             
+			}            
+			prepare = ((prepare << 8) | (data[tmp] & 0xFF));             
+			tmp++;             
+			temp++;         
+		}         
+		prepare = (prepare<<((3-temp)*8));         
+		//printf("before for : temp = %d, prepare = %d\n", temp, prepare);         
+		for (i = 0; i < 4 ;i++ )         
+		{             
+			if (temp < i)             
+			{                 
+				changed[i] = 0x40;             
+			}             
+			else             
+			{                 
+				changed[i] = (prepare>>((3-i)*6)) & 0x3F;             
+			}             
+			*f = base[(int)changed[i]];             
+			//printf("%.2X", changed[i]);             
+			f++;         
+		}     
+	}     
+	*f = '\0';           
+	return ret;       
+}
+/* ×ª»»Ëã×Ó */ 
+static char find_pos(char ch)   
+{     
+	char *ptr = (char*)strrchr(base, ch);
+	//the last position (the only) in base[]     
+	return (ptr - base); 
+}  
+/* Base64 ½âÂë */ 
+char *base64_decode(const char *data, int data_len,int &len) 
+{     
+	int ret_len = (data_len / 4) * 3;     
+	int equal_count = 0;     
+	char *ret = NULL;     
+	char *f = NULL;     
+	int tmp = 0;     
+	int temp = 0;    
+	int prepare = 0;     
+	int i = 0;     
+	if (*(data + data_len - 1) == '=')     
+	{         
+		equal_count += 1;     
+	}     
+	if (*(data + data_len - 2) == '=')     
+	{         
+		equal_count += 1;     
+	}     
+	if (*(data + data_len - 3) == '=')     
+	{
+		//seems impossible         
+		equal_count += 1;     
+	}     
+	switch (equal_count)     
+	{     
+	case 0:         
+		ret_len += 4;
+		//3 + 1 [1 for NULL]         
+	break;     
+	case 1:         
+		ret_len += 4;
+		//Ceil((6*3)/8)+1         
+	break;     
+	case 2:         
+		ret_len += 3;
+		//Ceil((6*2)/8)+1         
+	break;     
+	case 3:         
+		ret_len += 2;
+		//Ceil((6*1)/8)+1         
+		break;     
+	}     
+	ret = (char *)malloc(ret_len);     
+	if (ret == NULL)     
+	{         
+		return NULL;
+	}     
+	memset(ret, 0, ret_len);     
+	f = ret;     
+	while (tmp < (data_len - equal_count))     
+	{        
+		temp = 0;         
+		prepare = 0;         
+		while (temp < 4)         
+		{             
+			if (tmp >= (data_len - equal_count))             
+			{                 
+				break;             
+			}             
+			prepare = (prepare << 6) | (find_pos(data[tmp]));             
+			temp++;             
+			tmp++;         
+		}         
+		prepare = prepare << ((4-temp) * 6);         
+		for (i=0; i<3 ;i++ )         
+		{             
+			if (i == temp)             
+			{                 
+				break;             
+			}             
+			*f = (char)((prepare>>((2-i)*8)) & 0xFF);            
+			f++;         
+		}     
+	}     
+	*f = '\0';     
+	len = f - ret;
+	return ret; 
+}
+
+
 
 /// base46 encode
 std::string Base64::encode(const std::string& src)
 {
-	const char* plain_src = src.c_str();
-	int len_plain_src = src.length();
-	int destlen = ((len_plain_src + 2) / 3 * 4) + 1;;
+	char* enstrbuf = base64_encode(src.c_str(), src.length());
+	if (enstrbuf == NULL) return"";
 
-	char* coded_dst = new (std::nothrow)char[destlen];
-	if(coded_dst == NULL)
-	{
-		return "";
-	}
-	int i = 0;
-	char *p = coded_dst;
-	for (i = 0; i < len_plain_src - 2; i += 3)
-	{
-		*p++ = basis_64[(plain_src[i] >> 2) & 0x3F];
-		*p++ = basis_64[((plain_src[i] & 0x3) << 4) |
-		                ((int) (plain_src[i + 1] & 0xF0) >> 4)];
-		*p++ = basis_64[((plain_src[i + 1] & 0xF) << 2) |
-		                ((int) (plain_src[i + 2] & 0xC0) >> 6)];
-		*p++ = basis_64[plain_src[i + 2] & 0x3F];
-	}
-	if (i < len_plain_src)
-	{
-		*p++ = basis_64[(plain_src[i] >> 2) & 0x3F];
-		if (i == (len_plain_src - 1))
-		{
-			*p++ = basis_64[((plain_src[i] & 0x3) << 4)];
-			*p++ = '=';
-		}
-		else
-		{
-			*p++ = basis_64[((plain_src[i] & 0x3) << 4) |
-			                ((int) (plain_src[i + 1] & 0xF0) >> 4)];
-			*p++ = basis_64[((plain_src[i + 1] & 0xF) << 2)];
-		}
-		*p++ = '=';
-	}
+	std::string destsrc(enstrbuf);
+	SAFE_DELETEARRAY(enstrbuf);
 
-	*p++ = '\0';
-
-	std::string destsrc(coded_dst);
-	SAFE_DELETEARRAY(coded_dst);
-
-	return std::move(destsrc);
+	return Public::Base::move(destsrc);
 }
 
 
 /// base64 decode
 std::string Base64::decode(const std::string& src)
 {
-	register const unsigned char * bufin = (const unsigned char *)src.c_str();;
-	register int  nprbytes = src.length();
-	int nbytesdecoded = ((nprbytes + 3) / 4) * 3;
+	int len = 0;
+	char* decstr = base64_decode(src.c_str(), src.length(), len);
+	if (decstr == NULL) return "";
 
-	char* plain_dst = new (std::nothrow)char[nbytesdecoded + 100];
-	if (plain_dst == NULL)
-	{
-		return "";
-	}
+	std::string outputstr(decstr, len);
+	SAFE_DELETEARRAY(decstr);
 
-	register unsigned char * bufout = (unsigned char *) plain_dst;
-	
-	while (nprbytes > 4)
-	{
-		*(bufout++) =
-		    (unsigned char) (pr2six[*bufin] << 2 | pr2six[bufin[1]] >> 4);
-		*(bufout++) =
-		    (unsigned char) (pr2six[bufin[1]] << 4 | pr2six[bufin[2]] >> 2);
-		*(bufout++) =
-		    (unsigned char) (pr2six[bufin[2]] << 6 | pr2six[bufin[3]]);
-		bufin += 4;
-		nprbytes -= 4;
-	}
-
-	/* Note: (nprbytes == 1) would be an error, so just ingore that case */
-	if (nprbytes > 1)
-	{
-		*(bufout++) =
-		    (unsigned char) (pr2six[*bufin] << 2 | pr2six[bufin[1]] >> 4);
-	}
-	if (nprbytes > 2)
-	{
-		*(bufout++) =
-		    (unsigned char) (pr2six[bufin[1]] << 4 | pr2six[bufin[2]] >> 2);
-	}
-	if (nprbytes > 3)
-	{
-		*(bufout++) =
-		    (unsigned char) (pr2six[bufin[2]] << 6 | pr2six[bufin[3]]);
-	}
-
-	*(bufout++) = '\0';
-	std::string outputstr(plain_dst, bufout- (unsigned char *)plain_dst);
-	SAFE_DELETEARRAY(plain_dst);
-
-	return std::move(outputstr);
+	return Public::Base::move(outputstr);
 }
 
 

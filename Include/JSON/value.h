@@ -202,8 +202,9 @@ namespace Json {
       Value( const CppTL::ConstString &value );
 # endif
       Value(bool value );
-	  Value(long long value);
-	  Value(unsigned long long value);
+	Value(long long value);
+	Value(long long unsigned int value);
+      Value(long unsigned int value);
       Value( const Value &other );
       ~Value();
 

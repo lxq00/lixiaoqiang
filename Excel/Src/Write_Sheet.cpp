@@ -47,13 +47,6 @@ std::string Write_Sheet::name()
 	 return sheetname; 
 }
 ///设置数据，内容
-shared_ptr<WorkBook::Cell> Write_Sheet::setData(uint32_t rowNum, uint32_t colNum, const shared_ptr<Value>& val)
-{
-	if (val == NULL) return shared_ptr<WorkBook::Cell>();
-
-	return Write_Sheet::setData(rowNum,colNum,*val.get());
-}
-
 shared_ptr<WorkBook::Cell> Write_Sheet::setData(uint32_t rowNum, uint32_t colNum, const Value& val)
 {
 	//cell_t* m_cell;
@@ -84,7 +77,7 @@ shared_ptr<WorkBook::Cell> Write_Sheet::setData(uint32_t rowNum, uint32_t colNum
 
 shared_ptr<WorkBook::Cell> Write_Sheet::cell(uint32_t rowNum, uint32_t colNum)
 {
-	cell_t* m_cell = writesheet->label(rowNum, colNum, (workbook->addSheet(sheetname)->data(rowNum, colNum))->readString());
+	cell_t* m_cell = writesheet->label(rowNum, colNum, (workbook->addSheet(sheetname)->data(rowNum, colNum)).readString());
 	if (writesheet == NULL)
 	{
 		return shared_ptr<WorkBook::Cell>();
@@ -198,10 +191,7 @@ shared_ptr<WorkBook::Row> Write_Sheet::row(uint32_t rowNum)
 	{
 		return shared_ptr<WorkBook::Row>();
 	}
-	if (rowNum > writesheet->maxRow)
-	{
-		return shared_ptr<WorkBook::Row>();
-	}
+	
 	//todo 当前只是用了str，后续需要根据实际的类型创建value
 	return shared_ptr<WorkBook::Row>(new Write_Row(shared_from_this(), writesheet, rowNum));
 }
@@ -212,10 +202,7 @@ shared_ptr<WorkBook::Col> Write_Sheet::col(uint32_t colNum)
 	{
 		return shared_ptr<WorkBook::Col>();
 	}
-	if (colNum > writesheet->maxCol)
-	{
-		return shared_ptr<WorkBook::Col>();
-	}
+	
 	//todo 当前只是用了str，后续需要根据实际的类型创建value
 	return shared_ptr<WorkBook::Col>(new Write_Col(shared_from_this(), writesheet, colNum));
 }

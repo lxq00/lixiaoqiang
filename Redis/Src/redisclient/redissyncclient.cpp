@@ -23,11 +23,10 @@ struct SyncCmdInfo
 };
 
 RedisSyncClient::RedisSyncClient(const shared_ptr<IOWorker>& _worker)
-    : worker(_worker), connectimeout(10000),cmdtimeout(10000)
+    : RedisClientImpl(_worker), connectimeout(10000),cmdtimeout(10000)
 {
     
 }
-
 
 RedisSyncClient::~RedisSyncClient()
 {
@@ -36,60 +35,37 @@ RedisSyncClient::~RedisSyncClient()
 
 bool RedisSyncClient::connect(const NetAddr& addr)
 {
-	impltmp = NULL;
-	Guard locker(mutex);
-	impl = NULL;
-
 	shared_ptr<SyncCmdInfo> cmd = make_shared<SyncCmdInfo>();
-	shared_ptr<RedisClientImpl> impltmp = make_shared<RedisClientImpl>(worker);
 	
-	impltmp->asyncConnect(addr, ConnectCallback(&SyncCmdInfo::connectCallack, cmd), ErrorCallback(&RedisSyncClient::redisErrorCallback, this));
+	asyncConnect(addr, ConnectCallback(&SyncCmdInfo::connectCallack, cmd),DisconnectCallback());
 	
 	if (!cmd->wait(connectimeout)) return false;
-	impl = impltmp;
 
 	return true;
-}
-bool RedisSyncClient::isConnected() const
-{
-	shared_ptr<RedisClientImpl> impltmp = impl;
-	if (impltmp == NULL) return false;
-
-	return impltmp->connected();
 }
 
 void RedisSyncClient::disconnect()
 {
-	shared_ptr<RedisClientImpl> impltmp;
-	{
-		Guard locker(mutex);
-		impltmp = impl;
-		impl = NULL;
-	}
-	impltmp = NULL;
+	close();
 }
 RedisValue RedisSyncClient::command(const std::string& cmdstr, const std::deque<Value>& args, OperationResult &ec)
 {
-	impltmp = NULL;
-
 	std::deque<Value> tmp = std::move(args);
 	tmp.emplace_front(cmdstr);
 
-	Guard locker(mutex);
-
-	if (impl == NULL)
+	if (!isConnected())
 	{
-		ec = OperationResult("对象未连接成功");
+		ec = OperationResult(Operation_Error_NetworkErr, "对象未连接成功");
 		return RedisValue();
 	}
 
 	shared_ptr<SyncCmdInfo> cmd = make_shared<SyncCmdInfo>();
 	
-	impl->doAsyncCommand(RedisBuilder::makeCommand(tmp), CmdCallback(&SyncCmdInfo::recvCallback, cmd));
+	doAsyncCommand(RedisBuilder::makeCommand(tmp), CmdCallback(&SyncCmdInfo::recvCallback, cmd));
 
 	if (!cmd->wait(cmdtimeout))
 	{
-		ec = OperationResult("通讯超时");
+		ec = OperationResult(Operation_Error_NetworkTimeOut, "通讯超时");
 		return RedisValue();
 	}
 	
@@ -107,10 +83,5 @@ RedisSyncClient & RedisSyncClient::setCommandTimeout(int timeout)
 
 	return *this;
 }
-void RedisSyncClient::redisErrorCallback()
-{
-	assert(0);
-	impltmp = impl;
-	impl = NULL;
-}
+
 }

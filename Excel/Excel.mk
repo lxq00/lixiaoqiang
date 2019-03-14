@@ -14,8 +14,8 @@
    SRCS_PATH =  Src Src/libxls Src/xlslib/common Src/xlslib/oledoc Src/xlslib/xlslib
 	
 # 库的名称
-   SHARDLIB_NAME = Excel
-   STATICLIB_NAME = 
+   SHARDLIB_NAME = 
+   STATICLIB_NAME = Excel
 
 # 应用程序选项
 # 应用程序的代码路径

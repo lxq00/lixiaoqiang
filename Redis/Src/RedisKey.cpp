@@ -32,6 +32,19 @@ bool RedisKey::setnx(int index,const std::string& key, const Value& val)
 
 	return retval.toInt() != 0;
 }
+bool RedisKey::expire(int index, const std::string& key, int ttl_ms)
+{
+	shared_ptr<Redis_Client> client = internal->client.lock();
+	if (client == NULL) return false;
+
+	RedisValue retval;
+	if (!client->command(index, "PEXPIRE", { String::ansi2utf8(key),Value(ttl_ms).readString()}, &retval))
+	{
+		return false;
+	}
+
+	return retval.toInt() != 0;
+}
 bool RedisKey::set(int index, const std::string& key, const Value& val)
 {
 	shared_ptr<Redis_Client> client = internal->client.lock();

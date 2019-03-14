@@ -63,6 +63,7 @@ public:
 		StreamFormat_MP4,
 		StreamFormat_MKV,
 		StreamFormat_MPG,
+		StreamFormat_TS,
 	}StreamFormat;/*
 	typedef enum {
 		StreamType_Video,
@@ -103,13 +104,40 @@ public:
 	typedef Function1<void, Conver*> EndOfFileCallback;
 public:
 	Conver(const shared_ptr<Source>& source,const shared_ptr<Target>& target);
+	
+	//param 3: 单个切片文件长度
+	//param 4: 总录像时间
+	Conver(const shared_ptr<Source>& source, const shared_ptr<Target>& target, uint32_t hls_timeSecond, uint32_t recordTotalTime, const std::string &hls_Path ,const std::string& m3u8name);
+	
 	virtual ~Conver();
 
 	bool start(const EndOfFileCallback& eofcallback);
 	bool stop();
+	void clearBuffer();
+	void setTimeStamp(uint32_t timestamp);
 private:
 	ConverInternal * internal;
 };
+//
+//class STREAMCONVER_API M3u8Builder
+//{
+//public:
+//	//starttime 录像文件开始时间 stoptime 录像文件结束时间 duration切片大小
+//	M3u8Builder(const Time& starttime, const Time& stoptime,int duration);
+//	~M3u8Builder();
+//	
+//	//生成到内存 
+//	std::string toString() const;
+//
+//	//保存到文件
+//	bool saveAsFile(const std::string& filename) const;
+//
+//	//通过时间戳获取相应的文件名称
+//	std::string filename(int timestmap) const;
+//private:
+//	struct M3u8BuilderInternal;
+//	M3u8BuilderInternal* internal;
+//};
 
 }
 }
