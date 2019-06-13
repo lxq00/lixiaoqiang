@@ -14,6 +14,7 @@
     <ClCompile Include="Src\ASIOServerPool.cpp" />
     <ClCompile Include="Src\NetAddr.cpp" />
     <ClCompile Include="Src\Network.cpp" />
+    <ClCompile Include="Src\Strand.cpp" />
     <ClCompile Include="Src\TcpClient.cpp" />
     <ClCompile Include="Src\TcpServer.cpp" />
     <ClCompile Include="Src\Udp.cpp" />
@@ -23,6 +24,7 @@
     <ClInclude Include="..\Include\Network\NetAddr.h" />
     <ClInclude Include="..\Include\Network\Network.h" />
     <ClInclude Include="..\Include\Network\Socket.h" />
+    <ClInclude Include="..\Include\Network\Strand.h" />
     <ClInclude Include="..\Include\Network\TcpClient.h" />
     <ClInclude Include="..\Include\Network\TcpServer.h" />
     <ClInclude Include="..\Include\Network\Udp.h" />

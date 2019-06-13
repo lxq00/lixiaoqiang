@@ -19,7 +19,6 @@ struct RedisSyncDbParam
 	std::string					 password;
 
 	int index;
-	shared_ptr<Mutex>				mutex;
 	shared_ptr<RedisSyncClient>		client;
 	shared_ptr<IOWorker>			worker;
 };

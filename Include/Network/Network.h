@@ -13,6 +13,7 @@
 #include "Network/TcpClient.h"
 #include "Network/TcpServer.h"
 #include "Network/Udp.h"
+#include "Network/Strand.h"
 
 namespace Public{
 namespace Network{

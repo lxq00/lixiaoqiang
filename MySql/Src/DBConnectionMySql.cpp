@@ -201,7 +201,7 @@ bool DBConnectionMySql::exec(const std::string& sql, uint32_t* affectedrow)
 	if (!ret) return false;
 
 	if(affectedrow != NULL)
-		*affectedrow = mysql_affected_rows(&internal->mysql);
+		*affectedrow = (uint32_t)mysql_affected_rows(&internal->mysql);
 
 	return ret;
 }
@@ -234,7 +234,7 @@ bool DBConnectionMySql::exec(const std::vector<std::string>& sql, uint32_t* affe
 	mysql_autocommit(&internal->mysql, true);
 
 	if (affectedrow != NULL)
-		*affectedrow = mysql_affected_rows(&internal->mysql);
+		*affectedrow = (uint32_t)mysql_affected_rows(&internal->mysql);
 
 	return true;
 }

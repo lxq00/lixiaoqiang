@@ -569,10 +569,12 @@ void ffmpegConver::ffmpegRTMPConverProc()
 				ifmt_ctx->flags |= AVFMT_FLAG_CUSTOM_IO;
 
             
+
 				//if (avformat_open_input(&ifmt_ctx, NULL, NULL, NULL) < 0)
-				if (avformat_open_input(&ifmt_ctx, NULL, NULL, &format_opts) < 0)
+                AVInputFormat* iformat = av_find_input_format("h264");
+				if (avformat_open_input(&ifmt_ctx, NULL, iformat, &format_opts) < 0)
 				{
-					break;
+                    break;
 				}
 			}
 			//file mode

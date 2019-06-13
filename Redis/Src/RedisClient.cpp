@@ -1,20 +1,29 @@
 #include "RedisDefine.h"
 #include "Redis/Redis.h"
+#include "Base/Base.h"
 namespace Public {
 namespace Redis {
 
-struct Redis_Client::Redis_ClientInternal :public RedisSyncDbParam
+struct Redis_Client::Redis_ClientInternal :public RedisSyncDbParam, public Thread
 {
+	struct RedisCommand
+	{
+		int index;
+		std::string cmd;
+		std::deque<Value> args;
+		shared_ptr<RedisValue> resp;
+		bool ret;
+		Public::Base::Semaphore sem;
+	};
+	typedef std::list<shared_ptr<RedisCommand> > RedisList;
+	RedisList queueRedis;
+	Mutex mutex;
+	Public::Base::Semaphore queueSem;
 public:
-	shared_ptr<Timer>			pooltimer;
+	bool selectIndex(int _index)
+	{
+		if (index == _index) return true;
 
-	void onPoolTimerProc(unsigned long)
-	{
-		Guard locker(mutex);
-		_initSyncClient();
-	}
-	bool _selectIndex(int _index)
-	{
 		index = _index;
 		OperationResult ec;
 		client->command("SELECT", { Value(index).readString() }, ec);
@@ -25,16 +34,17 @@ public:
 		}
 		return true;
 	}
-	bool _initSyncClient()
+	bool initSyncClient()
 	{
-		if (client == NULL)
+		if (client == NULL || !client->isConnected())
 		{
-			client = make_shared<RedisSyncClient>(worker);
-			client->setConnectTimeout(5000);
-			client->setCommandTimeout(5000);
-		}
-		if (!client->isConnected())
-		{
+			{
+				client = make_shared<RedisSyncClient>(worker);
+				client->setConnectTimeout(5000);
+				client->setCommandTimeout(5000);
+                index = 0;
+			}
+
 			if (!client->connect(redisaddr)) return false;
 
 			if (password != "")
@@ -47,47 +57,112 @@ public:
 					return false;
 				}
 			}
-			{
-				OperationResult ec;
-				RedisValue ret = client->command("PING", { }, ec);
-				std::string respstr = ret.toString();
-				if (!ec ||strstr(respstr.c_str(),"PONG") == NULL)
-				{
-					client->disconnect();
-					return false;
-				}
-			}
-			_selectIndex(index);
 		}
 
 		return true;
 	}
+private:
+	void threadProc()
+	{
+		while (looping())
+		{
+			queueSem.pend(1000);
+			
+			initSyncClient();
 
+			if (queueRedis.size() <= 0)
+			{
+				continue;
+			}
+			
+			shared_ptr<RedisCommand> command;
+			{
+				Guard locker(mutex);
+				command = queueRedis.front();
+				queueRedis.pop_front();
+			}
+			command->ret = doCommand(command->index, command->cmd, command->args, command->resp.get());
+			command->sem.post();
+            if (!command->ret)
+            {
+                client = NULL;
+            }
+		}
+	}
 public:
-	Redis_ClientInternal() { mutex = make_shared<Mutex>(); }
+	Redis_ClientInternal() :Thread("Redis Queue Thread")
+	{}
+
 	bool start(const shared_ptr<IOWorker>& _worker, const NetAddr& _addr, const std::string& _password)
 	{
-		Guard locker(mutex);
-
 		worker = _worker;
 		redisaddr = _addr;
 		password = _password;
 		index = 0;
 
 		if (worker == NULL) worker = IOWorker::defaultWorker();
-		if (!_initSyncClient()) return false;
-
-		pooltimer = make_shared<Timer>("Redis_ClientInternal");
-		pooltimer->start(Timer::Proc(&Redis_ClientInternal::onPoolTimerProc, this), 0, 1000);
+		if (!initSyncClient()) return false;
+		
+		createThread();
 
 		return true;
 	}
 	void stop()
 	{
-		Guard locker(mutex);
-		pooltimer = NULL;
-		if (client != NULL)	client->disconnect();
+		destroyThread();
+
+		if (client != NULL)
+		{
+			OperationResult ec;
+			client->command("QUIT", std::deque<Value>(), ec);
+			client->disconnect();
+		}
 		client = NULL;
+	}
+
+	bool command(int index, const std::string& cmd, const std::deque<Value>& args, void* retvalptr)
+	{
+		shared_ptr<RedisCommand> command = make_shared<RedisCommand>();
+		command->index = index;
+		command->cmd = cmd;
+		command->args = args;
+		command->resp = make_shared<RedisValue>();
+		{
+			Guard locker(mutex);
+			queueRedis.push_back(command);
+			queueSem.post();
+		}
+
+		if (queueRedis.size() > 500)
+		{
+			logerror("queueRedis.size(%d) > 500 ", queueRedis.size());
+		}
+
+		if (0 > command->sem.pend(3000))
+		{
+			logerror("redis command timeout!");
+			return false;
+		}
+		RedisValue tmp;
+		RedisValue& retval = retvalptr == NULL ? tmp : *(RedisValue*)retvalptr;
+		retval = *command->resp;
+		return command->ret;
+	}
+
+	bool doCommand(int index, const std::string& cmd, const std::deque<Value>& args, void* retvalptr)
+	{
+		RedisValue tmp;
+		RedisValue& retval = retvalptr == NULL ? tmp : *(RedisValue*)retvalptr;
+		OperationResult ec;
+
+		if (!selectIndex(index))
+		{
+			return false;
+		}
+
+		retval = client->command(cmd, args, ec);
+
+		return ec && !retval.isError();
 	}
 	~Redis_ClientInternal()
 	{
@@ -107,6 +182,7 @@ bool Redis_Client::init(const shared_ptr<IOWorker>& worker, const NetAddr& addr,
 {
 	return internal->start(worker, addr, password);
 }
+
 bool Redis_Client::uninit()
 {
 	internal->stop();
@@ -116,34 +192,28 @@ bool Redis_Client::uninit()
 
 bool Redis_Client::ping()
 {
-	Guard locker(internal->mutex);
-	return internal->client->isConnected();
-}
-bool Redis_Client::command(int index, const std::string& cmd, const std::deque<Value>& args, void* retvalptr)
-{
-	RedisValue tmp;
-	RedisValue& retval = retvalptr == NULL ? tmp : *(RedisValue*)retvalptr;
-	OperationResult ec;
+	RedisValue value;
 
-	
-	Guard locker(internal->mutex);
-	if (!internal->client->isConnected()) return false;
-
-	if (internal->index != index && !internal->_selectIndex(index))
+	if (!command(0, "PING", std::deque<Value>(), &value))
 	{
 		return false;
 	}
 
+	std::string respstr = value.toString();
+	if (strstr(respstr.c_str(), "PONG") == NULL)
+	{
+		logerror("ping() fail!\r\n");
+		internal->client->disconnect();
+		return false;
+	}
 
-	retval = internal->client->command(cmd, args, ec);
-
-	return ec && !retval.isError();
+	return true;
 }
-void* Redis_Client::param()
+bool Redis_Client::command(int index, const std::string& cmd, const std::deque<Value>& args, void* retvalptr)
 {
-	return internal;
+	return internal->command(index, cmd, args, retvalptr);
 }
-
+ 
 }
 }
 

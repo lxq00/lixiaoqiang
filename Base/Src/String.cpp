@@ -420,6 +420,34 @@ std::string String::replace(const std::string& src, const std::string& substr, c
 	return std::move(strtmp);
 }
 
+std::string String::snprintf_x(int maxsize, const char* fmt, ...)
+{
+    std::string strbuf;
+    strbuf.resize(maxsize);
+    char* buf = (char*)strbuf.c_str();
+    va_list arg;
+    int count;
+    va_start(arg, fmt);
+
+#ifdef WIN32
+    count = _vsnprintf(buf, maxsize, fmt, arg);
+    if (count < 0 || count == maxsize) {
+        count = maxsize - 1;
+        buf[maxsize - 1] = '\0';
+    }
+#else
+    count = ::vsnprintf(buf, maxsize, fmt, arg);
+    if (count >= maxsize - 1)
+        buf[maxsize - 1] = '\0';
+    else if (count < 0) {
+        va_end(arg);
+        return 0;
+    }
+#endif
+    va_end(arg);
+    return strbuf.c_str();
+}
+
 } // namespace Base
 } // namespace Public
 

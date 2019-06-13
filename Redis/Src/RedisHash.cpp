@@ -6,7 +6,7 @@ namespace Redis {
 
 struct RedisHash::RedisHashInternal
 {
-	weak_ptr<Redis_Client>	client;
+	shared_ptr<Redis_Client>	client;
 	std::string				key;
 	int						index;
 };
@@ -23,7 +23,7 @@ RedisHash::~RedisHash()
 }
 uint32_t RedisHash::size()
 {
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return 0;
 
 	RedisValue retval;
@@ -36,7 +36,7 @@ uint32_t RedisHash::size()
 }
 bool RedisHash::exists(const std::string& key)
 {
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return false;
 
 	RedisValue retval;
@@ -49,7 +49,7 @@ bool RedisHash::exists(const std::string& key)
 }
 bool RedisHash::set(const std::string& key, const Value& val)
 {
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return false;
 
 	if (!client->command(internal->index, "HSET", { String::ansi2utf8(internal->key),String::ansi2utf8(key),String::ansi2utf8(val.readString()) }))
@@ -73,7 +73,7 @@ bool RedisHash::set(const std::map<std::string, Value>& vals)
 		args.push_back(String::ansi2utf8(iter->second.readString()));
 	}
 
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return false;
 
 	if (!client->command(internal->index, "HMSET", args))
@@ -86,7 +86,7 @@ bool RedisHash::set(const std::map<std::string, Value>& vals)
 
 Value RedisHash::get(const std::string& key)
 {
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return Value();
 
 	RedisValue retval;
@@ -112,7 +112,7 @@ std::map<std::string, Value> RedisHash::get(const std::vector<std::string>& keys
 
 	std::map<std::string, Value> values;
 
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return values;
 
 	RedisValue retval;
@@ -152,7 +152,7 @@ bool RedisHash::remove(const std::vector<std::string>& keys)
 		args.push_back(String::ansi2utf8(keys[i]));
 	}
 
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return false;
 
 	if (!client->command(internal->index, "HDEL", args))
@@ -165,7 +165,7 @@ bool RedisHash::remove(const std::vector<std::string>& keys)
 
 std::set<string> RedisHash::keys()
 {
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return std::set<string>();
 
 	RedisValue retval;

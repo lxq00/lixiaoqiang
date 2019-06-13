@@ -127,10 +127,10 @@ public:
 		subscriber->initSocket();
 	}
 public:
-	RedisMQInternal(RedisSyncDbParam* param, int index)
+	RedisMQInternal(const shared_ptr<IOWorker>& _worker, const NetAddr& addr, const std::string& password, int index)
 	{
-		publisher = make_shared<AsyncSocketInfo>(param->worker, param->redisaddr, param->password,index);
-		subscriber = make_shared<AsyncSocketInfo>(param->worker, param->redisaddr, param->password, index);
+		publisher = make_shared<AsyncSocketInfo>(_worker, addr, password,index);
+		subscriber = make_shared<AsyncSocketInfo>(_worker, addr, password, index);
 
 		pooltimer = make_shared<Timer>("Redis_ClientInternal");
 		pooltimer->start(Timer::Proc(&RedisMQInternal::onPoolTimerProc, this), 0, 1000);
@@ -144,9 +144,9 @@ public:
 		subscriber = NULL;
 	}
 };
-RedisMQ::RedisMQ(const shared_ptr<Redis_Client>& client, int index)
+RedisMQ::RedisMQ(const shared_ptr<IOWorker>& _worker, const NetAddr& addr, const std::string& password, int index)
 {
-	internal = new RedisMQInternal((RedisSyncDbParam*)client->param(),index);
+	internal = new RedisMQInternal(_worker,addr,password,index);
 }
 RedisMQ::~RedisMQ()
 {

@@ -2,7 +2,7 @@
 
 namespace redisclient {
 
-RedisAsyncClient::RedisAsyncClient(const shared_ptr<IOWorker>& worker):RedisClientImpl(worker)
+RedisAsyncClient::RedisAsyncClient(const shared_ptr<IOWorker>& worker):RedisAsyncClientImpl(worker)
 {
 }
 
@@ -21,12 +21,12 @@ void RedisAsyncClient::command(const std::string &cmd, const std::deque<Value>& 
 
 MQHandle RedisAsyncClient::subscribe(const std::string &channelName, const CmdCallback& msgHandler)
 {
-	return RedisClientImpl::subscribe("subscribe", channelName,msgHandler,CmdCallback());
+	return RedisAsyncClientImpl::subscribe("subscribe", channelName,msgHandler,CmdCallback());
 }
 
 void RedisAsyncClient::unsubscribe(const std::string &channelName, MQHandle handle)
 {
-	return RedisClientImpl::unsubscribe("subscribe", channelName, handle);
+	return RedisAsyncClientImpl::unsubscribe("subscribe", channelName, handle);
 }
 
 void RedisAsyncClient::publish(const std::string &channel, const Value &msg)

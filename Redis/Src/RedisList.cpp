@@ -6,7 +6,7 @@ namespace Redis {
 
 struct RedisList::RedisListInternal 
 {
-	weak_ptr<Redis_Client>	client;
+	shared_ptr<Redis_Client>	client;
 	std::string				key;
 	int						index;
 };
@@ -23,7 +23,7 @@ RedisList::~RedisList()
 }
 uint32_t RedisList::size()
 {
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return 0;
 
 	RedisValue retval;
@@ -36,7 +36,7 @@ uint32_t RedisList::size()
 }
 bool RedisList::push_back(const Value& val)
 {
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return 0;
 
 	if (!client->command(internal->index, "LPUSH", { String::ansi2utf8(internal->key),String::ansi2utf8(val.readString()) }))
@@ -48,7 +48,7 @@ bool RedisList::push_back(const Value& val)
 }
 Value RedisList::pop()
 {
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return Value();
 
 	RedisValue retval;

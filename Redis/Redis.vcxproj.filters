@@ -39,7 +39,10 @@
     <ClInclude Include="Src\redisclient\redissyncclient.h">
       <Filter>源文件\redisclient</Filter>
     </ClInclude>
-    <ClInclude Include="Src\redisclient\redisclientimpl.h">
+    <ClInclude Include="Src\redisclient\redisasyncclientimpl.h">
+      <Filter>源文件\redisclient</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\redisclient\redissyncclientimpl.h">
       <Filter>源文件\redisclient</Filter>
     </ClInclude>
   </ItemGroup>
@@ -71,9 +74,6 @@
     <ClCompile Include="Src\redisclient\redisasyncclient.cpp">
       <Filter>源文件\redisclient</Filter>
     </ClCompile>
-    <ClCompile Include="Src\redisclient\redisclientimpl.cpp">
-      <Filter>源文件\redisclient</Filter>
-    </ClCompile>
     <ClCompile Include="Src\redisclient\redisparser.cpp">
       <Filter>源文件\redisclient</Filter>
     </ClCompile>
@@ -81,6 +81,12 @@
       <Filter>源文件\redisclient</Filter>
     </ClCompile>
     <ClCompile Include="Src\redisclient\redisvalue.cpp">
+      <Filter>源文件\redisclient</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\redisclient\redisasyncclientimpl.cpp">
+      <Filter>源文件\redisclient</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\redisclient\redissyncclientimpl.cpp">
       <Filter>源文件\redisclient</Filter>
     </ClCompile>
   </ItemGroup>

@@ -11,6 +11,11 @@ struct TCPServer::TCPServerInternalPointer
 shared_ptr<Socket> TCPServer::create(const shared_ptr<IOWorker>& _worker,const NetAddr& addr)
 {
 	shared_ptr<TCPServer> sock = shared_ptr<TCPServer>(new TCPServer(_worker,addr));
+    sock->tcpserverinternal->sock = boost::make_shared<ASIOSocketAcceptor>(_worker);
+    if (!sock->tcpserverinternal->sock->create(addr, true))
+    {
+        return shared_ptr<Socket>();
+    }
 	sock->tcpserverinternal->sock->initSocketptr(sock);
 
 	return sock;
@@ -18,8 +23,6 @@ shared_ptr<Socket> TCPServer::create(const shared_ptr<IOWorker>& _worker,const N
 TCPServer::TCPServer(const shared_ptr<IOWorker>& _worker, const NetAddr& addr)
 {
 	tcpserverinternal = new TCPServerInternalPointer;
-	tcpserverinternal->sock = boost::make_shared<ASIOSocketAcceptor>(_worker);
-	tcpserverinternal->sock->create(addr,true);
 }
 TCPServer::~TCPServer()
 {

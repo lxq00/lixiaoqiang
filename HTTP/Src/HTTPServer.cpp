@@ -401,6 +401,10 @@ bool HTTPServer::run(uint32_t httpport)
 	Guard locker(internal->mutex);
 	internal->httpport = httpport;
 	internal->tcpServer = TCPServer::create(internal->worker,httpport);
+    if (internal->tcpServer == shared_ptr<Socket>())
+    {
+        return false;
+    }
 	internal->tcpServer->async_accept(Socket::AcceptedCallback(&HTTPServrInternal::acceptCallback, internal));
 
 	return true;

@@ -7,6 +7,7 @@
     <ClCompile Include="Src\TcpClient.cpp" />
     <ClCompile Include="Src\TcpServer.cpp" />
     <ClCompile Include="Src\Udp.cpp" />
+    <ClCompile Include="Src\Strand.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\Network\Defs.h" />
@@ -37,6 +38,9 @@
     <ClInclude Include="Src\ASIOSocketObject.h" />
     <ClInclude Include="Src\ASIOSocketAcceptor.h" />
     <ClInclude Include="Src\ASIOSocketUDP.h" />
+    <ClInclude Include="..\Include\Network\Strand.h">
+      <Filter>Include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Version.rc" />

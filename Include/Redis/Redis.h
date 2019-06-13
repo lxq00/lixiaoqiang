@@ -16,7 +16,7 @@ class REDIS_API RedisMQ
 public:
 	typedef Function2<void,const std::string&,const std::string&>  MessageHandler;
 public:
-	RedisMQ(const shared_ptr<Redis_Client>& client,int index);
+	RedisMQ(const shared_ptr<IOWorker>& _worker, const NetAddr& addr, const std::string& password, int index);
 	~RedisMQ();
 		
 	void publish(const std::string& channelName,const std::string& value);
@@ -139,7 +139,6 @@ public:
 	bool uninit();
 	bool ping();
 	bool command(int index, const std::string& cmd, const std::deque<Value>& args, void* retval = NULL);
-	void* param();
 private:
 	struct Redis_ClientInternal;
 	Redis_ClientInternal* internal;

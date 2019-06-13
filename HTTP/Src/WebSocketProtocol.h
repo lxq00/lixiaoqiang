@@ -18,6 +18,16 @@ class WebSocketProtocol
 		char		maskkey[4];
 		std::string	data;
 		int			datatype;
+		/*
+		%x0：表示一个延续帧。当Opcode为0时，表示本次数据传输采用了数据分片，当前收到的数据帧为其中一个数据分片。
+		%x1：表示这是一个文本帧（frame）
+		%x2：表示这是一个二进制帧（frame）
+		%x3-7：保留的操作代码，用于后续定义的非控制帧。
+		%x8：表示连接断开。
+		%x9：表示这是一个ping操作。
+		%xA：表示这是一个pong操作。
+		%xB-F：保留的操作代码，用于后续定义的控制帧。
+		*/
 
 		FrameInfo():playloadlen(0),mask(false), datatype(0)
 		{
@@ -133,11 +143,17 @@ public:
 		return true;
 	}
 	shared_ptr<Socket> getsocket() { return sock; }
+    uint32_t sendListSize() 
+    {
+        Guard locker(mutex);
+        return sendlist.size();
+    }
 	bool ready() { return headerParseFinish; }
 private:
 	const char* parseProtocol(const char* buffer, int len)
 	{
-		while (len > 0)
+		int nTry = 100;
+		while (len > 0 && --nTry >= 0)
 		{
 			if (frame == NULL)
 			{
@@ -175,44 +191,87 @@ private:
 					
 					dataCallback(frame->data, frame->datatype == 1 ? WebSocketDataType_Txt: WebSocketDataType_Bin);
 				}
+
+				if (frame->datatype == 8)
+				{
+					weak_ptr<Socket> socktmp = sock;
+					socktmp.lock()->disconnect();
+					socketDisConnectcallback(sock, "");
+				}
+
 				frame = NULL;
 			}
 		}
 
 		return buffer;
 	}
-	const char* parseWebSocketHeard(const char* buffer, int len,shared_ptr<FrameInfo> frame)
+	bool parseAndCheckHeader(const char* buffer, int len, shared_ptr<FrameInfo>& tmpframe)
 	{
+		int fine = (buffer[0] >> 7) & 1;
+		int rsv1 = (buffer[0] >> 6) & 1;
+		int rsv2 = (buffer[0] >> 5) & 1;
+		int rsv3 = (buffer[0] >> 5) & 1;
+		tmpframe->datatype = buffer[0] & 0xf;
+
+		tmpframe->mask = (uint8_t)buffer[1] >> 7;
+		tmpframe->playloadlen = buffer[1] & 0x7f;
+
+		if (fine != 1 || rsv1 != 0 || rsv2 != 0 || rsv3 != 0 || tmpframe->playloadlen < 0 || tmpframe->playloadlen > 127)
+		{
+			return false;
+		}
+		return true;
+	}
+	const char* parseWebSocketHeard(const char* buffer, int len,shared_ptr<FrameInfo>& tmpframe)
+	{
+		while (len > 0)
+		{
+			if (parseAndCheckHeader(buffer, len, tmpframe))
+			{
+				break;
+			}
+			buffer++;
+			len--;
+		}
+		if (len <= 0)
+		{
+			return NULL;
+		}
 		int needlen = 2;
 		if (len < needlen) return NULL;
 
 		int fine = buffer[0] >> 7;
-		frame->datatype = buffer[0] & 0xf;
-		frame->mask = (uint8_t)buffer[1] >> 7;
-		frame->playloadlen = buffer[1] & 0x7f;
-		if (frame->playloadlen == 126)
+		tmpframe->datatype = buffer[0] & 0xf;
+		tmpframe->mask = (uint8_t)buffer[1] >> 7;
+		tmpframe->playloadlen = buffer[1] & 0x7f;
+		if (tmpframe->playloadlen == 126)
 		{
 			if (len < needlen + 2) return NULL;
 			
-			frame->playloadlen = ntohs(*(unsigned short*)(buffer + needlen));
+			tmpframe->playloadlen = ntohs(*(unsigned short*)(buffer + needlen));
 			needlen += 2;
 		}
-		else if (frame->playloadlen == 127)
+		else if (tmpframe->playloadlen == 127)
 		{
 			if (len < needlen + 8) return NULL;
 
-			frame->playloadlen = ntohl(*(unsigned long*)(buffer + needlen + 4));
+			tmpframe->playloadlen = ntohl(*(unsigned long*)(buffer + needlen + 4));
 			needlen += 8;
 		}
 
-		if (frame->mask)
+		if (tmpframe->playloadlen < 0)
+		{
+			return NULL;
+		}
+		
+		if (tmpframe->mask)
 		{
 			if (len < needlen + 4) return NULL;
 
-			frame->maskkey[0] = buffer[needlen + 0];
-			frame->maskkey[1] = buffer[needlen + 1];
-			frame->maskkey[2] = buffer[needlen + 2];
-			frame->maskkey[3] = buffer[needlen + 3];
+			tmpframe->maskkey[0] = buffer[needlen + 0];
+			tmpframe->maskkey[1] = buffer[needlen + 1];
+			tmpframe->maskkey[2] = buffer[needlen + 2];
+			tmpframe->maskkey[3] = buffer[needlen + 3];
 			needlen += 4;
 		}
 
@@ -233,7 +292,10 @@ private:
 		{
 			const char* tmp = parseHeader(buftmp, lentmp);
 
-			headerParseReady();
+			if (tmp != buftmp)
+			{
+				headerParseReady();
+			}
 
 			lentmp = buftmp + lentmp - tmp;
 			buftmp = tmp;
@@ -374,6 +436,7 @@ protected:
 private:
 	shared_ptr<Socket>				sock;
 	shared_ptr<FrameInfo>			frame;
+	Socket::DisconnectedCallback	disconnect;
 	char*							recvBuffer;
 	int								recvBufferLen;
 	bool							headerParseFinish;

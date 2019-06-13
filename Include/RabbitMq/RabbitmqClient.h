@@ -12,8 +12,9 @@ class  RABBITMQ_API RabbitmqClient
 {
 public:
 	typedef Function1<void, const std::string&> SubscribeCallback;
+	typedef Function1<void, bool/*offline*/> ConnectStatusCallback;
 public:
-	RabbitmqClient();
+	RabbitmqClient(const ConnectStatusCallback &status);
 	~RabbitmqClient();
  
 	bool connect(const string &strvhost, const string &strHostname, int iPort, const string &strUser, const string &strPasswd, uint32_t timeout);

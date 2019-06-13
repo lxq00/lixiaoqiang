@@ -5,7 +5,7 @@ namespace Redis {
 
 struct RedisSortedSet::RedisSortedSetInternal
 {
-	weak_ptr<Redis_Client>	client;
+	shared_ptr<Redis_Client>	client;
 	std::string				key;
 	int						index;
 };
@@ -23,7 +23,7 @@ RedisSortedSet::~RedisSortedSet()
 }
 bool RedisSortedSet::push_back(const Value& key, const Value&val)
 {
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return false;
 
 	if (!client->command(internal->index, "ZADD", { String::ansi2utf8(internal->key) ,String::ansi2utf8(key),String::ansi2utf8(val.readString()) }))
@@ -35,7 +35,7 @@ bool RedisSortedSet::push_back(const Value& key, const Value&val)
 }
 std::vector<Value> RedisSortedSet::values(int startpos, int stoppos)
 {
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return vector<Value>();
 
 	RedisValue retval;
@@ -58,7 +58,7 @@ std::vector<Value> RedisSortedSet::values(int startpos, int stoppos)
 }
 Value RedisSortedSet::front()
 {
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return Value();
 
 	RedisValue retval;
@@ -76,7 +76,7 @@ Value RedisSortedSet::front()
 }
 bool RedisSortedSet::del(const Value& val)
 {
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return false;
 
 	if (!client->command(internal->index, "ZREM", { String::ansi2utf8(internal->key),String::ansi2utf8(val.readString()) }))
@@ -88,7 +88,7 @@ bool RedisSortedSet::del(const Value& val)
 }
 uint32_t RedisSortedSet::size()
 {
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return 0;
 
 	RedisValue retval;

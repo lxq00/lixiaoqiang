@@ -2,13 +2,13 @@
 #define REDISASYNCCLIENT_REDISCLIENT_H
 
 
-#include "redisclientimpl.h"
+#include "redisasyncclientimpl.h"
 
 namespace redisclient {
 
 typedef void* MQHandle;
 
-class RedisAsyncClient : public RedisClientImpl {
+class RedisAsyncClient : public RedisAsyncClientImpl {
 public:
     RedisAsyncClient(const shared_ptr<IOWorker>& worker);
 	virtual ~RedisAsyncClient();

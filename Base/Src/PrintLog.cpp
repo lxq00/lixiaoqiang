@@ -235,9 +235,9 @@ void printer(LOG_Level level, const char* filename, const char* func, int line, 
 		else filenametmp = filenametmp + 1;
 
 		static char buffertmp[1024];
-		snprintf(buffertmp, 1023, "%s %s:%d - ", filenametmp, func, line);
+		snprintf(buffertmp, 1023, " [%s %s:%d]", filenametmp, func, line);
 
-		std::string printstr = std::string(buffertmp) + buffer;
+		std::string printstr = buffer + std::string(buffertmp);
 
 		print(level, printstr.c_str());
 	}

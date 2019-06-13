@@ -59,7 +59,25 @@ class FUNCTION_TEMPL
 #ifdef GCCSUPORTC11
 	typedef std::function<FUNCTION_STDFUNCTIONPTR> STD_FUNCTION;
 #endif
-
+	struct IDENT
+	{
+		void* func;
+		void* obj;
+		bool operator==(const IDENT& other) const
+		{
+			if (func == other.func && obj == other.obj)
+			{
+				return true;
+			}
+			return false;
+		}
+		bool operator<(const IDENT& other) const
+		{
+			if (func < other.func) return true;
+			if (func == other.func && obj < other.obj) return true;
+			return false;
+		}
+	};
 	//function，基础对象
 	struct FUNCTION_OBJECT
 	{
@@ -70,6 +88,7 @@ class FUNCTION_TEMPL
 
 		virtual R invoke(FUNCTION_TYPE_ARGS) = 0;
 		virtual shared_ptr<FUNCTION_OBJECT> clone() = 0;
+		virtual IDENT ident() = 0;
 #ifdef GCCSUPORTC11
 		virtual STD_FUNCTION stdfunc() = 0;
 #endif
@@ -91,6 +110,13 @@ class FUNCTION_TEMPL
 		virtual shared_ptr<FUNCTION_OBJECT> clone()
 		{
 			return shared_ptr<FUNCTION_POINTER>(new FUNCTION_POINTER(f));
+		}
+		virtual IDENT ident()
+		{
+			IDENT identi;
+			identi.func = (void*)*(int*)&f;
+			identi.obj = NULL;
+			return identi;
 		}
 #ifdef GCCSUPORTC11
 		virtual STD_FUNCTION stdfunc()
@@ -135,6 +161,18 @@ class FUNCTION_TEMPL
 
 			return memptr;
 		}
+		virtual IDENT ident()
+		{
+			IDENT identi;
+			identi.func = (void*)*(int*)&f;
+			identi.obj = o;
+			shared_ptr<O> tmp = ptr.lock();
+			if (tmp != NULL)
+			{
+				identi.obj = tmp.get();
+			}
+			return identi;
+		}
 #ifdef GCCSUPORTC11
 		virtual STD_FUNCTION stdfunc()
 		{
@@ -176,6 +214,13 @@ class FUNCTION_TEMPL
 		virtual shared_ptr<FUNCTION_OBJECT> clone()
 		{
 			return shared_ptr<FUNCTION_STDFUNCTION>(new FUNCTION_STDFUNCTION(stdf));
+		}
+		virtual IDENT ident()
+		{
+			IDENT identi;
+			identi.func = (void*)*(int*)&stdf;
+			identi.obj = NULL;
+			return identi;
 		}
 		virtual STD_FUNCTION stdfunc()
 		{
@@ -291,7 +336,7 @@ public:
 		shared_ptr<FUNCTION_OBJECT> tmp = function;
 		if (tmp != NULL)
 		{
-			f = tmp->stdfun();
+			f = tmp->stdfunc();
 		}
 
 		return std::move(f);
@@ -308,6 +353,28 @@ public:
 	bool operator!() const
 	{
 		return !(bool(*this));
+	}
+
+	/*bool operator==(const FUNCTION_TEMPL& tpl) const
+	{
+		shared_ptr<FUNCTION_OBJECT> tmp = function;
+		shared_ptr<FUNCTION_OBJECT> tmp1 = tpl.function;
+		if (tmp == NULL || tmp1 == NULL)
+		{
+			return false;
+		}
+		return tmp->ident() == tmp1->ident();
+	}*/
+
+	bool operator<(const FUNCTION_TEMPL& tpl) const
+	{
+		shared_ptr<FUNCTION_OBJECT> tmp = function;
+		shared_ptr<FUNCTION_OBJECT> tmp1 = tpl.function;
+		if (tmp == NULL || tmp1 == NULL)
+		{
+			return false;
+		}
+		return tmp->ident() < tmp1->ident();
 	}
 
 	/// 重载()运算符，可以以函数对象的形式来调用保存的函数指针。

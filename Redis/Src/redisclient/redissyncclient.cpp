@@ -2,28 +2,9 @@
 
 namespace redisclient {
 
-struct SyncCmdInfo
-{
-	Semaphore sem;
-	RedisValue	retval;
-	bool wait(int timeout) 
-	{
-		return sem.pend(timeout) >= 0;
-	}
-
-	void recvCallback(const RedisValue& val)
-	{
-		retval = std::move(val);
-		sem.post();
-	}
-	void connectCallack()
-	{
-		sem.post();
-	}
-};
 
 RedisSyncClient::RedisSyncClient(const shared_ptr<IOWorker>& _worker)
-    : RedisClientImpl(_worker), connectimeout(10000),cmdtimeout(10000)
+    : RedisSyncClientImpl(_worker), connectimeout(10000),cmdtimeout(10000)
 {
     
 }
@@ -35,21 +16,41 @@ RedisSyncClient::~RedisSyncClient()
 
 bool RedisSyncClient::connect(const NetAddr& addr)
 {
-	shared_ptr<SyncCmdInfo> cmd = make_shared<SyncCmdInfo>();
-	
-	asyncConnect(addr, ConnectCallback(&SyncCmdInfo::connectCallack, cmd),DisconnectCallback());
-	
-	if (!cmd->wait(connectimeout)) return false;
-
-	return true;
+	return RedisSyncClientImpl::connect(addr, connectimeout, cmdtimeout);
 }
 
 void RedisSyncClient::disconnect()
 {
-	close();
+	RedisSyncClient::close();
 }
 RedisValue RedisSyncClient::command(const std::string& cmdstr, const std::deque<Value>& args, OperationResult &ec)
 {
+	/*{
+		static Mutex mutex;
+		static FILE* fd = NULL;
+		{
+			std::string strtmp = Value(Time::getCurrentMilliSecond()).readString() + ":";
+			strtmp += cmdstr;
+			if (args.size() > 0)
+			{
+				strtmp += " ";
+				strtmp += args.front().readString();
+			}
+			strtmp += "\r\n";
+			Guard locker(mutex);
+			if (fd == NULL)
+			{
+				fd = fopen((File::getExcutableFileFullPath() + "/"+File::getExcutableFileName()+"---rediscmd.txt").c_str(), "wb+");
+			}
+			if (fd != NULL)
+			{
+				fwrite(strtmp.c_str(), strtmp.length(), 1, fd);
+				fflush(fd);
+			}
+				
+		}
+	}*/
+
 	std::deque<Value> tmp = std::move(args);
 	tmp.emplace_front(cmdstr);
 
@@ -59,17 +60,15 @@ RedisValue RedisSyncClient::command(const std::string& cmdstr, const std::deque<
 		return RedisValue();
 	}
 
-	shared_ptr<SyncCmdInfo> cmd = make_shared<SyncCmdInfo>();
-	
-	doAsyncCommand(RedisBuilder::makeCommand(tmp), CmdCallback(&SyncCmdInfo::recvCallback, cmd));
+	RedisValue redisval;
 
-	if (!cmd->wait(cmdtimeout))
+	if (!RedisSyncClientImpl::command(RedisBuilder::makeCommand(tmp), redisval))
 	{
 		ec = OperationResult(Operation_Error_NetworkTimeOut, "Í¨Ñ¶³¬Ê±");
 		return RedisValue();
 	}
 	
-	return std::move(cmd->retval);
+	return std::move(redisval);
 }
 RedisSyncClient & RedisSyncClient::setConnectTimeout(int timeout)
 {

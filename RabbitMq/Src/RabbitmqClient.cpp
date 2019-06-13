@@ -23,17 +23,108 @@ struct RabbitmqClient::RabbitmqClientInternal:public Thread
 	string                      m_strExchange;
 	string                      m_strRoutekey;
 	int							m_iChannel;
+	ConnectStatusCallback		connectCallback;
+	Timer						timer;
+	bool						lastStatus;
+	bool						curStatus;
 
-	RabbitmqClientInternal() :Thread("RabbitmqClientInternal"),m_pSock(NULL), m_pConn(NULL), m_iChannel(1)
+	string						m_strvhost;
+	string						m_strHostname;
+	int							m_iPort;
+	string						m_strUser;
+	string						m_strPasswd;
+	uint32_t					m_timeout;
+
+	RabbitmqClientInternal(const ConnectStatusCallback &status) :Thread("RabbitmqClientInternal"),m_pSock(NULL), m_pConn(NULL), m_iChannel(1)
+		, connectCallback(status)
+		, timer("reconnect timer")
+		, lastStatus(false)
+		, curStatus(true)
 	{
 	}
+
 	~RabbitmqClientInternal()
 	{
-
+		destroyThread();
+		timer.stopAndWait();
 	}
+
+	void startReconnect()
+	{
+		!timer.isStarted() && timer.start(Timer::Proc(&RabbitmqClientInternal::TimerProc, this), 0, 1000, NULL);
+	}
+
+	void TimerProc(unsigned long param)
+	{
+		if (!curStatus)
+		{
+			close();
+			connect();
+		}
+		if (lastStatus == curStatus)
+		{
+			return;
+		}
+		connectCallback(curStatus);
+
+		lastStatus = curStatus;
+	}
+
+	bool connect()
+	{
+		Guard locker(mutex);
+		m_pConn = amqp_new_connection();
+		if (NULL == m_pConn)
+		{
+			logerror("amqp new connection failed\n");
+			return false;
+		}
+
+		m_pSock = amqp_tcp_socket_new(m_pConn);
+		if (NULL == m_pSock)
+		{
+			logerror("amqp tcp new socket failed\n");
+			return false;
+		}
+
+		timeval tv = { 0 };
+		tv.tv_usec = m_timeout * 1000;
+		int status = amqp_socket_open_noblock(m_pSock, m_strHostname.c_str(), m_iPort, &tv);
+		if (status < 0)
+		{
+			logdebug("amqp socket open failed\n");
+			return false;
+		}
+
+		//if (0 != internal->ErrorMsg(amqp_login(internal->m_pConn, "vhost_zvan", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, strUser.c_str(), strPasswd.c_str()), "Logging in"))
+		if (0 != ErrorMsg(amqp_login(m_pConn, m_strvhost.c_str(), 0, 131072, 10, AMQP_SASL_METHOD_PLAIN, m_strUser.c_str(), m_strPasswd.c_str()), "Logging in"))
+		{
+
+			return false;
+		}
+		curStatus = true;
+	}
+
+	bool connect(const string &strvhost, const string &strHostname, int iPort, const string &strUser, const string &strPasswd, uint32_t timeout)
+	{
+		m_strvhost = strvhost;
+		m_strHostname = strHostname;
+		m_iPort = iPort;
+		m_strUser = strUser;
+		m_strPasswd = strPasswd;
+		m_timeout = timeout;
+		if (!connect())
+		{
+			startReconnect();
+			return false;
+		}
+		startReconnect();
+		return true;
+	}
+
 	void close()
 	{
-		destroyThread();
+		Guard locker(mutex);
 		if (NULL != m_pConn)
 		{
 			if (0 != ErrorMsg(amqp_connection_close(m_pConn, AMQP_REPLY_SUCCESS), "Closing connection"))
@@ -84,6 +175,11 @@ struct RabbitmqClient::RabbitmqClientInternal:public Thread
 				break;
 			}
 			break;
+		}
+
+		if (x.library_error == -0x7 || x.library_error == -0x9 || x.library_error == -0xF || x.library_error == -0x11)
+		{
+			curStatus = false;
 		}
 		return -1;
 	}
@@ -144,9 +240,9 @@ struct RabbitmqClient::RabbitmqClientInternal:public Thread
 	}
 };
 
-RabbitmqClient::RabbitmqClient()
+RabbitmqClient::RabbitmqClient(const ConnectStatusCallback &status)
 {
-	internal = new RabbitmqClientInternal();
+	internal = new RabbitmqClientInternal(status);
 }
  
 
@@ -160,39 +256,7 @@ RabbitmqClient::~RabbitmqClient()
  
 bool RabbitmqClient::connect(const string &strvhost, const string &strHostname, int iPort, const string &strUser, const string &strPasswd, uint32_t timeout)
 {
-    internal->m_pConn = amqp_new_connection();
-
-    if (NULL == internal->m_pConn)
-    {
-        logerror("amqp new connection failed\n");
-		return false;
-    }
- 
-	internal->m_pSock =  amqp_tcp_socket_new(internal->m_pConn);
-    if (NULL == internal->m_pSock)
-    {
-        logerror("amqp tcp new socket failed\n");
-        return false;
-    }
- 
-    timeval tv = { 0 };
-    tv.tv_usec = timeout * 1000;
-    int status = amqp_socket_open_noblock(internal->m_pSock, strHostname.c_str(),iPort, &tv);
-    if (status<0) 
-    {
-        logdebug("amqp socket open failed\n");
-        return false;
-    }
-
-
-    //if (0 != internal->ErrorMsg(amqp_login(internal->m_pConn, "vhost_zvan", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, strUser.c_str(), strPasswd.c_str()), "Logging in"))
-	if (0 != internal->ErrorMsg(amqp_login(internal->m_pConn, strvhost.c_str(), 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, strUser.c_str(), strPasswd.c_str()), "Logging in"))
-	{
-		
-        return false;
-    }
-
-    return true;
+	return internal->connect(strvhost, strHostname, iPort, strUser, strPasswd, timeout);
 }
 
 
@@ -262,6 +326,7 @@ bool RabbitmqClient::disconnect()
  
 bool RabbitmqClient::publish( const string &strMessage ) 
 {
+	Guard locker(internal->mutex);
     if (NULL == internal->m_pConn)
     {
         return false;

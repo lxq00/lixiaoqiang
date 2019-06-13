@@ -104,6 +104,8 @@ public:
 	static int lastIndexOfByCase(const char* src, int len, const std::string& fromindex);
 
 	static std::string replace(const std::string& src,const std::string& substr,const std::string& replacement);
+    
+    static std::string snprintf_x(int maxsize, const char* fmt, ...);
 };
 
 #ifdef WIN32

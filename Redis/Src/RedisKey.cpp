@@ -7,7 +7,7 @@ namespace Redis {
 
 struct RedisKey::RedisKeyInternal
 {
-	weak_ptr<Redis_Client>	client;
+	shared_ptr<Redis_Client>	client;
 };
 RedisKey::RedisKey(const shared_ptr<Redis_Client>& client)
 {
@@ -21,7 +21,7 @@ RedisKey::~RedisKey()
 }
 bool RedisKey::setnx(int index,const std::string& key, const Value& val)
 {
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return false;
 
 	RedisValue retval;
@@ -34,7 +34,7 @@ bool RedisKey::setnx(int index,const std::string& key, const Value& val)
 }
 bool RedisKey::expire(int index, const std::string& key, int ttl_ms)
 {
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return false;
 
 	RedisValue retval;
@@ -47,7 +47,7 @@ bool RedisKey::expire(int index, const std::string& key, int ttl_ms)
 }
 bool RedisKey::set(int index, const std::string& key, const Value& val)
 {
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return false;
 
 	if (!client->command(index, "SET", { String::ansi2utf8(key),String::ansi2utf8(val.readString()) }))
@@ -59,7 +59,7 @@ bool RedisKey::set(int index, const std::string& key, const Value& val)
 }
 Value RedisKey::get(int index, const std::string& key)
 {
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return Value();
 
 	RedisValue retval;
@@ -72,7 +72,7 @@ Value RedisKey::get(int index, const std::string& key)
 }
 bool RedisKey::exists(int index,const std::string& key)
 {
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return false;
 
 	RedisValue retval;
@@ -100,7 +100,7 @@ bool RedisKey::del(int index,const std::vector<std::string>& keys)
 			args.push_back(String::ansi2utf8(keys[i]));
 		}
 
-		shared_ptr<Redis_Client> client = internal->client.lock();
+		shared_ptr<Redis_Client> client = internal->client;
 		if (client == NULL) return false;
 
 		if (!client->command(index, "DEL", args))
@@ -113,7 +113,7 @@ bool RedisKey::del(int index,const std::vector<std::string>& keys)
 }
 std::vector<std::string> RedisKey::keys(int index,const std::string& pattern)
 {
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return std::vector<std::string>();
 
 	RedisValue retval;
@@ -135,7 +135,7 @@ std::vector<std::string> RedisKey::keys(int index,const std::string& pattern)
 }
 bool RedisKey::rename(int index,const std::string& oldkey, const std::string& newkey)
 {
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return false;
 
 	if (!client->command(index, "RENAME", { String::ansi2utf8(oldkey),String::ansi2utf8(newkey) }))
@@ -147,7 +147,7 @@ bool RedisKey::rename(int index,const std::string& oldkey, const std::string& ne
 }
 int RedisKey::len(int index,const std::string& key)
 {
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return 0;
 
 	RedisValue retval;
@@ -161,7 +161,7 @@ int RedisKey::len(int index,const std::string& key)
 
 int RedisKey::incr(int index,const std::string& key, int val)
 {
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return 0;
 
 	RedisValue retval;
@@ -184,7 +184,7 @@ int RedisKey::incr(int index,const std::string& key, int val)
 }
 int RedisKey::decr(int index,const std::string& key, int val)
 {
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return 0;
 	
 	RedisValue retval;

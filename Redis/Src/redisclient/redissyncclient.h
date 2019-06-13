@@ -1,11 +1,11 @@
 #ifndef REDISSYNCCLIENT_REDISCLIENT_H
 #define REDISSYNCCLIENT_REDISCLIENT_H
 
-#include "redisclientimpl.h"
+#include "redissyncclientimpl.h"
 
 
 namespace redisclient {
-class RedisSyncClient:public RedisClientImpl{
+class RedisSyncClient:public RedisSyncClientImpl{
 public:
      RedisSyncClient(const shared_ptr<IOWorker>& worker);
      ~RedisSyncClient();

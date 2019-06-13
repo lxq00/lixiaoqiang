@@ -6,7 +6,7 @@ namespace Redis {
 
 struct RedisSet::RedisSetInternal
 {
-	weak_ptr<Redis_Client>	client;
+	shared_ptr<Redis_Client>	client;
 	std::string				key;
 	int						index;
 };
@@ -23,7 +23,7 @@ RedisSet::~RedisSet()
 }
 uint32_t RedisSet::size()
 {
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return 0;
 
 	RedisValue retval;
@@ -53,7 +53,7 @@ bool RedisSet::insert(const vector<Value>& vals)
 			args.push_back(String::ansi2utf8(vals[i].readString()));
 		}
 
-		shared_ptr<Redis_Client> client = internal->client.lock();
+		shared_ptr<Redis_Client> client = internal->client;
 		if (client == NULL) return false;
 
 		if (!client->command(internal->index, "SADD", args))
@@ -81,7 +81,7 @@ bool RedisSet::remove(const vector<Value>& vals)
 			args.push_back(String::ansi2utf8(vals[i].readString()));
 		}
 
-		shared_ptr<Redis_Client> client = internal->client.lock();
+		shared_ptr<Redis_Client> client = internal->client;
 		if (client == NULL) return false;
 
 		if (!client->command(internal->index, "SREM", args))
@@ -93,7 +93,7 @@ bool RedisSet::remove(const vector<Value>& vals)
 }
 vector<Value> RedisSet::members()
 {
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return vector<Value>();
 
 	RedisValue retval;
@@ -116,7 +116,7 @@ vector<Value> RedisSet::members()
 
 bool RedisSet::exists(const Value& val)
 {
-	shared_ptr<Redis_Client> client = internal->client.lock();
+	shared_ptr<Redis_Client> client = internal->client;
 	if (client == NULL) return false;
 
 	RedisValue retval;

@@ -111,6 +111,10 @@ void WebSocketSession::start(const RecvDataCallback& datacallback, const Disconn
 	internal->datacallbck = datacallback;
 	internal->disconnectcallback = disconnectcallback;
 }
+void WebSocketSession::stop()
+{
+
+}
 bool WebSocketSession::connected() const
 {
 	shared_ptr<Socket> tmp = internal->getsocket();
@@ -151,6 +155,11 @@ NetAddr WebSocketSession::remoteAddr() const
 	if (tmp == NULL) return NetAddr();
 
 	return tmp->getOtherAddr();
+}
+
+uint32_t WebSocketSession::sendListSize()
+{
+    return internal->sendListSize();
 }
 
 struct WebSocketServer::WebSocketServerInternal
@@ -275,7 +284,10 @@ bool WebSocketServer::listen(const std::string& path, const AcceptCallback& call
 bool WebSocketServer::startAccept(uint32_t port)
 {
 	internal->sock = TCPServer::create(internal->worker, port);
-
+    if (internal->sock == shared_ptr<Socket>())
+    {
+        return false;
+    }
 	internal->sock->async_accept(Socket::AcceptedCallback(&WebSocketServerInternal::socktAcceptCallback, internal));
 
 	return true;

@@ -28,6 +28,7 @@ public:
 	virtual ~WebSocketSession();
 
 	void start(const RecvDataCallback& datacallback,const DisconnectCallback& disconnectcallback);
+	void stop();
 	bool connected() const;
 	
 	bool send(const std::string& data, WebSocketDataType type);
@@ -36,6 +37,8 @@ public:
 	Value header(const std::string& key) const;
 	const URL& url() const;
 	NetAddr remoteAddr() const;
+
+    uint32_t sendListSize();
 private:
 	struct WebSocketSessionInternal;
 	WebSocketSessionInternal* internal;
