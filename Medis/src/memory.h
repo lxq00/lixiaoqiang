@@ -21,6 +21,7 @@ class Memory
 			snprintf_x(buffer,255, "medis_%06x", this);
 
 			sharemem = ShareMem::create(buffer, MAXSHAREDMEMSIZE);
+			if (sharemem == NULL) return;
 			memPool = make_shared<StaticMemPool>((char*)sharemem->getbuffer(), MAXSHAREDMEMSIZE, (IMutexInterface*)NULL, true);
 		}
 	};
@@ -49,6 +50,11 @@ public:
 		}
 
 		shared_ptr<MemNode> node = make_shared<MemNode>();
+		if (node->memPool == NULL)
+		{
+			assert(0);
+			return NULL;
+		}
 		void* ptr = node->memPool->Malloc(size, realsize);
 		if (ptr == NULL)
 		{

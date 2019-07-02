@@ -8,8 +8,12 @@
 
 #define NOTUSESPACETIMEOUT		3*SAVEMAXTIMEOUT
 
-#define HEADERFLAG			"h"
-
+#define HEADER_TYPE		"t"
+#define HEADER_KEY		"k"
+#define HEADER_EXPIRE	"e"
+#define HEADER_INDEX	"i"
+#define HEADER_NAME		"n"
+#define HEADER_FLAG		"h"
 
 class StoreFactory :public DataFactory
 {
@@ -28,31 +32,29 @@ public:
 	void loadDBInfo(std::vector<shared_ptr<ValueHeader> >& headerlist, std::vector<shared_ptr<ValueData> >& datalist)
 	{
 		shared_ptr<Storer> storer = make_shared<Storer>();
-		if (!storer->open(savefilename, false))
+		if (storer->open(savefilename, false))
 		{
-			return;
-		}
+			std::map<std::string, RedisString> headerinfos;
+			storer->load(headerinfos);
 
-		std::map<std::string,RedisString> headerinfos;
-		storer->load(headerinfos);
-
-		for(std::map<std::string, RedisString>::iterator iter = headerinfos.begin();iter != headerinfos.end();iter ++)
-		{
-			std::map<std::string, Value> headerarray;
-			parseHeaderString(iter->first, headerarray);
-
-			if (getHeaderValue(headerarray, HEADERFLAG).readBool())
+			for (std::map<std::string, RedisString>::iterator iter = headerinfos.begin(); iter != headerinfos.end(); iter++)
 			{
-				shared_ptr<ValueHeader> header = parseAndBuildHeader(headerarray);
+				std::map<std::string, Value> headerarray;
+				parseHeaderString(iter->first, headerarray);
 
-				headerlist.push_back(header);
-			}
-			else
-			{
-				shared_ptr<ValueData> data = parseAndBuildData(headerarray, headerlist, iter->second);
-				if (data != NULL)
+				if (getHeaderValue(headerarray, HEADER_FLAG).readBool())
 				{
-					datalist.push_back(data);
+					shared_ptr<ValueHeader> header = parseAndBuildHeader(headerarray);
+
+					headerlist.push_back(header);
+				}
+				else
+				{
+					shared_ptr<ValueData> data = parseAndBuildData(headerarray, headerlist, iter->second);
+					if (data != NULL)
+					{
+						datalist.push_back(data);
+					}
 				}
 			}
 		}
@@ -111,6 +113,8 @@ public:
 private:
 	void onPoolTimerProc(unsigned long)
 	{
+		if (headerchangelist.size() + datachangelist.size() == 0) return;
+
 		uint64_t nowtime = Time::getCurrentMilliSecond();
 
 		if (headerchangelist.size() + datachangelist.size() > SAVEMAXNUM || nowtime - prevsavetime > SAVEMAXTIMEOUT)
@@ -159,11 +163,11 @@ private:
 		std::string headerstr;
 		{
 			std::map<std::string, Value> headerarray;
-			headerarray["t"] = (int)header->m_type;
-			headerarray["j"] = header->m_key;
-			headerarray["e"] = header->m_expire;
-			headerarray["i"] = header->m_dbindex;
-			headerarray[HEADERFLAG] = true;
+			headerarray[HEADER_TYPE] = (int)header->m_type;
+			headerarray[HEADER_KEY] = header->m_key;
+			headerarray[HEADER_EXPIRE] = header->m_expire;
+			headerarray[HEADER_INDEX] = header->m_dbindex;
+			headerarray[HEADER_FLAG] = 1;
 
 			buildHeaderString(headerarray, headerstr);
 		}
@@ -171,10 +175,10 @@ private:
 	}
 	shared_ptr<ValueHeader> parseAndBuildHeader(const std::map<std::string, Value>& headerarray)
 	{
-		DataType type = (DataType)getHeaderValue(headerarray, "t").readInt();
-		std::string key = getHeaderValue(headerarray, "k").readString();
-		uint64_t expire = getHeaderValue(headerarray, "e").readInt64();
-		uint32_t dbindex = getHeaderValue(headerarray, "i").readInt();
+		DataType type = (DataType)getHeaderValue(headerarray, HEADER_TYPE).readInt();
+		std::string key = getHeaderValue(headerarray, HEADER_KEY).readString();
+		uint64_t expire = getHeaderValue(headerarray, HEADER_EXPIRE).readInt64();
+		uint32_t dbindex = getHeaderValue(headerarray, HEADER_INDEX).readInt();
 
 		shared_ptr<ValueHeader> valueheader = createHeader(key, dbindex, type);
 		valueheader->setExpire(expire);
@@ -189,11 +193,11 @@ private:
 		std::string headerstr;
 		{
 			std::map<std::string, Value> headerarray;
-			headerarray["t"] = (int)header->m_type;
-			headerarray["k"] = header->m_key;
-			headerarray["e"] = header->m_expire;
-			headerarray["i"] = header->m_dbindex;
-			headerarray["n"] = data->m_name;
+			headerarray[HEADER_TYPE] = (int)header->m_type;
+			headerarray[HEADER_KEY] = header->m_key;
+			headerarray[HEADER_EXPIRE] = header->m_expire;
+			headerarray[HEADER_INDEX] = header->m_dbindex;
+			headerarray[HEADER_NAME] = data->m_name;
 
 			buildHeaderString(headerarray, headerstr);
 		}
@@ -201,11 +205,11 @@ private:
 	}
 	shared_ptr<ValueData> parseAndBuildData(const std::map<std::string, Value>& headerarray,const std::vector<shared_ptr<ValueHeader> >& headerlist,const RedisString& datastr)
 	{
-		DataType type = (DataType)getHeaderValue(headerarray, "t").readInt();
-		std::string key = getHeaderValue(headerarray, "k").readString();
-		uint64_t expire = getHeaderValue(headerarray, "e").readInt64();
-		uint32_t dbindex = getHeaderValue(headerarray, "i").readInt();
-		std::string name = getHeaderValue(headerarray, "n").readString();
+		DataType type = (DataType)getHeaderValue(headerarray, HEADER_TYPE).readInt();
+		std::string key = getHeaderValue(headerarray, HEADER_KEY).readString();
+		uint64_t expire = getHeaderValue(headerarray, HEADER_EXPIRE).readInt64();
+		uint32_t dbindex = getHeaderValue(headerarray, HEADER_INDEX).readInt();
+		std::string name = getHeaderValue(headerarray, HEADER_NAME).readString();
 
 		shared_ptr<ValueHeader> header = getDataHeader(headerlist, type, key, dbindex);
 		if (header == NULL) return shared_ptr<ValueData>();
