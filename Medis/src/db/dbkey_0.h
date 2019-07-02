@@ -2,17 +2,16 @@
 
 #include "Base/Base.h"
 #include "Network/Network.h"
-#include "valuehash.h"
-#include "valuestring.h"
-#include "valuezset.h"
-#include "valuelist.h"
+#include "value/valuehash.h"
+#include "value/valuestring.h"
+#include "value/valuezset.h"
+#include "value/valuelist.h"
 #include "boost/regex.hpp"
 using namespace Public::Base;
 using namespace Public::Network;
 
 
 typedef Function1<RedisValue, const std::vector<RedisValue> &> CommandCallback;
-typedef Function2<void, void*, const RedisValue&> CmdResultCallback;
 
 class DBKey:public Strand
 {

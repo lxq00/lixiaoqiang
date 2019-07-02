@@ -1,7 +1,8 @@
-#include "keyobject.h"
-#include "communication.h"
-#include "storefactory.h"
+#include "db/keyobject.h"
+#include "communication/communication.h"
+#include "dump/storefactory.h"
 #include "Medis/Medis.h"
+#include "message/megssage.h"
 
 using namespace Public::Medis;
 
@@ -10,19 +11,27 @@ struct Service::ServiceInternal
 	ServiceInternal() {}
 	~ServiceInternal() {}
 
+	void userDisconnectCallback(void* user)
+	{
+		message->userOffline(user);
+	}
 	void commuRecvDatacallback(void* user, uint32_t dbindex, const shared_ptr<RedisValue>& value)
 	{
 		RedisValue retval;
 		if (doServiceCommand(value, retval))
 		{
-			keyobjectResultCallback(user, retval);
+			commandSendCallback(user, retval);
+		}
+		else if (message->inputCommand(CmdResultCallback(&ServiceInternal::commandSendCallback, this), user, dbindex, value))
+		{
+
 		}
 		else
 		{
-			key->inputConnectionData(CmdResultCallback(&ServiceInternal::keyobjectResultCallback, this), user, dbindex, value);
+			key->inputConnectionData(CmdResultCallback(&ServiceInternal::commandSendCallback, this), user, dbindex, value);
 		}
 	}
-	void keyobjectResultCallback(void* user, const RedisValue& value)
+	void commandSendCallback(void* user, const RedisValue& value)
 	{
 		if (commu == NULL) return;
 		shared_ptr<Connection> connection = commu->getConnection(user);
@@ -183,6 +192,7 @@ public:
 	shared_ptr<Communication> commu;
 	shared_ptr<DataFactory>	  factory;
 	shared_ptr<KeyObject>	  key;
+	shared_ptr<Message>		  message;
 };
 
 
@@ -212,7 +222,9 @@ bool Service::start(const shared_ptr<IOWorker>& worker, uint32_t port)
 		internal->key->initKeyObject(headerlist, datalist);
 	}
 
-	internal->commu = make_shared<Communication>(worker, RecvDataCallback(&ServiceInternal::commuRecvDatacallback, internal), port);
+	internal->commu = make_shared<Communication>(worker, RecvDataCallback(&ServiceInternal::commuRecvDatacallback, internal),
+		ConnectionDisconnectCallback(&ServiceInternal::userDisconnectCallback,internal),port);
+	internal->message = make_shared<Message>(worker, CmdMessageCallback(&ServiceInternal::commandSendCallback, internal));
 
 	return true;
 }

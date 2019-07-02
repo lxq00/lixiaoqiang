@@ -2,8 +2,8 @@
 
 #include "Base/Base.h"
 #include "Network/Network.h"
-#include "db.h"
-#include "redisprotocol.h"
+#include "db/db.h"
+#include "common/redisprotocol.h"
 using namespace Public::Base;
 using namespace Public::Network;
 

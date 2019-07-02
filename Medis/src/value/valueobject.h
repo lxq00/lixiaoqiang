@@ -3,7 +3,7 @@
 #include "Base/Base.h"
 #include "valuedata.h"
 #include "boost/regex.hpp" 
-#include "redisvalue.h"
+#include "common/redisvalue.h"
 #include "valuedata.h"
 using namespace Public::Base;
 

@@ -28,76 +28,94 @@
     <Filter Include="common">
       <UniqueIdentifier>{21b9507d-537a-4cb0-bb0b-a677e18f7214}</UniqueIdentifier>
     </Filter>
+    <Filter Include="message">
+      <UniqueIdentifier>{d52b9dc2-0500-4cf3-8457-454b56929ec1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\communication.h">
-      <Filter>communication</Filter>
-    </ClInclude>
-    <ClInclude Include="src\storer.h">
-      <Filter>dump</Filter>
-    </ClInclude>
-    <ClInclude Include="src\valueobject.h">
-      <Filter>value</Filter>
-    </ClInclude>
-    <ClInclude Include="src\valuestring.h">
-      <Filter>value</Filter>
-    </ClInclude>
-    <ClInclude Include="src\valuezset.h">
-      <Filter>value</Filter>
-    </ClInclude>
-    <ClInclude Include="src\valuelist.h">
-      <Filter>value</Filter>
-    </ClInclude>
-    <ClInclude Include="src\valuehash.h">
-      <Filter>value</Filter>
-    </ClInclude>
-    <ClInclude Include="src\connection.h">
-      <Filter>communication</Filter>
-    </ClInclude>
-    <ClInclude Include="src\dbkey_0.h">
-      <Filter>db</Filter>
-    </ClInclude>
-    <ClInclude Include="src\dbstring_1.h">
-      <Filter>db</Filter>
-    </ClInclude>
-    <ClInclude Include="src\dblist_2.h">
-      <Filter>db</Filter>
-    </ClInclude>
-    <ClInclude Include="src\dbzset_3.h">
-      <Filter>db</Filter>
-    </ClInclude>
-    <ClInclude Include="src\dbhash_4.h">
-      <Filter>db</Filter>
-    </ClInclude>
-    <ClInclude Include="src\db.h">
-      <Filter>db</Filter>
-    </ClInclude>
-    <ClInclude Include="src\keyobject.h">
-      <Filter>db</Filter>
-    </ClInclude>
-    <ClInclude Include="src\valuedata.h">
-      <Filter>value</Filter>
-    </ClInclude>
     <ClInclude Include="..\Include\Medis\Defs.h">
       <Filter>源文件</Filter>
     </ClInclude>
     <ClInclude Include="..\Include\Medis\Medis.h">
       <Filter>源文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\storefactory.h">
+    <ClInclude Include="src\common\memory.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\redisprotocol.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\redisstring.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\redisvalue.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\communication\communication.h">
+      <Filter>communication</Filter>
+    </ClInclude>
+    <ClInclude Include="src\communication\connection.h">
+      <Filter>communication</Filter>
+    </ClInclude>
+    <ClInclude Include="src\db\db.h">
+      <Filter>db</Filter>
+    </ClInclude>
+    <ClInclude Include="src\db\dbhash_4.h">
+      <Filter>db</Filter>
+    </ClInclude>
+    <ClInclude Include="src\db\dbkey_0.h">
+      <Filter>db</Filter>
+    </ClInclude>
+    <ClInclude Include="src\db\dblist_2.h">
+      <Filter>db</Filter>
+    </ClInclude>
+    <ClInclude Include="src\db\dbstring_1.h">
+      <Filter>db</Filter>
+    </ClInclude>
+    <ClInclude Include="src\db\dbzset_3.h">
+      <Filter>db</Filter>
+    </ClInclude>
+    <ClInclude Include="src\db\keyobject.h">
+      <Filter>db</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dump\storefactory.h">
       <Filter>dump</Filter>
     </ClInclude>
-    <ClInclude Include="src\memory.h">
+    <ClInclude Include="src\dump\storer.h">
+      <Filter>dump</Filter>
+    </ClInclude>
+    <ClInclude Include="src\value\valuedata.h">
+      <Filter>value</Filter>
+    </ClInclude>
+    <ClInclude Include="src\value\valuehash.h">
+      <Filter>value</Filter>
+    </ClInclude>
+    <ClInclude Include="src\value\valuelist.h">
+      <Filter>value</Filter>
+    </ClInclude>
+    <ClInclude Include="src\value\valueobject.h">
+      <Filter>value</Filter>
+    </ClInclude>
+    <ClInclude Include="src\value\valuestring.h">
+      <Filter>value</Filter>
+    </ClInclude>
+    <ClInclude Include="src\value\valuezset.h">
+      <Filter>value</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\config.h">
       <Filter>common</Filter>
     </ClInclude>
-    <ClInclude Include="src\redisvalue.h">
-      <Filter>common</Filter>
+    <ClInclude Include="src\message\exchange.h">
+      <Filter>message</Filter>
     </ClInclude>
-    <ClInclude Include="src\redisstring.h">
-      <Filter>common</Filter>
+    <ClInclude Include="src\message\pub-sub.h">
+      <Filter>message</Filter>
     </ClInclude>
-    <ClInclude Include="src\redisprotocol.h">
-      <Filter>common</Filter>
+    <ClInclude Include="src\message\push-pull.h">
+      <Filter>message</Filter>
+    </ClInclude>
+    <ClInclude Include="src\message\megssage.h">
+      <Filter>message</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

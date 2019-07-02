@@ -2,8 +2,6 @@
 
 #include "db.h"
 
-#define MAXDBINDEX		8
-
 
 class KeyObject
 {

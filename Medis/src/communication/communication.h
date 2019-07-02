@@ -7,10 +7,13 @@ using namespace Public::Base;
 using namespace Public::Network;
 
 
+typedef Function1<void, void*> ConnectionDisconnectCallback;
+
 class Communication
 {
 public:
-	Communication(const shared_ptr<IOWorker>& worker,const RecvDataCallback& callback, uint32_t port) :recvdatacallback(callback)
+	Communication(const shared_ptr<IOWorker>& worker,const RecvDataCallback& callback,const ConnectionDisconnectCallback& discallback,uint32_t port) 
+		:recvdatacallback(callback),disconnectcallback(discallback)
 	{
 		tcpserver = TCPServer::create(worker, port);
 		tcpserver->async_accept(Socket::AcceptedCallback(&Communication::acceptCallback, this));
@@ -64,6 +67,7 @@ private:
 				connectlist.erase(iter);
 			}
 		}
+		disconnectcallback(tmp.get());
 	}
 	void onPoolTimerproc(unsigned long)
 	{
@@ -90,6 +94,7 @@ private:
 	}
 private:
 	RecvDataCallback							recvdatacallback;
+	ConnectionDisconnectCallback				disconnectcallback;
 
 	shared_ptr<Timer>							pooltimer;
 	Mutex										mutex;

@@ -177,3 +177,6 @@ private:
 
 	boost::variant<NullTag, StatusTag, int64_t, RedisString, std::vector<RedisValue> > value;
 };
+
+
+typedef Function2<void, void*, const RedisValue&> CmdResultCallback;
