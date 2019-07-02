@@ -48,13 +48,27 @@ public:
 		: headerIsBuild(false), sendpos(0),sock(_sock),useragent(_useragent)
 		, issending(false), sendcontentlen(-1), sendheaderlen(0),object(_obj), socketUsedTime(Time::getCurrentMilliSecond())
 	{}
-	virtual ~HTTPBuilder() {}
+	virtual ~HTTPBuilder()
+    {
+        shared_ptr<Socket> socket = sock.lock();
+        if (socket != NULL)
+        {
+            socket->disconnect();
+        }
+    }
 
 	bool isFinish(uint32_t objectsize = 1)
 	{
-		if (sendcontentlen == -1 && objectsize == 1) return true;
-		else if (sendpos == sendcontentlen && objectsize == 1) return true;
-
+        Guard locker(mutex);
+        uint64_t nowtime = Time::getCurrentMilliSecond();
+        if (sendcontentlen == -1 && objectsize == 1)
+        {
+            return true;
+        }
+        else if (sendpos == sendcontentlen && objectsize == 1 && (nowtime < socketUsedTime ||nowtime - socketUsedTime >= 500))
+        {
+            return true;
+        }
 		return false;
 	}
 
@@ -72,7 +86,7 @@ private:
 		shared_ptr<OBJECT>  objecttmp = object.lock();
 		shared_ptr<Socket> socket = sock.lock();
 		if (objecttmp == NULL || socket == NULL) return;
-
+        
 		if (tmp != NULL && len >= 0) issending = false;
 
 		if (issending) return;
@@ -111,7 +125,8 @@ private:
 		}
 		else
 		{
-			object->headers()[Content_Length] = object->content()->size();
+            sendcontentlen = object->content()->size();
+			object->headers()[Content_Length] = sendcontentlen;
 		}
 
 		if (useragent != "")

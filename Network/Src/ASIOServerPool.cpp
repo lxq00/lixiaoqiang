@@ -27,10 +27,9 @@ public:
 private:
 	void threadRunProc(Thread* t, void* param);
 public:
-	boost::shared_ptr<boost::asio::io_service>					ioserver;
+	boost::shared_ptr<boost::asio::io_service>			ioserver;
 private:
-	Mutex												mutex;
-	boost::shared_ptr<boost::asio::io_service::work>			worker;
+	boost::shared_ptr<boost::asio::io_service::work>	worker;
 	std::list<shared_ptr<Thread> >						threadPool;
 	bool												poolQuit;
 };

@@ -13,7 +13,7 @@ namespace Public{
 namespace Base{
 
 ///进程间命名互斥锁
-class BASE_API NamedMutex:public ILockerObjcPtr
+class BASE_API NamedMutex:public IMutexInterface
 {
 	struct NamedMutexInternal;
 	NamedMutex(const NamedMutex&);
@@ -30,7 +30,7 @@ private:
 };
 
 ///进程间命名信号量
-class BASE_API NamedSemaphore:public ISemaphoreObjcPtr
+class BASE_API NamedSemaphore:public ISemaphoreInterface
 {
 	NamedSemaphore(const NamedSemaphore&);
 	NamedSemaphore& operator=(const NamedSemaphore&);
@@ -54,18 +54,35 @@ class BASE_API ShareMEMBuffer
 	struct ShareMEMBufferInternal;
 public:
 	typedef Function2<void,void*,int>		ReadMEMCallback;
+private:
+	ShareMEMBuffer(const std::string& shareName, int createBlock, int maxBlock, int rblockSize, int bocknum, int memMaxSize, bool create, void* startAddr, const ReadMEMCallback& callback);
 public:
-	ShareMEMBuffer(const std::string& shareName,int createBlock,int maxBlock,int rblockSize,int bocknum,int memMaxSize,bool create,void* startAddr,const ReadMEMCallback& callback);
 	~ShareMEMBuffer();
 	
 	static shared_ptr<ShareMEMBuffer> create(const std::string& shareName,int writeBlockSize,int wrteBlockNum,int readBlockSize,int readBlockNum,int memMaxSize,const ReadMEMCallback& callback = NULL);
 	static shared_ptr<ShareMEMBuffer> open(const std::string& shareName,int readBlockSize,int readBlockNum,int writeBlockSize,int writeBlockNum,int memMaxSize,void* startAddr,const ReadMEMCallback& callback);
 	
 	int write(void* block,int size);
-	IMallcFreeMemObjcPtr* getMallckFreeObjcPtr();
-	char* getShareStartMemBuffer();
 private:
 	ShareMEMBufferInternal* internal;
+};
+
+
+///进程间共享内存
+class BASE_API ShareMEMPool
+{
+	struct ShareMEMPoolInternal;
+private:
+	ShareMEMPool(const std::string& shareName, uint32_t mempoolsize, bool create);
+public:
+	~ShareMEMPool();
+
+	static shared_ptr<ShareMEMPool> create(const std::string& shareName, uint32_t mempoolsize);
+	static shared_ptr<ShareMEMPool> open(const std::string& shareName, uint32_t mempoolsize);
+
+	IMempoolInterface* getMempool();
+private:
+	ShareMEMPoolInternal* internal;
 };
 
 

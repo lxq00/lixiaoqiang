@@ -16,7 +16,7 @@ namespace Public{
 namespace Base{
 /// \class Semaphore
 /// \brief 多平台信号量类
-class BASE_API Semaphore:public ISemaphoreObjcPtr
+class BASE_API Semaphore:public ISemaphoreInterface
 {
 	Semaphore(Semaphore const&);
 	Semaphore& operator=(Semaphore const&);

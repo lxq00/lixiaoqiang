@@ -72,37 +72,39 @@ namespace Base{
 #include "Base/Defs.h"
 
 //加锁释放锁接口
-class BASE_API ILockerObjcPtr
+class BASE_API IMutexInterface
 {
 public:
-	ILockerObjcPtr(){}
-	virtual ~ILockerObjcPtr(){}
+	IMutexInterface(){}
+	virtual ~IMutexInterface(){}
 
 	virtual bool enter() {return false;}
-	virtual bool leave() {return false;}
+	virtual bool leave() = 0;
 };
 
 //内存释放分配接口
-class BASE_API IMallcFreeMemObjcPtr
+class BASE_API IMempoolInterface
 {
 public:
-	IMallcFreeMemObjcPtr(){}
-	virtual ~IMallcFreeMemObjcPtr(){}
+	IMempoolInterface(){}
+	virtual ~IMempoolInterface(){}
 
-	virtual void* Malloc(uint32_t size,uint32_t& realsize) {return NULL;}
-	virtual void Free(void* addr) {}
+	virtual void* Malloc(uint32_t size, uint32_t& realsize) = 0;
+	virtual bool Free(void* addr) = 0;
+	virtual uint32_t maxBufferSize() { return 0; }
+	virtual uint32_t usedBufferSize() { return 0; }
 };
 
 //信号量接口
-class BASE_API ISemaphoreObjcPtr
+class BASE_API ISemaphoreInterface
 {
 public:
-	ISemaphoreObjcPtr(){}
-	virtual ~ISemaphoreObjcPtr(){}
+	ISemaphoreInterface(){}
+	virtual ~ISemaphoreInterface(){}
 
-	virtual int pend() {return -1;}
-	virtual int pend(uint32_t timeout) {return -1;}
-	virtual int post() {return -1;}
+	virtual int pend() = 0;
+	virtual int pend(uint32_t timeout) = 0;
+	virtual int post() = 0;
 };
 
 #ifdef WIN32

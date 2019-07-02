@@ -39,21 +39,48 @@ public:
 
 	virtual const char* inputData(const char* buftmp, int len)
 	{
-		return parser->inputData(buftmp, len);
+        shared_ptr<HTTPParser<HTTPResponse> > tmpParser = parser;
+        if (tmpParser == NULL)
+        {
+            return NULL;
+        }
+
+        return tmpParser->inputData(buftmp, len);
 	}
 	virtual bool isFinish()
 	{
-		return builder->isFinish() && parser->isFinish();
+        shared_ptr<HTTPParser<HTTPResponse> > tmpParser = parser;
+        shared_ptr<HTTPBuilder<HTTPRequest> > tmpBuilder = builder;
+        if (tmpParser == NULL || tmpBuilder == NULL)
+        {
+            return false;
+        }
+
+		return tmpBuilder->isFinish() && tmpParser->isFinish();
 	}
 	virtual void onPoolTimerProc()
 	{
-		builder->onPoolTimerProc();
+        shared_ptr<HTTPBuilder<HTTPRequest> > tmpBuilder = builder;
+        if (tmpBuilder != NULL)
+        {
+            tmpBuilder->onPoolTimerProc();
+        }
 	}
 	virtual uint64_t prevAliveTime()
 	{
-		return max(builder->prevAliveTime(), parser->prevAliveTime());
+        shared_ptr<HTTPParser<HTTPResponse> > tmpParser = parser;
+        shared_ptr<HTTPBuilder<HTTPRequest> > tmpBuilder = builder;
+        if (tmpParser == NULL || tmpBuilder == NULL)
+        {
+            return 0;
+        }
+
+		return max(tmpBuilder->prevAliveTime(), tmpParser->prevAliveTime());
 	}
 };
+
+//HTTP服务的使用close模式
+#define HTTPSERVERUSECLOSESESSION
 
 class HTTPSession_Service:public HTTPSession
 {
@@ -70,7 +97,11 @@ public:
 		sock = _sock;
 		useragent = _useragent;
 	}
-	~HTTPSession_Service() {}
+	~HTTPSession_Service() 
+    {
+        builder = NULL;
+        parser = NULL;
+    }
 	bool checkSocketIsOk()
 	{
 		shared_ptr<Socket> socktmp = sock.lock();
@@ -82,8 +113,12 @@ public:
 		response = resp;
 		
 		Value connection = request->header(CONNECTION);
+#ifdef HTTPSERVERUSECLOSESESSION
+		connection = CONNECTION_Close;
+#else
+        //取消CONNECTION_KeepAlive模式
 		if (connection.empty()) connection = CONNECTION_Close;
-
+#endif
 		response->headers()[CONNECTION] = connection;
 
 		builder = make_shared<HTTPBuilder<HTTPResponse> >(response, sock.lock(), useragent);

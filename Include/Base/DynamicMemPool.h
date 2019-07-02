@@ -13,7 +13,7 @@ namespace Public{
 namespace Base{
 
 ///内存池设定、用于Publicmedia、也可以其他地方使用
-class BASE_API DynamicMemPool :public IMallcFreeMemObjcPtr
+class BASE_API DynamicMemPool :public IMempoolInterface
 {
 	class MemPoolInternal;
 public:
@@ -24,7 +24,9 @@ public:
 	void* Malloc(uint32_t size,uint32_t& realsize);
 	
 	/// 内存释放
-	void Free(void*);
+	bool Free(void*);
+
+	uint32_t usedBufferSize();
 
 	/// 内存使用打印
 //	void dump();

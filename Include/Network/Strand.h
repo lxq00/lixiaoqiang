@@ -10,10 +10,15 @@ namespace Network {
 class NETWORK_API Strand
 {
 public:
+	struct NETWORK_API StrandData {
+		virtual ~StrandData() {}
+	};
+	typedef Function1<void, const shared_ptr<StrandData>& > StrandCallback;
+public:
 	Strand(const shared_ptr<IOWorker>& ioworker);
 	virtual ~Strand();
 
-	void post(const Function0<void>& handler);
+	void post(const Strand::StrandCallback& handler, const shared_ptr<Strand::StrandData>& data);
 private:
 	struct StrandInternal;
 	StrandInternal* internal;

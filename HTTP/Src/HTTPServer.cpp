@@ -85,6 +85,7 @@ public:
 	}
 	~HTTPServerObject()
 	{
+		sock->disconnect();
 		sock = NULL;
 		session = NULL;
 	}
@@ -111,6 +112,13 @@ public:
 
 		return timeoutflag;
 	}
+    bool isFinish()
+    {
+        shared_ptr<HTTPSession> tmp = session;
+        if (tmp == NULL) return true;
+
+        return tmp->isFinish();
+    }
 private:
 	void headerParseCallback(const shared_ptr<HTTPRequest>& req)
 	{
@@ -145,11 +153,14 @@ private:
 
 			return;
 		}
-
 		if (tmp->isFinish())
 		{
+#ifndef HTTPSERVERUSECLOSESESSION
 			tmp = session = make_shared<HTTPSession_Service>(sock, useragent,
 				HTTPParser<HTTPRequest>::HeaderParseSuccessCallback(&HTTPServerObject::headerParseCallback, this));
+#else
+			return;
+#endif
 		}
 
 		bufferlen += len;
@@ -180,7 +191,6 @@ private:
 			else
 			{
 				callback.callback(tmp->request, response);
-				session->onPoolTimerProc();
 			}
 		}
 
@@ -297,6 +307,11 @@ struct HTTPServer::HTTPServrInternal:public Thread
 				{
 					timeoutlist.push_back(iter->second);
 				}
+                ////采用close模式，使用完成后断开连接
+                //else if (iter->second->isFinish())
+                //{
+                //    timeoutlist.push_back(iter->second);
+                //}
 			}
 
 			{

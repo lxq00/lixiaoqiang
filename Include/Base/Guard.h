@@ -37,7 +37,7 @@ public:
 			mutex->enter();
 		}		
 	};
-	inline Guard(const shared_ptr<ILockerObjcPtr>& ptr)
+	inline Guard(const shared_ptr<IMutexInterface>& ptr)
 		:mutex(ptr.get())
 	{
 		if (mutex != NULL)
@@ -45,7 +45,7 @@ public:
 			mutex->enter();
 		}
 	};
-	inline Guard(ILockerObjcPtr* ptr)
+	inline Guard(IMutexInterface* ptr)
 		:mutex(ptr)
 	{
 		if(mutex != NULL)
@@ -64,7 +64,7 @@ public:
 	};
 
 private:
-	ILockerObjcPtr *mutex;	///< 需要自动调用的互斥量引用
+	IMutexInterface *mutex;	///< 需要自动调用的互斥量引用
 };
 
 ////////////////////////////////////////////////////////////////////////////////

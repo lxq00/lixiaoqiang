@@ -97,12 +97,14 @@ struct RabbitmqClient::RabbitmqClientInternal:public Thread
 		}
 
 		//if (0 != internal->ErrorMsg(amqp_login(internal->m_pConn, "vhost_zvan", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, strUser.c_str(), strPasswd.c_str()), "Logging in"))
-		if (0 != ErrorMsg(amqp_login(m_pConn, m_strvhost.c_str(), 0, 131072, 10, AMQP_SASL_METHOD_PLAIN, m_strUser.c_str(), m_strPasswd.c_str()), "Logging in"))
+		if (0 != ErrorMsg(amqp_login(m_pConn, m_strvhost.c_str(), 0, 131072, AMQP_DEFAULT_HEARTBEAT, AMQP_SASL_METHOD_PLAIN, m_strUser.c_str(), m_strPasswd.c_str()), "Logging in"))
 		{
 
 			return false;
 		}
 		curStatus = true;
+
+		return true;
 	}
 
 	bool connect(const string &strvhost, const string &strHostname, int iPort, const string &strUser, const string &strPasswd, uint32_t timeout)
@@ -127,11 +129,12 @@ struct RabbitmqClient::RabbitmqClientInternal:public Thread
 		Guard locker(mutex);
 		if (NULL != m_pConn)
 		{
-			if (0 != ErrorMsg(amqp_connection_close(m_pConn, AMQP_REPLY_SUCCESS), "Closing connection"))
-				return;
+			ErrorMsg(amqp_connection_close(m_pConn, AMQP_REPLY_SUCCESS), "Closing connection");
 
 			if (amqp_destroy_connection(m_pConn) < 0)
-				return;
+			{
+				logerror("amqp_destroy_connection() fail!");
+			}
 
 			m_pConn = NULL;
 		}
@@ -146,10 +149,12 @@ struct RabbitmqClient::RabbitmqClientInternal:public Thread
 
 		case AMQP_RESPONSE_NONE:
 			fprintf(stderr, "%s: missing RPC reply type!\n", context);
+            logdebug("%s: missing RPC reply type!", context);
 			break;
 
 		case AMQP_RESPONSE_LIBRARY_EXCEPTION:
 			fprintf(stderr, "%s: %s\n", context, amqp_error_string2(x.library_error));
+            logdebug("%s: %s", context, amqp_error_string2(x.library_error));
 			break;
 
 		case AMQP_RESPONSE_SERVER_EXCEPTION:
@@ -160,6 +165,9 @@ struct RabbitmqClient::RabbitmqClientInternal:public Thread
 				amqp_connection_close_t *m = (amqp_connection_close_t *)x.reply.decoded;
 				fprintf(stderr, "%s: server connection error %uh, message: %.*s\n",
 					context, m->reply_code, (int)m->reply_text.len, (char *)m->reply_text.bytes);
+                logdebug("%s: server connection error %uh, message: %.*s",
+                    context, m->reply_code, (int)m->reply_text.len, (char *)m->reply_text.bytes);
+
 				break;
 			}
 
@@ -168,10 +176,12 @@ struct RabbitmqClient::RabbitmqClientInternal:public Thread
 				amqp_channel_close_t *m = (amqp_channel_close_t *)x.reply.decoded;
 				fprintf(stderr, "%s: server channel error %uh, message: %.*s\n",
 					context, m->reply_code, (int)m->reply_text.len, (char *)m->reply_text.bytes);
+                logdebug("%s: server channel error %uh, message: %.*s\n",
+                    context, m->reply_code, (int)m->reply_text.len, (char *)m->reply_text.bytes);
 				break;
 			}
 			default:
-				fprintf(stderr, "%s: unknown server error, method id 0x%08X\n", context, x.reply.id);
+                logdebug("%s: unknown server error, method id 0x%08X\n", context, x.reply.id);
 				break;
 			}
 			break;

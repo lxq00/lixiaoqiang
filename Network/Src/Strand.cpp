@@ -9,35 +9,23 @@
 namespace Public {
 namespace Network {
 
-struct StrandInternalCallbackObj :public boost::enable_shared_from_this<StrandInternalCallbackObj>
+struct StrandInternalCallbackObj
 {
-	Mutex						mutex;
-	std::list<Function0<void> > handerlist;
+	Strand::StrandCallback handler;
+	shared_ptr<Strand::StrandData> data;
 
-	void strandCallback()
+	static void strandCallback(const shared_ptr<StrandInternalCallbackObj>& object)
 	{
-		Function0<void> hander;
+		shared_ptr<StrandInternalCallbackObj> tmp = object;
+		if (tmp == NULL) return;
 
-		{
-			Guard locker(mutex);
-			if (handerlist.size() <= 0) return;
-			hander = handerlist.front();
-			handerlist.pop_front();
-		}
-
-		hander();
+		tmp->handler(tmp->data);
 	}
 };
 struct Strand::StrandInternal
 {
 	boost::asio::io_service::strand strand;
-	boost::shared_ptr<StrandInternalCallbackObj> callbackobj;
-
-	StrandInternal(const shared_ptr<IOWorker>& ioworker) :strand(**(boost::shared_ptr<boost::asio::io_service>*)ioworker->getBoostASIOIOServerSharedptr())
-	{
-		callbackobj = boost::make_shared<StrandInternalCallbackObj>();
-	}
-	~StrandInternal() { callbackobj = NULL; }
+	StrandInternal(const shared_ptr<IOWorker>& ioworker) :strand(**(boost::shared_ptr<boost::asio::io_service>*)ioworker->getBoostASIOIOServerSharedptr()){}
 };
 Strand::Strand(const shared_ptr<IOWorker>& ioworker)
 {
@@ -48,12 +36,13 @@ Strand::~Strand()
 	SAFE_DELETE(internal);
 }
 
-void Strand::post(const Function0<void>& handler)
+void Strand::post(const Strand::StrandCallback& handler, const shared_ptr<Strand::StrandData>& data)
 {
-	Guard locker(internal->callbackobj->mutex);
-	internal->callbackobj->handerlist.push_back(handler);
+	shared_ptr< StrandInternalCallbackObj> object = make_shared<StrandInternalCallbackObj>();
+	object->handler = handler;
+	object->data = data;
 
-	internal->strand.post(boost::bind(&StrandInternalCallbackObj::strandCallback, internal->callbackobj->shared_from_this()));
+	internal->strand.post(boost::bind(StrandInternalCallbackObj::strandCallback, object));
 }
 
 }

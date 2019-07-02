@@ -17,7 +17,7 @@ namespace Base{
 
 /// \class Mutex
 /// \brief 多平台互斥量类
-class BASE_API ReadWriteMutex:public ILockerObjcPtr
+class BASE_API ReadWriteMutex:public IMutexInterface
 {
 	ReadWriteMutex(ReadWriteMutex const&);
 	ReadWriteMutex& operator=(ReadWriteMutex const&);

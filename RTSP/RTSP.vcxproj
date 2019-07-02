@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{1C8A59D0-96B3-4D3C-A229-8F79CD23C391}</ProjectGuid>
+    <ProjectGuid>{81032761-EE72-45BD-B4FF-07BFF8137A81}</ProjectGuid>
     <RootNamespace>RtspClient</RootNamespace>
     <Keyword>Win32Proj</Keyword>
   </PropertyGroup>

@@ -1,105 +1,326 @@
+#include "boost/regex.hpp"
+#include "boost/shared_ptr.hpp"
+#include "boost/make_shared.hpp"
+#include <boost/asio.hpp>
+#include <websocketpp/server.hpp>
+#include <websocketpp/client.hpp>
+#include <websocketpp/endpoint.hpp>
+#include <websocketpp/config/asio_no_tls.hpp>
+#include <websocketpp/config/asio_no_tls_client.hpp>
 #include "HTTP/WebSocket.h"
 #include "HTTPParser.h"
-#include "WebSocketProtocol.h"
-#include "boost/regex.hpp" 
+
 namespace Public {
 namespace HTTP {
 
-struct WebSocketSession::WebSocketSessionInternal:public WebSocketProtocol
+using websocketpp::connection_hdl;
+typedef websocketpp::server<websocketpp::config::asio> service;
+using std::placeholders::_1;
+using std::placeholders::_2;
+using websocketpp::lib::bind;
+using namespace std;
+
+struct WebSocketCallbackAgent
 {
-	ReadyCallback					readycallback;
-	ErrorCallback					errcallback;
+	typedef Function2<void, connection_hdl&, service::message_ptr&> WebSocketMessageCallback;
+	typedef Function1<void, connection_hdl&> WebSocketCallback;
+	uint32_t threadid;
+
+	WebSocketCallbackAgent()
+	{
+
+	}
+
+	virtual ~WebSocketCallbackAgent()
+	{
+
+	}
+
+	void on_open(connection_hdl hdl)
+	{
+		GuardReadMutex locker(mutex);
+		threadid = Thread::getCurrentThreadID();
+		if (onopen)
+		{
+			onopen(hdl);
+		}
+	}
+
+	void on_message(connection_hdl hdl, service::message_ptr msg)
+	{
+		GuardReadMutex locker(mutex);
+		threadid = Thread::getCurrentThreadID();
+		if (onmessage)
+		{
+			onmessage(hdl, msg);
+		}
+	}
+
+	void on_close(connection_hdl hdl)
+	{
+		GuardReadMutex locker(mutex);
+		threadid = Thread::getCurrentThreadID();
+		if (onclose)
+		{
+			onclose(hdl);
+		}
+	}
+
+	void on_fail(connection_hdl hdl)
+	{
+		GuardReadMutex locker(mutex);
+		threadid = Thread::getCurrentThreadID();
+		if (onfail)
+		{
+			onfail(hdl);
+		}
+	}
+
+	void on_pong(connection_hdl hdl)
+	{
+		GuardReadMutex locker(mutex);
+		threadid = Thread::getCurrentThreadID();
+		if (onpong)
+		{
+			onpong(hdl);
+		}
+	}
+
+	void clear()
+	{
+		onopen = NULL;
+		onmessage = NULL;
+		onclose = NULL;
+		onfail = NULL;
+		onpong = NULL;
+		if (Thread::getCurrentThreadID() != threadid)
+		{
+			GuardWriteMutex locker(mutex);
+		}
+	}
+
+	ReadWriteMutex mutex;
+	WebSocketCallback onopen;
+	WebSocketMessageCallback onmessage;
+	WebSocketCallback onclose;
+	WebSocketCallback onfail;
+	WebSocketCallback onpong;
+
+};
+
+struct WebSocketSession::WebSocketSessionInternal
+{
 	RecvDataCallback				datacallbck;
 	DisconnectCallback				disconnectcallback;
+	Mutex							callbackmutex;
 
 	WebSocketSession*				session;
+	Mutex							mutex;
+	service::connection_ptr			conn;
+	URL								url;
+	std::map<std::string, Value>	_headers;
+	bool							isconnted;
+	uint32_t						max_buffer_size;
+	uint32_t						nBufferOverFrames;
+	shared_ptr<WebSocketCallbackAgent> callback;
 
-	WebSocketSessionInternal():WebSocketProtocol(false){}
+	//unsigned char*					buffer;
+	//unsigned int					bufsize;
+	//unsigned int					buffoffset;
+	
+	WebSocketSessionInternal(const service::connection_ptr & con, const std::string &uri)
+		: isconnted(true)
+//		, buffoffset(0)
+		, conn(con)
+		, url(uri)
+		, max_buffer_size(1024 * 1024 * 4)
+		, nBufferOverFrames(0)
+		, callback(make_shared<WebSocketCallbackAgent>())
+	{
+		callback->onmessage = WebSocketCallbackAgent::WebSocketMessageCallback(&WebSocketSessionInternal::on_message, this);
+		callback->onclose = WebSocketCallbackAgent::WebSocketCallback(&WebSocketSessionInternal::on_close, this);
+		callback->onfail = WebSocketCallbackAgent::WebSocketCallback(&WebSocketSessionInternal::on_fail, this);
+		callback->onpong = WebSocketCallbackAgent::WebSocketCallback(&WebSocketSessionInternal::on_pong_timeout, this);
+
+		conn->set_message_handler(bind(&WebSocketCallbackAgent::on_message, callback, _1, _2));
+		conn->set_close_handler(bind(&WebSocketCallbackAgent::on_close, callback, _1));
+		conn->set_fail_handler(bind(&WebSocketCallbackAgent::on_fail, callback, _1));
+		conn->set_pong_timeout_handler(bind(&WebSocketCallbackAgent::on_pong, callback, _1));
+		getHeader();
+		//bufsize = 1024 * 1024;
+		//buffer = new unsigned char[bufsize];
+	}
+
 	~WebSocketSessionInternal()
 	{
-		WebSocketProtocol::close();
+		close();
+		callback->clear();
+		//if (buffer != NULL)
+		//{
+		//	delete[] buffer;
+		//	buffer = NULL;
+		//}
 	}
 
-	void socketDisConnectcallback(const weak_ptr<Socket>& /*connectSock*/, const std::string&)
+	void getHeader()
 	{
-		disconnectcallback(session);
-		errcallback(session);
+		std::string host = conn->get_host();
+		uint32_t port = conn->get_port();
+		char szPort[64] = { 0 };
+		sprintf(szPort, "%s:%d", host.c_str(), port);
+		_headers.insert(std::make_pair("Host", szPort));
 	}
-	void dataCallback(const std::string& data, WebSocketDataType type)
-	{
-		datacallbck(session, data,type);
-	}
-	void headerParseReady() 
-	{
-		bool ret = readycallback(session);
-		sendResponseHeader(ret);
-	}
-	void sendResponseHeader(bool result)
-	{
-		std::string mask = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
-		std::map<std::string, Value>::iterator iter = headers.find("Sec-WebSocket-Key");
-		if (iter == headers.end())
+	const std::map<std::string, Value>& headers()
+	{
+		return _headers;
+	}
+
+	Value header(const std::string& key)
+	{
+		std::map<std::string, Value>::iterator it = _headers.find(key);
+		if (it != _headers.end())
 		{
-			errcallback(session);
+			return it->second;
+		}
+		logerror("not find websocket header key:%s", key.c_str());
+		return Value();
+	}
+
+	bool send(const std::string& data, WebSocketDataType type)
+	{
+		service::connection_ptr tmp = conn;
+		if (tmp == NULL || !isconnted)
+		{
+			return false;
+		}
+
+		if (tmp->get_send_frame_size() >= 500 || tmp->get_buffered_amount() >= max_buffer_size)
+		{
+			if (++nBufferOverFrames % 2000 == 0)
+			{
+				NetAddr addr = remoteAddr();
+				logerror("remote address:%s:%d session buffer is over!\r\n", addr.getIP().c_str(), addr.getPort());
+			}
+			return false;
+		}
+
+		websocketpp::frame::opcode::value datatype = type == WebSocketDataType_Txt ? websocketpp::frame::opcode::text : websocketpp::frame::opcode::binary;
+		error_code err = tmp->send(data.c_str(), data.size(), datatype);
+		if (err)
+		{
+			NetAddr addr = remoteAddr();
+			logerror("remote address:%s:%d send fail! errmsg:%s", addr.getIP().c_str(), addr.getPort(), err.message().c_str());
+			return false;
+		}
+		return true;
+	}
+
+	void on_message(connection_hdl &hdl, service::message_ptr &msg)
+	{
+		if (!msg->get_fin())
+		{
 			return;
 		}
 
-        bool findProtocol = false;
-        std::string SecWebSocketProtocol;
-        std::map<std::string, Value>::iterator fiter = headers.find("Sec-WebSocket-Protocol");
-        if (fiter != headers.end())
-        {
-            SecWebSocketProtocol = fiter->second.readString();
-            findProtocol = true;
-        }
-
-		std::string value = iter->second.readString() + mask;
-		Base::Sha1 sha1;
-		sha1.input(value.c_str(), value.length());
-
-		std::map<std::string, Value> header;
+		const std::string &data = msg->get_payload();
+		if (datacallbck != NULL)
 		{
-			header["Access-Control-Allow-Origin"] = "*";
-			header["Connection"] = "Upgrade";
-			header["Upgrade"] = "websocket";
-			header["Sec-WebSocket-Accept"] = Base64::encode(sha1.report(Sha1::REPORT_BIN));
-            if(findProtocol)
-            {
-               header["Sec-WebSocket-Protocol"] = SecWebSocketProtocol;
-            }
+			WebSocketDataType dataType = msg->get_opcode() == websocketpp::frame::opcode::value::binary ? WebSocketDataType_Bin : WebSocketDataType_Txt;
+			datacallbck(session, data, dataType);
 		}
+	}
 
-		std::string reqeuststr;
-		if(result) reqeuststr = std::string("HTTP/1.1 101 Switching Protocols") + HTTPHREADERLINEEND;
-		else  reqeuststr = std::string("HTTP/1.1 404 NOT FOUND") + HTTPHREADERLINEEND;
-
-		for (std::map<std::string, Value>::iterator iter = header.begin(); iter != header.end(); iter++)
+	void on_close(connection_hdl &hdl)
+	{
+		isconnted = false;
+		if (disconnectcallback == NULL)
 		{
-			reqeuststr += iter->first + ": " + iter->second.readString() + HTTPHREADERLINEEND;
+			logerror("Œ¥◊¢≤·µÙœﬂªÿµ˜");
+			return;
 		}
-		reqeuststr += HTTPHREADERLINEEND;
+		disconnectcallback(session);
+	}
 
-		addDataAndCheckSend(reqeuststr.c_str(), reqeuststr.length());
-
-		if (!result)
+	void on_fail(connection_hdl &hdl)
+	{
+		isconnted = false;
+		if (disconnectcallback != NULL)
 		{
-			//seel 10 ms ,wait async send success
-			Thread::sleep(10);
-
-			errcallback(session);
+			disconnectcallback(session);
 		}
+	}
+
+	void on_pong_timeout(connection_hdl &hdl)
+	{
+		isconnted = false;
+		if (disconnectcallback != NULL)
+		{
+			disconnectcallback(session);
+		}
+	}
+
+	void close()
+	{
+		if (conn != NULL)
+		{
+			error_code ec;
+			conn->close(websocketpp::close::status::no_status, "", ec);
+			conn = NULL;
+		}
+	}
+
+	void disConnectcallback(const shared_ptr<WebSocketSession>& session)
+	{
+		Guard locker(callbackmutex);
+		if (disconnectcallback == NULL)
+		{
+			return;
+		}
+		disconnectcallback(&*session);
+	}
+	void dataCallback(const std::string& data, WebSocketDataType type)
+	{
+		Guard locker(callbackmutex);
+		if (datacallbck == NULL)
+		{
+			return;
+		}
+		datacallbck(session, data, type);
+	}
+
+	uint32_t sendListSize()
+	{
+		service::connection_ptr tmp = conn;
+		if (tmp == NULL)
+		{
+			return -1;
+		}
+		return tmp->get_send_frame_size();
+	}
+
+	NetAddr remoteAddr()
+	{
+		service::connection_ptr tmp = conn;
+		if (tmp == NULL)
+		{
+			return NetAddr();
+		}
+		std::string ip = tmp->get_socket().remote_endpoint().address().to_string();
+		std::vector<std::string> hostVec = String::split(ip, ":");
+		if (hostVec.size() > 1)
+		{
+			ip = *hostVec.rbegin();
+		}
+		int port = tmp->get_socket().remote_endpoint().port();
+		return NetAddr(ip, port);
 	}
 };
 //web socket session
-WebSocketSession::WebSocketSession(const shared_ptr<Socket>& sock, const ReadyCallback& readycallback, const ErrorCallback& errcallback)
+WebSocketSession::WebSocketSession(void* con, const std::string& uri)
 {
-	internal = new WebSocketSessionInternal();
+	internal = new WebSocketSessionInternal(*(service::connection_ptr*)con, uri);
 	internal->session = this;
-	internal->readycallback = readycallback;
-	internal->errcallback = errcallback;
-
-	internal->setSocketAndStart(sock);
 }
 WebSocketSession::~WebSocketSession()
 {
@@ -108,151 +329,151 @@ WebSocketSession::~WebSocketSession()
 
 void WebSocketSession::start(const RecvDataCallback& datacallback, const DisconnectCallback& disconnectcallback)
 {
+	Guard locker(internal->callbackmutex);
 	internal->datacallbck = datacallback;
 	internal->disconnectcallback = disconnectcallback;
 }
+
 void WebSocketSession::stop()
 {
-
+	{
+		Guard locker(internal->callbackmutex);
+		internal->datacallbck = NULL;
+		internal->disconnectcallback = NULL;
+	}
+	internal->close();
 }
+
 bool WebSocketSession::connected() const
 {
-	shared_ptr<Socket> tmp = internal->getsocket();
-	if (tmp == NULL) return false;
-
-	return tmp->getStatus() == NetStatus_connected;
+	return internal->isconnted;
 }
 	
 bool WebSocketSession::send(const std::string& data, WebSocketDataType type)
 {
-	shared_ptr<Socket> tmp = internal->getsocket();
-	if (tmp == NULL || !internal->ready()) return false;
-
-	return internal->buildAndSend(data, type);
+	return internal->send(data, type);
 }
+
 
 const std::map<std::string, Value>& WebSocketSession::headers() const
 {
-	return internal->headers;
+	return internal->headers();
 }
 Value WebSocketSession::header(const std::string& key) const
 {
-	std::map<std::string, Value>::const_iterator iter = internal->headers.find(key);
-	if (iter == internal->headers.end())
-	{
-		return Value();
-	}
-
-	return iter->second;
+	return internal->header(key);
 }
 const URL& WebSocketSession::url() const
 {
 	return internal->url;
 }
+
 NetAddr WebSocketSession::remoteAddr() const
 {
-	shared_ptr<Socket> tmp = internal->getsocket();
-	if (tmp == NULL) return NetAddr();
-
-	return tmp->getOtherAddr();
+	return internal->remoteAddr();
 }
 
 uint32_t WebSocketSession::sendListSize()
 {
-    return internal->sendListSize();
+	return internal->sendListSize();
+}
+
+WebSocketSession::WebSocketSessionInternal* WebSocketSession::getinternal()
+{
+	return internal;
 }
 
 struct WebSocketServer::WebSocketServerInternal
 {
 	shared_ptr<IOWorker> worker;
-	shared_ptr<Socket>  sock;
-	
-	shared_ptr<Timer>	poolTimer;
+	service server;
+	std::map<std::string, AcceptCallback> acceptCallbackList;
+	Mutex mutex;
 
-	Mutex				mutex;
-	std::map<std::string, AcceptCallback>						acceptCallbackList;
-	std::map< WebSocketSession*, shared_ptr< WebSocketSession> > waitList;
-	std::set< shared_ptr< WebSocketSession> > errlist;
 
 	WebSocketServerInternal()
 	{
-		poolTimer = make_shared<Timer>("WebSocketServerInternal");
-		poolTimer->start(Timer::Proc(&WebSocketServerInternal::onPoolTimerProc, this), 0, 1000);
+
 	}
+
 	~WebSocketServerInternal()
 	{
-		poolTimer = NULL;
-		sock = NULL;
+		stopAccept();
 	}
-	void socktAcceptCallback(const weak_ptr<Socket>& /*oldSock*/, const shared_ptr<Socket>& newSock)
+
+	bool listen(const std::string& path, const AcceptCallback& callback)
+	{
+		std::string flag = String::tolower(path);
+
+		Guard locker(mutex);
+		if (callback == NULL)
+		{
+			acceptCallbackList.erase(flag);
+		}
+		else
+		{
+			acceptCallbackList[flag] = callback;
+		}
+		return true;
+	}
+
+	bool startAccept(uint32_t port)
+	{
+		server.init_asio(((boost::shared_ptr<boost::asio::io_service>*)worker->getBoostASIOIOServerSharedptr())->get());
+		server.set_access_channels(websocketpp::log::alevel::none);
+//		server.clear_access_channels(websocketpp::log::alevel::frame_payload);
+		server.set_open_handler(bind(&WebSocketServerInternal::on_open, this, _1));
+		server.set_fail_handler(bind(&WebSocketServerInternal::on_fail, this, _1));
+		server.listen(port);
+		server.start_accept();
+		return true;
+	}
+
+	bool stopAccept()
+	{
+		error_code err;
+		server.stop_listening(err);
+		if (err)
+		{
+			logerror("stopLlinstening fail! errmsg:%s\r\n", err.message().c_str());
+			return false;
+		}
+		return true;
+	}
+
+	AcceptCallback getcallback(const std::string& url)
 	{
 		Guard locker(mutex);
-
-		shared_ptr<WebSocketSession> session(new WebSocketSession(newSock,
-			WebSocketSession::ReadyCallback(&WebSocketServerInternal::readyCallback, this),
-			WebSocketSession::ErrorCallback(&WebSocketServerInternal::errCallback, this)));
-
-		waitList[session.get()] = session;
-	}
-	bool readyCallback(WebSocketSession* session)
-	{
-		shared_ptr< WebSocketSession> sessionobj;
-		AcceptCallback acceptcallback;
-
+		for (std::map<std::string, AcceptCallback>::iterator it = acceptCallbackList.begin(); it != acceptCallbackList.end(); it++)
 		{
-			Guard locker(mutex);
-			std::map< WebSocketSession*, shared_ptr< WebSocketSession> >::iterator iter = waitList.find(session);
-			if (iter == waitList.end()) return false;
-
-			sessionobj = iter->second;
-			waitList.erase(iter);
-
-			std::string flag = String::tolower(sessionobj->url().getPathName());
-			for (std::map<std::string, AcceptCallback>::iterator iter = acceptCallbackList.begin(); iter != acceptCallbackList.end(); iter++)
+			boost::regex oRegex(it->first);
+			if (boost::regex_match(url, oRegex))
 			{
-				boost::regex oRegex(iter->first);
-				if (!boost::regex_match(flag, oRegex))
-				{
-					continue;
-				}
-
-				acceptcallback = iter->second;
-				break;
-			}
-			
-			if (acceptcallback == NULL)
-			{
-				errlist.insert(sessionobj);
+				return it->second;
 			}
 		}
-		bool ret = acceptcallback(sessionobj);
-		if (!ret)
-		{
-			errlist.insert(sessionobj);
-		}
-		
-		return acceptcallback != NULL;
+		return AcceptCallback();
 	}
 
-	void errCallback(WebSocketSession* session)
+	void on_open(connection_hdl hdl)
 	{
-		Guard locker(mutex);
-		std::map< WebSocketSession*, shared_ptr< WebSocketSession> >::iterator iter = waitList.find(session);
-		if (iter == waitList.end()) return;
-
-		errlist.insert(iter->second);
-		waitList.erase(iter);
-	}
-
-	void onPoolTimerProc(unsigned long)
-	{
-		std::set<shared_ptr< WebSocketSession> > freelist;
+		service::connection_ptr con = server.get_con_from_hdl(hdl);
+		std::string uri = con->get_uri()->get_resource();
+		AcceptCallback callback = getcallback(uri);
+		if (callback == NULL)
 		{
-			Guard locker(mutex);
-			freelist = errlist;
-			errlist.clear();
+			logerror("∑√Œ ¥ÌŒÛ uri:%s", uri.c_str());
+			return;
 		}
+		shared_ptr<WebSocketSession> session = make_shared<WebSocketSession>(&con, uri);
+		callback(session);
 	}
+
+	void on_fail(websocketpp::connection_hdl hdl)
+	{
+		logerror("on fail!");
+	}
+
 };
 
 WebSocketServer::WebSocketServer(const shared_ptr<IOWorker>& worker)
@@ -267,113 +488,215 @@ WebSocketServer::~WebSocketServer()
 }
 bool WebSocketServer::listen(const std::string& path, const AcceptCallback& callback)
 {
-	std::string flag = String::tolower(path);
-
-	Guard locker(internal->mutex);
-	if (callback == NULL)
-	{
-		internal->acceptCallbackList.erase(flag);
-	}
-	else
-	{
-		internal->acceptCallbackList[flag] = callback;
-	}
-
-	return true;
+	return internal->listen(path, callback);
 }
 bool WebSocketServer::startAccept(uint32_t port)
 {
-	internal->sock = TCPServer::create(internal->worker, port);
-    if (internal->sock == shared_ptr<Socket>())
-    {
-        return false;
-    }
-	internal->sock->async_accept(Socket::AcceptedCallback(&WebSocketServerInternal::socktAcceptCallback, internal));
-
-	return true;
+	return internal->startAccept(port);
 }
 bool WebSocketServer::stopAccept()
 {
-	internal->sock = NULL;
-
-	return true;
+	return internal->stopAccept();
 }
 
-struct WebSocketClient::WebSocketClientInternal :public WebSocketProtocol
+
+
+struct WebSocketClient::WebSocketClientInternal
 {
-	std::map<std::string, Value>	extheaders;
-	shared_ptr<IOWorker>			worker;
-	shared_ptr<Socket>				sock;
+	typedef websocketpp::client<websocketpp::config::asio_client> wsclient;
+	typedef websocketpp::config::asio_client::message_type::ptr message_ptr;
 
-	RecvDataCallback				datacallback;
-	DisconnectCallback				disconnectcallback;
-	ConnnectCallback				connectcallback;
+	ConnnectCallback _connectcallback;
+	RecvDataCallback _datacallback;
+	DisconnectCallback _disconnectcallback;
+	WebSocketClient* websocketclient;
+	//unsigned char*					buffer;
+	//unsigned int					bufsize;
+	//unsigned int					bufoffset;
+//	bool							isconnect;
+	boost::shared_ptr<wsclient>		client;
+	shared_ptr<IOWorker>			ioworker;
+	wsclient::connection_ptr		conn;
+	uint32_t						max_buffer_size;
+	Mutex							mutex;
+	bool							isconnected;
+	uint32_t						nBufferOverFrames;
+	shared_ptr<WebSocketCallbackAgent> callback;
 
-	WebSocketClient*				client;
-
-	WebSocketClientInternal():WebSocketProtocol(true){}
-	~WebSocketClientInternal()
+	WebSocketClientInternal(const shared_ptr<IOWorker> &worker)
+		: ioworker(worker)
+		, max_buffer_size(1024 * 1024 * 4)
+		, isconnected(false)
+		, nBufferOverFrames(0)
+		, callback(make_shared<WebSocketCallbackAgent>())
 	{
-		if (sock != NULL) sock->disconnect();
-		sock = NULL;
-		WebSocketProtocol::close();
+		callback->onopen = WebSocketCallbackAgent::WebSocketCallback(&WebSocketClientInternal::on_open, this);
+		callback->onclose = WebSocketCallbackAgent::WebSocketCallback(&WebSocketClientInternal::on_close, this);
+		callback->onfail = WebSocketCallbackAgent::WebSocketCallback(&WebSocketClientInternal::on_fail, this);
+		callback->onmessage = WebSocketCallbackAgent::WebSocketMessageCallback(&WebSocketClientInternal::on_message, this);
+		callback->onpong = WebSocketCallbackAgent::WebSocketCallback(&WebSocketClientInternal::on_pong_timeout, this);
 	}
 
-	void socketConnectCallback(const weak_ptr<Socket>& /*sock*/)
+	virtual ~WebSocketClientInternal()
 	{
-		setSocketAndStart(sock);
-		sendRequest();
+		disconnect();
+		callback->clear();
 	}
-	void headerParseReady()
-	{
-		connectcallback(client);
-	}
-	void socketDisConnectcallback(const weak_ptr<Socket>& /*connectSock*/, const std::string&)
-	{
-		disconnectcallback(client);
-	}
-	void dataCallback(const std::string& data, WebSocketDataType type)
-	{
-		datacallback(client,data,type);
-	}
-	void sendRequest()
-	{
-		std::string key = Guid::createGuid().getStringStream();
 
-		Base::Sha1 sha1;
-		sha1.input(key.c_str(), key.length());
-
-
-		std::map<std::string, Value> header;
+	bool startConnect(const URL& url, const ConnnectCallback& connectcallback, const RecvDataCallback& datacallback, const DisconnectCallback& disconnectcallback)
+	{
+		Guard locker(mutex);
+		if (client != NULL)
 		{
-			header["Host"] = url.getHost();
-			header["Connection"] = "Upgrade";
-			header["Pragma"] = "no-cache";
-			header["Cache-Control"] = "no-cache";
-			header["User-Agent"] = "public_websocket";
-			header["Upgrade"] = "websocket";
-			header["Origin"] = url.getProtocol() + "://" + url.getHost();
-			header["Sec-WebSocket-Version"] = 13;
-			header["Sec-WebSocket-Key"] = Base64::encode(sha1.report(Sha1::REPORT_BIN));
-			header["Sec-WebSocket-Extensions"] = "permessage-deflate; client_max_window_bits";
+			return false;
+		}
 
-			for (std::map<std::string, Value>::iterator iter = extheaders.begin(); iter != extheaders.end(); iter++)
+		_connectcallback = connectcallback;
+		_datacallback = datacallback;
+		_disconnectcallback = disconnectcallback;
+		client = boost::make_shared<wsclient>();
+		client->set_access_channels(websocketpp::log::alevel::none);
+		client->set_error_channels(websocketpp::log::elevel::none);
+		client->init_asio(((boost::shared_ptr<boost::asio::io_service>*)ioworker->getBoostASIOIOServerSharedptr())->get());
+		//client->set_fail_handler(bind(&WebSocketClientInternal::on_fail, this, _1));
+
+		websocketpp::lib::error_code ec;
+		conn = client->get_connection(url.href(), ec);
+		if (ec)
+		{
+			logerror("get connection fail! errmsg:%s", ec.message().c_str());
+			return false;
+		}
+		conn->set_open_handler(bind(&WebSocketCallbackAgent::on_open, callback, _1));
+		conn->set_message_handler(bind(&WebSocketCallbackAgent::on_message, callback, _1, _2));
+		conn->set_close_handler(bind(&WebSocketCallbackAgent::on_close, callback, _1));
+		conn->set_fail_handler(bind(&WebSocketCallbackAgent::on_fail, callback, _1));
+		conn->set_pong_timeout_handler(bind(&WebSocketCallbackAgent::on_pong, callback, _1));
+		conn->set_open_handshake_timeout(3000);
+		conn->set_pong_timeout(3000);
+		client->connect(conn);
+		return true;
+	}
+
+	bool disconnect()
+	{
+		Guard locker(mutex);
+		if (conn != NULL)
+		{
+			error_code ec;
+			conn->close(websocketpp::close::status::no_status, "", ec);
+			conn = NULL;
+			client = NULL;
+		}
+		_connectcallback = NULL;
+		_datacallback = NULL;
+		_disconnectcallback = NULL;
+		return true;
+	}
+
+	uint32_t sendListSize()
+	{
+		wsclient::connection_ptr tmp = conn;
+		if (tmp == NULL)
+		{
+			return 0;
+		}
+		return tmp->get_send_frame_size();
+	}
+
+	bool send(const std::string &data, WebSocketDataType type)
+	{
+		wsclient::connection_ptr tmp = conn;
+		if (tmp == NULL || !isconnected)
+		{
+			return false;
+		}
+
+		if (tmp->get_send_frame_size() >= 500 || tmp->get_buffered_amount() >= max_buffer_size)
+		{
+			if (++nBufferOverFrames % 2000 == 0)
 			{
-				header[iter->first] = iter->second;
+				logerror("buffer is over! frame:%d\r\n", nBufferOverFrames);
 			}
+			return false;
 		}
-		
-		std::string requrl = url.getPath() == "" ? "/" : url.getPath();
-		std::string reqeuststr = std::string() +
-			"GET " + requrl +" "+HTTPVERSION + HTTPHREADERLINEEND;
-		for (std::map<std::string, Value>::iterator iter = header.begin(); iter != header.end(); iter++)
+
+		websocketpp::frame::opcode::value opcode = type == WebSocketDataType_Txt ? websocketpp::frame::opcode::text : websocketpp::frame::opcode::binary;
+		error_code err = tmp->send(data.c_str(), data.size(), opcode);
+		if (err)
 		{
-			reqeuststr += iter->first + ": " + iter->second.readString() + HTTPHREADERLINEEND;
+//			logerror("client send fail!errmsg:%s", err.message().c_str());
+			return false;
 		}
-		reqeuststr += HTTPHREADERLINEEND;
+		return true;
+	}
 
+	void on_open(websocketpp::connection_hdl& hdl)
+	{
+		isconnected = true;
+		boost::shared_ptr<wsclient> tmp = client;
+		if (tmp == NULL)
+		{
+			return;
+		}
+		conn = tmp->get_con_from_hdl(hdl);
+		if (_connectcallback != NULL)
+		{
+			Guard locker(mutex);
+			_connectcallback(websocketclient);
+		}
+	}
 
-		addDataAndCheckSend(reqeuststr.c_str(), reqeuststr.length());
+	void on_message(websocketpp::connection_hdl& hdl, message_ptr& msg)
+	{
+		if (!msg->get_fin())
+		{
+			return;
+		}
+
+		if (_datacallback != NULL)
+		{
+			Guard locker(mutex);
+			_datacallback(websocketclient, msg->get_payload(), msg->get_opcode() == websocketpp::frame::opcode::text ? WebSocketDataType_Txt :WebSocketDataType_Bin);
+		}
+	}
+
+	void on_close(websocketpp::connection_hdl& hdl)
+	{
+		isconnected = false;
+		if (_disconnectcallback != NULL)
+		{
+			Guard locker(mutex);
+			_disconnectcallback(websocketclient);
+		}
+	}
+
+	void on_fail(websocketpp::connection_hdl& hdl)
+	{
+		isconnected = false;
+		if (_disconnectcallback != NULL)
+		{
+			Guard locker(mutex);
+			_disconnectcallback(websocketclient);
+		}
+
+		//logerror("Fail handler");
+		//logerror("get_state:%d",con->get_state());
+		//logerror("get_local_close_code:%d", con->get_local_close_code());
+		//logerror("get_local_close_reason:%s", con->get_local_close_reason().c_str());
+		//logerror("get_remote_close_code:%d", con->get_remote_close_code());
+		//logerror("get_remote_close_reason:%s", con->get_remote_close_reason().c_str());
+		//logerror("get_ec:%d - %s", con->get_ec().value(), con->get_ec().message().c_str());
+	}
+
+	void on_pong_timeout(websocketpp::connection_hdl& hdl)
+	{
+		isconnected = false;
+		if (_disconnectcallback != NULL)
+		{
+			Guard locker(mutex);
+			_disconnectcallback(websocketclient);
+		}
 	}
 };
 
@@ -386,56 +709,48 @@ struct waitConnectItem
 	}
 };
 
-WebSocketClient::WebSocketClient(const shared_ptr<IOWorker>& worker, const std::map<std::string, Value>&headers)
+WebSocketClient::WebSocketClient(const shared_ptr<IOWorker>& ioworker, const std::map<std::string, Value>&headers)
 {
-	internal = new WebSocketClientInternal();
-	internal->extheaders = headers;
-	internal->client = this;
-	internal->worker = worker;
-	internal->sock = TCPClient::create(worker);
+	internal = new WebSocketClientInternal(ioworker);
+	internal->websocketclient = this;
 }
 WebSocketClient::~WebSocketClient()
 {
-	disconnect();
-	
-	SAFE_DELETE(internal);
+	delete internal;
+	//delete internal;
 }
 
 bool WebSocketClient::connect(const URL& url, uint32_t timout_ms, const RecvDataCallback& datacallback, const DisconnectCallback& disconnectcallback)
 {
-	shared_ptr< waitConnectItem> waiting = make_shared<waitConnectItem>();
+    shared_ptr< waitConnectItem> waiting = make_shared<waitConnectItem>();
 
-	startConnect(url, WebSocketClient::ConnnectCallback(&waitConnectItem::connectCallback, waiting), datacallback, disconnectcallback);
+    startConnect(url, WebSocketClient::ConnnectCallback(&waitConnectItem::connectCallback, waiting), datacallback, disconnectcallback);
 
-	waiting->waitsem.pend(timout_ms);
-	internal->connectcallback = WebSocketClient::ConnnectCallback();
+	if (0 > waiting->waitsem.pend(timout_ms))
+	{
+		disconnect();
+		return false;
+	}
 
-	return internal->errorCode <= 200;
+    internal->_connectcallback = WebSocketClient::ConnnectCallback();
+	return true;
 }
 bool WebSocketClient::startConnect(const URL& url, const ConnnectCallback& connectcallback, const RecvDataCallback& datacallback, const DisconnectCallback& disconnectcallback)
 {
-	internal->url = url;
-	internal->connectcallback = connectcallback;
-	internal->datacallback = datacallback;
-	internal->disconnectcallback = disconnectcallback;
-
-	internal->sock->async_connect(NetAddr(url.getHostname(), url.getPort(80)), Socket::ConnectedCallback(&WebSocketClientInternal::socketConnectCallback, internal));
-	
-
-	return true;
+	return internal->startConnect(url, connectcallback, datacallback, disconnectcallback);
 }
 bool WebSocketClient::disconnect()
 {
-	internal->sock = NULL;
-
-	return true;
+	return internal->disconnect();
 }
 bool WebSocketClient::send(const std::string& data, WebSocketDataType type)
 {
-	shared_ptr<Socket> tmp = internal->sock;
-	if (tmp == NULL || !internal->ready()) return false;
+	return internal->send(data, type);
+}
 
-	return internal->buildAndSend(data, type);
+uint32_t WebSocketClient::sendListSize()
+{
+	return internal->sendListSize();
 }
 
 }

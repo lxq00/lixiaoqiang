@@ -41,8 +41,8 @@ FtpClient::~FtpClient()
 {
 	if (internal->_pConnect)
 	{
-        FtpQuit(internal->_pConnect);
 		FtpClose(internal->_pConnect);
+        FtpQuit(internal->_pConnect);
 		internal->_pConnect = NULL;
 	}
 	SAFE_DELETE(internal);

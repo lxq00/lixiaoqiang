@@ -1,3 +1,4 @@
+#if 0
 #include "Base/Func.h"
 using namespace Public::Base;
 #include <functional>
@@ -91,3 +92,47 @@ int main()
 
 	return 0;
 }
+#endif
+
+#if 1
+#include "Medis/Medis.h"
+using namespace Public::Medis;
+
+#define WORKPORT 6379
+
+shared_ptr<IOWorker>		worker;
+shared_ptr<Service>			service;
+
+
+void systemExit(void*, BaseSystem::CloseEvent)
+{
+	service = NULL;
+	worker = NULL;
+
+
+	Public::Network::NetworkSystem::uninit();
+	Public::Base::BaseSystem::uninit();
+
+	Public::Base::BaseSystem::autoExitDelayer(30);
+}
+int main(int argc, const char* argv[])
+{
+	Public::Base::BaseSystem::init(systemExit);
+	Public::Network::NetworkSystem::init();
+
+
+	worker = make_shared<IOWorker>(16);
+	service = make_shared<Service>();
+
+	if (!service->start(worker, WORKPORT))
+	{
+		int a = 0;
+		return -1;
+	}
+
+	ConsoleCommand cmd;
+	cmd.run("medis");
+
+	return 0;
+}
+#endif

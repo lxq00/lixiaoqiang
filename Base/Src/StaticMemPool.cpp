@@ -24,11 +24,13 @@ struct StaticMemPool::StaticMemPoolInternal
 	uint32_t	chunkSize;
 	uint32_t	nodeIndexSize;
 	uint32_t	minBlockIdx;
-	ILockerObjcPtr*	locker;
+	IMutexInterface* locker;
 
 	NodeIndexList*	listHeader;
 	ChunkNode*		nodeHeader;
-	shared_ptr<Timer> poolTimer;
+
+	uint32_t	 bufferUsedSize;
+//	shared_ptr<Timer> poolTimer;
 private:
 	uint32_t getChuckSize(uint32_t _chuckSize)
 	{
@@ -56,8 +58,9 @@ private:
 		return getChuckSize(_chuckSize - freeChunkSize);
 	}
 public:
-	StaticMemPoolInternal(char* addr,int size,ILockerObjcPtr* lock,bool create):listHeader(NULL),nodeHeader(NULL)
+	StaticMemPoolInternal(char* addr,int size,IMutexInterface* lock,bool create):listHeader(NULL),nodeHeader(NULL)
 	{
+		bufferUsedSize = 0;
 		bufferStartAddr = (uint8_t*)addr;
 		bufferMaxSize = size;
 		locker = lock;
@@ -104,12 +107,12 @@ public:
 			usedSize += 1 << (freeidx + minBlockIdx);
 			totalcanUsedSize = MemChunkSize * chunkSize - usedSize;
 		}
-		poolTimer = make_shared<Timer>("StaticMemPoolInternal");
-		poolTimer->start(Timer::Proc(&StaticMemPoolInternal::poolTimerProc,this),0,5*60*1000);
+		//poolTimer = make_shared<Timer>("StaticMemPoolInternal");
+		//poolTimer->start(Timer::Proc(&StaticMemPoolInternal::poolTimerProc,this),0,5*60*1000);
 	}
 	~StaticMemPoolInternal()
 	{
-		poolTimer = NULL;
+	//	poolTimer = NULL;
 	}
 	void poolTimerProc(unsigned long)
 	{
@@ -226,27 +229,35 @@ public:
 
 		realsize = 1 << usedNode->usedIdx;
 
+		bufferUsedSize += realsize;
+
 		return realDataBufferAddr +  usedNode->idx * MemChunkSize;
 	}
 
-	void Delete(void* addr)
+	bool Free(void* addr)
 	{
 		Guard  autol(locker);
 
 		if(addr < realDataBufferAddr || addr >= realDataBufferAddr + chunkSize * MemChunkSize)
 		{
-			return;
+			return false;
 		}
 
 		int vecIdx = ((uint8_t*)addr - realDataBufferAddr)/MemChunkSize;
 		int idx = nodeHeader[vecIdx].usedIdx - minBlockIdx;
 
+		uint32_t realsize = 1 << nodeHeader[vecIdx].usedIdx;
+
+		bufferUsedSize -= realsize;
+
 		insertChunk(idx,&nodeHeader[vecIdx]);
+
+		return true;
 	}
 };
 
 
-StaticMemPool::StaticMemPool(char* bufferStartAddr,int bufferSize,ILockerObjcPtr* locker, bool create)
+StaticMemPool::StaticMemPool(char* bufferStartAddr,int bufferSize,IMutexInterface* locker, bool create)
 {
 	internal = new StaticMemPoolInternal(bufferStartAddr, bufferSize, locker, create);
 }
@@ -261,9 +272,19 @@ void* StaticMemPool::Malloc(uint32_t size,uint32_t& realsize)
 	return internal->Malloc(size, realsize);
 }
 
-void StaticMemPool::Free(void* pAddr)
+bool StaticMemPool::Free(void* pAddr)
 {
-	internal->Delete(pAddr);
+	return internal->Free(pAddr);
+}
+
+uint32_t StaticMemPool::maxBufferSize()
+{
+	return internal->bufferMaxSize;
+}
+
+uint32_t StaticMemPool::usedBufferSize()
+{
+	return internal->bufferUsedSize;
 }
 
 } // namespace Base

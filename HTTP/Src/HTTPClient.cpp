@@ -20,18 +20,22 @@ struct HTTPClientObject
 	shared_ptr<HTTPRequest>	request;
 	std::string				saveToFile;
 
-	char					buffer[MAXRECVBUFFERLEN];
+	char*					buffer;
 	int						bufferlen;
 
 	HTTPClientObject(const shared_ptr<IOWorker>& _worker, const std::string& _useragent):disconnectflag(false)
 	{
+		buffer = new char[MAXRECVBUFFERLEN];
 		worker = _worker;
 		bufferlen = 0;
 		useragent = _useragent;
+        session = NULL;
 	}
 	~HTTPClientObject()
 	{
+		sock->disconnect();
 		sock = NULL;
+		SAFE_DELETEARRAY(buffer);
 	}
 	shared_ptr<HTTPResponse> getResponse()
 	{
@@ -117,6 +121,10 @@ struct HTTPClientObject
 		if (len <= 0 || sessiontmp == NULL) return socketDisconnect(s, "socket recv error");
 
 		bufferlen += len;
+        if (bufferlen > MAXRECVBUFFERLEN)
+        {
+            assert(0);
+        }
 
 		const char* usedbuf = sessiontmp->inputData(buffer, bufferlen);
 
@@ -147,6 +155,7 @@ struct HTTPClient::HTTPClientInternal:public HTTPClientObject
 	}
 	~HTTPClientInternal() 
 	{
+        session = NULL;
 	}
 	virtual void start(const shared_ptr<HTTPRequest>& req, const std::string& saveasfile)
 	{

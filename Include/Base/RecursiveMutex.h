@@ -15,7 +15,7 @@ namespace Public {
 namespace Base {
 
 /// \class RecursiveMutex µÝ¹éËø
-class BASE_API RecursiveMutex:public ILockerObjcPtr
+class BASE_API RecursiveMutex:public IMutexInterface
 {
 	RecursiveMutex(RecursiveMutex const&);
 	RecursiveMutex& operator=(RecursiveMutex const&);

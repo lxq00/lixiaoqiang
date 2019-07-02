@@ -108,6 +108,10 @@ public:
 		
 		backSiseTable = NULL;
 	}
+	uint32_t usedBufferSize()
+	{
+		return (uint32_t)totalMemSize;
+	}
 	void* Malloc(uint32_t size,uint32_t& realsize)
 	{
 		uint32_t idx = log2i(size);
@@ -143,19 +147,21 @@ public:
 
 		return node->addr;
 	}
-	void Free(void* ptr)
+	bool Free(void* ptr)
 	{
 		Guard locker(mutex);
 		std::map<void*,BlackNode*>::iterator iter = memList.find(ptr);
 		if(iter == memList.end())
 		{
-			return;
+			return false;
 		}
 
 		BlackNode* node = iter->second;
 		node->next = idleInfoList[node->idx];
 		idleInfoList[node->idx] = node;
 		node->lastUsedTime = Time::getCurrentMilliSecond();
+
+		return true;
 	}
 private:
 	void addChunkSize(uint32_t size)
@@ -275,12 +281,12 @@ void* DynamicMemPool::Malloc(uint32_t size,uint32_t& realsize)
 	return newbuffer;
 #endif
 }
-void DynamicMemPool::Free(void* addr)
+bool DynamicMemPool::Free(void* addr)
 {
 #ifdef UseMempool
 	if(addr != NULL)
 	{
-		internal->Free(addr);
+		return internal->Free(addr);
 	}	
 #else
 	if(addr != NULL)
@@ -288,6 +294,13 @@ void DynamicMemPool::Free(void* addr)
 		::free(addr);
 	}
 #endif
+
+	return true;
+}
+
+uint32_t DynamicMemPool::usedBufferSize()
+{
+	return internal->usedBufferSize();
 }
 
 };

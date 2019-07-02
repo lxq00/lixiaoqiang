@@ -15,7 +15,7 @@ namespace Base{
 
 /// \class Mutex
 //// \brief Ëø
-class BASE_API Mutex:public ILockerObjcPtr
+class BASE_API Mutex:public IMutexInterface
 {
 	Mutex(Mutex const&);
 	Mutex& operator=(Mutex const&);

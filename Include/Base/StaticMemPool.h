@@ -6,17 +6,20 @@
 namespace Public{
 namespace Base{
 
-class BASE_API StaticMemPool:public IMallcFreeMemObjcPtr
+class BASE_API StaticMemPool:public IMempoolInterface
 {
 	struct StaticMemPoolInternal;
 public:
-	StaticMemPool(char* bufferStartAddr,int bufferSize,ILockerObjcPtr* locker,bool create);
+	StaticMemPool(char* bufferStartAddr,int bufferSize,IMutexInterface* locker,bool create);
 	~StaticMemPool();
 
 	void* Malloc(uint32_t size,uint32_t& realsize);
 	
-	void Free(void*);
+	bool Free(void*);
 
+	uint32_t maxBufferSize();
+
+	uint32_t usedBufferSize();
 private:
 	StaticMemPoolInternal *internal;
 };
