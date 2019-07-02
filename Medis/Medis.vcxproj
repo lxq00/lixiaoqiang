@@ -30,6 +30,7 @@
     <ClInclude Include="src\dbkey_0.h" />
     <ClInclude Include="src\dbstring_1.h" />
     <ClInclude Include="src\memory.h" />
+    <ClInclude Include="src\redisstring.h" />
     <ClInclude Include="src\storefactory.h" />
     <ClInclude Include="src\valuelist.h" />
     <ClInclude Include="src\valuedata.h" />

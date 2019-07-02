@@ -15,7 +15,7 @@ public:
 	ValueList(const shared_ptr<ValueHeader>& _header) :ValueObject(_header) {}
 	~ValueList() {}
 
-	bool push_back(const std::string& data)
+	bool push_back(const RedisString& data)
 	{
 		shared_ptr<ValueData> node = factory->createValueData(header);
 		node->setData(data);
@@ -24,7 +24,7 @@ public:
 
 		return true;
 	}
-	bool push_front(const std::string& data)
+	bool push_front(const RedisString& data)
 	{
 		shared_ptr<ValueData> node = factory->createValueData(header);
 		node->setData(data);
@@ -33,29 +33,33 @@ public:
 
 		return true;
 	}
-	bool pop_back(std::string& data)
+	bool pop_back(RedisString& data)
 	{
 		if (datalist.size() <= 0) return false;
 
 		shared_ptr<ValueData> node = datalist.back();
 		datalist.pop_back();
 
-		return node->getData(data);
+		data = node->getData();
+
+		return true;
 	}
-	bool pop_front(std::string& data)
+	bool pop_front(RedisString& data)
 	{
 		if (datalist.size() <= 0) return false;
 
 		shared_ptr<ValueData> node = datalist.front();
 		datalist.pop_front();
 
-		return node->getData(data );
+		data = node->getData( );
+
+		return true;
 	}
 	uint32_t len()
 	{
 		return datalist.size();
 	}
-	bool range(int32_t start, int32_t stop,std::vector<std::string>& dataarray)
+	bool range(int32_t start, int32_t stop,std::vector<RedisString>& dataarray)
 	{
 		start = 0 + start;
 		stop = datalist.size() + stop;
@@ -66,8 +70,7 @@ public:
 			if(currpos < start) continue;
 			if (currpos > stop) break;
 
-			std::string datastr; 
-			(*iter)->getData(datastr);
+			RedisString datastr = (*iter)->getData();
 
 			dataarray.push_back(datastr);
 		}

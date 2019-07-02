@@ -180,7 +180,6 @@ private:
 		return RedisValue(ackstr);
 	}
 public:
-	shared_ptr<Storer>		  storer;
 	shared_ptr<Communication> commu;
 	shared_ptr<DataFactory>	  factory;
 	shared_ptr<KeyObject>	  key;
@@ -198,13 +197,9 @@ Service::~Service()
 }
 bool Service::start(const shared_ptr<IOWorker>& worker, uint32_t port)
 {
-	internal->storer = make_shared<Storer>();
-	if (!internal->storer->open(File::getExcutableFileFullPath() + "\\medis.db"))
-	{
-		return false;
-	}
-
-	internal->factory = make_shared<StoreFactory>(internal->storer);
+	std::string savefilename = File::getExcutableFileFullPath() + "\\medis.db";
+	
+	internal->factory = make_shared<StoreFactory>(savefilename);
 	internal->key = make_shared<KeyObject>(worker, internal->factory);
 
 	{

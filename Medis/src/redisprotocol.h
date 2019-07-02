@@ -494,9 +494,9 @@ private:
 	}
 	void buildString(const RedisValue &items)
 	{
-		const std::string& stringtmp = items.getString();
+		const RedisString& stringtmp = items.getString();
 		buffer = "$" + Value(stringtmp.length()).readString() + crlf;
-		buffer += stringtmp;
+		buffer += (std::string)stringtmp;
 		buffer += crlf;
 	}
 	void buildInt(const RedisValue &items)

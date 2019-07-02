@@ -53,7 +53,7 @@ private:
 		if (val.size() != 4) return RedisValue(false, "Param Error");
 		std::string key = String::tolower(val[1].toString());
 		std::string filed = String::tolower(val[2].toString());
-		const std::string data = val[3].toString();
+		const RedisString& data = val[3].toString();
 
 		shared_ptr<ValueObject> valueobject;
 		std::map<std::string, shared_ptr<ValueObject> >::iterator iter = valuelist.find(key);
@@ -80,7 +80,7 @@ private:
 		if (val.size() != 4) return RedisValue(false, "Param Error");
 		std::string key = String::tolower(val[1].toString());
 		std::string filed = String::tolower(val[2].toString());
-		const std::string data = val[3].toString();
+		const RedisString& data = val[3].toString();
 
 		shared_ptr<ValueObject> valueobject;
 		std::map<std::string, shared_ptr<ValueObject> >::iterator iter = valuelist.find(key);
@@ -147,8 +147,7 @@ private:
 		if (valueobject->type() != DataType_Hash) return RedisValue(0);
 		ValueHash* hashobject = (ValueHash*)valueobject.get();
 
-		std::string data;
-		hashobject->get(filed, data);
+		RedisString data = hashobject->get(filed);
 
 		return RedisValue(data);
 	}
@@ -172,11 +171,11 @@ private:
 		if (valueobject->type() != DataType_Hash) return RedisValue(0);
 		ValueHash* hashobject = (ValueHash*)valueobject.get();
 
-		std::map<std::string,std::string> data;
+		std::map<std::string, RedisString> data;
 		hashobject->getall(data);
 
 		std::vector<RedisValue> dataarray;
-		for (std::map<std::string, std::string>::iterator iter = data.begin(); iter != data.end(); iter++)
+		for (std::map<std::string, RedisString>::iterator iter = data.begin(); iter != data.end(); iter++)
 		{
 			dataarray.push_back(RedisValue(iter->first));
 			dataarray.push_back(RedisValue(iter->second));
@@ -251,7 +250,7 @@ private:
 		if (val.size() <= 2) return RedisValue(false, "Param Error");
 		//	else if (!val[1].isInt())  return RedisValue(false, "invalid cursor");
 
-		key = val[1].toString();
+		key = String::tolower(val[1].toString());
 		cursor = (uint32_t)val[2].toInt();
 		
 
@@ -263,7 +262,7 @@ private:
 			else return RedisValue(false, "syntax error");
 		}
 
-		std::vector<std::string> keysdata;
+		std::vector<RedisString> keysdata;
 		uint32_t newscosor = 0;
 		
 		shared_ptr<ValueObject> valueobject;

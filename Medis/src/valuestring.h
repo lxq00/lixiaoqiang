@@ -17,11 +17,11 @@ public:
 	ValueString(const shared_ptr<ValueHeader>& _header) :ValueObject(_header) {}
 	~ValueString(){}
 
-	bool get(std::string& data)
+	RedisString get()
 	{
-		return value->getData(data);
+		return value->getData();
 	}
-	bool set(const std::string& data)
+	bool set(const RedisString& data)
 	{
 		value->setData(data);
 
@@ -30,7 +30,7 @@ public:
 
 	uint32_t len()
 	{
-		return value->len();
+		return value->getData().length();
 	}
 
 	virtual void addData(const shared_ptr<ValueData>& data)

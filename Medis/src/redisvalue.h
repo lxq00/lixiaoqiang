@@ -3,6 +3,7 @@
 #include "Base/Base.h"
 #include "Network/Network.h"
 #include <boost/variant.hpp>
+#include "redisstring.h"
 using namespace Public::Base;
 using namespace Public::Network;
 
@@ -25,8 +26,9 @@ public:
 	RedisValue(long long i): value(i){}
 	RedisValue(const StatusTag& err):value(err){}
 	RedisValue(bool success,const std::string& errmsg):value(StatusTag(success,errmsg)){}
-	RedisValue(const char *s,int len) : value(std::string(s,len)) {}
-	RedisValue(const std::string &s): value(s){}
+	RedisValue(const char *s,int len) : value(RedisString(std::string(s,len))) {}
+	RedisValue(const std::string &s): value(RedisString(s)){}
+	RedisValue(const RedisString &s):value(s){}
 	RedisValue(const std::vector<RedisValue>& array): value(std::move(array)){}
 
 	RedisValue(const RedisValue &) = default;
@@ -35,11 +37,11 @@ public:
 
 	// Return the value as a std::string if
 	// type is a byte string; otherwise returns an empty std::string.
-	const std::string& toString() const
+	const RedisString& toString() const
 	{
 		if (isInt()) return Value(toInt()).readString();
 
-		static const std::string emptstr;
+		static const RedisString emptstr;
 		if (!isString()) return emptstr;
 
 		return getString();
@@ -98,7 +100,7 @@ public:
 	// Return true if type is a string/byte array. Alias for isByteArray().
 	bool isString() const
 	{
-		return typeEq<std::string>();
+		return typeEq<RedisString>();
 	}
 
 	bool operator == (const RedisValue &rhs) const
@@ -135,15 +137,16 @@ public:
 
 		return boost::get<StatusTag>(value);
 	}
-	std::string& getString()
-	{
-		assert(isStatus());
-		return boost::get<string>(value);
-	}
-	const std::string& getString()const
+	RedisString& getString()
 	{
 		assert(isString());
-		return boost::get<string>(value);
+		return boost::get<RedisString>(value);
+	}
+	const RedisString& getString()const
+	{
+		assert(isString());
+
+		return boost::get<RedisString>(value);
 	}
 protected:
 	template<typename T>
@@ -172,5 +175,5 @@ private:
 	};
 
 
-	boost::variant<NullTag, StatusTag, int64_t, std::string, std::vector<RedisValue> > value;
+	boost::variant<NullTag, StatusTag, int64_t, RedisString, std::vector<RedisValue> > value;
 };

@@ -22,7 +22,7 @@ private:
 
 		std::string key = String::tolower(val[1].toString());
 		int64_t score = val[2].toInt();
-		std::string data = val[3].getString();
+		const RedisString& data = val[3].getString();
 
 		shared_ptr<ValueObject> valueobject;
 		std::map<std::string, shared_ptr<ValueObject> >::iterator iter = valuelist.find(key);
@@ -112,11 +112,11 @@ private:
 		if (valueobject->type() != DataType_ZSet) return RedisValue(0);
 		ValueZSet* zsetobject = (ValueZSet*)valueobject.get();
 
-		std::map<uint64_t, std::string> valdata;
+		std::map<uint64_t, RedisString> valdata;
 		zsetobject->range(start, top, valdata);
 
 		std::vector<RedisValue> dataarray;
-		for (std::map<uint64_t, std::string>::iterator iter = valdata.begin(); iter != valdata.end(); iter++)
+		for (std::map<uint64_t, RedisString>::iterator iter = valdata.begin(); iter != valdata.end(); iter++)
 		{
 			dataarray.push_back(RedisValue(iter->second));
 			dataarray.push_back(RedisValue(Value(iter->first).readString()));
@@ -146,12 +146,12 @@ private:
 		if (valueobject->type() != DataType_ZSet) return RedisValue(0);
 		ValueZSet* zsetobject = (ValueZSet*)valueobject.get();
 
-		std::map<uint64_t, std::string> valdata;
+		std::map<uint64_t, RedisString> valdata;
 
 		zsetobject->rangeByScore(minscore, maxscore, valdata);
 
 		std::vector<RedisValue> dataarray;
-		for (std::map<uint64_t, std::string>::iterator iter = valdata.begin(); iter != valdata.end(); iter++)
+		for (std::map<uint64_t, RedisString>::iterator iter = valdata.begin(); iter != valdata.end(); iter++)
 		{
 			dataarray.push_back(RedisValue(iter->second));
 			dataarray.push_back(RedisValue(Value(iter->first).readString()));

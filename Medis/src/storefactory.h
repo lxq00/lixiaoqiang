@@ -8,33 +8,13 @@
 
 #define NOTUSESPACETIMEOUT		3*SAVEMAXTIMEOUT
 
-#define HEADERFLAG			"isheader"
+#define HEADERFLAG			"h"
 
-struct StoreValueHeader : public ValueHeader
-{
-	StoreValueHeader(const shared_ptr<DataFactory>& factory, const std::string& key, uint32_t dbindex, DataType _type)
-		:ValueHeader(factory, key, dbindex, _type), filepos(-1) {}
-	~StoreValueHeader();
-
-	int		filepos;
-};
-
-struct StoreValueData :public ValueData
-{
-	StoreValueData(const shared_ptr<DataFactory>& factory, const shared_ptr<ValueHeader>& _header, const std::string& _name)
-		:ValueData(factory, _header, _name), filepos(-1), prevsavetime(Time::getCurrentMilliSecond()), prevusedtime(Time::getCurrentMilliSecond()) {}
-
-	~StoreValueData();
-
-	int			filepos;
-	uint64_t	prevsavetime;
-	uint64_t	prevusedtime;
-};
 
 class StoreFactory :public DataFactory
 {
 public:
-	StoreFactory(const shared_ptr<Storer>& _storer):storer(_storer)
+	StoreFactory(const std::string& savefile):savefilename(savefile), initflag(false)
 	{
 		timer = make_shared<Timer>("StoreFactory");
 		timer->start(Timer::Proc(&StoreFactory::onPoolTimerProc, this), 0, 1000);
@@ -47,43 +27,44 @@ public:
 
 	void loadDBInfo(std::vector<shared_ptr<ValueHeader> >& headerlist, std::vector<shared_ptr<ValueData> >& datalist)
 	{
-		std::map<uint32_t,std::string> headerinfos;
-		storer->scanHeader(headerinfos);
+		shared_ptr<Storer> storer = make_shared<Storer>();
+		if (!storer->open(savefilename, false))
+		{
+			return;
+		}
 
-		for(std::map<uint32_t, std::string>::iterator iter = headerinfos.begin();iter != headerinfos.end();iter ++)
+		std::map<std::string,RedisString> headerinfos;
+		storer->load(headerinfos);
+
+		for(std::map<std::string, RedisString>::iterator iter = headerinfos.begin();iter != headerinfos.end();iter ++)
 		{
 			std::map<std::string, Value> headerarray;
-			parseHeaderString(iter->second, headerarray);
+			parseHeaderString(iter->first, headerarray);
 
 			if (getHeaderValue(headerarray, HEADERFLAG).readBool())
 			{
-				shared_ptr<ValueHeader> header = parseAndBuildHeader(iter->first,headerarray);
+				shared_ptr<ValueHeader> header = parseAndBuildHeader(headerarray);
 
 				headerlist.push_back(header);
 			}
-		}
-
-		for (std::map<uint32_t, std::string>::iterator iter = headerinfos.begin(); iter != headerinfos.end(); iter++)
-		{
-			std::map<std::string, Value> headerarray;
-			parseHeaderString(iter->second, headerarray);
-
-			if (!getHeaderValue(headerarray, HEADERFLAG).readBool())
+			else
 			{
-				shared_ptr<ValueData> data = parseAndBuildData(iter->first, headerlist, headerarray);
+				shared_ptr<ValueData> data = parseAndBuildData(headerarray, headerlist, iter->second);
 				if (data != NULL)
 				{
 					datalist.push_back(data);
 				}
 			}
 		}
+
+		initflag = true;
 	}
 
 	virtual shared_ptr<ValueHeader> createHeader(const std::string& key, uint32_t dbindex, DataType _type)
 	{
 		Guard locker(mutex);
 
-		shared_ptr<ValueHeader> header = make_shared<StoreValueHeader>(shared_from_this(),key,dbindex,_type);
+		shared_ptr<ValueHeader> header = make_shared<ValueHeader>(shared_from_this(),key,dbindex,_type);
 		headerlist[header.get()] = header;
 
 		return header;
@@ -91,260 +72,146 @@ public:
 
 	virtual void updateHeader(ValueHeader* header)
 	{
+		if (!initflag) return;
 		Guard locker(mutex);
 
 		headerchangelist.insert(header);
 	}
-	virtual void deleteHeader(ValueHeader* header,uint32_t pos)
+	virtual void deleteHeader(ValueHeader* header)
 	{
 		Guard locker(mutex);
 
-		if (pos != -1)
-		{
-			headerlist.erase(header);
-			deleteposlist.insert(pos);
-		}
+		headerlist.erase(header);
+		headerchangelist.insert(header);
 	}
 
 	virtual shared_ptr<ValueData> createValueData(const shared_ptr<ValueHeader>& header, const std::string& name)
 	{
 		Guard locker(mutex);
 
-		shared_ptr<ValueData> data = make_shared<StoreValueData>(shared_from_this(), header, name);
+		shared_ptr<ValueData> data = make_shared<ValueData>(shared_from_this(), header, name);
 		datalist[data.get()] = data;
 
 		return data;
 	}
 	virtual void updateValueData(ValueData* data)
 	{
+		if (!initflag) return;
 		Guard locker(mutex);
 
 		datachangelist.insert(data);
 	}
-	virtual void deleteValueData(ValueData* data, uint32_t pos)
+	virtual void deleteValueData(ValueData* data)
 	{
 		Guard locker(mutex);
 
-		datachangelist.erase(data);
-		if (pos != -1)
-		{
-			deleteposlist.insert(pos);
-		}
-	}
-	virtual void readValueData(ValueData* data,std::string& datastr)
-	{
-		StoreValueData* valuedata = (StoreValueData*)data;
-
-		storer->read(valuedata->filepos, data->len(), datastr);
+		datachangelist.insert(data);
+		datalist.erase(data);
 	}
 private:
 	void onPoolTimerProc(unsigned long)
 	{
-		//freespace
+		uint64_t nowtime = Time::getCurrentMilliSecond();
+
+		if (headerchangelist.size() + datachangelist.size() > SAVEMAXNUM || nowtime - prevsavetime > SAVEMAXTIMEOUT)
 		{
-			std::set<uint32_t> deletetmp;
+			prevsavetime = nowtime;
+
+			std::map<ValueHeader*, weak_ptr<ValueHeader> > headerlisttmp;
+			std::map<ValueData*, weak_ptr<ValueData> > datalisttmp;
+		
 			{
 				Guard locker(mutex);
+				headerlisttmp = headerlist;
+				datalisttmp = datalist;
 
-				//删除父节点已经被清除的节点
-				for (std::map<ValueData*, weak_ptr<ValueData> >::iterator iter = datalist.begin(); iter != datalist.end();)
+				headerchangelist.clear();
+				datachangelist.clear();
+			}
+
+			shared_ptr<Storer> storer = make_shared<Storer>();
+			if (!storer->open(savefilename, true))
+			{
+				return;
+			}
+			for (std::map<ValueHeader*, weak_ptr<ValueHeader> >::iterator iter = headerlist.begin(); iter != headerlist.end(); iter++)
+			{
+				shared_ptr<ValueHeader> header = iter->second.lock();
+				if (header == NULL)
 				{
-					shared_ptr<ValueData> valuedata = iter->second.lock();
-					if (valuedata == NULL)
-					{
-						datalist.erase(iter++);
-						continue;
-					}
-
-					shared_ptr<ValueHeader> header = valuedata->m_header.lock();
-					if (header != NULL)
-					{
-						iter++;
-						continue;
-					}
-
-					StoreValueData* data = (StoreValueData*)valuedata.get();
-
-					if (data->filepos != -1)
-					{
-						deleteposlist.insert(data->filepos);
-					}
-					datalist.erase(iter++);
+					continue;
 				}
-
-				deletetmp = deleteposlist;
-				deleteposlist.clear();
+				saveHeader(storer,header);
 			}
-
-			for (std::set<uint32_t>::iterator iter = deletetmp.begin(); iter != deletetmp.end(); iter++)
+			for (std::map<ValueData*, weak_ptr<ValueData> >::iterator iter = datalisttmp.begin(); iter != datalisttmp.end(); iter++)
 			{
-				storer->remove(*iter);
-			}
-			if (deletetmp.size() > 0) storer->mergeFreeSpace();
-		}
-
-		//free not use space
-		{
-			Guard locker(mutex);
-
-			uint64_t nowtime = Time::getCurrentMilliSecond();
-			for (std::map<ValueData*, weak_ptr<ValueData> >::iterator iter = datalist.begin(); iter != datalist.end(); iter++)
-			{
-				shared_ptr< ValueData> datatmp = iter->second.lock();
-				if (datatmp == NULL) continue;
-
-				StoreValueData* valuedata = (StoreValueData*)datatmp.get();
-
-				if (valuedata->filepos != -1 && valuedata->m_len == valuedata->m_data.length() && valuedata->m_len > 0 &&
-					nowtime > valuedata->prevsavetime && nowtime - valuedata->prevsavetime > NOTUSESPACETIMEOUT &&
-					nowtime > valuedata->prevusedtime && nowtime - valuedata->prevusedtime > NOTUSESPACETIMEOUT)
+				shared_ptr<ValueData> data = iter->second.lock();
+				if (data == NULL)
 				{
-					std::string emtpystr;
-					valuedata->m_data.swap(emtpystr);
+					continue;
 				}
-			}
-		}
-
-		//begin save
-		{
-			std::map<ValueHeader*, shared_ptr<ValueHeader> > headerlisttmp;
-			std::map<ValueData*, shared_ptr<ValueData> > datalisttmp;
-			{
-				Guard locker(mutex);
-
-				uint64_t nowtime = Time::getCurrentMilliSecond();
-				
-				if (headerchangelist.size() > 0 || nowtime - prevsavetime > SAVEMAXTIMEOUT || datachangelist.size() > SAVEMAXNUM)
-				{
-					for (std::map<ValueData*, weak_ptr<ValueData> >::iterator iter = datalist.begin(); iter != datalist.end(); iter++)
-					{
-						shared_ptr<ValueData> valuedata = iter->second.lock();
-						if (valuedata == NULL)
-						{
-							continue;
-						}
-
-						shared_ptr<ValueHeader> header = valuedata->m_header.lock();
-						if (header == NULL)
-						{
-							continue;
-						}
-
-						//父类有变
-						std::set<ValueHeader*>::iterator hiter = headerchangelist.find(header.get());
-						if (hiter != headerchangelist.end())
-						{
-							datalisttmp[valuedata.get()] = valuedata;
-							headerlisttmp[header.get()] = header;
-						}
-
-						//数据有变
-						std::set<ValueData*>::iterator aiter = datachangelist.find(valuedata.get());
-						if(aiter != datachangelist.end())
-						{
-							datalisttmp[valuedata.get()] = valuedata;
-						}
-					}
-
-					datachangelist.clear();
-					headerchangelist.clear();
-					prevsavetime = nowtime;
-				}
-				
-			}
-			for(std::map<ValueHeader*, shared_ptr<ValueHeader> >::iterator iter = headerlisttmp.begin();iter != headerlisttmp.end();iter ++)
-			{
-				saveHeader(iter->second);
-			}
-			for(std::map<ValueData*, shared_ptr<ValueData> >::iterator iter = datalisttmp.begin();iter != datalisttmp.end();iter ++)
-			{
-				saveData(iter->second);
+				saveData(storer, data);
 			}
 		}
 	}
-	void saveHeader(const shared_ptr<ValueHeader>& headertmp)
+	void saveHeader(shared_ptr<Storer> storer,const shared_ptr<ValueHeader>& header)
 	{
-		StoreValueHeader* header = (StoreValueHeader*)headertmp.get();
-
 		std::string headerstr;
 		{
 			std::map<std::string, Value> headerarray;
-			headerarray["type"] = (int)header->m_type;
-			headerarray["key"] = header->m_key;
-			headerarray["expire"] = header->m_expire;
-			headerarray["dbindex"] = header->m_dbindex;
+			headerarray["t"] = (int)header->m_type;
+			headerarray["j"] = header->m_key;
+			headerarray["e"] = header->m_expire;
+			headerarray["i"] = header->m_dbindex;
 			headerarray[HEADERFLAG] = true;
 
 			buildHeaderString(headerarray, headerstr);
 		}
-		header->filepos = storer->write(headerstr, "", header->filepos);
+		storer->write(headerstr, RedisString());
 	}
-	shared_ptr<ValueHeader> parseAndBuildHeader(uint32_t filepos,const std::map<std::string, Value>& headerarray)
+	shared_ptr<ValueHeader> parseAndBuildHeader(const std::map<std::string, Value>& headerarray)
 	{
-		DataType type = (DataType)getHeaderValue(headerarray, "type").readInt();
-		std::string key = getHeaderValue(headerarray, "key").readString();
-		uint64_t expire = getHeaderValue(headerarray, "expire").readInt64();
-		uint32_t dbindex = getHeaderValue(headerarray, "dbindex").readInt();
+		DataType type = (DataType)getHeaderValue(headerarray, "t").readInt();
+		std::string key = getHeaderValue(headerarray, "k").readString();
+		uint64_t expire = getHeaderValue(headerarray, "e").readInt64();
+		uint32_t dbindex = getHeaderValue(headerarray, "i").readInt();
 
 		shared_ptr<ValueHeader> valueheader = createHeader(key, dbindex, type);
 		valueheader->setExpire(expire);
-		
-		StoreValueHeader* header = (StoreValueHeader*)valueheader.get();
-		header->filepos = filepos;
 
 		return valueheader;
 	}
-	void saveData(const shared_ptr<ValueData>& datatmp)
+	void saveData(shared_ptr<Storer> storer, const shared_ptr<ValueData>& data)
 	{
-		StoreValueData* data = (StoreValueData*)datatmp.get();
-		shared_ptr<ValueHeader> valueheader = data->m_header.lock();
-		if (valueheader == NULL) return;
-
-		if (data->m_len != data->m_data.length()) return;
-
-		StoreValueHeader* header = (StoreValueHeader*)valueheader.get();
+		shared_ptr<ValueHeader> header = data->m_header.lock();
+		if (header == NULL) return;
 
 		std::string headerstr;
 		{
 			std::map<std::string, Value> headerarray;
-			headerarray["type"] = (int)header->m_type;
-			headerarray["key"] = header->m_key;
-			headerarray["expire"] = header->m_expire;
-			headerarray["dbindex"] = header->m_dbindex;
-			headerarray["name"] = data->m_name;
-			headerarray["datalen"] = data->len();
+			headerarray["t"] = (int)header->m_type;
+			headerarray["k"] = header->m_key;
+			headerarray["e"] = header->m_expire;
+			headerarray["i"] = header->m_dbindex;
+			headerarray["n"] = data->m_name;
 
 			buildHeaderString(headerarray, headerstr);
 		}
-		std::string datastr;
-		data->getData(datastr);
-
-		data->filepos = storer->write(headerstr, datastr, data->filepos);
-		if (data->filepos != -1)
-		{
-			data->prevsavetime = Time::getCurrentMilliSecond();
-
-			std::string emtpystr;
-			data->m_data.swap(emtpystr);
-		}
+		storer->write(headerstr, data->m_data);
 	}
-	shared_ptr<ValueData> parseAndBuildData(uint32_t filepos,const std::vector<shared_ptr<ValueHeader> >& headerlist,const std::map<std::string, Value>& headerarray)
+	shared_ptr<ValueData> parseAndBuildData(const std::map<std::string, Value>& headerarray,const std::vector<shared_ptr<ValueHeader> >& headerlist,const RedisString& datastr)
 	{
-		DataType type = (DataType)getHeaderValue(headerarray, "type").readInt();
-		std::string key = getHeaderValue(headerarray, "key").readString();
-		uint64_t expire = getHeaderValue(headerarray, "expire").readInt64();
-		uint32_t dbindex = getHeaderValue(headerarray, "dbindex").readInt();
-		std::string name = getHeaderValue(headerarray, "name").readString();
-		uint32_t datalen = getHeaderValue(headerarray, "datalen").readInt();
+		DataType type = (DataType)getHeaderValue(headerarray, "t").readInt();
+		std::string key = getHeaderValue(headerarray, "k").readString();
+		uint64_t expire = getHeaderValue(headerarray, "e").readInt64();
+		uint32_t dbindex = getHeaderValue(headerarray, "i").readInt();
+		std::string name = getHeaderValue(headerarray, "n").readString();
 
 		shared_ptr<ValueHeader> header = getDataHeader(headerlist, type, key, dbindex);
 		if (header == NULL) return shared_ptr<ValueData>();
 
 		shared_ptr<ValueData> data = createValueData(header, name);
-		data->m_len = datalen;
-
-		StoreValueData* valuedata = (StoreValueData*)data.get();
-		valuedata->filepos = filepos;
+		data->m_data = datastr;
 
 		return data;
 	}
@@ -387,27 +254,15 @@ private:
 	}
 private:
 	shared_ptr<Timer>			timer;
-	shared_ptr<Storer>			storer;
+	std::string					savefilename;
 	Mutex						mutex;
 	std::map<ValueHeader*, weak_ptr<ValueHeader> > headerlist;
 	std::map<ValueData*, weak_ptr<ValueData> > datalist;
 
 	std::set<ValueHeader*>		headerchangelist;
 	std::set<ValueData*>		datachangelist;
-	std::set<uint32_t>			deleteposlist;
 
 	uint64_t					prevsavetime;
+
+	bool						initflag;
 };
-
-StoreValueHeader::~StoreValueHeader()
-{
-	StoreFactory* factory = (StoreFactory*)m_factory.get();
-	factory->deleteHeader(this, filepos);
-}	
-
-StoreValueData::~StoreValueData()
-{
-	StoreFactory* factory = (StoreFactory*)m_factory.get();
-	factory->deleteValueData(this,filepos);
-}
-	

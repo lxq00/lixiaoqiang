@@ -1,5 +1,6 @@
 #pragma once
 
+#include "redisstring.h"
 #include "Base/Base.h"
 using namespace Public::Base;
 
@@ -32,13 +33,14 @@ public:
 	}
 
 	virtual void updateHeader(ValueHeader* header){}
+	virtual void deleteHeader(ValueHeader* header) {}
 
 	virtual shared_ptr<ValueData> createValueData(const shared_ptr<ValueHeader>& header,const std::string& name="")
 	{
 		return make_shared<ValueData>(shared_from_this(), header, name);
 	}
 	virtual void updateValueData(ValueData* data){}
-	virtual void readValueData(ValueData* data, std::string& datastr) {}
+	virtual void deleteValueData(ValueData* header) {}
 };
 
 struct ValueHeader
@@ -49,17 +51,18 @@ struct ValueHeader
 	ValueHeader(const shared_ptr<DataFactory>& factory, const std::string& key, uint32_t dbindex,DataType _type)
 		:m_factory(factory),m_key(key),m_type(_type), m_expire(0), m_dbindex(dbindex)
 	{
-		update();
+		m_factory->updateHeader(this);
 	}
 	virtual ~ValueHeader() 
 	{
+		m_factory->deleteHeader(this);
 	}
 
 	void setkey(const std::string& keyname)
 	{
 		m_key = keyname;
 
-		update();
+		m_factory->updateHeader(this);
 	}
 
 	DataType type()const { return m_type; }
@@ -68,16 +71,12 @@ struct ValueHeader
 	{
 		m_expire = expire; 
 	
-		update();
+		m_factory->updateHeader(this);
 	}
 	uint64_t expire()const { return m_expire; }
 	const std::string& key() const { return m_key; }
 	uint32_t dbindex() const { return m_dbindex; }
 	shared_ptr<DataFactory> factory() { return m_factory; }
-	virtual void update()
-	{
-		m_factory->updateHeader(this);
-	}
 protected:
 	shared_ptr<DataFactory> m_factory;
 	DataType				m_type;
@@ -92,7 +91,7 @@ struct ValueData
 
 	ValueData() 
 	{
-		update();
+		m_factory->updateValueData(this);
 	}
 	ValueData(const shared_ptr<DataFactory>& factory, const shared_ptr<ValueHeader>& _header,const std::string& _name)
 	{
@@ -102,30 +101,18 @@ struct ValueData
 	}
 	virtual ~ValueData() 
 	{
+		m_factory->deleteValueData(this);
 	}
 	shared_ptr<ValueHeader> header() { return m_header.lock(); }
-	virtual void setData(const std::string& data)
+	virtual void setData(const RedisString& data)
 	{
-		m_len = data.length();
 		m_data = data;
 
-		update();
-	}
-	uint32_t len() const { return m_len; }
-	virtual bool getData(std::string& data)
-	{
-		if (m_len != m_data.length())
-		{
-			m_factory->readValueData(this,m_data);
-		}
-
-		data = m_data;
-
-		return true;
-	}
-	virtual void update()
-	{
 		m_factory->updateValueData(this);
+	}
+	const RedisString& getData()
+	{
+		return m_data;
 	}
 	const std::string name()const { return m_name; }
 protected:
@@ -133,5 +120,5 @@ protected:
 	weak_ptr<ValueHeader>	m_header;
 	std::string				m_name;
 	uint32_t				m_len;
-	std::string				m_data;
+	RedisString				m_data;
 };

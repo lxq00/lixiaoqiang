@@ -75,12 +75,6 @@
     <ClInclude Include="src\keyobject.h">
       <Filter>db</Filter>
     </ClInclude>
-    <ClInclude Include="src\redisprotocol.h">
-      <Filter>communication</Filter>
-    </ClInclude>
-    <ClInclude Include="src\redisvalue.h">
-      <Filter>communication</Filter>
-    </ClInclude>
     <ClInclude Include="src\valuedata.h">
       <Filter>value</Filter>
     </ClInclude>
@@ -94,6 +88,15 @@
       <Filter>dump</Filter>
     </ClInclude>
     <ClInclude Include="src\memory.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\redisvalue.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\redisstring.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\redisprotocol.h">
       <Filter>common</Filter>
     </ClInclude>
   </ItemGroup>

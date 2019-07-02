@@ -32,8 +32,7 @@ private:
 		if (valueobj->type() != DataType_String) return RedisValue(0);
 		ValueString* stringobject = (ValueString*)valueobj.get();
 		
-		std::string datastr;
-		stringobject->get(datastr);
+		RedisString datastr = stringobject->get();
 
 		return RedisValue(datastr);
 	}
@@ -41,7 +40,7 @@ private:
 	{
 		if (val.size() != 3) return RedisValue(false, "Param Error");
 		std::string key = String::tolower(val[1].toString());
-		const std::string data = val[2].toString();
+		const RedisString& data = val[2].toString();
 
 		shared_ptr<ValueObject> valueobj;
 		std::map<std::string, shared_ptr<ValueObject> >::iterator iter = valuelist.find(key);
@@ -66,7 +65,7 @@ private:
 	{
 		if (val.size() != 3) return RedisValue(false, "Param Error");
 		std::string key = String::tolower(val[1].toString());
-		const std::string data = val[2].toString();
+		const RedisString& data = val[2].toString();
 
 		shared_ptr<ValueObject> valueobj;
 		std::map<std::string, shared_ptr<ValueObject> >::iterator iter = valuelist.find(key);

@@ -265,7 +265,7 @@ private:
 	}
 	RedisValue inputCommand(const RedisValue& value)
 	{
-		if (!value.isArray()) return RedisValue(false, std::string("unknown command '" + value.getString()) + "'");
+		if (!value.isArray()) return RedisValue(false, std::string(std::string("unknown command '") + (std::string)value.getString() + "'"));
 
 		const std::vector<RedisValue> & valuearray = value.getArray();
 
