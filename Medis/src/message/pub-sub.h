@@ -7,17 +7,17 @@ typedef Function2<void, void*, const RedisValue&> CmdMessageCallback;
 class Pub_Sub
 {
 public:
-	Pub_Sub(const CmdMessageCallback& _callback):callback(_callback) {}
+	Pub_Sub(){}
 	~Pub_Sub() {}
 
-	bool subscribe(void* user)
+	bool subscribe(void* user, const CmdMessageCallback& callback)
 	{
-		sublist.insert(user);
+		sublist[user] = callback;
 		return true;
 	}
 	bool unsubcribe(void* user)
 	{
-		std::set<void*>::iterator iter = sublist.find(user);
+		std::map<void*, CmdMessageCallback>::iterator iter = sublist.find(user);
 		if (iter == sublist.end()) return false;
 
 		sublist.erase(iter);
@@ -30,12 +30,11 @@ public:
 	}
 	void publish(const RedisValue& msg)
 	{
-		for (std::set<void*>::iterator iter = sublist.begin(); iter != sublist.end(); iter++)
+		for (std::map<void*, CmdMessageCallback>::iterator iter = sublist.begin(); iter != sublist.end(); iter++)
 		{
-			callback(*iter, msg);
+			iter->second(iter->first, msg);
 		}
 	}
 private:
-	CmdMessageCallback	callback;
-	std::set<void*>		sublist;
+	std::map<void*,CmdMessageCallback>		sublist;
 };

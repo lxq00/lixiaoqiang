@@ -3,26 +3,35 @@
 
 class Push_Pull
 {
+	struct PullInfo
+	{
+		void*				user;
+		CmdMessageCallback	callback;
+	};
 public:
-	Push_Pull(const CmdMessageCallback& _callback) :callback(_callback), pullindex(0){}
+	Push_Pull() : pullindex(0){}
 	~Push_Pull() {}
 
-	bool pull(void* user)
+	bool pull(void* user, const CmdMessageCallback& callback)
 	{
 		for (uint32_t i = 0; i < pulllist.size(); i++)
 		{
-			if (pulllist[i] == user) return true;
+			if (pulllist[i].user == user) return true;
 		}
 
-		pulllist.push_back(user);
+		PullInfo info;
+		info.user = user;
+		info.callback = callback;
+
+		pulllist.push_back(info);
 
 		return true;
 	}
 	bool unpull(void* user)
 	{
-		for (std::vector<void*>::iterator iter = pulllist.begin(); iter != pulllist.end(); iter++)
+		for (std::vector<PullInfo>::iterator iter = pulllist.begin(); iter != pulllist.end(); iter++)
 		{
-			if (*iter == user)
+			if (iter->user== user)
 			{
 				pulllist.erase(iter);
 				return true;
@@ -41,10 +50,10 @@ public:
 
 		uint32_t sendindex = (pullindex++) % pulllist.size();
 
-		callback(pulllist[sendindex], val);
+		pulllist[sendindex].callback(pulllist[sendindex].user, val);
 	}
 private:
-	CmdMessageCallback	callback;
-	std::vector<void*>	pulllist;
-	uint64_t			pullindex;
+	CmdMessageCallback		callback;
+	std::vector<PullInfo>	pulllist;
+	uint64_t				pullindex;
 };

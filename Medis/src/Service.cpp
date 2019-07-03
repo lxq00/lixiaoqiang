@@ -224,7 +224,7 @@ bool Service::start(const shared_ptr<IOWorker>& worker, uint32_t port)
 
 	internal->commu = make_shared<Communication>(worker, RecvDataCallback(&ServiceInternal::commuRecvDatacallback, internal),
 		ConnectionDisconnectCallback(&ServiceInternal::userDisconnectCallback,internal),port);
-	internal->message = make_shared<Message>(worker, CmdMessageCallback(&ServiceInternal::commandSendCallback, internal));
+	internal->message = make_shared<Message>(worker);
 
 	return true;
 }

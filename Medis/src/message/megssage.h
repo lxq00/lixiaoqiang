@@ -5,11 +5,11 @@
 class Message
 {
 public:
-	Message(const shared_ptr<IOWorker>& worker, const CmdMessageCallback& _callback)
+	Message(const shared_ptr<IOWorker>& worker)
 	{
 		for (uint32_t i = 0; i < MAXDBINDEX; i++)
 		{
-			exchangelist.push_back(make_shared<Exchange>(worker, _callback));
+			exchangelist.push_back(make_shared<Exchange>(worker));
 		}
 	}
 	~Message() {}

@@ -2,10 +2,11 @@
 
 #include "push-pull.h"
 
-typedef Function2<RedisValue,void*, const std::vector<RedisValue> &> MessageCommandCallback;
-
 class Exchange:public Strand
 {
+	struct ExChangeStrandData;
+	typedef Function2<RedisValue, ExChangeStrandData*, const std::vector<RedisValue> &> MessageCommandCallback;
+
 	struct ExChangeStrandData :public StrandData
 	{
 		void*					user;
@@ -14,7 +15,7 @@ class Exchange:public Strand
 		CmdResultCallback		ackcallback;
 	};
 public:
-	Exchange(const shared_ptr<IOWorker>& worker,const CmdMessageCallback& _callback) :Strand(worker),callback(_callback)
+	Exchange(const shared_ptr<IOWorker>& worker) :Strand(worker)
 	{
 		subCommand("SUBSCRIBE", MessageCommandCallback(&Exchange::subscribeFunc, this));
 		subCommand("UNSUBSCRIBE", MessageCommandCallback(&Exchange::unsubscribeFunc, this));
@@ -55,7 +56,7 @@ public:
 		post(Strand::StrandCallback(&Exchange::strandUserCallback, this), data);
 	}
 private:
-	RedisValue subscribeFunc(void* user, const std::vector<RedisValue> & val)
+	RedisValue subscribeFunc(ExChangeStrandData* data, const std::vector<RedisValue> & val)
 	{
 		if(val.size() < 2) return RedisValue(false, "Param Error");
 
@@ -67,11 +68,11 @@ private:
 			std::map<std::string, shared_ptr<Pub_Sub> >::iterator iter = pubsublist.find(channel);
 			if (iter == pubsublist.end())
 			{
-				shared_ptr<Pub_Sub> pubsub = make_shared<Pub_Sub>(callback);
+				shared_ptr<Pub_Sub> pubsub = make_shared<Pub_Sub>();
 				pubsublist[channel] = pubsub;
 				iter = pubsublist.find(channel);
 			}
-			iter->second->subscribe(user);
+			iter->second->subscribe(data->user,data->ackcallback);
 
 			std::vector<RedisValue> ackmsg;
 			ackmsg.push_back(RedisValue("subscribe"));
@@ -83,7 +84,7 @@ private:
 
 		return RedisValue(ackmsgarray);
 	}
-	RedisValue unsubscribeFunc(void* user, const std::vector<RedisValue> & val)
+	RedisValue unsubscribeFunc(ExChangeStrandData* data, const std::vector<RedisValue> & val)
 	{
 		if (val.size() != 2) return RedisValue(false, "wrong number of arguments");
 		std::string channel = String::tolower(val[1].toString());
@@ -93,7 +94,7 @@ private:
 		std::map<std::string, shared_ptr<Pub_Sub> >::iterator iter = pubsublist.find(channel);
 		if (iter != pubsublist.end())
 		{
-			unsubflag = iter->second->unsubcribe(user);
+			unsubflag = iter->second->unsubcribe(data->user);
 
 			if (iter->second->subscribesize() == 0)
 			{
@@ -103,7 +104,7 @@ private:
 
 		return RedisValue(unsubflag ? 1 : 0);
 	}
-	RedisValue publishFunc(void* user, const std::vector<RedisValue> & val)
+	RedisValue publishFunc(ExChangeStrandData* data, const std::vector<RedisValue> & val)
 	{
 		if (val.size() != 3) return RedisValue(false,"wrong number of arguments");
 
@@ -114,13 +115,22 @@ private:
 		std::map<std::string, shared_ptr<Pub_Sub> >::iterator iter = pubsublist.find(channel);
 		if (iter != pubsublist.end())
 		{
-			iter->second->publish(msg);
+			RedisValue notifymsg;
+			{
+				std::vector<RedisValue> msglist;
+				msglist.push_back(RedisValue("message"));
+				msglist.push_back(channel);
+				msglist.push_back(msg);
+				notifymsg = RedisValue(msglist);
+			}
+
+			iter->second->publish(notifymsg);
 			subsize = iter->second->subscribesize();
 		}
 
 		return RedisValue(subsize);
 	}
-	RedisValue pullFunc(void* user, const std::vector<RedisValue> & val)
+	RedisValue pullFunc(ExChangeStrandData* data, const std::vector<RedisValue> & val)
 	{
 		if (val.size() < 2) return RedisValue(false, "Param Error");
 
@@ -132,11 +142,11 @@ private:
 			std::map<std::string, shared_ptr<Push_Pull> >::iterator iter = pushpulllist.find(channel);
 			if (iter == pushpulllist.end())
 			{
-				shared_ptr<Push_Pull> pubsub = make_shared<Push_Pull>(callback);
+				shared_ptr<Push_Pull> pubsub = make_shared<Push_Pull>();
 				pushpulllist[channel] = pubsub;
 				iter = pushpulllist.find(channel);
 			}
-			iter->second->pull(user);
+			iter->second->pull(data->user,data->ackcallback);
 
 			std::vector<RedisValue> ackmsg;
 			ackmsg.push_back(RedisValue("pull"));
@@ -148,7 +158,7 @@ private:
 
 		return RedisValue(ackmsgarray);
 	}
-	RedisValue unpullFunc(void* user, const std::vector<RedisValue> & val)
+	RedisValue unpullFunc(ExChangeStrandData* data, const std::vector<RedisValue> & val)
 	{
 		if (val.size() != 2) return RedisValue(false, "wrong number of arguments");
 		std::string channel = String::tolower(val[1].toString());
@@ -158,7 +168,7 @@ private:
 		std::map<std::string, shared_ptr<Push_Pull> >::iterator iter = pushpulllist.find(channel);
 		if (iter != pushpulllist.end())
 		{
-			unsubflag = iter->second->unpull(user);
+			unsubflag = iter->second->unpull(data->user);
 
 			if (iter->second->pullsize() == 0)
 			{
@@ -168,7 +178,7 @@ private:
 
 		return RedisValue(unsubflag ? 1 : 0);
 	}
-	RedisValue pushFunc(void* user, const std::vector<RedisValue> & val)
+	RedisValue pushFunc(ExChangeStrandData* data, const std::vector<RedisValue> & val)
 	{
 		if (val.size() != 3) return RedisValue(false, "wrong number of arguments");
 
@@ -179,7 +189,16 @@ private:
 		std::map<std::string, shared_ptr<Push_Pull> >::iterator iter = pushpulllist.find(channel);
 		if (iter != pushpulllist.end())
 		{
-			iter->second->push(msg);
+			RedisValue notifymsg;
+			{
+				std::vector<RedisValue> msglist;
+				msglist.push_back(RedisValue("message"));
+				msglist.push_back(channel);
+				msglist.push_back(msg);
+				notifymsg = RedisValue(msglist);
+			}
+
+			iter->second->push(notifymsg);
 			pullsize = iter->second->pullsize();
 		}
 
@@ -216,7 +235,7 @@ private:
 		ExChangeStrandData* stranddata = (ExChangeStrandData*)tmp.get();
 		const std::vector<RedisValue> & valuearray = stranddata->value->getArray();
 
-		RedisValue ret = stranddata->callback(stranddata->user, valuearray);
+		RedisValue ret = stranddata->callback(stranddata, valuearray);
 		if (!ret.isNull())
 		{
 			stranddata->ackcallback(stranddata->user, ret);
@@ -224,8 +243,6 @@ private:
 	}
 private:
 	std::map<std::string, MessageCommandCallback>	callbacklist;
-private:
-	CmdMessageCallback		callback;
 	std::map<std::string, shared_ptr<Pub_Sub> >	 pubsublist;
 	std::map<std::string, shared_ptr<Push_Pull> > pushpulllist;
 };
