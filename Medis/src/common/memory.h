@@ -4,8 +4,11 @@
 using namespace Public::Base;
 
 #define MAXSHAREDMEMSIZE	128*1024*1024
-
 #define FREENOTUSEDTIMEOUT		60*1000
+
+#define USEDVIRTUALMEMORY	
+
+#define VIRTUALMEMORYCHUNKSIZE	DefaultMemChunkSize
 
 class Memory
 {
@@ -22,19 +25,27 @@ class Memory
 
 			sharemem = ShareMem::create(buffer, MAXSHAREDMEMSIZE);
 			if (sharemem == NULL) return;
-			memPool = make_shared<StaticMemPool>((char*)sharemem->getbuffer(), MAXSHAREDMEMSIZE, (IMutexInterface*)NULL, true);
+			memPool = make_shared<StaticMemPool>((char*)sharemem->getbuffer(), MAXSHAREDMEMSIZE, (IMutexInterface*)NULL, true, VIRTUALMEMORYCHUNKSIZE);
 		}
 	};
 public:
 	Memory() 
 	{
+#ifdef USEDVIRTUALMEMORY
 		timer = make_shared<Timer>("Memory");
 		timer->start(Timer::Proc(&Memory::onPoolTimerProc, this), 0, 10000);
+#endif
 	}
 	~Memory() {}
 
 	void* Malloc(uint32_t size)
 	{
+#ifdef USEDVIRTUALMEMORY
+		if (size < VIRTUALMEMORYCHUNKSIZE)
+		{
+			return malloc(size);
+		}
+
 		Guard locker(mutex);
 
 		uint32_t realsize = 0;
@@ -65,9 +76,13 @@ public:
 		memlist.push_back(node);
 
 		return ptr;
+#else
+		return malloc(size);
+#endif
 	}
 	void Free(void* ptr)
 	{
+#ifdef USEDVIRTUALMEMORY
 		Guard locker(mutex);
 		for (uint32_t i = 0; i < memlist.size(); i++)
 		{
@@ -77,6 +92,10 @@ public:
 				return;
 			}
 		}
+		free(ptr);
+#else
+		free(ptr);
+#endif
 	}
 	static Memory* instance()
 	{

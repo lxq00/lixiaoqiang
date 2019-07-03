@@ -32,19 +32,7 @@ public:
 
 	void sendResponse(const RedisValue& val)
 	{
-		RedisBuilder builder;
-		builder.build(val);
-
-		shared_ptr<Socket> tmp = socket;
-
-		Guard locker(mutex);
-		sendlist.push_back(builder.buffer);
-		if (sendlist.size() == 1 && tmp != NULL)
-		{
-			std::string& data = sendlist.front();
-
-			tmp->async_send(data.c_str(), data.length(), Socket::SendedCallback(&Connection::socketSendCallback, this));
-		}
+		RedisBuilder::build(val,RedisBuilder::BuildCallback(&Connection::buildProtocolCallback,this));
 	}
 	bool isTimeoutOrError()
 	{
@@ -63,6 +51,20 @@ public:
 		dbindex = index;
 	}
 private:
+	void buildProtocolCallback(const std::string& buffer)
+	{
+		shared_ptr<Socket> tmp = socket;
+
+		Guard locker(mutex);
+		sendlist.push_back(buffer);
+		
+		if (sendlist.size() == 1 && tmp != NULL)
+		{
+			std::string& data = sendlist.front();
+
+			tmp->async_send(data.c_str(), data.length(), Socket::SendedCallback(&Connection::socketSendCallback, this));
+		}
+	}
 	void recvCallback(const weak_ptr<Socket>& user, const char* buftmp, int len)
 	{
 		shared_ptr < Socket> tmp = socket;

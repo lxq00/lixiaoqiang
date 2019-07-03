@@ -6,8 +6,6 @@ namespace Base{
 
 struct StaticMemPool::StaticMemPoolInternal
 {
-#define MemChunkSize		256
-
 	typedef struct _ChunkNode {
 		uint32_t idx;
 		uint32_t usedIdx;
@@ -30,6 +28,7 @@ struct StaticMemPool::StaticMemPoolInternal
 	ChunkNode*		nodeHeader;
 
 	uint32_t	 bufferUsedSize;
+	uint32_t		memChunkSize;
 //	shared_ptr<Timer> poolTimer;
 private:
 	uint32_t getChuckSize(uint32_t _chuckSize)
@@ -39,7 +38,7 @@ private:
 			return 0;
 		}
 
-		int canUsedBlockSize = _chuckSize*MemChunkSize;
+		int canUsedBlockSize = _chuckSize* memChunkSize;
 		chunkSize = _chuckSize;
 		nodeIndexSize = log2i(canUsedBlockSize) - minBlockIdx;
 
@@ -49,7 +48,7 @@ private:
 		{
 			return _chuckSize;
 		}
-		uint32_t freeChunkSize = (usedHeadersize - (bufferMaxSize - canUsedBlockSize)) / MemChunkSize;
+		uint32_t freeChunkSize = (usedHeadersize - (bufferMaxSize - canUsedBlockSize)) / memChunkSize;
 		if(freeChunkSize == 0)
 		{
 			freeChunkSize = 1;
@@ -58,17 +57,17 @@ private:
 		return getChuckSize(_chuckSize - freeChunkSize);
 	}
 public:
-	StaticMemPoolInternal(char* addr,int size,IMutexInterface* lock,bool create):listHeader(NULL),nodeHeader(NULL)
+	StaticMemPoolInternal(char* addr,int size,IMutexInterface* lock,bool create, uint32_t chunksize):listHeader(NULL),nodeHeader(NULL),memChunkSize(chunksize)
 	{
 		bufferUsedSize = 0;
 		bufferStartAddr = (uint8_t*)addr;
 		bufferMaxSize = size;
 		locker = lock;
 
-		minBlockIdx = log2i(MemChunkSize);
+		minBlockIdx = log2i(memChunkSize);
 
 
-		chunkSize = getChuckSize(bufferMaxSize / MemChunkSize);
+		chunkSize = getChuckSize(bufferMaxSize / memChunkSize);
 		if(chunkSize == 0)
 		{
 			return;
@@ -97,15 +96,15 @@ public:
 		nodeHeader[0].usedIdx = nodeIndexSize + minBlockIdx;
 		
 		uint32_t usedSize = 1 << (nodeIndexSize + minBlockIdx);
-		uint32_t totalcanUsedSize = MemChunkSize * chunkSize - usedSize;
-		while(totalcanUsedSize >= MemChunkSize)
+		uint32_t totalcanUsedSize = memChunkSize * chunkSize - usedSize;
+		while(totalcanUsedSize >= memChunkSize)
 		{
 			int freeidx = log2i(totalcanUsedSize) - minBlockIdx;
-			listHeader[freeidx].node = &nodeHeader[usedSize/MemChunkSize];
-			nodeHeader[usedSize/MemChunkSize].usedIdx = freeidx + minBlockIdx;
+			listHeader[freeidx].node = &nodeHeader[usedSize/ memChunkSize];
+			nodeHeader[usedSize/ memChunkSize].usedIdx = freeidx + minBlockIdx;
 
 			usedSize += 1 << (freeidx + minBlockIdx);
-			totalcanUsedSize = MemChunkSize * chunkSize - usedSize;
+			totalcanUsedSize = memChunkSize * chunkSize - usedSize;
 		}
 		//poolTimer = make_shared<Timer>("StaticMemPoolInternal");
 		//poolTimer->start(Timer::Proc(&StaticMemPoolInternal::poolTimerProc,this),0,5*60*1000);
@@ -121,7 +120,7 @@ public:
 
 	void insertChunk(uint32_t idx,ChunkNode* node)
 	{
-		uint32_t canAddIdxNext = node->idx + ((1 << (idx + minBlockIdx)) / MemChunkSize);
+		uint32_t canAddIdxNext = node->idx + ((1 << (idx + minBlockIdx)) / memChunkSize);
 
 		ChunkNode* pnode = listHeader[idx].node;
 		while(pnode != NULL)
@@ -188,7 +187,7 @@ public:
 			return NULL;
 		}
 
-		insertChunk(idx - 1,&nodeHeader[usedNode->idx + ((1 << (idx + minBlockIdx - 1)) / MemChunkSize)]);
+		insertChunk(idx - 1,&nodeHeader[usedNode->idx + ((1 << (idx + minBlockIdx - 1)) / memChunkSize)]);
 		deleteChunk(idx,usedNode);
 		usedNode->usedIdx = idx + minBlockIdx - 1;
 
@@ -199,11 +198,11 @@ public:
 	{
 		Guard  autol(locker);
 
-		//当size小于MemChunkSize 等于MemChunkSize
+		//当size小于memChunkSize 等于memChunkSize
 
-		if(size <= MemChunkSize)
+		if(size <= memChunkSize)
 		{
-			size = MemChunkSize;
+			size = memChunkSize;
 		}
 		uint32_t vecIdx = Base::log2i(size) - minBlockIdx;
 
@@ -231,19 +230,19 @@ public:
 
 		bufferUsedSize += realsize;
 
-		return realDataBufferAddr +  usedNode->idx * MemChunkSize;
+		return realDataBufferAddr +  usedNode->idx * memChunkSize;
 	}
 
 	bool Free(void* addr)
 	{
 		Guard  autol(locker);
 
-		if(addr < realDataBufferAddr || addr >= realDataBufferAddr + chunkSize * MemChunkSize)
+		if(addr < realDataBufferAddr || addr >= realDataBufferAddr + chunkSize * memChunkSize)
 		{
 			return false;
 		}
 
-		int vecIdx = ((uint8_t*)addr - realDataBufferAddr)/MemChunkSize;
+		int vecIdx = ((uint8_t*)addr - realDataBufferAddr)/memChunkSize;
 		int idx = nodeHeader[vecIdx].usedIdx - minBlockIdx;
 
 		uint32_t realsize = 1 << nodeHeader[vecIdx].usedIdx;
@@ -257,9 +256,11 @@ public:
 };
 
 
-StaticMemPool::StaticMemPool(char* bufferStartAddr,int bufferSize,IMutexInterface* locker, bool create)
+StaticMemPool::StaticMemPool(char* bufferStartAddr,int bufferSize,IMutexInterface* locker, bool create, uint32_t chunksize)
 {
-	internal = new StaticMemPoolInternal(bufferStartAddr, bufferSize, locker, create);
+	if (chunksize == 0) chunksize = DefaultMemChunkSize;
+
+	internal = new StaticMemPoolInternal(bufferStartAddr, bufferSize, locker, create,chunksize);
 }
 
 StaticMemPool::~StaticMemPool()

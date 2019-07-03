@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/redisstring.h"
+#include "../common/redisstring.h"
 #include "Base/Base.h"
 using namespace Public::Base;
 

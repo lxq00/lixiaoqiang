@@ -35,13 +35,11 @@ public:
 	inline bool operator == (const RedisString &t) const {
 		return buffer.get() == t.buffer.get();
 	}
-	operator string() const
+	operator std::string() const
 	{
-		return std::string(c_str(), length());
+		return std::string(ptr(), length());
 	}
-	const char* ptr() const { return c_str(); }
-private:
-	const char* c_str() const
+	const char* ptr() const 
 	{
 		static char* emtptyptr = "";
 		return buffer == NULL ? emtptyptr : buffer->buffer;

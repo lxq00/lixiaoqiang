@@ -470,41 +470,53 @@ private:
 class RedisBuilder
 {
 public:
-	const RedisBuilder& build(const RedisValue &items)
+	typedef Function1<void, const std::string&> BuildCallback;
+public:
+	static void build(const RedisValue &items,BuildCallback& callback)
 	{
-		if (items.isArray()) buildArray(items);
-		else if (items.isString()) buildString(items);
-		else if (items.isInt()) buildInt(items);
-		else if (items.isStatus()) buildStatus(items);
-
-		return *this;
+		if (items.isArray()) buildArray(items,callback);
+		else if (items.isString()) buildString(items, callback);
+		else if (items.isInt()) buildInt(items, callback);
+		else if (items.isStatus()) buildStatus(items, callback);
 	}
-
-	std::string buffer;
 private:
-	void buildArray(const RedisValue &items)
+	static void buildArray(const RedisValue &items,BuildCallback& callback)
 	{
 		const std::vector<RedisValue>& array = items.getArray();
 
-		buffer = "*" + Value(array.size()).readString() + crlf;
+		{
+			std::string buffer;
+			buffer = "*" + Value(array.size()).readString() + crlf;
+
+			callback(buffer);
+		}
+		
 		for (uint32_t i = 0; i < array.size(); i++) 
 		{
-			buffer += RedisBuilder().build(array[i]).buffer;
+			RedisBuilder().build(array[i], callback);
 		}
 	}
-	void buildString(const RedisValue &items)
+	static void buildString(const RedisValue &items, BuildCallback& callback)
 	{
+		std::string buffer;
 		const RedisString& stringtmp = items.getString();
 		buffer = "$" + Value(stringtmp.length()).readString() + crlf;
 		buffer += (std::string)stringtmp;
 		buffer += crlf;
+
+		callback(buffer);
 	}
-	void buildInt(const RedisValue &items)
+	static void buildInt(const RedisValue &items, BuildCallback& callback)
 	{
+		std::string buffer;
 		buffer = ":" + Value(items.toInt()).readString() + crlf;
+
+		callback(buffer);
 	}
-	void buildStatus(const RedisValue &items)
+	static void buildStatus(const RedisValue &items, BuildCallback& callback)
 	{
+		std::string buffer;
+
 		const RedisValue::StatusTag& tag = items.getStatus();
 		if (!tag.success)
 		{
@@ -514,5 +526,7 @@ private:
 		{
 			buffer = std::string("+") + (tag.errmsg == ""  ? "OK":tag.errmsg) + crlf;
 		}
+
+		callback(buffer);
 	}
 };

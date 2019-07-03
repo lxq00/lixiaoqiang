@@ -6,11 +6,13 @@
 namespace Public{
 namespace Base{
 
+#define DefaultMemChunkSize		256
+
 class BASE_API StaticMemPool:public IMempoolInterface
 {
 	struct StaticMemPoolInternal;
 public:
-	StaticMemPool(char* bufferStartAddr,int bufferSize,IMutexInterface* locker,bool create);
+	StaticMemPool(char* bufferStartAddr,int bufferSize,IMutexInterface* locker,bool create,uint32_t chunksize = DefaultMemChunkSize);
 	~StaticMemPool();
 
 	void* Malloc(uint32_t size,uint32_t& realsize);
