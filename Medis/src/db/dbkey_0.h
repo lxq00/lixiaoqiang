@@ -53,7 +53,7 @@ public:
 private:
 	RedisValue delFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() <= 1) return RedisValue(false, "Param Error");
+		if (val.size() <= 1) return RedisValue(false, "wrong number of arguments");
 
 		uint32_t delcount = 0;
 		for (uint32_t i = 1; i < val.size(); i++)
@@ -74,7 +74,7 @@ private:
 
 	RedisValue existsFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() <= 1) return RedisValue(false, "Param Error");
+		if (val.size() <= 1) return RedisValue(false, "wrong number of arguments");
 
 		uint32_t delcount = 0;
 		for (uint32_t i = 1; i < val.size(); i++)
@@ -94,7 +94,7 @@ private:
 
 	RedisValue expireFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() != 3) return RedisValue(false, "Param Error");
+		if (val.size() != 3) return RedisValue(false, "wrong number of arguments");
 		std::string key = String::tolower(val[1].toString());
 		uint64_t ttl = val[2].toInt();
 
@@ -111,7 +111,7 @@ private:
 
 	RedisValue ttlFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() != 2) return RedisValue(false, "Param Error");
+		if (val.size() != 2) return RedisValue(false, "wrong number of arguments");
 		std::string key = String::tolower(val[1].toString());
 
 
@@ -127,7 +127,7 @@ private:
 
 	RedisValue keysFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() != 2) return RedisValue(false, "Param Error");
+		if (val.size() != 2) return RedisValue(false, "wrong number of arguments");
 		std::string pattern = String::tolower(val[1].toString());
 
 
@@ -149,7 +149,7 @@ private:
 
 	RedisValue renameFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() != 3) return RedisValue(false, "Param Error");
+		if (val.size() != 3) return RedisValue(false, "wrong number of arguments");
 		std::string oldkey = String::tolower(val[1].toString());
 		std::string newkey = String::tolower(val[2].toString());
 
@@ -170,7 +170,7 @@ private:
 
 	RedisValue typeFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() != 2) return RedisValue(false, "Param Error");
+		if (val.size() != 2) return RedisValue(false, "wrong number of arguments");
 		std::string key = String::tolower(val[1].toString());
 
 
@@ -200,7 +200,7 @@ private:
 		std::string pattern;
 		uint32_t count = -1;
 
-		if(val.size() == 1) return RedisValue(false, "Param Error");
+		if(val.size() == 1) return RedisValue(false, "wrong number of arguments");
 	//	else if (!val[1].isInt())  return RedisValue(false, "invalid cursor");
 		
 		cursor = (uint32_t)val[1].toInt();

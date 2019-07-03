@@ -15,7 +15,7 @@ public:
 		sublist[user] = callback;
 		return true;
 	}
-	bool unsubcribe(void* user)
+	bool unsubscribe(void* user)
 	{
 		std::map<void*, CmdMessageCallback>::iterator iter = sublist.find(user);
 		if (iter == sublist.end()) return false;

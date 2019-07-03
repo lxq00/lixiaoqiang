@@ -14,6 +14,22 @@ class Exchange:public Strand
 		MessageCommandCallback	callback;
 		CmdResultCallback		ackcallback;
 	};
+	struct ExchangeInfo
+	{
+		enum _ExChangeType
+		{
+			ExChangeType_SubToPush,
+			ExChangeType_PullToPublish,
+		}type;
+
+		std::string srcChannel;
+		std::string dstChannel;
+
+		ExchangeInfo(_ExChangeType _type,const std::string& src,const std::string& dst)
+			:type(_type), srcChannel(src), dstChannel(dst){}
+
+		~ExchangeInfo() {}
+	};
 public:
 	Exchange(const shared_ptr<IOWorker>& worker) :Strand(worker)
 	{
@@ -23,6 +39,9 @@ public:
 		subCommand("PULL", MessageCommandCallback(&Exchange::pullFunc, this));
 		subCommand("UNPULL", MessageCommandCallback(&Exchange::unpullFunc, this));
 		subCommand("PUSH", MessageCommandCallback(&Exchange::pushFunc, this));
+		subCommand("EXCHANGE", MessageCommandCallback(&Exchange::exchangeFunc, this));
+		subCommand("UNEXCHANGE", MessageCommandCallback(&Exchange::unexchangeFunc, this));
+		subCommand("EXCHANGEINFO", MessageCommandCallback(&Exchange::exchangeinfoFunc, this));
 	}
 	~Exchange() {}
 	bool inputCommand(const CmdResultCallback& callback, void* user, const shared_ptr<RedisValue>& value)
@@ -58,7 +77,7 @@ public:
 private:
 	RedisValue subscribeFunc(ExChangeStrandData* data, const std::vector<RedisValue> & val)
 	{
-		if(val.size() < 2) return RedisValue(false, "Param Error");
+		if(val.size() < 2) return RedisValue(false, "wrong number of arguments");
 
 		std::vector<RedisValue> ackmsgarray;
 		for (uint32_t i = 1; i < val.size(); i++)
@@ -94,7 +113,7 @@ private:
 		std::map<std::string, shared_ptr<Pub_Sub> >::iterator iter = pubsublist.find(channel);
 		if (iter != pubsublist.end())
 		{
-			unsubflag = iter->second->unsubcribe(data->user);
+			unsubflag = iter->second->unsubscribe(data->user);
 
 			if (iter->second->subscribesize() == 0)
 			{
@@ -132,7 +151,7 @@ private:
 	}
 	RedisValue pullFunc(ExChangeStrandData* data, const std::vector<RedisValue> & val)
 	{
-		if (val.size() < 2) return RedisValue(false, "Param Error");
+		if (val.size() < 2) return RedisValue(false, "wrong number of arguments");
 
 		std::vector<RedisValue> ackmsgarray;
 		for (uint32_t i = 1; i < val.size(); i++)
@@ -204,7 +223,154 @@ private:
 
 		return RedisValue(pullsize);
 	}
+	RedisValue exchangeFunc(ExChangeStrandData* data, const std::vector<RedisValue> & val)
+	{
+		if (val.size() != 5) return RedisValue(false, "wrong number of arguments");
 
+		std::string srctype = String::tolower(val[1].toString());
+		std::string srcchannel = String::tolower(val[2].toString());
+		std::string dsttype = String::tolower(val[3].toString());
+		std::string dstchannel = String::tolower(val[4].toString());
+
+		ExchangeInfo::_ExChangeType exchangetype;
+
+		if (srctype == "subscribe" && dsttype == "push")
+		{
+			exchangetype = ExchangeInfo::ExChangeType_SubToPush;
+		}
+		else if(srctype == "pull" && dsttype == "publish")
+		{
+			exchangetype = ExchangeInfo::ExChangeType_PullToPublish;
+		}
+		else
+		{
+			return RedisValue(false, "syntax error");
+		}
+		
+		for (std::list<shared_ptr<ExchangeInfo> >::iterator iter = exchangelist.begin(); iter != exchangelist.end(); iter++)
+		{
+			if (exchangetype == (*iter)->type && srcchannel == (*iter)->srcChannel && dstchannel == (*iter)->dstChannel)
+			{
+				return RedisValue(1);
+			}
+			else if (exchangetype != (*iter)->type && srcchannel == (*iter)->srcChannel && dstchannel == (*iter)->dstChannel)
+			{
+				return RedisValue(false,"exchange loop");
+			}
+		}
+
+		shared_ptr<ExchangeInfo> exchangeinfo = make_shared<ExchangeInfo>(exchangetype,srcchannel,dstchannel);
+		if (exchangetype == ExchangeInfo::ExChangeType_SubToPush)
+		{
+			std::map<std::string, shared_ptr<Pub_Sub> >::iterator iter = pubsublist.find(srcchannel);
+			if (iter == pubsublist.end())
+			{
+				shared_ptr<Pub_Sub> pubsub = make_shared<Pub_Sub>();
+				pubsublist[srcchannel] = pubsub;
+				iter = pubsublist.find(srcchannel);
+			}
+			iter->second->subscribe(exchangeinfo.get(), CmdMessageCallback(&Exchange::exchangeCallback, this));
+		}
+		else if (exchangetype == ExchangeInfo::ExChangeType_PullToPublish)
+		{
+			std::map<std::string, shared_ptr<Push_Pull> >::iterator iter = pushpulllist.find(srcchannel);
+			if (iter == pushpulllist.end())
+			{
+				shared_ptr<Push_Pull> pushpull = make_shared<Push_Pull>();
+				pushpulllist[srcchannel] = pushpull;
+				iter = pushpulllist.find(srcchannel);
+			}
+			iter->second->pull(exchangeinfo.get(), CmdMessageCallback(&Exchange::exchangeCallback, this));
+		}
+
+		exchangelist.push_back(exchangeinfo);
+
+		return RedisValue(1);
+	}
+	RedisValue unexchangeFunc(ExChangeStrandData* data, const std::vector<RedisValue> & val)
+	{
+		if (val.size() != 5) return RedisValue(false, "wrong number of arguments");
+
+		std::string srctype = String::tolower(val[1].toString());
+		std::string srcchannel = String::tolower(val[2].toString());
+		std::string dsttype = String::tolower(val[3].toString());
+		std::string dstchannel = String::tolower(val[4].toString());
+
+		ExchangeInfo::_ExChangeType exchangetype;
+
+		if (srctype == "subscribe" && dsttype == "push")
+		{
+			exchangetype = ExchangeInfo::ExChangeType_SubToPush;
+		}
+		else if (srctype == "pull" && dsttype == "publish")
+		{
+			exchangetype = ExchangeInfo::ExChangeType_PullToPublish;
+		}
+		else
+		{
+			return RedisValue(false, "syntax error");
+		}
+
+		for (std::list<shared_ptr<ExchangeInfo> >::iterator iter = exchangelist.begin(); iter != exchangelist.end(); iter++)
+		{
+			if (exchangetype == (*iter)->type && srcchannel == (*iter)->srcChannel && dstchannel == (*iter)->dstChannel)
+			{
+				if (exchangetype == ExchangeInfo::ExChangeType_SubToPush)
+				{
+					std::map<std::string, shared_ptr<Pub_Sub> >::iterator iter = pubsublist.find(srcchannel);
+					if (iter != pubsublist.end())
+					{
+						iter->second->unsubscribe(iter->second.get());
+						if (iter->second->subscribesize() == 0)
+						{
+							pubsublist.erase(iter);
+						}
+					}
+				}
+				else if (exchangetype == ExchangeInfo::ExChangeType_PullToPublish)
+				{
+					std::map<std::string, shared_ptr<Push_Pull> >::iterator iter = pushpulllist.find(srcchannel);
+					if (iter != pushpulllist.end())
+					{
+						iter->second->unpull(iter->second.get());
+
+						if (iter->second->pullsize() == 0)
+						{
+							pushpulllist.erase(iter);
+						}
+					}
+				}
+
+				exchangelist.erase(iter);
+				break;
+			}
+		}
+
+		return RedisValue(1);
+	}
+	RedisValue exchangeinfoFunc(ExChangeStrandData* data, const std::vector<RedisValue> & val)
+	{
+		std::vector<RedisValue> redisarray;
+
+		for (std::list<shared_ptr<ExchangeInfo> >::iterator iter = exchangelist.begin(); iter != exchangelist.end(); iter++)
+		{
+			std::vector<RedisValue> exchangeinfo;
+			if ((*iter)->type == ExchangeInfo::ExChangeType_PullToPublish)
+			{
+				exchangeinfo.push_back(RedisValue("From Pull To Publish"));
+			}
+			else
+			{
+				exchangeinfo.push_back(RedisValue("From Subcribe To Push"));
+			}
+			exchangeinfo.push_back(RedisValue("From:" + (*iter)->srcChannel));
+			exchangeinfo.push_back(RedisValue("To:" + (*iter)->dstChannel));
+
+			redisarray.push_back(RedisValue(exchangeinfo));
+		}
+
+		return RedisValue(redisarray);
+	}
 private:
 	void subCommand(const std::string& cmd, const MessageCommandCallback& callback)
 	{
@@ -220,7 +386,7 @@ private:
 
 		for (std::map<std::string, shared_ptr<Pub_Sub> >::iterator iter = pubsublist.begin(); iter != pubsublist.end(); iter++)
 		{
-			iter->second->unsubcribe(stranddata->user);
+			iter->second->unsubscribe(stranddata->user);
 		}
 		for (std::map<std::string, shared_ptr<Push_Pull> >::iterator iter = pushpulllist.begin(); iter != pushpulllist.end(); iter++)
 		{
@@ -241,8 +407,13 @@ private:
 			stranddata->ackcallback(stranddata->user, ret);
 		}
 	}
+	void exchangeCallback(void*, const RedisValue& val)
+	{
+		
+	}
 private:
 	std::map<std::string, MessageCommandCallback>	callbacklist;
 	std::map<std::string, shared_ptr<Pub_Sub> >	 pubsublist;
 	std::map<std::string, shared_ptr<Push_Pull> > pushpulllist;
+	std::list<shared_ptr<ExchangeInfo> > exchangelist;
 };

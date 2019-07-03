@@ -18,7 +18,7 @@ public:
 private:
 	RedisValue zaddFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() != 4) return RedisValue(false, "Param Error");
+		if (val.size() != 4) return RedisValue(false, "wrong number of arguments");
 
 		std::string key = String::tolower(val[1].toString());
 		int64_t score = val[2].toInt();
@@ -46,7 +46,7 @@ private:
 
 	RedisValue zcardFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() != 2) return RedisValue(false, "Param Error");
+		if (val.size() != 2) return RedisValue(false, "wrong number of arguments");
 		std::string key = String::tolower(val[1].toString());
 
 
@@ -69,7 +69,7 @@ private:
 
 	RedisValue zcountFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() != 4) return RedisValue(false, "Param Error");
+		if (val.size() != 4) return RedisValue(false, "wrong number of arguments");
 		std::string key = String::tolower(val[1].toString());
 		int64_t minscore = val[2].toInt();
 		int64_t maxscore = val[3].toInt();
@@ -93,7 +93,7 @@ private:
 
 	RedisValue zrangeFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() <= 3) return RedisValue(false, "Param Error");
+		if (val.size() <= 3) return RedisValue(false, "wrong number of arguments");
 		std::string key = String::tolower(val[1].toString());
 		int64_t start = val[2].toInt();
 		int64_t top = val[3].toInt();
@@ -127,7 +127,7 @@ private:
 
 	RedisValue zrangebyscoreFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() <= 3) return RedisValue(false, "Param Error");
+		if (val.size() <= 3) return RedisValue(false, "wrong number of arguments");
 		std::string key = String::tolower(val[1].toString());
 		int64_t minscore = val[2].toInt();
 		int64_t maxscore = val[3].toInt();
@@ -162,7 +162,7 @@ private:
 
 	RedisValue zremrangebyscoreFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() <= 3) return RedisValue(false, "Param Error");
+		if (val.size() <= 3) return RedisValue(false, "wrong number of arguments");
 		std::string key = String::tolower(val[1].toString());
 		int64_t minscore = val[2].toInt();
 		int64_t maxscore = val[3].toInt();

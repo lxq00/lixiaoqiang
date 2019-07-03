@@ -17,7 +17,7 @@ public:
 private:
 	RedisValue lpushFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() < 3) return RedisValue(false, "Param Error");
+		if (val.size() < 3) return RedisValue(false, "wrong number of arguments");
 
 		std::string key = String::tolower(val[1].toString());
 
@@ -52,7 +52,7 @@ private:
 
 	RedisValue rpushFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() < 3) return RedisValue(false, "Param Error");
+		if (val.size() < 3) return RedisValue(false, "wrong number of arguments");
 
 		std::string key = String::tolower(val[1].toString());
 
@@ -87,7 +87,7 @@ private:
 
 	RedisValue lpopFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() != 2) return RedisValue(false, "Param Error");
+		if (val.size() != 2) return RedisValue(false, "wrong number of arguments");
 		std::string key = String::tolower(val[1].toString());
 
 		std::map<std::string, shared_ptr<ValueObject> >::iterator iter = valuelist.find(key);
@@ -107,7 +107,7 @@ private:
 
 	RedisValue rpopFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() != 2) return RedisValue(false, "Param Error");
+		if (val.size() != 2) return RedisValue(false, "wrong number of arguments");
 		std::string key = String::tolower(val[1].toString());
 
 		std::map<std::string, shared_ptr<ValueObject> >::iterator iter = valuelist.find(key);
@@ -127,7 +127,7 @@ private:
 
 	RedisValue llenFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() != 2) return RedisValue(false, "Param Error");
+		if (val.size() != 2) return RedisValue(false, "wrong number of arguments");
 		std::string key = String::tolower(val[1].toString());
 
 		std::map<std::string, shared_ptr<ValueObject> >::iterator iter = valuelist.find(key);
@@ -147,7 +147,7 @@ private:
 
 	RedisValue lrangeFunc(const std::vector<RedisValue>& val)
 	{
-		if (val.size() != 4) return RedisValue(false, "Param Error");
+		if (val.size() != 4) return RedisValue(false, "wrong number of arguments");
 		std::string key = String::tolower(val[1].toString());
 		int32_t start = (int32_t)val[2].toInt();
 		int32_t stop = (int32_t)val[3].toInt();

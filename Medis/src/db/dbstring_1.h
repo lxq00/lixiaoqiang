@@ -15,7 +15,7 @@ public:
 private:
 	RedisValue getFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() != 2) return RedisValue(false, "Param Error");
+		if (val.size() != 2) return RedisValue(false, "wrong number of arguments");
 		std::string key = String::tolower(val[1].toString());
 		
 		shared_ptr<ValueObject> valueobj;
@@ -38,7 +38,7 @@ private:
 	}
 	RedisValue setFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() != 3) return RedisValue(false, "Param Error");
+		if (val.size() != 3) return RedisValue(false, "wrong number of arguments");
 		std::string key = String::tolower(val[1].toString());
 		const RedisString& data = val[2].toString();
 
@@ -63,7 +63,7 @@ private:
 
 	RedisValue setnxFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() != 3) return RedisValue(false, "Param Error");
+		if (val.size() != 3) return RedisValue(false, "wrong number of arguments");
 		std::string key = String::tolower(val[1].toString());
 		const RedisString& data = val[2].toString();
 
@@ -87,7 +87,7 @@ private:
 	}
 	RedisValue strlenFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() != 2) return RedisValue(false, "Param Error");
+		if (val.size() != 2) return RedisValue(false, "wrong number of arguments");
 		std::string key = String::tolower(val[1].toString());
 
 		shared_ptr<ValueObject> valueobj;

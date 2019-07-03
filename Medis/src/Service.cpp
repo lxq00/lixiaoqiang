@@ -76,7 +76,7 @@ private:
 	}
 	RedisValue selectFunc(const std::vector<RedisValue>& val)
 	{
-		if (val.size() != 2) return RedisValue(false, "Param Error");
+		if (val.size() != 2) return RedisValue(false, "wrong number of arguments");
 
 		int64_t index = val[1].toInt();
 		if(index < 0 || index >= MAXDBINDEX) return RedisValue(false, "invalid index");

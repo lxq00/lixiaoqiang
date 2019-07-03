@@ -20,7 +20,7 @@ public:
 private:
 	RedisValue hdelFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() <= 2) return RedisValue(false, "Param Error");
+		if (val.size() <= 2) return RedisValue(false, "wrong number of arguments");
 		std::string key = String::tolower(val[1].toString());
 
 		shared_ptr<ValueObject> valueobject;
@@ -50,7 +50,7 @@ private:
 
 	RedisValue hsetFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() != 4) return RedisValue(false, "Param Error");
+		if (val.size() != 4)return RedisValue(false, "wrong number of arguments");
 		std::string key = String::tolower(val[1].toString());
 		std::string filed = String::tolower(val[2].toString());
 		const RedisString& data = val[3].toString();
@@ -77,7 +77,7 @@ private:
 
 	RedisValue hsetnxFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() != 4) return RedisValue(false, "Param Error");
+		if (val.size() != 4) return RedisValue(false, "wrong number of arguments");
 		std::string key = String::tolower(val[1].toString());
 		std::string filed = String::tolower(val[2].toString());
 		const RedisString& data = val[3].toString();
@@ -104,7 +104,7 @@ private:
 
 	RedisValue hexistsFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() != 3) return RedisValue(false, "Param Error");
+		if (val.size() != 3) return RedisValue(false, "wrong number of arguments");
 		std::string key = String::tolower(val[1].toString());
 		std::string filed = String::tolower(val[2].toString());
 
@@ -129,7 +129,7 @@ private:
 
 	RedisValue hgetFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() != 3) return RedisValue(false, "Param Error");
+		if (val.size() != 3) return RedisValue(false, "wrong number of arguments");
 		std::string key = String::tolower(val[1].toString());
 		std::string filed = String::tolower(val[2].toString());
 
@@ -154,7 +154,7 @@ private:
 
 	RedisValue hgetallFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() != 2) return RedisValue(false, "Param Error");
+		if (val.size() != 2) return RedisValue(false, "wrong number of arguments");
 		std::string key = String::tolower(val[1].toString());
 
 		shared_ptr<ValueObject> valueobject;
@@ -186,7 +186,7 @@ private:
 
 	RedisValue hkeysFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() < 2) return RedisValue(false, "Param Error");
+		if (val.size() < 2) return RedisValue(false, "wrong number of arguments");
 		std::string key = String::tolower(val[1].toString());
 		std::string filed = val.size() >= 3 ? String::tolower(val[2].toString()) : "";
 
@@ -218,7 +218,7 @@ private:
 
 	RedisValue hlenFunc(const std::vector<RedisValue> & val)
 	{
-		if (val.size() != 2) return RedisValue(false, "Param Error");
+		if (val.size() != 2) return RedisValue(false, "wrong number of arguments");
 		std::string key = String::tolower(val[1].toString());
 		
 		shared_ptr<ValueObject> valueobject;
@@ -247,7 +247,7 @@ private:
 		std::string pattern,key;
 		uint32_t count = -1;
 
-		if (val.size() <= 2) return RedisValue(false, "Param Error");
+		if (val.size() <= 2) return RedisValue(false, "wrong number of arguments");
 		//	else if (!val[1].isInt())  return RedisValue(false, "invalid cursor");
 
 		key = String::tolower(val[1].toString());
