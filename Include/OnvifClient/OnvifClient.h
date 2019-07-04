@@ -66,6 +66,7 @@ public:
 	~OnvifClientManager();
 
 	//根据onvif设备地址创建一个设备,url 为设备地址，包括IP，端口，用户名，密码等信息,onvif默认请求路径为 "/onvif/device_service"
+	//如:admin:admin@192.168.13.33
 	shared_ptr<OnvifClient> create(const URL& url);
 private:
 	struct OnvifClientManagerInternal;

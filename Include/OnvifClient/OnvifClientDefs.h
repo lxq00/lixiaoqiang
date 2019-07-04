@@ -5,17 +5,6 @@
 using namespace Public::Base;
 using namespace Public::Network;
 
-#ifdef WIN32
-#ifdef ONVIFCLIENT_EXPORTS1
-#define ONVIFCLIENT_API __declspec(dllexport)
-#else
-#define ONVIFCLIENT_API __declspec(dllimport)
-#endif
-#else
-#define ONVIFCLIENT_API
-#endif
-
-
 namespace Public {
 namespace Onvif {
 namespace OnvifClientDefs {

@@ -37,7 +37,7 @@ public:
 
 	// Return the value as a std::string if
 	// type is a byte string; otherwise returns an empty std::string.
-	const RedisString& toString() const
+	RedisString toString() const
 	{
 		if (isInt()) return Value(toInt()).readString();
 

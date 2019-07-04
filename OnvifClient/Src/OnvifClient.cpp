@@ -22,14 +22,7 @@ struct OnvifClient::OnvifClientInternal
 		shared_ptr<HTTPRequest> req = make_shared<HTTPRequest>();
 
 		{
-			{
-				stringstream stream;
-				stream << ONVIFECONENTTYPE << "; charset=utf-8; action=\""
-					<< cmd->action
-					<< "\"";
-
-				req->headers()["Content-Type"] = stream.str();
-			}
+			req->headers()["Content-Type"] = std::string(ONVIFECONENTTYPE) + "; charset=utf-8; action=\"" + cmd->action + "\"";
 			req->headers()["Accept-Encoding"] = "gzip, deflate";
 			if(useragent != "")
 				req->headers()["User-Agent"] = useragent;
