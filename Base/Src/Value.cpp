@@ -155,7 +155,10 @@ Value& Value::operator = (const Value& val)
 
 	return *this;
 }
-
+bool Value::operator==(const Value& val) const
+{
+	return type() == val.type() && readString() == val.readString();
+}
 Value::Type Value::type() const
 {
 	return internal->type;

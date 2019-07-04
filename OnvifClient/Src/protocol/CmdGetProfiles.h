@@ -26,71 +26,68 @@ public:
 		return stream.str();
 	}
 	shared_ptr<OnvifClientDefs::Profiles> profileInfo;
-	virtual bool parse(XMLN * p_xml)
+	virtual bool parse(const XMLObject::Child& body)
 	{
 		profileInfo = make_shared<OnvifClientDefs::Profiles>();
 
-
-		XMLN * p_res = xml_node_soap_get(p_xml, "trt:GetProfilesResponse");
-		if (NULL == p_res)
-		{
-			return false;
-		}
-
-		XMLN * p_profiles = xml_node_soap_get(p_res, "trt:Profiles");
+		XMLObject::Child resp = body.getChild("trt:GetProfilesResponse");
+		if (!resp) return false;
+		
+		XMLObject::Child p_profiles = resp.firstChild();
 		while (p_profiles)
 		{
+			if (p_profiles.getName() != "trt:Profiles") break;
+
 			OnvifClientDefs::ProfileInfo profile;
 
-			profile.fixed = onvif_parse_bool(xml_attr_get(p_profiles, "fixed")) == TRUE;
-			profile.token = xml_attr_get(p_profiles, "token");
+			profile.fixed = p_profiles.getAttribute("fixed").readBool();
+			profile.token = p_profiles.getAttribute("token");
 
 			if (parseProfileInfo(p_profiles, profile))
 			{
 				profileInfo->infos.push_back(profile);
 			}
 
-			p_profiles = p_profiles->next;
+			p_profiles = resp.nextChild();
 		}
 
 		return true;
 	}
-	virtual bool parseProfileInfo(XMLN * p_profiles,OnvifClientDefs::ProfileInfo& info)
+	virtual bool parseProfileInfo(const XMLObject::Child& p_profiles,OnvifClientDefs::ProfileInfo& info)
 	{
 		OnvifClientDefs::ProfileInfo* profileInfo = &info;
 
-		XMLN * p_name = xml_node_soap_get(p_profiles, "tt:Name");
-		if (p_name && p_name->data)
+		const XMLObject::Child& pname = p_profiles.getChild("tt:Name");
+		if (pname)
 		{
-			profileInfo->name = p_name->data;
+			profileInfo->name = pname.getValue();
 		}
 		else
 		{
 			return false;
 		}
 
-		XMLN * p_video_src = xml_node_soap_get(p_profiles, "tt:VideoSourceConfiguration");
-		if (p_video_src)
+		const XMLObject::Child& videosrc = p_profiles.getChild("tt:VideoSourceConfiguration");
+		if (videosrc)
 		{
-			if (!parseVideoSource(p_video_src,info))
+			if (!parseVideoSource(videosrc,info))
 			{
 				profileInfo->VideoSource = NULL;
 			}
 		}
 
-		XMLN * p_video_enc = xml_node_soap_get(p_profiles, "tt:VideoEncoderConfiguration");
-		if (p_video_enc)
+		const XMLObject::Child& videoenc = p_profiles.getChild("tt:VideoEncoderConfiguration");
+		if (videoenc)
 		{
-			if (!parseVideoEncoder(p_video_enc, info))
+			if (!parseVideoEncoder(videoenc, info))
 			{
 				profileInfo->VideoEncoder = NULL;
 			}
 		}
-
-		XMLN * p_ptz_cfg = xml_node_soap_get(p_profiles, "tt:PTZConfiguration");
-		if (p_ptz_cfg)
+		const XMLObject::Child& ptzcfg = p_profiles.getChild("tt:PTZConfiguration");
+		if (ptzcfg)
 		{
-			if (!parsePTZCfg(p_ptz_cfg, info))
+			if (!parsePTZCfg(ptzcfg, info))
 			{
 				profileInfo->PTZConfig = NULL;
 			}
@@ -99,207 +96,79 @@ public:
 		return TRUE;
 	}
 private:
-	bool parseVideoSource(XMLN * p_node, OnvifClientDefs::ProfileInfo& info)
+	bool parseVideoSource(const XMLObject::Child& videosrc, OnvifClientDefs::ProfileInfo& info)
 	{
 		info.VideoSource = make_shared<OnvifClientDefs::_VideoSource>();
 
-		info.VideoSource->token = xml_attr_get(p_node, "token");
-		XMLN * p_name = xml_node_soap_get(p_node, "tt:Name");
-		if (p_name && p_name->data)
-		{
-			info.VideoSource->stream_name = p_name->data;
-		}
-		else
-		{
-			return false;
-		}
+		info.VideoSource->token = videosrc.getAttribute("token");
+		info.VideoSource->stream_name = videosrc.getChild("tt:Name").getValue();
+		info.VideoSource->use_count = videosrc.getChild("tt:UseCount").getValue().readInt();
+		info.VideoSource->source_token = videosrc.getChild("tt:SourceToken").getValue();
 
-		XMLN * p_usecount = xml_node_soap_get(p_node, "tt:UseCount");
-		if (p_usecount && p_usecount->data)
-		{
-			info.VideoSource->use_count = atoi(p_usecount->data);
-		}
+		if (info.VideoSource->stream_name == "" || info.VideoSource->source_token == "") return false;
 
-		XMLN * p_token = xml_node_soap_get(p_node, "tt:SourceToken");
-		if (p_token && p_token->data)
-		{
-			info.VideoSource->source_token = p_token->data;
-		}
-		else
-		{
-			return false;
-		}
 
-		XMLN * p_bounds = xml_node_soap_get(p_node, "tt:Bounds");
-		if (p_bounds)
-		{
-			info.VideoSource->height = atoi(xml_attr_get(p_bounds, "height"));
-			info.VideoSource->width = atoi(xml_attr_get(p_bounds, "width"));
-			info.VideoSource->x = atoi(xml_attr_get(p_bounds, "x"));
-			info.VideoSource->y = atoi(xml_attr_get(p_bounds, "y"));
-		}
-		else
-		{
-			return false;
-		}
+		const XMLObject::Child& bounds = videosrc.getChild("tt:Bounds");
+		if (!bounds) return false;
+
+		info.VideoSource->height = bounds.getAttribute("height").readInt();
+		info.VideoSource->width = bounds.getAttribute("width").readInt();
+		info.VideoSource->x = bounds.getAttribute("x").readInt();
+		info.VideoSource->y = bounds.getAttribute("y").readInt();
 
 		return true;
 	}
 
-	bool parseVideoEncoder(XMLN * p_node, OnvifClientDefs::ProfileInfo& info)
+	bool parseVideoEncoder(const XMLObject::Child& videoenc, OnvifClientDefs::ProfileInfo& info)
 	{
 		info.VideoEncoder = make_shared<OnvifClientDefs::_VideoEncoder>();
 
-		info.VideoEncoder->token = xml_attr_get(p_node, "token");
+		info.VideoEncoder->token = videoenc.getAttribute("token");
+		info.VideoEncoder->name = videoenc.getChild("token");
+		
+		if (info.VideoEncoder->name == "" || info.VideoEncoder->token == "") return false;
 
-		XMLN * p_name = xml_node_soap_get(p_node, "tt:Name");
-		if (p_name && p_name->data)
-		{
-			info.VideoEncoder->name = p_name->data;
-		}
-		else
-		{
-			return false;
-		}
+		info.VideoEncoder->use_count = videoenc.getChild("tt:UseCount").getValue().readInt();
+		info.VideoEncoder->encoding = onvif_parse_encoding(videoenc.getChild("tt:Encoding").getValue());
 
-		XMLN * p_usecount = xml_node_soap_get(p_node, "tt:UseCount");
-		if (p_usecount && p_usecount->data)
-		{
-			info.VideoEncoder->use_count = atoi(p_usecount->data);
-		}
+		info.VideoEncoder->width = videoenc.getChild("tt:Resolution").getChild("tt:Width").getValue().readInt();
+		info.VideoEncoder->height = videoenc.getChild("tt:Resolution").getChild("tt:Height").getValue().readInt();
+		info.VideoEncoder->quality = videoenc.getChild("tt:Quality").getValue().readFloat();
+		
+		info.VideoEncoder->framerate_limit = videoenc.getChild("tt:RateControl").getChild("tt:FrameRateLimit").getValue().readInt();
+		info.VideoEncoder->encoding_interval = videoenc.getChild("tt:RateControl").getChild("tt:EncodingInterval").getValue().readInt();
+		info.VideoEncoder->bitrate_limit = videoenc.getChild("tt:RateControl").getChild("tt:BitrateLimit").getValue().readInt();
 
-		XMLN * p_encoding = xml_node_soap_get(p_node, "tt:Encoding");
-		if (p_encoding && p_encoding->data)
-		{
-			info.VideoEncoder->encoding = onvif_parse_encoding(p_encoding->data);
-		}
-		else
-		{
-			return FALSE;
-		}
-
-		XMLN * p_resolution = xml_node_soap_get(p_node, "tt:Resolution");
-		if (p_resolution)
-		{
-			XMLN * p_width = xml_node_soap_get(p_resolution, "tt:Width");
-			if (p_width && p_width->data)
-			{
-				info.VideoEncoder->width = atoi(p_width->data);
-			}
-
-			XMLN * p_height = xml_node_soap_get(p_resolution, "tt:Height");
-			if (p_height && p_height->data)
-			{
-				info.VideoEncoder->height = atoi(p_height->data);
-			}
-		}
-
-		XMLN * p_quality = xml_node_soap_get(p_node, "tt:Quality");
-		if (p_quality && p_quality->data)
-		{
-			info.VideoEncoder->quality = (float)atoi(p_quality->data);
-		}
-
-		XMLN * p_rate_ctl = xml_node_soap_get(p_node, "tt:RateControl");
-		if (p_rate_ctl)
-		{
-			XMLN * p_fr_limit = xml_node_soap_get(p_rate_ctl, "tt:FrameRateLimit");
-			if (p_fr_limit && p_fr_limit->data)
-			{
-				info.VideoEncoder->framerate_limit = atoi(p_fr_limit->data);
-			}
-
-			XMLN * p_en_int = xml_node_soap_get(p_rate_ctl, "tt:EncodingInterval");
-			if (p_en_int && p_en_int->data)
-			{
-				info.VideoEncoder->encoding_interval = atoi(p_en_int->data);
-			}
-
-			XMLN * p_bt_limit = xml_node_soap_get(p_rate_ctl, "tt:BitrateLimit");
-			if (p_bt_limit && p_bt_limit->data)
-			{
-				info.VideoEncoder->bitrate_limit = atoi(p_bt_limit->data);
-			}
-		}
 
 		if (info.VideoEncoder->encoding == OnvifClientDefs::VIDEO_ENCODING_H264)
 		{
-			XMLN * p_h264 = xml_node_soap_get(p_node, "tt:H264");
-			if (p_h264)
-			{
-				XMLN * p_gov_len = xml_node_soap_get(p_h264, "tt:GovLength");
-				if (p_gov_len && p_gov_len->data)
-				{
-					info.VideoEncoder->gov_len = atoi(p_gov_len->data);
-				}
-
-				XMLN * p_h264_profile = xml_node_soap_get(p_h264, "tt:H264Profile");
-				if (p_h264_profile && p_h264_profile->data)
-				{
-					info.VideoEncoder->h264_profile = onvif_parse_h264_profile(p_h264_profile->data);
-				}
-			}
+			info.VideoEncoder->gov_len = videoenc.getChild("tt:H264").getChild("tt:GovLength").getValue().readInt();
+			info.VideoEncoder->h264_profile = onvif_parse_h264_profile(videoenc.getChild("tt:H264").getChild("tt:H264Profile").getValue());
 		}
 
-		XMLN * p_time = xml_node_soap_get(p_node, "tt:SessionTimeout");
-		if (p_time && p_time->data)
-		{
-			info.VideoEncoder->session_timeout = onvif_parse_time(p_time->data);
-		}
+		info.VideoEncoder->session_timeout = videoenc.getChild("tt:SessionTimeout").getValue().readInt();
 
 		return true;
 	}
 
-	bool parsePTZCfg(XMLN * p_node, OnvifClientDefs::ProfileInfo& info)
+	bool parsePTZCfg(const XMLObject::Child& ptzcfg, OnvifClientDefs::ProfileInfo& info)
 	{
 		info.PTZConfig = make_shared<OnvifClientDefs::_PTZConfig>();
 
-		info.PTZConfig->token = xml_attr_get(p_node, "token");
+		info.PTZConfig->token = ptzcfg.getAttribute("token");
+		info.PTZConfig->name = ptzcfg.getChild("tt:Name").getValue();
 
-		XMLN * p_name = xml_node_soap_get(p_node, "tt:Name");
-		if (p_name && p_name->data)
-		{
-			info.PTZConfig->name = p_name->data;
-		}
-		else
-		{
-			return FALSE;
-		}
+		if (info.PTZConfig->token == "" || info.PTZConfig->name == "") return false;
 
-		XMLN * p_usecount = xml_node_soap_get(p_node, "tt:UseCount");
-		if (p_usecount && p_usecount->data)
-		{
-			info.PTZConfig->use_count = atoi(p_usecount->data);
-		}
+		info.PTZConfig->use_count = ptzcfg.getChild("tt:UseCount").getValue().readInt();
+		info.PTZConfig->nodeToken = ptzcfg.getChild("tt:NodeToken").getValue();
 
-		XMLN * p_node_token = xml_node_soap_get(p_node, "tt:NodeToken");
-		if (p_node_token && p_node_token->data)
-		{
-			info.PTZConfig->nodeToken = p_node_token->data;
-		}
+		info.PTZConfig->def_speed.pan_tilt_x = ptzcfg.getChild("tt:DefaultPTZSpeed").getChild("tt:PanTilt").getAttribute("x").readInt();
+		info.PTZConfig->def_speed.pan_tilt_y = ptzcfg.getChild("tt:DefaultPTZSpeed").getChild("tt:PanTilt").getAttribute("y").readInt();
+		
+		info.PTZConfig->def_speed.zoom = ptzcfg.getChild("tt:DefaultPTZSpeed").getChild("tt:Zoom").getAttribute("x").readInt();
 
-		XMLN * p_def_speed = xml_node_soap_get(p_node, "tt:DefaultPTZSpeed");
-		if (p_def_speed)
-		{
-			XMLN * p_pantilt = xml_node_soap_get(p_def_speed, "tt:PanTilt");
-			if (p_pantilt)
-			{
-				info.PTZConfig->def_speed.pan_tilt_x = atoi(xml_attr_get(p_pantilt, "x"));
-				info.PTZConfig->def_speed.pan_tilt_y = atoi(xml_attr_get(p_pantilt, "y"));
-			}
-
-			XMLN * p_zoom = xml_node_soap_get(p_def_speed, "tt:Zoom");
-			if (p_zoom)
-			{
-				info.PTZConfig->def_speed.zoom = atoi(xml_attr_get(p_zoom, "x"));
-			}
-		}
-
-		XMLN * p_time = xml_node_soap_get(p_node, "tt:DefaultPTZTimeout");
-		if (p_time && p_time->data)
-		{
-			info.PTZConfig->def_timeout = onvif_parse_time(p_time->data);
-		}
+		info.PTZConfig->def_timeout = ptzcfg.getChild("tt:DefaultPTZTimeout").getValue().readInt();
 
 		return true;
 	}

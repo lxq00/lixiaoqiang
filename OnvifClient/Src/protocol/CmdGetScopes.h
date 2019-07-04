@@ -26,44 +26,9 @@ public:
 		return stream.str();
 	}
 	shared_ptr<OnvifClientDefs::Scopes> scopes;
-	virtual bool parse(XMLN * p_xml)
+	virtual bool parse(const XMLObject::Child& body)
 	{
-		XMLN * p_res = xml_node_soap_get(p_xml, "tds:GetScopesResponse");
-		if (NULL == p_res)
-		{
-			return false;
-		}
-		/*const char *p_res21 = */xml_attr_get(p_xml, "onvif://www.onvif.org/name");
-
-
-		while (true)
-		{
-			XMLN * p_cfg = xml_node_soap_get(p_res, "tds:Scopes");
-			if (NULL == p_res)
-			{
-				return false;
-			}
-			else
-			{
-				// 			XMLN * p_cfg = xml_node_soap_get(p_res, "tt:ScopeDef");
-				// 			if (NULL == p_res)
-				// 			{
-				// 				return FALSE;
-				// 			}
-				XMLN * p_cfg1 = xml_node_soap_get(p_cfg, "tt:ScopeItem");
-				if (NULL == p_res)
-				{
-					return false;
-				}
-				if (p_cfg && p_cfg->data)
-				{
-					if (0 == strncmp("onvif://www.onvif.org/name", p_cfg->data, 26))
-					{
-					}
-				}
-				p_res = p_cfg1;
-			}
-		}
+		
 
 		return true;
 	}

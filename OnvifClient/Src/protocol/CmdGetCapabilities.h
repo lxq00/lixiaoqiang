@@ -39,109 +39,79 @@ public:
 		return stream.str();
 	}
 	shared_ptr<OnvifClientDefs::Capabilities> capabilities;
-	virtual bool parse(XMLN * p_xml)
+	virtual bool parse(const XMLObject::Child& p_xml)
 	{
 		capabilities = make_shared<OnvifClientDefs::Capabilities>();
 
-		XMLN * p_res = xml_node_soap_get(p_xml, "tds:GetCapabilitiesResponse");
-		if (NULL == p_res)
-		{
-			return false;
-		}
+		const XMLObject::Child& resp = p_xml.getChild("tds:GetCapabilitiesResponse");
+		if (!resp) return false;
 
-		XMLN * p_cap = xml_node_soap_get(p_res, "tds:Capabilities");
-		if (NULL == p_cap)
-		{
-			return false;
-		}
+		const XMLObject::Child& cap = resp.getChild("tds:Capabilities");
+		if (!cap) return false;
 
-		XMLN * p_media = xml_node_soap_get(p_cap, "tt:Media");
-		if (p_media)
-		{
-			capabilities->Media.Support = parseMedia(p_media);
-		}
-
-		XMLN * p_ptz = xml_node_soap_get(p_cap, "tt:PTZ");
-		if (p_ptz)
-		{
-			capabilities->PTZ.Support = parsePtz(p_ptz);
-		}
-
-		XMLN* p_events = xml_node_soap_get(p_cap, "tt:Events");
-		if (p_events)
-		{
-			capabilities->Events.Support = parseEvents(p_events);
-		}
+		const XMLObject::Child& media = cap.getChild("tt:Media");
+		if(media) capabilities->Media.Support = parseMedia(media);
+		
+		const XMLObject::Child& ptz = cap.getChild("tt:PTZ");
+		if(ptz) capabilities->PTZ.Support = parsePtz(ptz);
+		
+		const XMLObject::Child& events = cap.getChild("tt:Events");
+		if (events) capabilities->Events.Support = parseEvents(events);
 
 		return true;
 	}
 private:
-	virtual bool parseMedia(XMLN * p_media)
+	virtual bool parseMedia(const XMLObject::Child& body)
 	{
-		XMLN * p_xaddr = xml_node_soap_get(p_media, "tt:XAddr");
-		if (p_xaddr && p_xaddr->data)
+		const XMLObject::Child& xaddr = body.getChild("tt:XAddr");
+		if (xaddr)
 		{
-			onvif_parse_xaddr(p_xaddr->data, capabilities->Media.xaddr);
+			onvif_parse_xaddr(xaddr.getValue(), capabilities->Media.xaddr);
 		}
 		else
 		{
 			return FALSE;
 		}
 
-		XMLN * p_cap = xml_node_soap_get(p_media, "tt:StreamingCapabilities");
-		if (NULL == p_cap)
+		const XMLObject::Child& cap = body.getChild("tt:StreamingCapabilities");
+		if (!cap) return FALSE;
+		
+		const XMLObject::Child& rtpmult = cap.getChild("tt:RTPMulticast");
+		if (rtpmult)
 		{
-			return FALSE;
+			capabilities->Media.RTPMulticast = rtpmult.getValue().readBool();
 		}
-
-		XMLN * p_mc = xml_node_soap_get(p_cap, "tt:RTPMulticast");
-		if (p_mc && p_mc->data)
+		const XMLObject::Child& rtptcp = cap.getChild("tt:RTP_TCP");
+		if (rtptcp)
 		{
-			capabilities->Media.RTPMulticast = onvif_parse_bool(p_mc->data);
+			capabilities->Media.RTP_TCP = rtptcp.getValue().readBool();
 		}
-
-		XMLN * p_rtp_tcp = xml_node_soap_get(p_cap, "tt:RTP_TCP");
-		if (p_rtp_tcp && p_rtp_tcp->data)
+		const XMLObject::Child& rtsp = cap.getChild("tt:RTP_RTSP_TCP");
+		if (rtsp)
 		{
-			capabilities->Media.RTP_TCP = onvif_parse_bool(p_rtp_tcp->data);;
-		}
-
-		XMLN * p_rtp_rtsp_tcp = xml_node_soap_get(p_cap, "RTP_RTSP_TCP");
-		if (p_rtp_rtsp_tcp && p_rtp_rtsp_tcp->data)
-		{
-			capabilities->Media.RTP_RTSP_TCP = onvif_parse_bool(p_rtp_rtsp_tcp->data);;
+			capabilities->Media.RTP_RTSP_TCP = rtsp.getValue().readBool();
 		}
 
 		return true;
 	}
 
 
-	bool parsePtz(XMLN * p_ptz)
+	bool parsePtz(const XMLObject::Child& ptz)
 	{
-		XMLN * p_xaddr = xml_node_soap_get(p_ptz, "tt:XAddr");
-		if (p_xaddr && p_xaddr->data)
-		{
-			onvif_parse_xaddr(p_xaddr->data, capabilities->PTZ.xaddr);
-		}
-		else
-		{
-			return false;
-		}
+		const XMLObject::Child& xaddr = ptz.getChild("tt:XAddr");
+		if (!xaddr) return false;
+
+		onvif_parse_xaddr(xaddr.getValue(), capabilities->PTZ.xaddr);
 
 		return true;
 	}
 
-	bool parseEvents(XMLN * p_events)
+	bool parseEvents(const XMLObject::Child& p_events)
 	{
-		XMLN * p_xaddr = xml_node_soap_get(p_events, "tt:XAddr");
-		if (p_xaddr && p_xaddr->data)
-		{
-			onvif_parse_xaddr(p_xaddr->data, capabilities->Events.xaddr);
-		}
-		else
-		{
-			return false;
-		}
+		const XMLObject::Child& xaddr = p_events.getChild("tt:XAddr");
+		if (!xaddr) return false;
+
+		onvif_parse_xaddr(xaddr.getValue(), capabilities->Events.xaddr);
 
 		return true;
 	}

@@ -57,7 +57,7 @@ public:
 
 	//8080
 	uint32_t port;
-	uint32_t getPort(uint32_t defaultport) const;
+	uint32_t getPort(uint32_t defaultport = 80) const;
 	void setPort(uint32_t portnum);
 
 	///p/a/t/h?query=string#hash

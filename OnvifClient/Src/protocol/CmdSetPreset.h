@@ -25,7 +25,7 @@ public:
 
 		return stream.str();
 	}
-	virtual bool parse(const std::string& data) = 0;
+	virtual bool parse(const XMLObject::Child& body) = 0;
 };
 
 

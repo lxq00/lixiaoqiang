@@ -26,45 +26,28 @@ public:
 		return stream.str();
 	}
 	shared_ptr<OnvifClientDefs::Info> devinfo;
-	virtual bool parse(XMLN * p_xml)
+
+	virtual bool parse(const XMLObject::Child& body)
 	{
 		devinfo = make_shared<OnvifClientDefs::Info>();
 
-		XMLN * p_res = xml_node_soap_get(p_xml, "tds:GetDeviceInformationResponse");
-		if (NULL == p_res)
-		{
-			return false;
-		}
+		const XMLObject::Child& response = body.getChild("tds:GetDeviceInformationResponse");
+		if (response.isEmpty()) return false;
 
-		XMLN * p_manu = xml_node_soap_get(p_res, "tds:Manufacturer");
-		if (p_manu && p_manu->data)
-		{
-			devinfo->Manufacturer = p_manu->data;
-		}
+		const XMLObject::Child& manu = response.getChild("tds:Manufacturer");
+		if (!manu.isEmpty()) devinfo->Manufacturer = manu.getValue().readString();
 
-		XMLN * p_model = xml_node_soap_get(p_res, "tds:Model");
-		if (p_model && p_model->data)
-		{
-			devinfo->Model = p_model->data;
-		}
+		const XMLObject::Child& model = response.getChild("tds:Model");
+		if (!model.isEmpty()) devinfo->Model = model.getValue().readString();
 
-		XMLN * p_fmv = xml_node_soap_get(p_res, "tds:FirmwareVersion");
-		if (p_fmv && p_fmv->data)
-		{
-			devinfo->FirmwareVersion = p_fmv->data;
-		}
+		const XMLObject::Child& fireware = response.getChild("tds:FirmwareVersion");
+		if (!fireware.isEmpty()) devinfo->FirmwareVersion = fireware.getValue().readString();
 
-		XMLN * p_sn = xml_node_soap_get(p_res, "tds:SerialNumber");
-		if (p_sn && p_sn->data)
-		{
-			devinfo->SerialNumber = p_sn->data;
-		}
+		const XMLObject::Child& sn = response.getChild("tds:SerialNumber");
+		if (!sn.isEmpty()) devinfo->SerialNumber = sn.getValue().readString();
 
-		XMLN * p_hd = xml_node_soap_get(p_res, "tds:HardwareId");
-		if (p_hd && p_hd->data)
-		{
-			devinfo->HardwareId = p_hd->data;
-		}
+		const XMLObject::Child& hardware = response.getChild("tds:HardwareId");
+		if (!hardware.isEmpty()) devinfo->HardwareId = hardware.getValue().readString();
 
 		return true;
 	}

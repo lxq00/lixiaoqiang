@@ -29,8 +29,6 @@ public:
 
 		return stream.str();
 	}
-	virtual bool parse(const std::string& data) = 0;
-
 private:
 	OnvifClientDefs::PTZCtrl		ptzctrl;
 	std::string token;

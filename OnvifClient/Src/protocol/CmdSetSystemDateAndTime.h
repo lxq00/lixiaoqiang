@@ -40,7 +40,7 @@ public:
 
 		return stream.str();
 	}
-	virtual bool parse(XMLN * p_xml) { return false; }
+	virtual bool parse(const XMLObject::Child& body) { return true; }
 private:
 	Time time;
 };

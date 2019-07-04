@@ -69,7 +69,7 @@ void buildTiXmlElementFormChild(XMLObject::Child& child,TiXmlElement* pElement,X
 	}
 	if(child.attributeCount() == 0 && child.childCount() == 0)
 	{
-		TiXmlText* childElement = new TiXmlText(child.getValue().toString().c_str());
+		TiXmlText* childElement = new TiXmlText(child.getValue().readString().c_str());
 
 		pElement->LinkEndChild(childElement);
 		return;
@@ -78,7 +78,7 @@ void buildTiXmlElementFormChild(XMLObject::Child& child,TiXmlElement* pElement,X
 	XMLObject::Attribute atti = child.firstAttribute();
 	while(!atti.isEmpty())
 	{
-		pElement->SetAttribute(buildVaildXmlString(atti.name,old,encode).c_str(),buildVaildXmlString(atti.value.toString(),old,encode).c_str());
+		pElement->SetAttribute(buildVaildXmlString(atti.name,old,encode).c_str(),buildVaildXmlString(atti.value.readString(),old,encode).c_str());
 
 		atti = child.nextAttribute();
 	}

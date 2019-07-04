@@ -41,7 +41,7 @@ public:
 	}
 
 	shared_ptr<OnvifClientDefs::ContinuousMove> move;
-	virtual bool parse(XMLN * p_xml) { return false; }
+	virtual bool parse(const XMLObject::Child& body) { return false; }
 
 private:
 	OnvifClientDefs::PTZCtrl		ptzctrl;

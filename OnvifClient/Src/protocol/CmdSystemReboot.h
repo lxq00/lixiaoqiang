@@ -25,7 +25,6 @@ public:
 
 		return stream.str();
 	}
-	virtual bool parse(XMLN * p_xml) { return false; }
 };
 
 

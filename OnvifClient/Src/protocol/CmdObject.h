@@ -3,11 +3,11 @@
 #include "Base/Base.h"
 #include <sstream>
 #include "OnvifClient/OnvifClientDefs.h"
-#include "../XMLNDocment.h"
+#include "XML/XML.h"
 
 using namespace Public::Base;
 using namespace Public::Onvif;
-
+using namespace Public::XML;
 
 #define onvif_xml_header "<s:Header>"\
 "<Security s:mustUnderstand=\"1\" xmlns=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd\">"\
@@ -46,7 +46,7 @@ public:
 	virtual ~CmdObject() {}
 
 	virtual std::string build(const URL& URL) = 0;
-	virtual bool parse(XMLN * p_xml) = 0;
+	virtual bool parse(const XMLObject::Child& body) { return false; }
 protected:
 	std::string  buildHeader(const URL& URL)
 	{
@@ -126,104 +126,54 @@ private:
 	}
 public:
 	
-	static int onvif_parse_xaddr(const char * pdata, OnvifClientDefs::XAddr& p_xaddr)
+	static bool onvif_parse_xaddr(const std::string& data, OnvifClientDefs::XAddr& p_xaddr)
 	{
-		const char *p2;
-		int len = strlen(pdata);
+		URL url(data);
 
-		p_xaddr.port = 80;
+		p_xaddr.host = url.getHostname();
+		p_xaddr.port = url.getPort();
+		p_xaddr.url = url.getPath();
 
-		if (len > 7) // skip "http://"
-		{
-			p2 = strchr(pdata + 7, '/');
-			if (p2)
-			{
-				char szHost[24] = { 0 };
-				strncpy(szHost, pdata + 7, (p2 - pdata - 7));
-				char *p3 = strchr(szHost, ':');
-				if (p3)
-				{
-					p_xaddr.host = std::string(szHost, p3 - szHost);
-					p_xaddr.port = atoi(p3 + 1);
-				}
-				else
-				{
-					p_xaddr.host = std::string(szHost, p2 - pdata - 7);
-				}
-				p_xaddr.url = std::string(p2, len - (p2 - pdata));
-			}
-			else
-			{
-				len = len - 7;
-				p_xaddr.host = std::string(pdata + 7,len);
-			}
-		}
-
-		return 1;
+		return true;
 	}
 
-	static bool onvif_parse_bool(const char * pdata)
+	static OnvifClientDefs::VIDEO_ENCODING onvif_parse_encoding(const std::string& pdata)
 	{
-		if (NULL == pdata)
-		{
-			return false;
-		}
-
-		if (strcasecmp(pdata, "true") == 0)
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
-	}
-	
-
-	static OnvifClientDefs::VIDEO_ENCODING onvif_parse_encoding(const char * pdata)
-	{
-		if (strcmp(pdata, "H264") == 0)
+		if (strcasecmp(pdata.c_str(), "H264") == 0)
 		{
 			return OnvifClientDefs::VIDEO_ENCODING_H264;
 		}
-		else if (strcmp(pdata, "JPEG") == 0)
+		else if (strcasecmp(pdata.c_str(), "JPEG") == 0)
 		{
 			return OnvifClientDefs::VIDEO_ENCODING_JPEG;
 		}
-		else if (strcmp(pdata, "MPEG4") == 0)
+		else if (strcasecmp(pdata.c_str(), "MPEG4") == 0)
 		{
 			return OnvifClientDefs::VIDEO_ENCODING_MPEG4;
 		}
 		return OnvifClientDefs::VIDEO_ENCODING_UNKNOWN;
 	}
 
-	OnvifClientDefs::H264_PROFILE onvif_parse_h264_profile(const char * pdata)
+	OnvifClientDefs::H264_PROFILE onvif_parse_h264_profile(const std::string& pdata)
 	{
-		if (strcmp(pdata, "Baseline") == 0)
+		if (strcasecmp(pdata.c_str(), "Baseline") == 0)
 		{
 			return OnvifClientDefs::H264_PROFILE_Baseline;
 		}
-		else if (strcmp(pdata, "High") == 0)
+		else if (strcasecmp(pdata.c_str(), "High") == 0)
 		{
 			return OnvifClientDefs::H264_PROFILE_High;
 		}
-		else if (strcmp(pdata, "Main") == 0)
+		else if (strcasecmp(pdata.c_str(), "Main") == 0)
 		{
 			return OnvifClientDefs::H264_PROFILE_Main;
 		}
-		else if (strcmp(pdata, "Extended") == 0)
+		else if (strcasecmp(pdata.c_str(), "Extended") == 0)
 		{
 			return OnvifClientDefs::H264_PROFILE_Extended;
 		}
 		return OnvifClientDefs::H264_PROFILE_Baseline;
 	}
-
-	static int onvif_parse_time(const char * pdata)
-	{
-		return atoi(pdata + 2);
-	}
-private:
-
 };
 
 

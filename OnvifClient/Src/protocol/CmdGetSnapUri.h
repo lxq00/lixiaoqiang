@@ -28,33 +28,16 @@ public:
 		return stream.str();
 	}
 	shared_ptr<OnvifClientDefs::SnapUrl> snapurl;
-	virtual bool parse(XMLN * p_xml)
+	virtual bool parse(const XMLObject::Child& body)
 	{
 		snapurl = make_shared<OnvifClientDefs::SnapUrl>();
 
-		XMLN * p_res = xml_node_soap_get(p_xml, "trt:GetSnapshotURLResponse");
-		if (NULL == p_res)
-		{
-			return false;
-		}
+		const XMLObject::Child& resp = body.getChild("trt:GetSnapshotURLResponse");
+		if (!resp) return false;
 
-		XMLN * p_media_URL = xml_node_soap_get(p_res, "trt:MediaURL");
-		if (p_media_URL)
-		{
-			XMLN * p_URL = xml_node_soap_get(p_media_URL, "trt:URL");
-			if (p_URL && p_URL->data)
-			{
-				snapurl->url = p_URL->data;
-			}
-			else
-			{
-				return false;
-			}
-		}
-		else
-		{
-			return false;
-		}
+		snapurl->url = resp.getChild("trt:MediaURL").getChild("trt:URL").getValue();
+
+		if (snapurl->url == "") return false;
 
 		return true;
 	}

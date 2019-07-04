@@ -28,250 +28,170 @@ public:
 		return stream.str();
 	}
 	shared_ptr<OnvifClientDefs::ConfigurationOptions> options;
-	virtual bool parse(XMLN * p_xml)
+	virtual bool parse(const XMLObject::Child& body)
 	{
 		options = make_shared<OnvifClientDefs::ConfigurationOptions>();
+		
+		const XMLObject::Child& resp = body.getChild("tptz:GetConfigurationOptionsResponse");
+		if(!resp)	return false;
+		
+		const XMLObject::Child& ptzopt = resp.getChild("tptz:PTZConfigurationOptions");
+		if (!ptzopt)	return false;
 
-		XMLN * p_res = xml_node_soap_get(p_xml, "tptz:GetConfigurationOptionsResponse");
-		if (NULL == p_res)
-		{
-			return false;
-		}
+		const XMLObject::Child& space = ptzopt.getChild("tt:Spaces");
+		if (!space)	return false;
 
-		XMLN * p_opt = xml_node_soap_get(p_res, "tptz:PTZConfigurationOptions");
-		if (NULL == p_opt)
-		{
-			return false;
-		}
 
-		XMLN * p_spaces = xml_node_soap_get(p_opt, "tt:Spaces");
-		if (NULL == p_spaces)
+		const XMLObject::Child& abspan = space.getChild("tt:AbsolutePanTiltPositionSpace");
+		if (abspan)
 		{
-			return false;
-		}
-
-		XMLN * p_abs_pan_space = xml_node_soap_get(p_spaces, "tt:AbsolutePanTiltPositionSpace");
-		if (p_abs_pan_space)
-		{
-			XMLN * p_xrange = xml_node_soap_get(p_abs_pan_space, "tt:XRange");
-			if (p_xrange)
+			const XMLObject::Child& xrange = abspan.getChild("tt:XRange");
+			if (xrange)
 			{
-				XMLN * p_min = xml_node_soap_get(p_xrange, "tt:Min");
-				if (p_min && p_min->data)
-				{
-					options->absolute_pantilt_x.min = atof(p_min->data);
-				}
+				const XMLObject::Child& pmin = xrange.getChild("tt:Min");
+				if (pmin)  options->absolute_pantilt_x.min = pmin.getValue().readFloat();
 
-				XMLN * p_max = xml_node_soap_get(p_xrange, "tt:Max");
-				if (p_max && p_max->data)
-				{
-					options->absolute_pantilt_x.max = atof(p_max->data);
-				}
+				const XMLObject::Child& pmax = xrange.getChild("tt:Max");
+				if (pmax)  options->absolute_pantilt_x.max = pmax.getValue().readFloat();
 			}
 
-			XMLN * p_yrange = xml_node_soap_get(p_abs_pan_space, "tt:YRange");
-			if (p_yrange)
+			const XMLObject::Child& yrange = abspan.getChild("tt:YRange");
+			if (yrange)
 			{
-				XMLN * p_min = xml_node_soap_get(p_yrange, "tt:Min");
-				if (p_min && p_min->data)
-				{
-					options->absolute_pantilt_y.min = atof(p_min->data);
-				}
+				const XMLObject::Child& pmin = yrange.getChild("tt:Min");
+				if (pmin)  options->absolute_pantilt_y.min = pmin.getValue().readFloat();
 
-				XMLN * p_max = xml_node_soap_get(p_yrange, "tt:Max");
-				if (p_max && p_max->data)
-				{
-					options->absolute_pantilt_y.max = atof(p_max->data);
-				}
+				const XMLObject::Child& pmax = yrange.getChild("tt:Max");
+				if (pmax)  options->absolute_pantilt_y.max = pmax.getValue().readFloat();
 			}
 		}
 
-		XMLN * p_abs_zoom_space = xml_node_soap_get(p_spaces, "tt:AbsoluteZoomPositionSpace");
-		if (p_abs_zoom_space)
+		const XMLObject::Child& abszoom = space.getChild("tt:AbsoluteZoomPositionSpace");
+		if (abszoom)
 		{
-			XMLN * p_xrange = xml_node_soap_get(p_abs_zoom_space, "tt:XRange");
-			if (p_xrange)
+			const XMLObject::Child& xrange = abszoom.getChild("tt:XRange");
+			if (xrange)
 			{
-				XMLN * p_min = xml_node_soap_get(p_xrange, "tt:Min");
-				if (p_min && p_min->data)
-				{
-					options->absolute_zoom.min = atof(p_min->data);
-				}
+				const XMLObject::Child& pmin = xrange.getChild("tt:Min");
+				if (pmin)  options->absolute_zoom.min = pmin.getValue().readFloat();
 
-				XMLN * p_max = xml_node_soap_get(p_xrange, "tt:Max");
-				if (p_max && p_max->data)
-				{
-					options->absolute_zoom.max = atof(p_max->data);
-				}
+				const XMLObject::Child& pmax = xrange.getChild("tt:Max");
+				if (pmax)  options->absolute_zoom.max = pmax.getValue().readFloat();
 			}
 		}
 
-		XMLN * p_rel_pan_space = xml_node_soap_get(p_spaces, "tt:RelativePanTiltTranslationSpace");
-		if (p_rel_pan_space)
+		const XMLObject::Child& pantilt = space.getChild("tt:RelativePanTiltTranslationSpace");
+		if (pantilt)
 		{
-			XMLN * p_xrange = xml_node_soap_get(p_rel_pan_space, "tt:XRange");
-			if (p_xrange)
+			const XMLObject::Child& xrange = pantilt.getChild("tt:XRange");
+			if (xrange)
 			{
-				XMLN * p_min = xml_node_soap_get(p_xrange, "tt:Min");
-				if (p_min && p_min->data)
-				{
-					options->relative_pantilt_x.min = atof(p_min->data);
-				}
+				const XMLObject::Child& pmin = xrange.getChild("tt:Min");
+				if (pmin)  options->relative_pantilt_x.min = pmin.getValue().readFloat();
 
-				XMLN * p_max = xml_node_soap_get(p_xrange, "tt:Max");
-				if (p_max && p_max->data)
-				{
-					options->relative_pantilt_x.max = atof(p_max->data);
-				}
+				const XMLObject::Child& pmax = xrange.getChild("tt:Max");
+				if (pmax)  options->relative_pantilt_x.max = pmax.getValue().readFloat();
 			}
 
-			XMLN * p_yrange = xml_node_soap_get(p_rel_pan_space, "tt:YRange");
-			if (p_yrange)
+			const XMLObject::Child& yrange = pantilt.getChild("tt:YRange");
+			if (yrange)
 			{
-				XMLN * p_min = xml_node_soap_get(p_yrange, "tt:Min");
-				if (p_min && p_min->data)
-				{
-					options->relative_pantilt_y.min = atof(p_min->data);
-				}
+				const XMLObject::Child& pmin = yrange.getChild("tt:Min");
+				if (pmin)  options->relative_pantilt_y.min = pmin.getValue().readFloat();
 
-				XMLN * p_max = xml_node_soap_get(p_yrange, "tt:Max");
-				if (p_max && p_max->data)
-				{
-					options->relative_pantilt_y.max = atof(p_max->data);
-				}
+				const XMLObject::Child& pmax = yrange.getChild("tt:Max");
+				if (pmax)  options->relative_pantilt_y.max = pmax.getValue().readFloat();
 			}
 		}
 
-		XMLN * p_rel_zoom_space = xml_node_soap_get(p_spaces, "tt:RelativeZoomTranslationSpace");
-		if (p_rel_zoom_space)
+		const XMLObject::Child& panzoom = space.getChild("tt:RelativeZoomTranslationSpace");
+		if (panzoom)
 		{
-			XMLN * p_xrange = xml_node_soap_get(p_rel_zoom_space, "tt:XRange");
-			if (p_xrange)
+			const XMLObject::Child& xrange = panzoom.getChild("tt:XRange");
+			if (xrange)
 			{
-				XMLN * p_min = xml_node_soap_get(p_xrange, "tt:Min");
-				if (p_min && p_min->data)
-				{
-					options->relative_zoom.min = atof(p_min->data);
-				}
+				const XMLObject::Child& pmin = xrange.getChild("tt:Min");
+				if (pmin)  options->relative_zoom.min = pmin.getValue().readFloat();
 
-				XMLN * p_max = xml_node_soap_get(p_xrange, "tt:Max");
-				if (p_max && p_max->data)
-				{
-					options->relative_zoom.max = atof(p_max->data);
-				}
+				const XMLObject::Child& pmax = xrange.getChild("tt:Max");
+				if (pmax)  options->relative_zoom.max = pmax.getValue().readFloat();
 			}
 		}
 
-		XMLN * p_con_pan_space = xml_node_soap_get(p_spaces, "tt:ContinuousPanTiltVelocitySpace");
-		if (p_con_pan_space)
+		const XMLObject::Child& continuous = space.getChild("tt:ContinuousPanTiltVelocitySpace");
+		if (continuous)
 		{
-			XMLN * p_xrange = xml_node_soap_get(p_con_pan_space, "tt:XRange");
-			if (p_xrange)
+			const XMLObject::Child& xrange = continuous.getChild("tt:XRange");
+			if (xrange)
 			{
-				XMLN * p_min = xml_node_soap_get(p_xrange, "tt:Min");
-				if (p_min && p_min->data)
-				{
-					options->continuous_pantilt_x.min = atof(p_min->data);
-				}
+				const XMLObject::Child& pmin = xrange.getChild("tt:Min");
+				if (pmin)  options->continuous_pantilt_x.min = pmin.getValue().readFloat();
 
-				XMLN * p_max = xml_node_soap_get(p_xrange, "tt:Max");
-				if (p_max && p_max->data)
-				{
-					options->continuous_pantilt_x.max = atof(p_max->data);
-				}
+				const XMLObject::Child& pmax = xrange.getChild("tt:Max");
+				if (pmax)  options->continuous_pantilt_x.max = pmax.getValue().readFloat();
 			}
 
-			XMLN * p_yrange = xml_node_soap_get(p_con_pan_space, "tt:YRange");
-			if (p_yrange)
+			const XMLObject::Child& yrange = continuous.getChild("tt:YRange");
+			if (yrange)
 			{
-				XMLN * p_min = xml_node_soap_get(p_yrange, "tt:Min");
-				if (p_min && p_min->data)
-				{
-					options->continuous_pantilt_y.min = atof(p_min->data);
-				}
+				const XMLObject::Child& pmin = yrange.getChild("tt:Min");
+				if (pmin)  options->continuous_pantilt_y.min = pmin.getValue().readFloat();
 
-				XMLN * p_max = xml_node_soap_get(p_yrange, "tt:Max");
-				if (p_max && p_max->data)
-				{
-					options->continuous_pantilt_y.max = atof(p_max->data);
-				}
+				const XMLObject::Child& pmax = yrange.getChild("tt:Max");
+				if (pmax)  options->continuous_pantilt_y.max = pmax.getValue().readFloat();
 			}
 		}
 
-		XMLN * p_con_zoom_space = xml_node_soap_get(p_spaces, "tt:ContinuousZoomVelocitySpace");
-		if (p_con_zoom_space)
+		const XMLObject::Child& panzoomzoom = space.getChild("tt:ContinuousZoomVelocitySpace");
+		if (panzoomzoom)
 		{
-			XMLN * p_xrange = xml_node_soap_get(p_rel_zoom_space, "tt:XRange");
-			if (p_xrange)
+			const XMLObject::Child& xrange = panzoomzoom.getChild("tt:XRange");
+			if (xrange)
 			{
-				XMLN * p_min = xml_node_soap_get(p_xrange, "tt:Min");
-				if (p_min && p_min->data)
-				{
-					options->continuous_zoom.min = atof(p_min->data);
-				}
+				const XMLObject::Child& pmin = xrange.getChild("tt:Min");
+				if (pmin)  options->continuous_zoom.min = pmin.getValue().readFloat();
 
-				XMLN * p_max = xml_node_soap_get(p_xrange, "tt:Max");
-				if (p_max && p_max->data)
-				{
-					options->continuous_zoom.max = atof(p_max->data);
-				}
+				const XMLObject::Child& pmax = xrange.getChild("tt:Max");
+				if (pmax)  options->continuous_zoom.max = pmax.getValue().readFloat();
 			}
 		}
 
-		XMLN * p_pan_speed_space = xml_node_soap_get(p_spaces, "tt:PanTiltSpeedSpace");
-		if (p_pan_speed_space)
+		const XMLObject::Child& speed = space.getChild("tt:PanTiltSpeedSpace");
+		if (speed)
 		{
-			XMLN * p_xrange = xml_node_soap_get(p_pan_speed_space, "tt:XRange");
-			if (p_xrange)
+			const XMLObject::Child& xrange = speed.getChild("tt:XRange");
+			if (xrange)
 			{
-				XMLN * p_min = xml_node_soap_get(p_xrange, "tt:Min");
-				if (p_min && p_min->data)
-				{
-					options->pantilt_speed.min = atof(p_min->data);
-				}
+				const XMLObject::Child& pmin = xrange.getChild("tt:Min");
+				if (pmin)  options->pantilt_speed.min = pmin.getValue().readFloat();
 
-				XMLN * p_max = xml_node_soap_get(p_xrange, "tt:Max");
-				if (p_max && p_max->data)
-				{
-					options->pantilt_speed.max = atof(p_max->data);
-				}
+				const XMLObject::Child& pmax = xrange.getChild("tt:Max");
+				if (pmax)  options->pantilt_speed.max = pmax.getValue().readFloat();
 			}
 		}
 
-		XMLN * p_zoom_speed_space = xml_node_soap_get(p_spaces, "tt:ZoomSpeedSpace");
-		if (p_zoom_speed_space)
+		const XMLObject::Child& zoomspeed = space.getChild("tt:ZoomSpeedSpace");
+		if (zoomspeed)
 		{
-			XMLN * p_xrange = xml_node_soap_get(p_zoom_speed_space, "tt:XRange");
-			if (p_xrange)
+			const XMLObject::Child& xrange = zoomspeed.getChild("tt:XRange");
+			if (xrange)
 			{
-				XMLN * p_min = xml_node_soap_get(p_xrange, "tt:Min");
-				if (p_min && p_min->data)
-				{
-					options->zoom_speed.min = atof(p_min->data);
-				}
+				const XMLObject::Child& pmin = xrange.getChild("tt:Min");
+				if (pmin)  options->zoom_speed.min = pmin.getValue().readFloat();
 
-				XMLN * p_max = xml_node_soap_get(p_xrange, "tt:Max");
-				if (p_max && p_max->data)
-				{
-					options->zoom_speed.max = atof(p_max->data);
-				}
+				const XMLObject::Child& pmax = xrange.getChild("tt:Max");
+				if (pmax)  options->zoom_speed.max = pmax.getValue().readFloat();
 			}
 		}
 
-		XMLN * p_timeout = xml_node_soap_get(p_opt, "tt:PTZTimeout");
-		if (p_timeout)
+		const XMLObject::Child& timeout = space.getChild("tt:PTZTimeout");
+		if (timeout)
 		{
-			XMLN * p_min = xml_node_soap_get(p_timeout, "tt:Min");
-			if (p_min && p_min->data)
-			{
-				options->timeout.min = (float)onvif_parse_time(p_min->data);
-			}
+			const XMLObject::Child& pmin = timeout.getChild("tt:Min");
+			if (pmin)  options->timeout.min = (float)pmin.getValue().readInt();
 
-			XMLN * p_max = xml_node_soap_get(p_timeout, "tt:Max");
-			if (p_max && p_max->data)
-			{
-				options->timeout.max = (float)onvif_parse_time(p_max->data);
-			}
+			const XMLObject::Child& pmax = timeout.getChild("tt:Max");
+			if (pmax)  options->timeout.max = (float)pmax.getValue().readInt();
 		}
 
 		options->used = 1;

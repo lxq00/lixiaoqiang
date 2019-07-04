@@ -14,16 +14,19 @@ XMLObject::Attribute::Attribute(const Attribute& attri)
 	value = attri.value;
 }
 XMLObject::Attribute::~Attribute(){}
-bool XMLObject::Attribute::isEmpty()
+bool XMLObject::Attribute::isEmpty() const
 {
-	return name == "" || value.isEmpty();
+	return name == "" || value.empty();
 }
 
 bool XMLObject::Attribute::operator == (const Attribute& val)const
 {
 	return name == val.name && value == val.value;
 }
-
+XMLObject::Attribute::operator bool() const
+{
+	return !isEmpty();
+}
 struct XMLObject::Child::ChildInternal
 {
 	ChildInternal():getChildIndex(0),getAttributeIndex(0){}
@@ -79,19 +82,22 @@ void XMLObject::Child::setName(const std::string& name)
 {
 	internal->name = name;
 }
-std::string XMLObject::Child::getName()
+std::string XMLObject::Child::getName() const
 {
 	return internal->name;
 }
-void XMLObject::Child::setValue(const XMLObject::Value& value)
+void XMLObject::Child::setValue(const Value& value)
 {
-	internal->value = value.toString();
+	internal->value = value.readString();
 }
-XMLObject::Value XMLObject::Child::getValue()
+Value XMLObject::Child::getValue() const
 {
-	return XMLObject::Value(internal->value);
+	return Value(internal->value);
 }
-
+XMLObject::Child::operator Value() const
+{
+	return getValue();
+}
 XMLObject::Child& XMLObject::Child::addChild(const Child& child)
 {
 	XMLObject::Child* node = new XMLObject::Child(child);
@@ -114,6 +120,27 @@ XMLObject::Child& XMLObject::Child::getChild(const std::string& name,int index)
 				return **iter;
 			}
 			getIndex ++;
+		}
+	}
+
+	static Child emptyChild;
+
+	return emptyChild;
+}
+
+const XMLObject::Child& XMLObject::Child::getChild(const std::string& name, int index)const
+{
+	int getIndex = 0;
+	std::list<XMLObject::Child*>::const_iterator iter;
+	for (iter = internal->childList.begin(); iter != internal->childList.end(); iter++)
+	{
+		if ((*iter)->internal->name == name)
+		{
+			if (getIndex == index)
+			{
+				return **iter;
+			}
+			getIndex++;
 		}
 	}
 
@@ -168,7 +195,7 @@ void XMLObject::Child::setAttribute(const std::string& key,const Value& val)
 
 	internal->attributeList.push_back(attri);
 }
-XMLObject::Value& XMLObject::Child::getAttribute(const std::string& key)
+Value& XMLObject::Child::getAttribute(const std::string& key)
 {
 	std::list<XMLObject::Attribute>::iterator iter;
 	for(iter = internal->attributeList.begin();iter != internal->attributeList.end();iter ++)
@@ -179,7 +206,22 @@ XMLObject::Value& XMLObject::Child::getAttribute(const std::string& key)
 		}
 	}
 
-	static XMLObject::Value emptyAttri;
+	static Value emptyAttri;
+
+	return emptyAttri;
+}
+const Value& XMLObject::Child::getAttribute(const std::string& key)const
+{
+	std::list<XMLObject::Attribute>::const_iterator iter;
+	for (iter = internal->attributeList.begin(); iter != internal->attributeList.end(); iter++)
+	{
+		if (iter->name == key)
+		{
+			return iter->value;
+		}
+	}
+
+	static Value emptyAttri;
 
 	return emptyAttri;
 }
@@ -211,6 +253,20 @@ XMLObject::Child& XMLObject::Child::firstChild()
 
 	return **iter;
 }
+const XMLObject::Child& XMLObject::Child::firstChild()const
+{
+	static Child emptyChild;
+
+	if (internal->childList.size() <= 0)
+	{
+		return emptyChild;
+	}
+
+	internal->getChildIndex = 0;
+	std::list<XMLObject::Child*>::const_iterator iter = internal->childList.begin();
+
+	return **iter;
+}
 XMLObject::Child& XMLObject::Child::nextChild()
 {
 	static Child emptyChild;
@@ -237,11 +293,50 @@ XMLObject::Child& XMLObject::Child::nextChild()
 
 	return emptyChild;
 }
+const XMLObject::Child& XMLObject::Child::nextChild()const
+{
+	static Child emptyChild;
+	int getIndex = 0;
+
+	std::list<XMLObject::Child*>::iterator iter;
+	for (iter = internal->childList.begin(); iter != internal->childList.end(); iter++)
+	{
+		if (getIndex == internal->getChildIndex)
+		{
+			iter++;
+			if (iter != internal->childList.end())
+			{
+				internal->getChildIndex++;
+				return **iter;
+			}
+			else
+			{
+				return emptyChild;
+			}
+		}
+		getIndex++;
+	}
+
+	return emptyChild;
+}
 
 XMLObject::Attribute& XMLObject::Child::firstAttribute()
 {
 	static XMLObject::Attribute empltyAttribute;
 	if(internal->attributeList.size() <= 0)
+	{
+		return empltyAttribute;
+	}
+
+	std::list<XMLObject::Attribute>::iterator iter = internal->attributeList.begin();
+	internal->getAttributeIndex = 0;
+
+	return *iter;
+}
+const XMLObject::Attribute& XMLObject::Child::firstAttribute()const
+{
+	static XMLObject::Attribute empltyAttribute;
+	if (internal->attributeList.size() <= 0)
 	{
 		return empltyAttribute;
 	}
@@ -277,7 +372,32 @@ XMLObject::Attribute& XMLObject::Child::nextAttribute()
 ;
 	return empltyAttribute;
 }
+const XMLObject::Attribute& XMLObject::Child::nextAttribute()const
+{
+	static XMLObject::Attribute empltyAttribute;
+	int getindex = 0;
+	std::list<XMLObject::Attribute>::iterator iter;
+	for (iter = internal->attributeList.begin(); iter != internal->attributeList.end(); iter++)
+	{
+		if (getindex == internal->getAttributeIndex)
+		{
+			iter++;
+			if (iter != internal->attributeList.end())
+			{
+				internal->getAttributeIndex++;
 
+				return *iter;
+			}
+			else
+			{
+				return empltyAttribute;
+			}
+		}
+		getindex++;
+	}
+	;
+	return empltyAttribute;
+}
 bool XMLObject::Child::isEmpty() const
 {
 	return internal->name.length() == 0 && (internal->attributeList.size() == 0 && internal->childList.size() == 0);
@@ -324,6 +444,10 @@ bool XMLObject::Child::operator == (const Child& child)const
 
 	return true;
 }
+XMLObject::Child::operator bool() const
+{
+	return !isEmpty();
+}
 
 struct XMLObject::XMLInternal
 {
@@ -352,7 +476,10 @@ XMLObject::Child& XMLObject::getRoot()
 {
 	return internal->root;
 }
-
+const XMLObject::Child& XMLObject::getRoot()const
+{
+	return internal->root;
+}
 std::string XMLObject::getRootName() const
 {
 	return internal->root.internal->name;
@@ -446,20 +573,20 @@ bool XMLObject::parseBuffer(const std::string& buf)
 
 	return true;
 }
-std::string XMLObject::toString(Encoding encode)
+std::string XMLObject::toString(Encoding encode) const
 {
-	if(isEmpty())
+	if (isEmpty())
 	{
 		return "";
 	}
 	TiXmlDocument *doc = new TiXmlDocument;
 
-	TiXmlDeclaration* declaration = new TiXmlDeclaration(internal->version.c_str(),internal->encode == Encoding_UTF8 ? "UTF-8" : "gb2312","");
+	TiXmlDeclaration* declaration = new TiXmlDeclaration(internal->version.c_str(), internal->encode == Encoding_UTF8 ? "UTF-8" : "gb2312", "");
 	doc->LinkEndChild(declaration);
 
-	TiXmlElement* root = new TiXmlElement(buildVaildXmlString(internal->root.getName(),internal->encode,encode).c_str());
+	TiXmlElement* root = new TiXmlElement(buildVaildXmlString(internal->root.getName(), internal->encode, encode).c_str());
 
-	buildTiXmlElementFormChild(internal->root,root,internal->encode,encode);
+	buildTiXmlElementFormChild(internal->root, root, internal->encode, encode);
 	doc->LinkEndChild(root);
 
 	TiXmlPrinter printer;
@@ -469,7 +596,7 @@ std::string XMLObject::toString(Encoding encode)
 
 	return printer.CStr();
 }
-bool XMLObject::saveAs(const std::string& file,Encoding encode)
+bool XMLObject::saveAs(const std::string& file,Encoding encode)const
 {
 	FILE* fd = fopen(file.c_str(),"wb+");
 	if(fd == NULL)

@@ -1,50 +1,16 @@
 #ifndef __XMLObject_H__
 #define __XMLObject_H__
 #include "XML_Defs.h"
-#include <string>
-#include <list>
-using namespace std;
+#include "Base/Base.h"
 namespace Public{
 namespace XML{
+
+using namespace Public::Base;
 
 class XML_API XMLObject
 {
 	struct XMLInternal;
 public:
-	class XML_API Value
-	{
-		friend class XMLObject;
-		struct ValueInternal;
-	public:
-		Value();
-		Value(const char* val);
-		Value(const std::string& val);
-		Value(int val);
-		Value(unsigned int val);
-		Value(long long val);
-		Value(unsigned long long val);
-		Value(float val);
-		Value(char val);
-		Value(double val);
-		Value(const Value& val);
-		~Value();
-
-		std::string toString() const;
-		int toInt32() const;
-		unsigned int toUint32() const;
-		unsigned long long toUint64() const;
-		long long toInt64() const;
-		float toFloat() const;
-		char toChar() const;
-		double toDouble() const;
-
-		bool isEmpty() const;
-
-		Value& operator = (const Value& val);
-		bool operator == (const Value& val) const;
-	private:
-		ValueInternal* internal;
-	};
 	struct XML_API Attribute
 	{
 		Attribute();
@@ -52,10 +18,11 @@ public:
 		~Attribute();
 
 		std::string		name;
-		XMLObject::Value		value;
+		Value			value;
 
-		bool isEmpty();
+		bool isEmpty() const;
 		bool operator == (const Attribute& val) const;
+		operator bool() const;
 	};
 	class XML_API Child
 	{
@@ -68,13 +35,15 @@ public:
 		~Child();
 
 		void setName(const std::string& name);
-		std::string getName();
+		std::string getName() const;
 
 		void setValue(const Value& value);
-		Value getValue();
+		Value getValue() const;
+		operator Value() const;
 
 		Child& addChild(const Child& child);
 		Child& getChild(const std::string& name,int index = 0);
+		const Child& getChild(const std::string& name, int index = 0) const;
 		void removeChild(const std::string& name,int index = 0);
 
 		int childCount() const;
@@ -82,19 +51,28 @@ public:
 
 		void setAttribute(const std::string& key,const Value& val);
 		Value& getAttribute(const std::string& key);
+		const Value& getAttribute(const std::string& key) const;
 		void removeAttribute(const std::string& key);
 
 		Child& firstChild();
+		const Child& firstChild()const;
+
 		Child& nextChild();
+		const Child& nextChild()const;
 
 		Attribute& firstAttribute();
+		const Attribute& firstAttribute()const;
+
 		Attribute& nextAttribute();
+		const Attribute& nextAttribute()const;
 
 		bool isEmpty() const;
 		void clear();
 
 		Child& operator = (const Child& child);
 		bool operator == (const Child& child) const;
+
+		operator bool() const;
 	private:
 		ChildInternal* internal;
 	};
@@ -114,12 +92,14 @@ public:
 
 	Child& setRoot(const Child& root);
 	Child& getRoot();
+	const Child& getRoot()const;
 
 	std::string getRootName() const;
 	void setRootName(const std::string& name);
 
-	std::string toString(Encoding encode = Encoding_Unknown);
-	bool saveAs(const std::string& file,Encoding encode = Encoding_Unknown);
+	std::string toString(Encoding encode = Encoding_Unknown)const;
+
+	bool saveAs(const std::string& file, Encoding encode = Encoding_Unknown) const;
 
 	bool isEmpty() const;
 	void clear();

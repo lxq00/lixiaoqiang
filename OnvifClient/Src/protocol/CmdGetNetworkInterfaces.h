@@ -27,69 +27,36 @@ public:
 	}
 
 	shared_ptr<OnvifClientDefs::NetworkInterfaces> network;
-	virtual bool parse(XMLN * p_xml) 
+	virtual bool parse(const XMLObject::Child& body)
 	{
 		network = make_shared<OnvifClientDefs::NetworkInterfaces>();
 
-		XMLN * p_res = xml_node_soap_get(p_xml, "tds:GetNetworkInterfacesResponse");
-		if (NULL == p_res)
-		{
-			return false;
-		}
+		const XMLObject::Child& resp = body.getChild("tds:GetNetworkInterfacesResponse");
+		if (!resp) return false;
 
-		XMLN * p_network = xml_node_soap_get(p_res, "tds:NetworkInterfaces");
-		if (NULL == p_network)
-		{
-			return false;
-		}
+		const XMLObject::Child& networkinterface = resp.getChild("tds:NetworkInterfaces");
+		if (!networkinterface) return false;
 
-		XMLN * p_info = xml_node_soap_get(p_network, "tt:Info");
-		if (p_info)
+		network->name = networkinterface.getChild("tt:Info").getChild("tt:Name").getValue();
+		network->macaddr = networkinterface.getChild("tt:Info").getChild("tt:HwAddress").getValue();
+
+		const XMLObject::Child& manual = networkinterface.getChild("tt:IPv4").getChild("tt:Config").getChild("tt:Manual");
+		if (manual)
 		{
-			XMLN * p_name = xml_node_soap_get(p_info, "tt:Name");
-			if (p_name && p_name->data)
+			if (manual.getValue()) network->dhcp = !manual.getValue().readBool();
+			else
 			{
-				network->name = p_name->data;
-			}
-			XMLN * p_mac = xml_node_soap_get(p_info, "tt:HwAddress");
-			if (p_mac && p_mac->data)
-			{
-				network->macaddr = p_mac->data;
+				network->ipaddr = manual.getChild("tt:Address").getValue();
 			}
 		}
 
-		XMLN * p_ipv4 = xml_node_soap_get(p_network, "tt:IPv4");
-		if (p_ipv4)
+		const XMLObject::Child& dhcp = networkinterface.getChild("tt:IPv4").getChild("tt:Config").getChild("tt:DHCP");
+		if (dhcp)
 		{
-			XMLN * p_config = xml_node_soap_get(p_ipv4, "tt:Config");
-			if (p_config)
+			if (dhcp.getValue()) network->dhcp = dhcp.getValue().readBool();
+			else
 			{
-				XMLN * p_manual = xml_node_soap_get(p_config, "tt:Manual");
-				if (p_manual)
-				{
-					if (p_manual->data) network->dhcp = !atoi(p_manual->data);
-					else
-					{
-						XMLN * p_addr = xml_node_soap_get(p_manual, "tt:Address");
-						if (p_addr && p_addr->data)
-						{
-							network->ipaddr = p_addr->data;
-						}
-					}
-				}
-				XMLN * p_dhcp = xml_node_soap_get(p_config, "tt:DHCP");
-				if (p_dhcp)
-				{
-					if (p_dhcp->data) network->dhcp = atoi(p_dhcp->data);
-					else
-					{
-						XMLN * p_addr = xml_node_soap_get(p_dhcp, "tt:Address");
-						if (p_addr && p_addr->data)
-						{
-							network->ipaddr = p_addr->data;
-						}
-					}
-				}
+				network->ipaddr = dhcp.getChild("tt:Address").getValue();
 			}
 		}
 

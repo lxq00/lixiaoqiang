@@ -55,23 +55,17 @@ struct OnvifClient::OnvifClientInternal
 		}
 
 		std::string httpbody = response->content()->read();
-		XMLN * p_node = xxx_hxml_parse((char*)httpbody.c_str(), httpbody.length());
+
+		XMLObject xml;
+		if (!xml.parseBuffer(httpbody)) return false;
+
+		if (xml.getRoot().getName() != "s:Envelope") return false;
+
+		const XMLObject::Child& body = xml.getRoot().getChild("s:Body");
+		if (body.isEmpty()) return false;
 		
-		if (p_node == NULL) return false;
-		if (p_node->name == NULL || soap_strcmp(p_node->name, "s:Envelope") != 0)
-		{
-			xml_node_del(p_node);
-			return false;
-		}
-		XMLN * p_body = xml_node_soap_get(p_node, "s:Body");
-		if (p_body == NULL)
-		{
-			xml_node_del(p_node);
-			return false;
-		}
 		cmd->recvbuffer = httpbody.c_str();
-		bool parseret = cmd->parse(p_body);
-		xml_node_del(p_node);
+		bool parseret = cmd->parse(body);
 
 		return parseret;
 	}
@@ -113,14 +107,14 @@ shared_ptr<OnvifClientDefs::Capabilities> OnvifClient::getCapabities(int timeout
 	return cmd->capabilities;
 }
 
-shared_ptr<OnvifClientDefs::Scopes> OnvifClient::getScopes(int timeoutms)
-{
-	shared_ptr<CMDGetScopes> cmd = make_shared<CMDGetScopes>();
-
-	internal->sendOvifRequest(cmd.get(), timeoutms);
-
-	return cmd->scopes;
-}
+//shared_ptr<OnvifClientDefs::Scopes> OnvifClient::getScopes(int timeoutms)
+//{
+//	shared_ptr<CMDGetScopes> cmd = make_shared<CMDGetScopes>();
+//
+//	internal->sendOvifRequest(cmd.get(), timeoutms);
+//
+//	return cmd->scopes;
+//}
 shared_ptr<OnvifClientDefs::Profiles> OnvifClient::getProfiles(int timeoutms)
 {
 	shared_ptr<CMDGetProfiles> cmd = make_shared<CMDGetProfiles>();

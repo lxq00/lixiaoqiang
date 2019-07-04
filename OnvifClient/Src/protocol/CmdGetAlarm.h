@@ -30,9 +30,13 @@ public:
 	}
 
 	std::string strAlarmInfo;
-	virtual bool parse(XMLN * p_xml)
+	virtual bool parse(const XMLObject::Child& body)
 	{
-		XMLN * p_res = xml_node_soap_get(p_xml, "tev:PullMessagesResponse");
+		const XMLObject::Child& response = body.getChild("tev:PullMessagesResponse");
+		if (response.isEmpty()) return false;
+
+		return false;
+		/*XMLN * p_res = xml_node_soap_get(p_xml, "tev:PullMessagesResponse");
 		if (NULL == p_res || recvbuffer == NULL)
 		{
 			return FALSE;
@@ -69,7 +73,7 @@ public:
 			strAlarmInfo += "_MotionAlarm";
 		}
 
-		return bMessageUpdate;
+		return bMessageUpdate;*/
 	}
 };
 

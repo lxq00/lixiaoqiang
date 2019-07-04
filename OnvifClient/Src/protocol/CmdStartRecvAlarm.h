@@ -29,31 +29,12 @@ public:
 	}
 
 	OnvifClientDefs::XAddr xaddr;
-	virtual bool parse(XMLN * p_xml)
+	virtual bool parse(const XMLObject::Child& body)
 	{
-		XMLN * p_res = xml_node_soap_get(p_xml, "tev:CreatePullPointSubscriptionResponse");
-		if (NULL == p_res)
-		{
-			return false;
-		}
+		const XMLObject::Child& resp = body.getChild("tev:CreatePullPointSubscriptionResponse");
+		if (!resp) return false;
 
-		XMLN * p_media_URL = xml_node_soap_get(p_res, "tev:SubscriptionReference");
-		if (p_media_URL)
-		{
-			XMLN * p_URL = xml_node_soap_get(p_media_URL, "wsa5:Address");
-			if (p_URL && p_URL->data)
-			{
-				onvif_parse_xaddr(p_URL->data, xaddr);
-			}
-			else
-			{
-				return false;
-			}
-		}
-		else
-		{
-			return false;
-		}
+		onvif_parse_xaddr(resp.getChild("tev:SubscriptionReference").getChild("wsa5:Address").getValue(), xaddr);
 
 		return true;
 	}

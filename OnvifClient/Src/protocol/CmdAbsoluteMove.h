@@ -32,7 +32,7 @@ public:
 		return stream.str();
 	}
 	shared_ptr<OnvifClientDefs::AbsoluteMove> move;
-	virtual bool parse(XMLN * p_xml) { return false; }
+	virtual bool parse(const XMLObject::Child& body) { return false; }
 
 private:
 	OnvifClientDefs::PTZCtrl		ptzctrl;

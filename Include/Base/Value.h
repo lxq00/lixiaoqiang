@@ -35,6 +35,7 @@ public:
 	~Value();
 
 	Value& operator = (const Value& val);
+	bool operator==(const Value& val) const;
 
 	operator std::string() const;
 	operator uint64_t() const;

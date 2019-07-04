@@ -35,33 +35,16 @@ public:
 	}
 
 	shared_ptr<OnvifClientDefs::StreamUrl> streamurl;
-	virtual bool parse(XMLN * p_xml)
+	virtual bool parse(const XMLObject::Child& body)
 	{
 		streamurl = make_shared<OnvifClientDefs::StreamUrl>();
 
-		XMLN * p_res = xml_node_soap_get(p_xml, "trt:GetStreamUriResponse");
-		if (NULL == p_res)
-		{
-			return false;
-		}
+		const XMLObject::Child& resp = body.getChild("trt:GetStreamUriResponse");
+		if (!resp) return false;
 
-		XMLN * p_media_URL = xml_node_soap_get(p_res, "trt:MediaUri");
-		if (p_media_URL)
-		{
-			XMLN * p_URL = xml_node_soap_get(p_media_URL, "trt:Uri");
-			if (p_URL && p_URL->data)
-			{
-				streamurl->url = p_URL->data;
-			}
-			else
-			{
-				return false;
-			}
-		}
-		else
-		{
-			return false;
-		}
+		streamurl->url = resp.getChild("trt:MediaUri").getChild("tt:Uri").getValue();
+
+		if (streamurl->url == "") return false;
 
 		return true;
 	}
