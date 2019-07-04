@@ -59,13 +59,13 @@ public:
 				XMLN * p_min = xml_node_soap_get(p_xrange, "tt:Min");
 				if (p_min && p_min->data)
 				{
-					options->absolute_pantilt_x.min = (float)atoi(p_min->data);
+					options->absolute_pantilt_x.min = atof(p_min->data);
 				}
 
 				XMLN * p_max = xml_node_soap_get(p_xrange, "tt:Max");
 				if (p_max && p_max->data)
 				{
-					options->absolute_pantilt_x.max = (float)atoi(p_max->data);
+					options->absolute_pantilt_x.max = atof(p_max->data);
 				}
 			}
 
@@ -75,13 +75,13 @@ public:
 				XMLN * p_min = xml_node_soap_get(p_yrange, "tt:Min");
 				if (p_min && p_min->data)
 				{
-					options->absolute_pantilt_y.min = (float)atoi(p_min->data);
+					options->absolute_pantilt_y.min = atof(p_min->data);
 				}
 
 				XMLN * p_max = xml_node_soap_get(p_yrange, "tt:Max");
 				if (p_max && p_max->data)
 				{
-					options->absolute_pantilt_y.max = (float)atoi(p_max->data);
+					options->absolute_pantilt_y.max = atof(p_max->data);
 				}
 			}
 		}
@@ -95,13 +95,13 @@ public:
 				XMLN * p_min = xml_node_soap_get(p_xrange, "tt:Min");
 				if (p_min && p_min->data)
 				{
-					options->absolute_zoom.min = (float)atoi(p_min->data);
+					options->absolute_zoom.min = atof(p_min->data);
 				}
 
 				XMLN * p_max = xml_node_soap_get(p_xrange, "tt:Max");
 				if (p_max && p_max->data)
 				{
-					options->absolute_zoom.max = (float)atoi(p_max->data);
+					options->absolute_zoom.max = atof(p_max->data);
 				}
 			}
 		}
@@ -115,13 +115,13 @@ public:
 				XMLN * p_min = xml_node_soap_get(p_xrange, "tt:Min");
 				if (p_min && p_min->data)
 				{
-					options->relative_pantilt_x.min = (float)atoi(p_min->data);
+					options->relative_pantilt_x.min = atof(p_min->data);
 				}
 
 				XMLN * p_max = xml_node_soap_get(p_xrange, "tt:Max");
 				if (p_max && p_max->data)
 				{
-					options->relative_pantilt_x.max = (float)atoi(p_max->data);
+					options->relative_pantilt_x.max = atof(p_max->data);
 				}
 			}
 
@@ -131,13 +131,13 @@ public:
 				XMLN * p_min = xml_node_soap_get(p_yrange, "tt:Min");
 				if (p_min && p_min->data)
 				{
-					options->relative_pantilt_y.min = (float)atoi(p_min->data);
+					options->relative_pantilt_y.min = atof(p_min->data);
 				}
 
 				XMLN * p_max = xml_node_soap_get(p_yrange, "tt:Max");
 				if (p_max && p_max->data)
 				{
-					options->relative_pantilt_y.max = (float)atoi(p_max->data);
+					options->relative_pantilt_y.max = atof(p_max->data);
 				}
 			}
 		}
@@ -151,13 +151,13 @@ public:
 				XMLN * p_min = xml_node_soap_get(p_xrange, "tt:Min");
 				if (p_min && p_min->data)
 				{
-					options->relative_zoom.min = (float)atoi(p_min->data);
+					options->relative_zoom.min = atof(p_min->data);
 				}
 
 				XMLN * p_max = xml_node_soap_get(p_xrange, "tt:Max");
 				if (p_max && p_max->data)
 				{
-					options->relative_zoom.max = (float)atoi(p_max->data);
+					options->relative_zoom.max = atof(p_max->data);
 				}
 			}
 		}
@@ -171,13 +171,13 @@ public:
 				XMLN * p_min = xml_node_soap_get(p_xrange, "tt:Min");
 				if (p_min && p_min->data)
 				{
-					options->continuous_pantilt_x.min = (float)atoi(p_min->data);
+					options->continuous_pantilt_x.min = atof(p_min->data);
 				}
 
 				XMLN * p_max = xml_node_soap_get(p_xrange, "tt:Max");
 				if (p_max && p_max->data)
 				{
-					options->continuous_pantilt_x.max = (float)atoi(p_max->data);
+					options->continuous_pantilt_x.max = atof(p_max->data);
 				}
 			}
 
@@ -187,13 +187,13 @@ public:
 				XMLN * p_min = xml_node_soap_get(p_yrange, "tt:Min");
 				if (p_min && p_min->data)
 				{
-					options->continuous_pantilt_y.min = (float)atoi(p_min->data);
+					options->continuous_pantilt_y.min = atof(p_min->data);
 				}
 
 				XMLN * p_max = xml_node_soap_get(p_yrange, "tt:Max");
 				if (p_max && p_max->data)
 				{
-					options->continuous_pantilt_y.max = (float)atoi(p_max->data);
+					options->continuous_pantilt_y.max = atof(p_max->data);
 				}
 			}
 		}
@@ -207,13 +207,13 @@ public:
 				XMLN * p_min = xml_node_soap_get(p_xrange, "tt:Min");
 				if (p_min && p_min->data)
 				{
-					options->continuous_zoom.min = (float)atoi(p_min->data);
+					options->continuous_zoom.min = atof(p_min->data);
 				}
 
 				XMLN * p_max = xml_node_soap_get(p_xrange, "tt:Max");
 				if (p_max && p_max->data)
 				{
-					options->continuous_zoom.max = (float)atoi(p_max->data);
+					options->continuous_zoom.max = atof(p_max->data);
 				}
 			}
 		}
@@ -227,13 +227,13 @@ public:
 				XMLN * p_min = xml_node_soap_get(p_xrange, "tt:Min");
 				if (p_min && p_min->data)
 				{
-					options->pantilt_speed.min = (float)atoi(p_min->data);
+					options->pantilt_speed.min = atof(p_min->data);
 				}
 
 				XMLN * p_max = xml_node_soap_get(p_xrange, "tt:Max");
 				if (p_max && p_max->data)
 				{
-					options->pantilt_speed.max = (float)atoi(p_max->data);
+					options->pantilt_speed.max = atof(p_max->data);
 				}
 			}
 		}
@@ -247,13 +247,13 @@ public:
 				XMLN * p_min = xml_node_soap_get(p_xrange, "tt:Min");
 				if (p_min && p_min->data)
 				{
-					options->zoom_speed.min = (float)atoi(p_min->data);
+					options->zoom_speed.min = atof(p_min->data);
 				}
 
 				XMLN * p_max = xml_node_soap_get(p_xrange, "tt:Max");
 				if (p_max && p_max->data)
 				{
-					options->zoom_speed.max = (float)atoi(p_max->data);
+					options->zoom_speed.max = atof(p_max->data);
 				}
 			}
 		}

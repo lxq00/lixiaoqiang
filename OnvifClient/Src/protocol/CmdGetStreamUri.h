@@ -20,7 +20,7 @@ public:
 			<< "<s:Envelope " << onvif_xml_ns << ">"
 			<< buildHeader(URL)
 			<< "<s:Body>"
-			<< "<trt:GetStreamURL>"
+			<< "<trt:GetStreamUri>"
 			<< "<trt:StreamSetup>"
 			<< "<tt:Stream>RTP-Unicast</tt:Stream>"
 			<< "<tt:Transport>"
@@ -28,28 +28,30 @@ public:
 			<< "</tt:Transport>"
 			<< "</trt:StreamSetup>"
 			<< "<trt:ProfileToken>" << token << "</trt:ProfileToken>"
-			<< "</trt:GetStreamURL>"
+			<< "</trt:GetStreamUri>"
 			<<"</s:Body></s:Envelope>";
 
 		return stream.str();
 	}
 
-	std::string streamurl;
+	shared_ptr<OnvifClientDefs::StreamUrl> streamurl;
 	virtual bool parse(XMLN * p_xml)
 	{
-		XMLN * p_res = xml_node_soap_get(p_xml, "trt:GetStreamURLResponse");
+		streamurl = make_shared<OnvifClientDefs::StreamUrl>();
+
+		XMLN * p_res = xml_node_soap_get(p_xml, "trt:GetStreamUriResponse");
 		if (NULL == p_res)
 		{
 			return false;
 		}
 
-		XMLN * p_media_URL = xml_node_soap_get(p_res, "trt:MediaURL");
+		XMLN * p_media_URL = xml_node_soap_get(p_res, "trt:MediaUri");
 		if (p_media_URL)
 		{
-			XMLN * p_URL = xml_node_soap_get(p_media_URL, "trt:URL");
+			XMLN * p_URL = xml_node_soap_get(p_media_URL, "trt:Uri");
 			if (p_URL && p_URL->data)
 			{
-				streamurl = p_URL->data;
+				streamurl->url = p_URL->data;
 			}
 			else
 			{

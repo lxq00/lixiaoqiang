@@ -25,7 +25,7 @@ public:
 			<< "<Velocity>";
 		if (ptzctrl.ctrlType == OnvifClientDefs::PTZCtrl::PTZ_CTRL_PAN)
 		{
-			stream << "<PanTilt x=\"%0.1f\" y=\"%0.1f\" " << ptzctrl.panTiltY;
+			stream << "<PanTilt x=\"%0.1f\" "<< ptzctrl.panTiltX <<"y=\"%0.1f\" " << ptzctrl.panTiltY;
 		}
 		else if (ptzctrl.ctrlType == OnvifClientDefs::PTZCtrl::PTZ_CTRL_ZOOM)
 		{

@@ -6,7 +6,7 @@ using namespace Public::Base;
 using namespace Public::Network;
 
 #ifdef WIN32
-#ifdef ONVIFCLIENT_EXPORTS
+#ifdef ONVIFCLIENT_EXPORTS1
 #define ONVIFCLIENT_API __declspec(dllexport)
 #else
 #define ONVIFCLIENT_API __declspec(dllimport)
@@ -20,47 +20,57 @@ namespace Public {
 namespace Onvif {
 namespace OnvifClientDefs {
 
-typedef struct
+struct XAddr
 {
 	int     port;           // onvif port
 	std::string    host;       // ip of xaddrs
 	std::string    url;       // /onvif/device_service
-} XAddr;
+
+	XAddr():port(0){}
+};
 
 //设备信息
-typedef struct
+struct Info
 {
 	std::string Manufacturer;		//工厂信息
 	std::string Model;				//设备信息
 	std::string FirmwareVersion;	//固件版本
 	std::string SerialNumber;		//序列号
 	std::string HardwareId;			//硬件标识
-	std::string Name;				//设备名称
-} Info;
+//	std::string Name;				//设备名称
+};
 
 //设备能力集
-typedef struct
+struct Capabilities
 {
-	struct {
+	struct _Medis{
 		XAddr xaddr;
 		BOOL RTPMulticast;
 		BOOL RTP_TCP;
 		BOOL RTP_RTSP_TCP;
 		BOOL Support;
+
+		_Medis():RTPMulticast(false),RTP_TCP(false),RTP_RTSP_TCP(false),Support(false){}
 	}Media;
-	struct {
-		XAddr xaddr;
+	struct _PTZ{
+		XAddr		xaddr;
 		BOOL        Support;
+
+		_PTZ():Support(false){}
 	}PTZ;
-	struct {
-		XAddr xaddr;
+	struct _Events {
+		XAddr		xaddr;
 		BOOL        Support;
+
+		_Events():Support(false){}
 	}Events;
-	struct {
-		XAddr xaddr;
+	struct _Mmessage {
+		XAddr		xaddr;
 		BOOL        Support;
+
+		_Mmessage():Support(false){}
 	}Mmessage;
-} Capabilities;
+} ;
 
 //暂时不解析GetScopes，太复杂，目前没需求
 typedef struct {
@@ -74,6 +84,8 @@ struct _VideoSource {
 	std::string token;
 	std::string stream_name;
 	std::string source_token;
+
+	_VideoSource():width(0),height(0),x(0),y(0),use_count(0){}
 };
 
 typedef enum {
@@ -110,13 +122,17 @@ struct _VideoEncoder
 	/* H264Configuration */
 	int  gov_len;
 	H264_PROFILE  h264_profile;
+
+	_VideoEncoder():quality(0),width(0),height(0),use_count(0),session_timeout(0),framerate_limit(0),encoding_interval(0),bitrate_limit(0),gov_len(0){}
 } ;
 
-typedef struct
+struct _Range
 {
 	float min;
 	float max;
-} range;
+
+	_Range() { min = max = 0; }
+};
 
 struct _PTZConfig
 {
@@ -127,37 +143,43 @@ struct _PTZConfig
 	std::string token;
 	std::string nodeToken;
 
-	struct
+	struct _Speed
 	{
 		int pan_tilt_x;
 		int pan_tilt_y;
 		int zoom;
+
+		_Speed():pan_tilt_x(0),pan_tilt_y(0),zoom(0){}
 	} def_speed;
 
-	range pantilt_x;
-	range pantilt_y;
-	range zoom;
+	_Range pantilt_x;
+	_Range pantilt_y;
+	_Range zoom;
+
+	_PTZConfig():use_count(0),def_timeout(0){}
 } ;
 
 struct ConfigurationOptions
 {
 	int used;
 
-	range absolute_pantilt_x;
-	range absolute_pantilt_y;
-	range absolute_zoom;
+	_Range absolute_pantilt_x;
+	_Range absolute_pantilt_y;
+	_Range absolute_zoom;
 
-	range relative_pantilt_x;
-	range relative_pantilt_y;
-	range relative_zoom;
+	_Range relative_pantilt_x;
+	_Range relative_pantilt_y;
+	_Range relative_zoom;
 
-	range continuous_pantilt_x;
-	range continuous_pantilt_y;
-	range continuous_zoom;
+	_Range continuous_pantilt_x;
+	_Range continuous_pantilt_y;
+	_Range continuous_zoom;
 
-	range pantilt_speed;
-	range zoom_speed;
-	range timeout;
+	_Range pantilt_speed;
+	_Range zoom_speed;
+	_Range timeout;
+
+	ConfigurationOptions():used(0){}
 };
 
 //配置信息
@@ -169,20 +191,23 @@ struct ProfileInfo {
 
 	std::string name;
 	std::string token;
-	std::string stream_URL;
-	std::string snap_URL;
-	std::string eventSubscription;
 	bool fixed;
+
+	ProfileInfo():fixed(false){}
 };
 
-typedef struct {
+struct Profiles {
 	std::vector<ProfileInfo> infos;
-}Profiles;
+};
 
-typedef struct {
+struct NetworkInterfaces {
+	std::string		name;
+	std::string		macaddr;
+	std::string		ipaddr;
+	bool			dhcp;
 
-}NetworkInterfaces;
-
+	NetworkInterfaces():dhcp(false){}
+};
 typedef struct {
 
 }VideoEncoderConfigurations;
@@ -205,8 +230,20 @@ struct PTZCtrl
 	double           panTiltY;
 	float           zoom;
 	int				duration;
+
+	PTZCtrl():panTiltX(0),panTiltY(0),zoom(0),duration(0){}
 } ;
 
+
+struct StreamUrl
+{
+	std::string url;
+};
+
+struct SnapUrl
+{
+	std::string url;
+};
 
 
 }

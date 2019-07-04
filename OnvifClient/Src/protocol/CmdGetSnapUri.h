@@ -27,9 +27,11 @@ public:
 
 		return stream.str();
 	}
-	std::string snapurl;
+	shared_ptr<OnvifClientDefs::SnapUrl> snapurl;
 	virtual bool parse(XMLN * p_xml)
 	{
+		snapurl = make_shared<OnvifClientDefs::SnapUrl>();
+
 		XMLN * p_res = xml_node_soap_get(p_xml, "trt:GetSnapshotURLResponse");
 		if (NULL == p_res)
 		{
@@ -42,7 +44,7 @@ public:
 			XMLN * p_URL = xml_node_soap_get(p_media_URL, "trt:URL");
 			if (p_URL && p_URL->data)
 			{
-				snapurl = p_URL->data;
+				snapurl->url = p_URL->data;
 			}
 			else
 			{

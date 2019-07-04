@@ -18,8 +18,8 @@ public:
 		stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
 			<< "<s:Envelope " << onvif_xml_ns << ">"
 			<< buildHeader(URL)
-			<< "<s:Body>"
-			<< "<tds:GetDeviceInformation></tds:GetDeviceInformation>"
+			<< "<s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">"
+			<< "<GetDeviceInformation></GetDeviceInformation>"
 			<< "</s:Body>"
 			<< "</s:Envelope>";
 

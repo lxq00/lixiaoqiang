@@ -123,7 +123,7 @@ private:
 		XMLN * p_token = xml_node_soap_get(p_node, "tt:SourceToken");
 		if (p_token && p_token->data)
 		{
-			info.VideoSource->source_token = p_node->data;
+			info.VideoSource->source_token = p_token->data;
 		}
 		else
 		{

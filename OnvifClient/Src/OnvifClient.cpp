@@ -39,7 +39,7 @@ struct OnvifClient::OnvifClientInternal
 		req->content()->write(cmd->build(url));
 		req->method() = "POST";
 		req->timeout() = timeout;
-		req->url() = url;
+		req->url() = url.getHost() + url.getPath() + url.getSearch();
 
 		shared_ptr<HTTPResponse> response = client->request(req);
 
@@ -77,14 +77,14 @@ struct OnvifClient::OnvifClientInternal
 	}
 };
 
-OnvifClient::OnvifClient(const URL& url, const shared_ptr<IOWorker>& worker, const std::string& useragent)
+OnvifClient::OnvifClient(const shared_ptr<IOWorker>& worker, const URL& url,const std::string& useragent)
 {
 	internal = new OnvifClientInternal;
 	internal->url = url;
 	internal->useragent = useragent;
 	internal->worker = worker;
 
-	if (internal->url.getPath() == "")
+	if (internal->url.getPath() == "" || internal->url.getPath() == "/")
 	{
 		internal->url.setPath(DEFAULTONVIFRDEVICEURL);
 	}
@@ -129,17 +129,17 @@ shared_ptr<OnvifClientDefs::Profiles> OnvifClient::getProfiles(int timeoutms)
 
 	return cmd->profileInfo;
 }
-std::string OnvifClient::getStreamUrl(const std::string& streamtoken, int timeoutms)
+shared_ptr<OnvifClientDefs::StreamUrl> OnvifClient::getStreamUrl(const OnvifClientDefs::ProfileInfo& info, int timeoutms)
 {
-	shared_ptr<CmdGetStreamURL> cmd = make_shared<CmdGetStreamURL>(streamtoken);
+	shared_ptr<CmdGetStreamURL> cmd = make_shared<CmdGetStreamURL>(info.token);
 
 	internal->sendOvifRequest(cmd.get(), timeoutms);
 
 	return cmd->streamurl;
 }
-std::string OnvifClient::getSnapUrl(const std::string& snaptoken, int timeoutms)
+shared_ptr<OnvifClientDefs::SnapUrl> OnvifClient::getSnapUrl(const OnvifClientDefs::ProfileInfo& info, int timeoutms)
 {
-	shared_ptr<CmdGetSnapURL> cmd = make_shared<CmdGetSnapURL>(snaptoken);
+	shared_ptr<CmdGetSnapURL> cmd = make_shared<CmdGetSnapURL>(info.token);
 
 	internal->sendOvifRequest(cmd.get(), timeoutms);
 
@@ -153,23 +153,23 @@ shared_ptr<OnvifClientDefs::NetworkInterfaces> OnvifClient::getNetworkInterfaces
 
 	return cmd->network;
 }
-shared_ptr<OnvifClientDefs::VideoEncoderConfigurations> OnvifClient::getVideoEncoderConfigurations(int timeoutms)
+//shared_ptr<OnvifClientDefs::VideoEncoderConfigurations> OnvifClient::getVideoEncoderConfigurations(int timeoutms)
+//{
+//	shared_ptr<CmdGetVideoEncoderConfigurations> cmd = make_shared<CmdGetVideoEncoderConfigurations>();
+//
+//	internal->sendOvifRequest(cmd.get(), timeoutms);
+//
+//	return cmd->encoder;
+//}
+shared_ptr<OnvifClientDefs::ContinuousMove> OnvifClient::getContinuousMove(const OnvifClientDefs::ProfileInfo& info, int timeoutms)
 {
-	shared_ptr<CmdGetVideoEncoderConfigurations> cmd = make_shared<CmdGetVideoEncoderConfigurations>();
-
-	internal->sendOvifRequest(cmd.get(), timeoutms);
-
-	return cmd->encoder;
-}
-shared_ptr<OnvifClientDefs::ContinuousMove> OnvifClient::getContinuousMove(int timeoutms)
-{
-	shared_ptr<CmdContinuousMove> cmd;// = make_shared<CmdContinuousMove>();
+	shared_ptr<CmdContinuousMove> cmd;// =  = make_shared<CmdContinuousMove>();
 
 	internal->sendOvifRequest(cmd.get(), timeoutms);
 
 	return cmd->move;
 }
-shared_ptr<OnvifClientDefs::AbsoluteMove> OnvifClient::getAbsoluteMove(int timeoutms)
+shared_ptr<OnvifClientDefs::AbsoluteMove> OnvifClient::getAbsoluteMove(const OnvifClientDefs::ProfileInfo& info, int timeoutms)
 {
 	shared_ptr<CmdAbsoluteMove> cmd;// = make_shared<CmdAbsoluteMove>();
 
@@ -185,9 +185,11 @@ shared_ptr<OnvifClientDefs::_PTZConfig> OnvifClient::getConfigurations(int timeo
 
 	return cmd->ptzcfg;
 }
-shared_ptr<OnvifClientDefs::ConfigurationOptions> OnvifClient::getConfigurationOptions(int timeoutms)
+shared_ptr<OnvifClientDefs::ConfigurationOptions> OnvifClient::getConfigurationOptions(const shared_ptr<OnvifClientDefs::_PTZConfig>& ptzcfg, int timeoutms)
 {
-	shared_ptr<CmdGetConfigurationOptions> cmd;// = make_shared<CmdGetConfigurationOptions>();
+	if (ptzcfg == NULL) return make_shared<OnvifClientDefs::ConfigurationOptions>();
+
+	shared_ptr<CmdGetConfigurationOptions> cmd = make_shared<CmdGetConfigurationOptions>(ptzcfg->token);
 
 	internal->sendOvifRequest(cmd.get(), timeoutms);
 
@@ -229,13 +231,9 @@ struct OnvifClientManager::OnvifClientManagerInternal
 };
 
 
-OnvifClientManager::OnvifClientManager(const std::string& userContent, const IOWorker::ThreadNum& threadNum)
-	:OnvifClientManager(userContent, make_shared<IOWorker>(threadNum))
+OnvifClientManager::OnvifClientManager(const shared_ptr<IOWorker>& worker,const std::string& userContent)
 {
-}
-
-OnvifClientManager::OnvifClientManager(const std::string& userContent, const shared_ptr<IOWorker>& worker)
-{
+	internal = new OnvifClientManagerInternal;
 	internal->useragent = userContent;
 	internal->worker = worker;
 	if (internal->worker == NULL)
@@ -250,7 +248,7 @@ OnvifClientManager::~OnvifClientManager()
 
 shared_ptr<OnvifClient> OnvifClientManager::create(const URL& url)
 {
-	return shared_ptr<OnvifClient>(new OnvifClient(url, internal->worker, internal->useragent));
+	return shared_ptr<OnvifClient>(new OnvifClient(internal->worker, url, internal->useragent));
 }
 
 }

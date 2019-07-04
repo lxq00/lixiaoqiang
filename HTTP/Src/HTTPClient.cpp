@@ -22,6 +22,7 @@ struct HTTPClientObject
 
 	char*					buffer;
 	int						bufferlen;
+	int						haverecvlen;
 
 	HTTPClientObject(const shared_ptr<IOWorker>& _worker, const std::string& _useragent):disconnectflag(false)
 	{
@@ -30,6 +31,7 @@ struct HTTPClientObject
 		bufferlen = 0;
 		useragent = _useragent;
         session = NULL;
+		haverecvlen = 0;
 	}
 	~HTTPClientObject()
 	{
@@ -121,6 +123,7 @@ struct HTTPClientObject
 		if (len <= 0 || sessiontmp == NULL) return socketDisconnect(s, "socket recv error");
 
 		bufferlen += len;
+		haverecvlen += len;
         if (bufferlen > MAXRECVBUFFERLEN)
         {
             assert(0);
@@ -190,7 +193,7 @@ private:
 	{
 		HTTPClientObject::socketDisconnect(socktmp, err);
 
-		finish = true;
+		if(haverecvlen <= 0)	finish = true;
 	}
 };
 

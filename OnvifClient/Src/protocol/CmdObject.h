@@ -10,15 +10,14 @@ using namespace Public::Onvif;
 
 
 #define onvif_xml_header "<s:Header>"\
-"<wsse:SecURLty "\
-"xmlns:wsse=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecURLty-secext-1.0.xsd\" "\
-"xmlns:wsu=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecURLty-utility-1.0.xsd\">"\
-"<wsse:UsernameToken>"\
-"<wsse:Username>%s</wsse:Username>"\
-"<wsse:Password Type=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest\">%s</wsse:Password>"\
-"<wsse:Nonce>%s</wsse:Nonce>"\
-"<wsu:Created>%s</wsu:Created>"\
-"</wsse:UsernameToken></wsse:SecURLty>"\
+"<Security s:mustUnderstand=\"1\" xmlns=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd\">"\
+"<UsernameToken>"\
+"<Username>%s</Username>"\
+"<Password Type=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest\">%s</Password>"\
+"<Nonce EncodingType=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary\">%s</Nonce>"\
+"<Created xmlns=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd\">%s</Created>"\
+"</UsernameToken>"\
+"</Security>"\
 "</s:Header>"
 
 #define onvif_xml_headerCreate "<s:Header>"\

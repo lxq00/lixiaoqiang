@@ -94,7 +94,7 @@ int main()
 }
 #endif
 
-#if 1
+#if 0
 #include "Medis/Medis.h"
 using namespace Public::Medis;
 
@@ -132,6 +132,43 @@ int main(int argc, const char* argv[])
 
 	ConsoleCommand cmd;
 	cmd.run("medis");
+
+	return 0;
+}
+#endif
+
+#if 1
+#include "OnvifClient/OnvifClient.h"
+using namespace Public::Onvif;
+
+int main()
+{
+	shared_ptr<IOWorker> worker = make_shared<IOWorker>(4);
+
+	shared_ptr<OnvifClientManager> manager = make_shared<OnvifClientManager>(worker,"test");
+
+	shared_ptr<OnvifClient> client = manager->create(URL("admin:admin@192.168.13.33"));
+
+//-	shared_ptr<OnvifClientDefs::Info> info = client->getInfo();
+
+//-	shared_ptr<OnvifClientDefs::Capabilities> cap = client->getCapabities();	//获取设备能力集合，错误信息使用XM_GetLastError捕获
+
+	//shared_ptr<OnvifClientDefs::Scopes> scopes = client->getScopes(); //获取描述信息，错误信息使用XM_GetLastError捕获
+
+
+//-	shared_ptr<OnvifClientDefs::Profiles> profile = client->getProfiles(); //获取配置信息，错误信息使用XM_GetLastError捕获
+//	std::string getStreamUrl(const std::string& streamtoken, int timeoutms = 10000); //获取六信息,错误信息使用XM_GetLastError捕获
+//	std::string getSnapUrl(const std::string& snaptoken, int timeoutms = 10000);	//获取截图信息，错误信息使用XM_GetLastError捕获
+
+	shared_ptr<OnvifClientDefs::NetworkInterfaces> network = client->getNetworkInterfaces();//网络信息，错误信息使用XM_GetLastError捕获
+	shared_ptr<OnvifClientDefs::VideoEncoderConfigurations> enc = client->getVideoEncoderConfigurations(); //获取视频编码信息，错误信息使用XM_GetLastError捕获
+	shared_ptr<OnvifClientDefs::ContinuousMove> move = client->getContinuousMove(); //错误信息使用XM_GetLastError捕获
+	shared_ptr<OnvifClientDefs::AbsoluteMove> abs = client->getAbsoluteMove(); //错误信息使用XM_GetLastError捕获
+	shared_ptr<OnvifClientDefs::_PTZConfig> config = client->getConfigurations(); //错误信息使用XM_GetLastError捕获
+	shared_ptr<OnvifClientDefs::ConfigurationOptions> opt = client->getConfigurationOptions(); //错误信息使用XM_GetLastError捕获
+	shared_ptr<Time> time = client->GetSystemDatetime(); //错误信息使用XM_GetLastError捕获
+
+	getchar();
 
 	return 0;
 }
