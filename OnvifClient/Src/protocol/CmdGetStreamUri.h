@@ -42,7 +42,7 @@ public:
 		const XMLObject::Child& resp = body.getChild("trt:GetStreamUriResponse");
 		if (!resp) return false;
 
-		streamurl->url = resp.getChild("trt:MediaUri").getChild("tt:Uri").getValue();
+		streamurl->url = resp.getChild("trt:MediaUri").getChild("tt:Uri").data();
 
 		if (streamurl->url == "") return false;
 

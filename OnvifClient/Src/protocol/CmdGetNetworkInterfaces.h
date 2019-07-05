@@ -37,26 +37,26 @@ public:
 		const XMLObject::Child& networkinterface = resp.getChild("tds:NetworkInterfaces");
 		if (!networkinterface) return false;
 
-		network->name = networkinterface.getChild("tt:Info").getChild("tt:Name").getValue();
-		network->macaddr = networkinterface.getChild("tt:Info").getChild("tt:HwAddress").getValue();
+		network->name = networkinterface.getChild("tt:Info").getChild("tt:Name").data();
+		network->macaddr = networkinterface.getChild("tt:Info").getChild("tt:HwAddress").data();
 
 		const XMLObject::Child& manual = networkinterface.getChild("tt:IPv4").getChild("tt:Config").getChild("tt:Manual");
 		if (manual)
 		{
-			if (manual.getValue()) network->dhcp = !manual.getValue().readBool();
+			if (!manual.data().empty()) network->dhcp = !manual.data().readBool();
 			else
 			{
-				network->ipaddr = manual.getChild("tt:Address").getValue();
+				network->ipaddr = manual.getChild("tt:Address").data();
 			}
 		}
 
 		const XMLObject::Child& dhcp = networkinterface.getChild("tt:IPv4").getChild("tt:Config").getChild("tt:DHCP");
 		if (dhcp)
 		{
-			if (dhcp.getValue()) network->dhcp = dhcp.getValue().readBool();
+			if (!dhcp.data().empty()) network->dhcp = dhcp.data().readBool();
 			else
 			{
-				network->ipaddr = dhcp.getChild("tt:Address").getValue();
+				network->ipaddr = dhcp.getChild("tt:Address").data();
 			}
 		}
 

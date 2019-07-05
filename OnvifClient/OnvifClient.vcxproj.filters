@@ -110,8 +110,5 @@
     <ClCompile Include="Src\OnvifClient.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Src\test.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>

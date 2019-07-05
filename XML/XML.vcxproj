@@ -18,8 +18,10 @@
     <ClInclude Include="Src\XMLTinyxml.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Src\XML.cpp" />
+    <ClCompile Include="Src\XMLObject.cpp" />
     <ClCompile Include="Src\XMLTinyxml.cpp" />
+    <ClCompile Include="Src\XML_Attribute.cpp" />
+    <ClCompile Include="Src\XML_Child.cpp" />
     <ClCompile Include="tinyxml\tinystr.cpp" />
     <ClCompile Include="tinyxml\tinyxml.cpp" />
     <ClCompile Include="tinyxml\tinyxmlerror.cpp" />

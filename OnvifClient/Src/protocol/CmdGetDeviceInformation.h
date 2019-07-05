@@ -35,19 +35,19 @@ public:
 		if (response.isEmpty()) return false;
 
 		const XMLObject::Child& manu = response.getChild("tds:Manufacturer");
-		if (!manu.isEmpty()) devinfo->Manufacturer = manu.getValue().readString();
+		if (!manu.isEmpty()) devinfo->Manufacturer = manu.data().readString();
 
 		const XMLObject::Child& model = response.getChild("tds:Model");
-		if (!model.isEmpty()) devinfo->Model = model.getValue().readString();
+		if (!model.isEmpty()) devinfo->Model = model.data().readString();
 
 		const XMLObject::Child& fireware = response.getChild("tds:FirmwareVersion");
-		if (!fireware.isEmpty()) devinfo->FirmwareVersion = fireware.getValue().readString();
+		if (!fireware.isEmpty()) devinfo->FirmwareVersion = fireware.data().readString();
 
 		const XMLObject::Child& sn = response.getChild("tds:SerialNumber");
-		if (!sn.isEmpty()) devinfo->SerialNumber = sn.getValue().readString();
+		if (!sn.isEmpty()) devinfo->SerialNumber = sn.data().readString();
 
 		const XMLObject::Child& hardware = response.getChild("tds:HardwareId");
-		if (!hardware.isEmpty()) devinfo->HardwareId = hardware.getValue().readString();
+		if (!hardware.isEmpty()) devinfo->HardwareId = hardware.data().readString();
 
 		return true;
 	}

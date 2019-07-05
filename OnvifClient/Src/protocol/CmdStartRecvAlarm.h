@@ -34,7 +34,7 @@ public:
 		const XMLObject::Child& resp = body.getChild("tev:CreatePullPointSubscriptionResponse");
 		if (!resp) return false;
 
-		onvif_parse_xaddr(resp.getChild("tev:SubscriptionReference").getChild("wsa5:Address").getValue(), xaddr);
+		onvif_parse_xaddr(resp.getChild("tev:SubscriptionReference").getChild("wsa5:Address").data(), xaddr);
 
 		return true;
 	}

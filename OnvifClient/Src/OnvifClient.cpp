@@ -52,7 +52,7 @@ struct OnvifClient::OnvifClientInternal
 		XMLObject xml;
 		if (!xml.parseBuffer(httpbody)) return false;
 
-		if (xml.getRoot().getName() != "s:Envelope") return false;
+		if (xml.getRoot().name() != "s:Envelope") return false;
 
 		const XMLObject::Child& body = xml.getRoot().getChild("s:Body");
 		if (body.isEmpty()) return false;
@@ -85,7 +85,7 @@ shared_ptr<OnvifClientDefs::Info> OnvifClient::getInfo(int timeoutms)
 {
 	shared_ptr<CMDGetDeviceInformation> cmd = make_shared<CMDGetDeviceInformation>();
 
-	internal->sendOvifRequest(cmd.get(), timeoutms);
+	if (!internal->sendOvifRequest(cmd.get(), timeoutms)) return shared_ptr<OnvifClientDefs::Info>();
 
 	return cmd->devinfo;
 }
@@ -95,7 +95,7 @@ shared_ptr<OnvifClientDefs::Capabilities> OnvifClient::getCapabities(int timeout
 {
 	shared_ptr<CMDGetCapabilities> cmd = make_shared<CMDGetCapabilities>();
 
-	internal->sendOvifRequest(cmd.get(), timeoutms);
+	if (!internal->sendOvifRequest(cmd.get(), timeoutms)) return shared_ptr<OnvifClientDefs::Capabilities>();
 
 	return cmd->capabilities;
 }
@@ -112,7 +112,7 @@ shared_ptr<OnvifClientDefs::Profiles> OnvifClient::getProfiles(int timeoutms)
 {
 	shared_ptr<CMDGetProfiles> cmd = make_shared<CMDGetProfiles>();
 
-	internal->sendOvifRequest(cmd.get(), timeoutms);
+	if (!internal->sendOvifRequest(cmd.get(), timeoutms)) return shared_ptr<OnvifClientDefs::Profiles>();
 
 	return cmd->profileInfo;
 }
@@ -120,7 +120,7 @@ shared_ptr<OnvifClientDefs::StreamUrl> OnvifClient::getStreamUrl(const OnvifClie
 {
 	shared_ptr<CmdGetStreamURL> cmd = make_shared<CmdGetStreamURL>(info.token);
 
-	internal->sendOvifRequest(cmd.get(), timeoutms);
+	if (!internal->sendOvifRequest(cmd.get(), timeoutms)) return shared_ptr<OnvifClientDefs::StreamUrl>();
 
 	return cmd->streamurl;
 }
@@ -128,7 +128,7 @@ shared_ptr<OnvifClientDefs::SnapUrl> OnvifClient::getSnapUrl(const OnvifClientDe
 {
 	shared_ptr<CmdGetSnapURL> cmd = make_shared<CmdGetSnapURL>(info.token);
 
-	internal->sendOvifRequest(cmd.get(), timeoutms);
+	if (!internal->sendOvifRequest(cmd.get(), timeoutms)) return shared_ptr<OnvifClientDefs::SnapUrl>();
 
 	return cmd->snapurl;
 }
@@ -136,7 +136,7 @@ shared_ptr<OnvifClientDefs::NetworkInterfaces> OnvifClient::getNetworkInterfaces
 {
 	shared_ptr<CmdGetNetworkInterfaces> cmd = make_shared<CmdGetNetworkInterfaces>();
 
-	internal->sendOvifRequest(cmd.get(), timeoutms);
+	if (!internal->sendOvifRequest(cmd.get(), timeoutms)) return shared_ptr<OnvifClientDefs::NetworkInterfaces>();
 
 	return cmd->network;
 }
@@ -152,7 +152,7 @@ shared_ptr<OnvifClientDefs::ContinuousMove> OnvifClient::getContinuousMove(const
 {
 	shared_ptr<CmdContinuousMove> cmd;// =  = make_shared<CmdContinuousMove>();
 
-	internal->sendOvifRequest(cmd.get(), timeoutms);
+	if (!internal->sendOvifRequest(cmd.get(), timeoutms)) return shared_ptr<OnvifClientDefs::ContinuousMove>();
 
 	return cmd->move;
 }
@@ -160,7 +160,7 @@ shared_ptr<OnvifClientDefs::AbsoluteMove> OnvifClient::getAbsoluteMove(const Onv
 {
 	shared_ptr<CmdAbsoluteMove> cmd;// = make_shared<CmdAbsoluteMove>();
 
-	internal->sendOvifRequest(cmd.get(), timeoutms);
+	if (!internal->sendOvifRequest(cmd.get(), timeoutms)) return shared_ptr<OnvifClientDefs::AbsoluteMove>();
 
 	return cmd->move;
 }
@@ -168,7 +168,7 @@ shared_ptr<OnvifClientDefs::_PTZConfig> OnvifClient::getConfigurations(int timeo
 {
 	shared_ptr<CmdGetConfigurations> cmd = make_shared<CmdGetConfigurations>();
 
-	internal->sendOvifRequest(cmd.get(), timeoutms);
+	if (!internal->sendOvifRequest(cmd.get(), timeoutms)) return shared_ptr<OnvifClientDefs::_PTZConfig>();
 
 	return cmd->ptzcfg;
 }
@@ -178,7 +178,7 @@ shared_ptr<OnvifClientDefs::ConfigurationOptions> OnvifClient::getConfigurationO
 
 	shared_ptr<CmdGetConfigurationOptions> cmd = make_shared<CmdGetConfigurationOptions>(ptzcfg->token);
 
-	internal->sendOvifRequest(cmd.get(), timeoutms);
+	if (!internal->sendOvifRequest(cmd.get(), timeoutms)) return shared_ptr<OnvifClientDefs::ConfigurationOptions>();
 
 	return cmd->options;
 }
@@ -186,7 +186,7 @@ shared_ptr<Time> OnvifClient::GetSystemDatetime(int timeoutms)
 {
 	shared_ptr<CmdGetSystemDateAndTime> cmd = make_shared<CmdGetSystemDateAndTime>();
 
-	internal->sendOvifRequest(cmd.get(), timeoutms);
+	if (!internal->sendOvifRequest(cmd.get(), timeoutms)) return shared_ptr<Time>();
 
 	return cmd->time;
 }

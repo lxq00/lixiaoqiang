@@ -66,7 +66,7 @@ private:
 		const XMLObject::Child& xaddr = body.getChild("tt:XAddr");
 		if (xaddr)
 		{
-			onvif_parse_xaddr(xaddr.getValue(), capabilities->Media.xaddr);
+			onvif_parse_xaddr(xaddr.data(), capabilities->Media.xaddr);
 		}
 		else
 		{
@@ -79,17 +79,17 @@ private:
 		const XMLObject::Child& rtpmult = cap.getChild("tt:RTPMulticast");
 		if (rtpmult)
 		{
-			capabilities->Media.RTPMulticast = rtpmult.getValue().readBool();
+			capabilities->Media.RTPMulticast = rtpmult.data().readBool();
 		}
 		const XMLObject::Child& rtptcp = cap.getChild("tt:RTP_TCP");
 		if (rtptcp)
 		{
-			capabilities->Media.RTP_TCP = rtptcp.getValue().readBool();
+			capabilities->Media.RTP_TCP = rtptcp.data().readBool();
 		}
 		const XMLObject::Child& rtsp = cap.getChild("tt:RTP_RTSP_TCP");
 		if (rtsp)
 		{
-			capabilities->Media.RTP_RTSP_TCP = rtsp.getValue().readBool();
+			capabilities->Media.RTP_RTSP_TCP = rtsp.data().readBool();
 		}
 
 		return true;
@@ -101,7 +101,7 @@ private:
 		const XMLObject::Child& xaddr = ptz.getChild("tt:XAddr");
 		if (!xaddr) return false;
 
-		onvif_parse_xaddr(xaddr.getValue(), capabilities->PTZ.xaddr);
+		onvif_parse_xaddr(xaddr.data(), capabilities->PTZ.xaddr);
 
 		return true;
 	}
@@ -111,7 +111,7 @@ private:
 		const XMLObject::Child& xaddr = p_events.getChild("tt:XAddr");
 		if (!xaddr) return false;
 
-		onvif_parse_xaddr(xaddr.getValue(), capabilities->Events.xaddr);
+		onvif_parse_xaddr(xaddr.data(), capabilities->Events.xaddr);
 
 		return true;
 	}

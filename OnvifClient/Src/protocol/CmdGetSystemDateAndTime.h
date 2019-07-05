@@ -37,16 +37,16 @@ public:
 		const XMLObject::Child& systemdate = resp.getChild("tds:SystemDateAndTime");
 		if (!systemdate) return false;
 
-		const XMLObject::Child& utcdate = systemdate.getChild("tds:UTCDateTime");
+		const XMLObject::Child& utcdate = systemdate.getChild("tt:UTCDateTime");
 		if (!utcdate) return false;
 		
-		time->hour = utcdate.getChild("tt:Time").getChild("tt:Hour").getValue().readInt();
-		time->minute = utcdate.getChild("tt:Time").getChild("tt:Minute").getValue().readInt();
-		time->second = utcdate.getChild("tt:Time").getChild("tt:Second").getValue().readInt();
+		time->hour = utcdate.getChild("tt:Time").getChild("tt:Hour").data().readInt();
+		time->minute = utcdate.getChild("tt:Time").getChild("tt:Minute").data().readInt();
+		time->second = utcdate.getChild("tt:Time").getChild("tt:Second").data().readInt();
 
-		time->year = utcdate.getChild("tt:Date").getChild("tt:Year").getValue().readInt();
-		time->month = utcdate.getChild("tt:Date").getChild("tt:Month").getValue().readInt();
-		time->day = utcdate.getChild("tt:Date").getChild("tt:Day").getValue().readInt();
+		time->year = utcdate.getChild("tt:Date").getChild("tt:Year").data().readInt();
+		time->month = utcdate.getChild("tt:Date").getChild("tt:Month").data().readInt();
+		time->day = utcdate.getChild("tt:Date").getChild("tt:Day").data().readInt();
 		
 		
 		return true; 

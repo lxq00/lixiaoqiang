@@ -35,14 +35,14 @@ public:
 		if (!resp) return false;
 
 
-		const XMLObject::Child& cfg = body.getChild("tptz:PTZConfiguration");
+		const XMLObject::Child& cfg = resp.getChild("tptz:PTZConfiguration");
 		if (!cfg) return false;
 
-		ptzcfg->token = cfg.getAttribute("token");
+		ptzcfg->token = cfg.attribute("token");
 
-		ptzcfg->name = cfg.getChild("tt:Name").getValue();
-		ptzcfg->use_count = cfg.getChild("tt:UseCount").getValue().readInt();
-		ptzcfg->nodeToken = cfg.getChild("tt:NodeToken").getValue();
+		ptzcfg->name = cfg.getChild("tt:Name").data();
+		ptzcfg->use_count = cfg.getChild("tt:UseCount").data().readInt();
+		ptzcfg->nodeToken = cfg.getChild("tt:NodeToken").data();
 
 		const XMLObject::Child& limits = cfg.getChild("tt:PanTiltLimits");
 		if (limits)
@@ -53,14 +53,14 @@ public:
 				const XMLObject::Child& xrange = range.getChild("tt:XRange");
 				if (xrange)
 				{
-					ptzcfg->pantilt_x.min = xrange.getChild("tt:Min").getValue().readFloat();
-					ptzcfg->pantilt_x.max = xrange.getChild("tt:Max").getValue().readFloat();
+					ptzcfg->pantilt_x.min = xrange.getChild("tt:Min").data().readFloat();
+					ptzcfg->pantilt_x.max = xrange.getChild("tt:Max").data().readFloat();
 				}
 				const XMLObject::Child& yrange = range.getChild("tt:YRange");
-				if (xrange)
+				if (yrange)
 				{
-					ptzcfg->pantilt_y.min = yrange.getChild("tt:Min").getValue().readFloat();
-					ptzcfg->pantilt_y.max = yrange.getChild("tt:Max").getValue().readFloat();
+					ptzcfg->pantilt_y.min = yrange.getChild("tt:Min").data().readFloat();
+					ptzcfg->pantilt_y.max = yrange.getChild("tt:Max").data().readFloat();
 				}
 			}
 		}
@@ -74,8 +74,8 @@ public:
 				const XMLObject::Child& xrange = range.getChild("tt:XRange");
 				if (xrange)
 				{
-					ptzcfg->zoom.min = xrange.getChild("tt:Min").getValue().readFloat();
-					ptzcfg->zoom.max = xrange.getChild("tt:Max").getValue().readFloat();
+					ptzcfg->zoom.min = xrange.getChild("tt:Min").data().readFloat();
+					ptzcfg->zoom.max = xrange.getChild("tt:Max").data().readFloat();
 				}
 			}
 		}

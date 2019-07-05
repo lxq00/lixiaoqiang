@@ -11,6 +11,7 @@ class XML_API XMLObject
 {
 	struct XMLInternal;
 public:
+	class Child;
 	struct XML_API Attribute
 	{
 		Attribute();
@@ -29,19 +30,18 @@ public:
 		friend class XMLObject;
 		struct ChildInternal;
 	public:
-		Child(const char* name = NULL);
-		Child(const std::string& name);
+		Child(const std::string& name = "");
 		Child(const Child& child);
 		~Child();
 
-		void setName(const std::string& name);
-		std::string getName() const;
+		void name(const std::string& name);
+		std::string name() const;
 
-		void setValue(const Value& value);
-		Value getValue() const;
+		void data(const Value& value);
+		Value data() const;
 		operator Value() const;
 
-		Child& addChild(const Child& child);
+		Child& addChild(const XMLObject::Child& child);
 		Child& getChild(const std::string& name,int index = 0);
 		const Child& getChild(const std::string& name, int index = 0) const;
 		void removeChild(const std::string& name,int index = 0);
@@ -49,13 +49,13 @@ public:
 		int childCount() const;
 		int attributeCount() const;
 
-		void setAttribute(const std::string& key,const Value& val);
-		Value& getAttribute(const std::string& key);
-		const Value& getAttribute(const std::string& key) const;
+		void attribute(const std::string& key,const Value& val);
+		Value& attribute(const std::string& key);
+		const Value& attribute(const std::string& key) const;
 		void removeAttribute(const std::string& key);
 
-		Child& firstChild();
-		const Child& firstChild()const;
+		Child& firstChild(const std::string& childname="");
+		const Child& firstChild(const std::string& childname = "")const;
 
 		Child& nextChild();
 		const Child& nextChild()const;

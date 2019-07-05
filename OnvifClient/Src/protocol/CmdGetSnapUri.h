@@ -35,7 +35,7 @@ public:
 		const XMLObject::Child& resp = body.getChild("trt:GetSnapshotURLResponse");
 		if (!resp) return false;
 
-		snapurl->url = resp.getChild("trt:MediaURL").getChild("trt:URL").getValue();
+		snapurl->url = resp.getChild("trt:MediaURL").getChild("trt:URL").data();
 
 		if (snapurl->url == "") return false;
 

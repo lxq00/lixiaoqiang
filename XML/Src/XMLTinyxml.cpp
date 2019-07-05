@@ -31,7 +31,7 @@ void parseTiXmlElementAttribute(TiXmlElement* pElement,XMLObject::Child& child)
 	TiXmlAttribute* attribute = pElement->FirstAttribute();
 	while(attribute != NULL)
 	{
-		child.setAttribute(attribute->Name(),attribute->Value());
+		child.attribute(attribute->Name(),attribute->Value());
 
 		attribute = attribute->Next();
 	}
@@ -49,11 +49,11 @@ void parseTiXmlElementAndAddChild(TiXmlNode* pNode,XMLObject::Child& child)
 	{
 		if(pChildNode->Type() == TiXmlNode::TEXT)
 		{
-			child.setValue(pChildNode->Value());
+			child.data(pChildNode->Value());
 		}
 		else if(pChildNode->Type() == TiXmlNode::ELEMENT)
 		{
-			XMLObject::Child& subchild = child.addChild(pChildNode->Value());
+			XMLObject::Child& subchild = child.addChild(XMLObject::Child(pChildNode->Value()));
 			parseTiXmlElementAttribute(pChildNode->ToElement(),subchild);
 			parseTiXmlElementAndAddChild(pChildNode,subchild);
 		}
@@ -69,7 +69,7 @@ void buildTiXmlElementFormChild(XMLObject::Child& child,TiXmlElement* pElement,X
 	}
 	if(child.attributeCount() == 0 && child.childCount() == 0)
 	{
-		TiXmlText* childElement = new TiXmlText(child.getValue().readString().c_str());
+		TiXmlText* childElement = new TiXmlText(child.data().readString().c_str());
 
 		pElement->LinkEndChild(childElement);
 		return;
@@ -86,7 +86,7 @@ void buildTiXmlElementFormChild(XMLObject::Child& child,TiXmlElement* pElement,X
 	XMLObject::Child subchild = child.firstChild();
 	while(!subchild.isEmpty())
 	{
-		TiXmlElement* childElement = new TiXmlElement(buildVaildXmlString(subchild.getName(),old,encode).c_str());
+		TiXmlElement* childElement = new TiXmlElement(buildVaildXmlString(subchild.name(),old,encode).c_str());
 		if(childElement == NULL)
 		{
 			return;

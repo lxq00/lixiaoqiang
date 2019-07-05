@@ -49,20 +49,20 @@ public:
 			if (xrange)
 			{
 				const XMLObject::Child& pmin = xrange.getChild("tt:Min");
-				if (pmin)  options->absolute_pantilt_x.min = pmin.getValue().readFloat();
+				if (pmin)  options->absolute_pantilt_x.min = pmin.data().readFloat();
 
 				const XMLObject::Child& pmax = xrange.getChild("tt:Max");
-				if (pmax)  options->absolute_pantilt_x.max = pmax.getValue().readFloat();
+				if (pmax)  options->absolute_pantilt_x.max = pmax.data().readFloat();
 			}
 
 			const XMLObject::Child& yrange = abspan.getChild("tt:YRange");
 			if (yrange)
 			{
 				const XMLObject::Child& pmin = yrange.getChild("tt:Min");
-				if (pmin)  options->absolute_pantilt_y.min = pmin.getValue().readFloat();
+				if (pmin)  options->absolute_pantilt_y.min = pmin.data().readFloat();
 
 				const XMLObject::Child& pmax = yrange.getChild("tt:Max");
-				if (pmax)  options->absolute_pantilt_y.max = pmax.getValue().readFloat();
+				if (pmax)  options->absolute_pantilt_y.max = pmax.data().readFloat();
 			}
 		}
 
@@ -73,10 +73,10 @@ public:
 			if (xrange)
 			{
 				const XMLObject::Child& pmin = xrange.getChild("tt:Min");
-				if (pmin)  options->absolute_zoom.min = pmin.getValue().readFloat();
+				if (pmin)  options->absolute_zoom.min = pmin.data().readFloat();
 
 				const XMLObject::Child& pmax = xrange.getChild("tt:Max");
-				if (pmax)  options->absolute_zoom.max = pmax.getValue().readFloat();
+				if (pmax)  options->absolute_zoom.max = pmax.data().readFloat();
 			}
 		}
 
@@ -87,20 +87,20 @@ public:
 			if (xrange)
 			{
 				const XMLObject::Child& pmin = xrange.getChild("tt:Min");
-				if (pmin)  options->relative_pantilt_x.min = pmin.getValue().readFloat();
+				if (pmin)  options->relative_pantilt_x.min = pmin.data().readFloat();
 
 				const XMLObject::Child& pmax = xrange.getChild("tt:Max");
-				if (pmax)  options->relative_pantilt_x.max = pmax.getValue().readFloat();
+				if (pmax)  options->relative_pantilt_x.max = pmax.data().readFloat();
 			}
 
 			const XMLObject::Child& yrange = pantilt.getChild("tt:YRange");
 			if (yrange)
 			{
 				const XMLObject::Child& pmin = yrange.getChild("tt:Min");
-				if (pmin)  options->relative_pantilt_y.min = pmin.getValue().readFloat();
+				if (pmin)  options->relative_pantilt_y.min = pmin.data().readFloat();
 
 				const XMLObject::Child& pmax = yrange.getChild("tt:Max");
-				if (pmax)  options->relative_pantilt_y.max = pmax.getValue().readFloat();
+				if (pmax)  options->relative_pantilt_y.max = pmax.data().readFloat();
 			}
 		}
 
@@ -111,10 +111,10 @@ public:
 			if (xrange)
 			{
 				const XMLObject::Child& pmin = xrange.getChild("tt:Min");
-				if (pmin)  options->relative_zoom.min = pmin.getValue().readFloat();
+				if (pmin)  options->relative_zoom.min = pmin.data().readFloat();
 
 				const XMLObject::Child& pmax = xrange.getChild("tt:Max");
-				if (pmax)  options->relative_zoom.max = pmax.getValue().readFloat();
+				if (pmax)  options->relative_zoom.max = pmax.data().readFloat();
 			}
 		}
 
@@ -125,20 +125,20 @@ public:
 			if (xrange)
 			{
 				const XMLObject::Child& pmin = xrange.getChild("tt:Min");
-				if (pmin)  options->continuous_pantilt_x.min = pmin.getValue().readFloat();
+				if (pmin)  options->continuous_pantilt_x.min = pmin.data().readFloat();
 
 				const XMLObject::Child& pmax = xrange.getChild("tt:Max");
-				if (pmax)  options->continuous_pantilt_x.max = pmax.getValue().readFloat();
+				if (pmax)  options->continuous_pantilt_x.max = pmax.data().readFloat();
 			}
 
 			const XMLObject::Child& yrange = continuous.getChild("tt:YRange");
 			if (yrange)
 			{
 				const XMLObject::Child& pmin = yrange.getChild("tt:Min");
-				if (pmin)  options->continuous_pantilt_y.min = pmin.getValue().readFloat();
+				if (pmin)  options->continuous_pantilt_y.min = pmin.data().readFloat();
 
 				const XMLObject::Child& pmax = yrange.getChild("tt:Max");
-				if (pmax)  options->continuous_pantilt_y.max = pmax.getValue().readFloat();
+				if (pmax)  options->continuous_pantilt_y.max = pmax.data().readFloat();
 			}
 		}
 
@@ -149,10 +149,10 @@ public:
 			if (xrange)
 			{
 				const XMLObject::Child& pmin = xrange.getChild("tt:Min");
-				if (pmin)  options->continuous_zoom.min = pmin.getValue().readFloat();
+				if (pmin)  options->continuous_zoom.min = pmin.data().readFloat();
 
 				const XMLObject::Child& pmax = xrange.getChild("tt:Max");
-				if (pmax)  options->continuous_zoom.max = pmax.getValue().readFloat();
+				if (pmax)  options->continuous_zoom.max = pmax.data().readFloat();
 			}
 		}
 
@@ -163,10 +163,10 @@ public:
 			if (xrange)
 			{
 				const XMLObject::Child& pmin = xrange.getChild("tt:Min");
-				if (pmin)  options->pantilt_speed.min = pmin.getValue().readFloat();
+				if (pmin)  options->pantilt_speed.min = pmin.data().readFloat();
 
 				const XMLObject::Child& pmax = xrange.getChild("tt:Max");
-				if (pmax)  options->pantilt_speed.max = pmax.getValue().readFloat();
+				if (pmax)  options->pantilt_speed.max = pmax.data().readFloat();
 			}
 		}
 
@@ -177,21 +177,21 @@ public:
 			if (xrange)
 			{
 				const XMLObject::Child& pmin = xrange.getChild("tt:Min");
-				if (pmin)  options->zoom_speed.min = pmin.getValue().readFloat();
+				if (pmin)  options->zoom_speed.min = pmin.data().readFloat();
 
 				const XMLObject::Child& pmax = xrange.getChild("tt:Max");
-				if (pmax)  options->zoom_speed.max = pmax.getValue().readFloat();
+				if (pmax)  options->zoom_speed.max = pmax.data().readFloat();
 			}
 		}
 
-		const XMLObject::Child& timeout = space.getChild("tt:PTZTimeout");
+		const XMLObject::Child& timeout = ptzopt.getChild("tt:PTZTimeout");
 		if (timeout)
 		{
 			const XMLObject::Child& pmin = timeout.getChild("tt:Min");
-			if (pmin)  options->timeout.min = (float)pmin.getValue().readInt();
+			if (pmin)  options->timeout.min = (float)pmin.data().readInt();
 
 			const XMLObject::Child& pmax = timeout.getChild("tt:Max");
-			if (pmax)  options->timeout.max = (float)pmax.getValue().readInt();
+			if (pmax)  options->timeout.max = (float)pmax.data().readInt();
 		}
 
 		options->used = 1;
