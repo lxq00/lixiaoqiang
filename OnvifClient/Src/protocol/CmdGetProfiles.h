@@ -151,7 +151,7 @@ private:
 
 	bool parsePTZCfg(const XMLObject::Child& ptzcfg, OnvifClientDefs::ProfileInfo& info)
 	{
-		info.PTZConfig = make_shared<OnvifClientDefs::_PTZConfig>();
+		info.PTZConfig = make_shared<OnvifClientDefs::PTZConfig>();
 
 		info.PTZConfig->token = ptzcfg.attribute("token");
 		info.PTZConfig->name = ptzcfg.getChild("tt:Name").data();

@@ -9,14 +9,6 @@ namespace Public {
 namespace Onvif {
 namespace OnvifClientDefs {
 
-struct XAddr
-{
-	int     port;           // onvif port
-	std::string    host;       // ip of xaddrs
-	std::string    url;       // /onvif/device_service
-
-	XAddr():port(0){}
-};
 
 //设备信息
 struct Info
@@ -33,7 +25,7 @@ struct Info
 struct Capabilities
 {
 	struct _Medis{
-		XAddr xaddr;
+		URL xaddr;
 		BOOL RTPMulticast;
 		BOOL RTP_TCP;
 		BOOL RTP_RTSP_TCP;
@@ -42,19 +34,19 @@ struct Capabilities
 		_Medis():RTPMulticast(false),RTP_TCP(false),RTP_RTSP_TCP(false),Support(false){}
 	}Media;
 	struct _PTZ{
-		XAddr		xaddr;
+		URL		xaddr;
 		BOOL        Support;
 
 		_PTZ():Support(false){}
 	}PTZ;
 	struct _Events {
-		XAddr		xaddr;
+		URL		xaddr;
 		BOOL        Support;
 
-		_Events():Support(false){}
+		_Events() :Support(false) {}
 	}Events;
 	struct _Mmessage {
-		XAddr		xaddr;
+		URL		xaddr;
 		BOOL        Support;
 
 		_Mmessage():Support(false){}
@@ -123,7 +115,7 @@ struct _Range
 	_Range() { min = max = 0; }
 };
 
-struct _PTZConfig
+struct PTZConfig
 {
 	int  use_count;
 	int  def_timeout;
@@ -145,7 +137,7 @@ struct _PTZConfig
 	_Range pantilt_y;
 	_Range zoom;
 
-	_PTZConfig():use_count(0),def_timeout(0){}
+	PTZConfig():use_count(0),def_timeout(0){}
 } ;
 
 struct ConfigurationOptions
@@ -175,7 +167,7 @@ struct ConfigurationOptions
 struct ProfileInfo {
 	shared_ptr<_VideoSource> VideoSource;
 	shared_ptr<_VideoEncoder> VideoEncoder;
-	shared_ptr<_PTZConfig> PTZConfig;
+	shared_ptr<PTZConfig> PTZConfig;
 
 
 	std::string name;
@@ -232,6 +224,13 @@ struct StreamUrl
 struct SnapUrl
 {
 	std::string url;
+};
+
+struct StartRecvAlarm
+{
+	URL				xaddr;
+	Time			currentTime;
+	Time			terminationTime;
 };
 
 

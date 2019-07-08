@@ -66,7 +66,7 @@ private:
 		const XMLObject::Child& xaddr = body.getChild("tt:XAddr");
 		if (xaddr)
 		{
-			onvif_parse_xaddr(xaddr.data(), capabilities->Media.xaddr);
+			capabilities->Media.xaddr = xaddr.data();
 		}
 		else
 		{
@@ -101,7 +101,7 @@ private:
 		const XMLObject::Child& xaddr = ptz.getChild("tt:XAddr");
 		if (!xaddr) return false;
 
-		onvif_parse_xaddr(xaddr.data(), capabilities->PTZ.xaddr);
+		capabilities->PTZ.xaddr = xaddr.data();
 
 		return true;
 	}
@@ -111,7 +111,7 @@ private:
 		const XMLObject::Child& xaddr = p_events.getChild("tt:XAddr");
 		if (!xaddr) return false;
 
-		onvif_parse_xaddr(xaddr.data(), capabilities->Events.xaddr);
+		capabilities->Events.xaddr = xaddr.data();
 
 		return true;
 	}

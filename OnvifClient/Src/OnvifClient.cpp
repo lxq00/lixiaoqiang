@@ -1,6 +1,7 @@
 #include "OnvifClient/OnvifClient.h"
 #include "HTTP/HTTPClient.h"
 #include "protocol/OnvifProtocol.h"
+
 using namespace Public::HTTP;
 
 namespace Public {
@@ -15,24 +16,33 @@ struct OnvifClient::OnvifClientInternal
 	URL url;
 	shared_ptr<IOWorker> worker;
 	std::string useragent;
-
-	bool sendOvifRequest(CmdObject* cmd,int timeout)
+public:
+	bool sendOvifRequest(CmdObject* cmd, int timeout, const URL& _requrl = URL())
 	{
 		shared_ptr<HTTPClient> client = make_shared<HTTPClient>(worker, useragent);
 		shared_ptr<HTTPRequest> req = make_shared<HTTPRequest>();
 
+		URL requrl = _requrl;
+		if (requrl.getHostname() == "") requrl = url;
+		if (requrl.getPath() == "" || requrl.getPath() == "/")
+		{
+			requrl.setPath(DEFAULTONVIFRDEVICEURL);
+		}
+
+		requrl.setAuthen(url.getAuhen());
+
 		{
 			req->headers()["Content-Type"] = std::string(ONVIFECONENTTYPE) + "; charset=utf-8; action=\"" + cmd->action + "\"";
 			req->headers()["Accept-Encoding"] = "gzip, deflate";
-			if(useragent != "")
+			if (useragent != "")
 				req->headers()["User-Agent"] = useragent;
 			req->headers()["Connection"] = "close";
 		}
 
-		req->content()->write(cmd->build(url));
+		req->content()->write(cmd->build(requrl));
 		req->method() = "POST";
 		req->timeout() = timeout;
-		req->url() = url.getHost() + url.getPath() + url.getSearch();
+		req->url() = requrl.getHost() + requrl.getPath() + requrl.getSearch();
 
 		shared_ptr<HTTPResponse> response = client->request(req);
 
@@ -56,7 +66,7 @@ struct OnvifClient::OnvifClientInternal
 
 		const XMLObject::Child& body = xml.getRoot().getChild("s:Body");
 		if (body.isEmpty()) return false;
-		
+
 		cmd->recvbuffer = httpbody.c_str();
 		bool parseret = cmd->parse(body);
 
@@ -70,11 +80,6 @@ OnvifClient::OnvifClient(const shared_ptr<IOWorker>& worker, const URL& url,cons
 	internal->url = url;
 	internal->useragent = useragent;
 	internal->worker = worker;
-
-	if (internal->url.getPath() == "" || internal->url.getPath() == "/")
-	{
-		internal->url.setPath(DEFAULTONVIFRDEVICEURL);
-	}
 }
 OnvifClient::~OnvifClient()
 {
@@ -164,15 +169,15 @@ shared_ptr<OnvifClientDefs::AbsoluteMove> OnvifClient::getAbsoluteMove(const Onv
 
 	return cmd->move;
 }
-shared_ptr<OnvifClientDefs::_PTZConfig> OnvifClient::getConfigurations(int timeoutms)
+shared_ptr<OnvifClientDefs::PTZConfig> OnvifClient::getConfigurations(int timeoutms)
 {
 	shared_ptr<CmdGetConfigurations> cmd = make_shared<CmdGetConfigurations>();
 
-	if (!internal->sendOvifRequest(cmd.get(), timeoutms)) return shared_ptr<OnvifClientDefs::_PTZConfig>();
+	if (!internal->sendOvifRequest(cmd.get(), timeoutms)) return shared_ptr<OnvifClientDefs::PTZConfig>();
 
 	return cmd->ptzcfg;
 }
-shared_ptr<OnvifClientDefs::ConfigurationOptions> OnvifClient::getConfigurationOptions(const shared_ptr<OnvifClientDefs::_PTZConfig>& ptzcfg, int timeoutms)
+shared_ptr<OnvifClientDefs::ConfigurationOptions> OnvifClient::getConfigurationOptions(const shared_ptr<OnvifClientDefs::PTZConfig>& ptzcfg, int timeoutms)
 {
 	if (ptzcfg == NULL) return make_shared<OnvifClientDefs::ConfigurationOptions>();
 
@@ -202,40 +207,33 @@ bool OnvifClient::SystemReboot(int timeoutms)
 
 	return internal->sendOvifRequest(cmd.get(), timeoutms);
 }
-bool OnvifClient::startRecvAlarm()
+shared_ptr<OnvifClientDefs::StartRecvAlarm>  OnvifClient::startRecvAlarm(const shared_ptr<OnvifClientDefs::Capabilities>& capabilities,int timeoutms)
 {
-	return false;
+	if (capabilities == NULL || !capabilities->Events.Support)
+	{
+		return shared_ptr<OnvifClientDefs::StartRecvAlarm>();
+	}
+
+	shared_ptr<CMDStartRecvAlarm> cmd = make_shared<CMDStartRecvAlarm>();
+
+	if (!internal->sendOvifRequest(cmd.get(), timeoutms, capabilities->Events.xaddr))
+	{
+		return shared_ptr<OnvifClientDefs::StartRecvAlarm>();
+	}
+
+	return cmd->startrecvalarm;
+}
+bool OnvifClient::recvAlarm(const shared_ptr<OnvifClientDefs::StartRecvAlarm>& alarminfo, int timeoutms)
+{
+	if (alarminfo == NULL) return false;
+
+	shared_ptr<CMDGetAlarm> cmd = make_shared<CMDGetAlarm>();
+
+	return internal->sendOvifRequest(cmd.get(), timeoutms,alarminfo->xaddr);
 }
 bool OnvifClient::stopRecvAlarm()
 {
 	return false;
-}
-
-struct OnvifClientManager::OnvifClientManagerInternal
-{
-	std::string useragent;
-	shared_ptr<IOWorker> worker;
-};
-
-
-OnvifClientManager::OnvifClientManager(const shared_ptr<IOWorker>& worker,const std::string& userContent)
-{
-	internal = new OnvifClientManagerInternal;
-	internal->useragent = userContent;
-	internal->worker = worker;
-	if (internal->worker == NULL)
-	{
-		internal->worker = make_shared<IOWorker>(2);
-	}
-}
-OnvifClientManager::~OnvifClientManager()
-{
-	SAFE_DELETE(internal);
-}
-
-shared_ptr<OnvifClient> OnvifClientManager::create(const URL& url)
-{
-	return shared_ptr<OnvifClient>(new OnvifClient(internal->worker, url, internal->useragent));
 }
 
 }

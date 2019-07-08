@@ -159,7 +159,7 @@ std::string URL::getHost() const
 {
 	stringstream sstream;
 	sstream << hostname;
-	if (port != 0) sstream << ":" << port;
+	if (port != 0 && port != 80) sstream << ":" << port;
 
 	return sstream.str();
 }
@@ -176,6 +176,7 @@ void URL::setHost(const std::string& hoststr)
 	else
 	{
 		hostname = hoststr;
+		port = 80;
 	}
 }
 

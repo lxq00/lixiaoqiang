@@ -27,10 +27,6 @@ class ONVIFCLIENT_API OnvifClient
 	friend class OnvifClientManager;
 	OnvifClient(const shared_ptr<IOWorker>& worker, const URL& url,const std::string& useragent);
 public:
-	//@AlarmState 0:未知状态、1:报警发生、2:报警消失
-	//void,int alarmType, int alarmState, uint32_t& alarmCount, Time alarmTime
-	typedef Function4<void, int, int, uint32_t, Time> AlarmCallback;
-public:
 	~OnvifClient();
 
 	shared_ptr<OnvifClientDefs::Info> getInfo(int timeoutms = 10000);			//获取设备信息，错误信息使用XM_GetLastError捕获
@@ -43,12 +39,13 @@ public:
 //	shared_ptr<OnvifClientDefs::VideoEncoderConfigurations> getVideoEncoderConfigurations(int timeoutms = 10000); //获取视频编码信息，错误信息使用XM_GetLastError捕获
 	shared_ptr<OnvifClientDefs::ContinuousMove> getContinuousMove(const OnvifClientDefs::ProfileInfo& info, int timeoutms = 10000); //错误信息使用XM_GetLastError捕获
 	shared_ptr<OnvifClientDefs::AbsoluteMove> getAbsoluteMove(const OnvifClientDefs::ProfileInfo& info, int timeoutms = 10000); //错误信息使用XM_GetLastError捕获
-	shared_ptr<OnvifClientDefs::_PTZConfig> getConfigurations(int timeoutms = 10000); //错误信息使用XM_GetLastError捕获
-	shared_ptr<OnvifClientDefs::ConfigurationOptions> getConfigurationOptions(const shared_ptr<OnvifClientDefs::_PTZConfig>& ptzcfg,int timeoutms = 10000); //错误信息使用XM_GetLastError捕获
+	shared_ptr<OnvifClientDefs::PTZConfig> getConfigurations(int timeoutms = 10000); //错误信息使用XM_GetLastError捕获
+	shared_ptr<OnvifClientDefs::ConfigurationOptions> getConfigurationOptions(const shared_ptr<OnvifClientDefs::PTZConfig>& ptzcfg,int timeoutms = 10000); //错误信息使用XM_GetLastError捕获
 	shared_ptr<Time> GetSystemDatetime(int timeoutms = 10000); //错误信息使用XM_GetLastError捕获
 	bool SetSystemDatetime(const Time& time, int timeoutms = 10000); //错误信息使用XM_GetLastError捕获
 	bool SystemReboot(int timeoutms = 10000);//错误信息使用XM_GetLastError捕获
-	bool startRecvAlarm(/*const AlarmCallback& callback*/);
+	shared_ptr<OnvifClientDefs::StartRecvAlarm> startRecvAlarm(const shared_ptr<OnvifClientDefs::Capabilities>& capabilities,int timeoutms = 10000);
+	bool recvAlarm(const shared_ptr<OnvifClientDefs::StartRecvAlarm>& alarminfo,int timeoutms = 2*60000);
 	bool stopRecvAlarm();
 private:
 	struct OnvifClientInternal;

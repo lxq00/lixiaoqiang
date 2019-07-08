@@ -29,9 +29,11 @@ public:
 		return stream.str();
 	}
 
-	std::string strAlarmInfo;
+	shared_ptr<OnvifClientDefs::StartRecvAlarm>	startrecvalarm;
 	virtual bool parse(const XMLObject::Child& body)
 	{
+		startrecvalarm = make_shared<OnvifClientDefs::StartRecvAlarm>();
+
 		const XMLObject::Child& response = body.getChild("tev:PullMessagesResponse");
 		if (response.isEmpty()) return false;
 

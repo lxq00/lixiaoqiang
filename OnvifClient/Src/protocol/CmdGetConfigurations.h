@@ -26,10 +26,10 @@ public:
 		return stream.str();
 	}
 
-	shared_ptr<OnvifClientDefs::_PTZConfig> ptzcfg;
+	shared_ptr<OnvifClientDefs::PTZConfig> ptzcfg;
 	virtual bool parse(const XMLObject::Child& body)
 	{
-		ptzcfg = make_shared<OnvifClientDefs::_PTZConfig>();
+		ptzcfg = make_shared<OnvifClientDefs::PTZConfig>();
 
 		const XMLObject::Child& resp = body.getChild("tptz:GetConfigurationsResponse");
 		if (!resp) return false;

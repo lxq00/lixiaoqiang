@@ -26,13 +26,13 @@ using namespace Public::XML;
 "<a:ReplyTo>"\
 "<a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>"\
 "</a:ReplyTo>"\
-"<SecURLty s:mustUnderstand=\"1\" xmlns=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecURLty-secext-1.0.xsd\">"\
+"<Security s:mustUnderstand=\"1\" xmlns=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecURLty-secext-1.0.xsd\">"\
 "<UsernameToken>"\
 "<Username>%s</Username>"\
 "<Password Type=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest\">%s</Password>"\
-"<Nonce>%s</Nonce>"\
+"<Nonce EncodingType=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary\">%s</Nonce>"\
 "<Created xmlns=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecURLty-utility-1.0.xsd\">%s</Created>"\
-"</UsernameToken></SecURLty>"\
+"</UsernameToken></Security>"\
 "<a:To s:mustUnderstand=\"1\">http://%s%s</a:To>"\
 "</s:Header>"
 
@@ -83,7 +83,7 @@ protected:
 		noneBase64 = Base64::encode(noneString);
 
 
-		createTime = onvif_datetime();
+		createTime = onvif_build_datetime();
 
 		std::string basetmp = onvif_calc_digest(createTime, noneString, password);
 		passwdBase64 = Base64::encode(basetmp);
@@ -104,16 +104,6 @@ private:
 		return buf;
 	}
 
-	static std::string onvif_datetime()
-	{
-		char buf[32] = { 0 };
-
-		Time nowtime = Time::getCurrentTime();
-		snprintf_x(buf, 32, "%04d-%02d-%02dT%02d:%02d:%02dZ", nowtime.year, nowtime.month, nowtime.day, nowtime.hour, nowtime.minute, nowtime.second);
-
-		return buf;
-	}
-
 	static std::string onvif_calc_digest(const std::string& created, const std::string& nonce, const std::string& password)
 	{
 		Sha1 sha1;
@@ -125,16 +115,22 @@ private:
 		return sha1.report(Sha1::REPORT_BIN);
 	}
 public:
-	
-	static bool onvif_parse_xaddr(const std::string& data, OnvifClientDefs::XAddr& p_xaddr)
+	static std::string onvif_build_datetime()
 	{
-		URL url(data);
+		char buf[32] = { 0 };
 
-		p_xaddr.host = url.getHostname();
-		p_xaddr.port = url.getPort();
-		p_xaddr.url = url.getPath();
+		Time nowtime = Time::getCurrentTime();
+		snprintf_x(buf, 32, "%04d-%02d-%02dT%02d:%02d:%02dZ", nowtime.year, nowtime.month, nowtime.day, nowtime.hour, nowtime.minute, nowtime.second);
 
-		return true;
+		return buf;
+	}
+
+	static Time onvif_parse_datetime(const std::string& datastr)
+	{
+		Time	nowtime;
+		sscanf_s(datastr.c_str(), "%04d-%02d-%02dT%02d:%02d:%02dZ", &nowtime.year, &nowtime.month, &nowtime.day, &nowtime.hour, &nowtime.minute, &nowtime.second);
+
+		return nowtime;
 	}
 
 	static OnvifClientDefs::VIDEO_ENCODING onvif_parse_encoding(const std::string& pdata)
