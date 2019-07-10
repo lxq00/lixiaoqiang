@@ -63,6 +63,8 @@ public:
 	static shared_ptr<ShareMEMBuffer> open(const std::string& shareName,int readBlockSize,int readBlockNum,int writeBlockSize,int writeBlockNum,int memMaxSize,void* startAddr,const ReadMEMCallback& callback);
 	
 	int write(void* block,int size);
+
+	void* startAddr();
 private:
 	ShareMEMBufferInternal* internal;
 };

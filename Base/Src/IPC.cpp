@@ -539,6 +539,12 @@ int ShareMEMBuffer::write(void* block,int size)
 	}
 	return internal->readWriteData(block,size);
 }
+void* ShareMEMBuffer::startAddr()
+{
+	if (internal == NULL || internal->sharemem == NULL) return NULL;
+
+	return internal->sharemem->getbuffer();
+}
 
 //////////////////////
 struct ShareMEMPool::ShareMEMPoolInternal
