@@ -14,7 +14,7 @@ wstring Write_Sheet::c2w(const string& str)
 {
 	wstring wstr;
 	{
-		uint32_t maxlen = str.length() + 100;
+		size_t maxlen = str.length() + 100;
 
 		wchar_t* ptr = new wchar_t[maxlen];
 
@@ -22,7 +22,7 @@ wstring Write_Sheet::c2w(const string& str)
 		{
 			setlocale(LC_CTYPE, "");
 		}
-		int len = mbstowcs(ptr, str.c_str(), maxlen);
+		size_t len = mbstowcs(ptr, str.c_str(), maxlen);
 
 		wstr = wstring(ptr, len);
 		SAFE_DELETEARRAY(ptr);
@@ -216,7 +216,7 @@ uint32_t Write_Sheet::getRowMaxColNum(uint32_t rownum)
 	{
 		return 0;
 	}
-	return writesheet->NumCells();
+	return (uint32_t)writesheet->NumCells();
 }
 
 uint32_t Write_Sheet::getColMaxRowNum(uint32_t colnum)

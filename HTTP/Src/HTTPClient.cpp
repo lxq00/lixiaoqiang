@@ -131,7 +131,7 @@ struct HTTPClientObject
 
 		const char* usedbuf = sessiontmp->inputData(buffer, bufferlen);
 
-		bufferlen = buffer + bufferlen - usedbuf;
+		bufferlen = int(buffer + bufferlen - usedbuf);
 		if (bufferlen > 0 && usedbuf != buffer)
 		{
 			memmove(buffer, usedbuf, bufferlen);

@@ -15,7 +15,7 @@ struct parseFirstLine<HTTPRequest>
 {
 	static const char* parse(const shared_ptr<HTTPRequest>&object, const char* buffer, int len)
 	{
-		int pos = String::indexOf(buffer, len, HTTPHREADERLINEEND);
+		int pos = (int)String::indexOf(buffer, len, HTTPHREADERLINEEND);
 		if (pos == -1) return NULL;
 
 		std::vector<std::string> tmp = String::split(buffer, pos, " ");
@@ -33,7 +33,7 @@ struct parseFirstLine<HTTPResponse>
 {
 	static const char* parse(const shared_ptr<HTTPResponse>&object, const char* buffer, int len)
 	{
-		int pos = String::indexOf(buffer, len, HTTPHREADERLINEEND);
+		int pos = (int)String::indexOf(buffer, len, HTTPHREADERLINEEND);
 		if (pos == -1) return NULL;
 
 		std::vector<std::string> tmp = String::split(buffer, pos, " ");
@@ -86,7 +86,7 @@ public:
 		if (!headerHaveFind)
 		{
 			buftmp = parseHeader(buftmp, len);
-			len -= buftmp - tmp;
+			len -= int(buftmp - tmp);
 		}
 		if (headerHaveFind && len > 0)
 		{
@@ -119,7 +119,7 @@ protected:
 		{
 			const char* tmp = writeContent(objtmp,tmpbuf, contentlentmp);
 			//修正实际已经使用的长度
-			contentlentmp = tmp - tmpbuf;
+			contentlentmp = int(tmp - tmpbuf);
 		}
 		inputContentLen += contentlentmp;
 
@@ -132,15 +132,15 @@ protected:
 		shared_ptr<OBJECT> objtmp = object.lock();
 		if (objtmp == NULL) return buffer;
 
-		int pos = String::indexOf(buffer, bufferlen, HTTPHEADEREND);
+		int pos = (int)String::indexOf(buffer, bufferlen, HTTPHEADEREND);
 		if (pos == -1) return buffer;
 
 		const char* endheaderbuf = buffer + pos + strlen(HTTPHEADEREND);
 		
-		const char* firsttmp = parseFirstLine<OBJECT>::parse(objtmp,buffer, endheaderbuf - buffer);
+		const char* firsttmp = parseFirstLine<OBJECT>::parse(objtmp,buffer, int(endheaderbuf - buffer));
 		if (firsttmp == NULL) return buffer;
 
-		parseHeader(objtmp,firsttmp, endheaderbuf - firsttmp);
+		parseHeader(objtmp,firsttmp, int(endheaderbuf - firsttmp));
 
 		{
 			Value tmp = objtmp->header(Content_Length);
@@ -188,7 +188,7 @@ private:
 		if (chunked && chunedfinish)
 		{
 			//直接修改contentlen为上次输入的长度和当前使用的长度，让finish=true
-			ContentLen = inputContentLen + (buftmp - buffer);
+			ContentLen = int(inputContentLen + (buftmp - buffer));
 		}
 
 		return buftmp;

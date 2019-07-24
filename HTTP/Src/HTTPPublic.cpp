@@ -11,7 +11,7 @@ public:
 	virtual ~FileMediaInfo() {}
 	void setContentFilename(const std::string& filename)
 	{
-		int pos = String::lastIndexOf(filename, ".");
+		int pos = (int)String::lastIndexOf(filename, ".");
 		if (pos == -1) return;
 
 		std::string pres = filename.c_str() + pos + 1;
@@ -106,7 +106,7 @@ public:
 			havereadlen += readlen;
 			if (item.havereadlen == item.data.length())
 			{
-				cachetotalsize -= item.data.length();
+				cachetotalsize -= (int)item.data.length();
 				memcache.pop_front();
 			}
 		}
@@ -157,8 +157,8 @@ public:
 	{
 		if (fd == NULL) return false;
 
-		fseek(fd, writepos, SEEK_SET);
-		int ret = fwrite(buffer, 1, len, fd);
+		fseek(fd, (int)writepos, SEEK_SET);
+		size_t ret = fwrite(buffer, 1, len, fd);
 		fflush(fd);
 		if (ret > 0) writepos += ret;
 
@@ -168,8 +168,8 @@ public:
 	{
 		if (fd == NULL) return 0;
 
-		fseek(fd, readpos, SEEK_SET);
-		int readlen = fread(buffer, 1, len, fd);
+		fseek(fd, (int)readpos, SEEK_SET);
+		int readlen = (int)fread(buffer, 1, len, fd);
 		if (readlen > 0) readpos += readlen;
 
 		return readlen;
@@ -179,8 +179,8 @@ private:
 	std::string			filename;
 	bool				needdelete;
 
-	int					writepos;
-	int					readpos;
+	size_t				writepos;
+	size_t				readpos;
 public:
 	FILE*				fd;
 };
@@ -288,7 +288,7 @@ bool HTTPContent::setChunkEOF()
 	char buffer[32] = { 0 };
 	sprintf(buffer, "0" HTTPHREADERLINEEND HTTPHREADERLINEEND);
 
-	internal->cache->write(buffer, strlen(buffer));
+	internal->cache->write(buffer, (int)strlen(buffer));
 
 	return true;
 }
@@ -303,7 +303,7 @@ bool HTTPContent::write(const char* buffer, int len)
 	{
 		char buffer[32] = { 0 };
 		sprintf(buffer, "%x" HTTPHREADERLINEEND, len);
-		if (!internal->cache->write(buffer, strlen(buffer)))
+		if (!internal->cache->write(buffer, (int)strlen(buffer)))
 		{
 			return false;
 		}
@@ -314,7 +314,7 @@ bool HTTPContent::write(const char* buffer, int len)
 	//write chunk end
 	if (internal->writetype == HTTPContentType_Chunk)
 	{
-		if (!internal->cache->write(HTTPHREADERLINEEND, strlen(HTTPHREADERLINEEND)))
+		if (!internal->cache->write(HTTPHREADERLINEEND, (int)strlen(HTTPHREADERLINEEND)))
 		{
 			return false;
 		}
@@ -324,7 +324,7 @@ bool HTTPContent::write(const char* buffer, int len)
 }
 bool HTTPContent::write(const std::string& buffer)
 {
-	return write(buffer.c_str(), buffer.length());
+	return write(buffer.c_str(), (int)buffer.length());
 }
 
 const char* HTTPContent::inputAndParse(const char* buffer, int len, bool chunked, bool& chunedfinish)
@@ -348,7 +348,7 @@ const char* HTTPContent::inputAndParse(const char* buffer, int len, bool chunked
 		//find 
 		if (internal->chunkbodysize == 0)
 		{
-			int pos = String::indexOf(buffer, len, HTTPHREADERLINEEND);
+			int pos = (int)String::indexOf(buffer, len, HTTPHREADERLINEEND);
 			if (pos == -1) return buffer;
 
 			std::string chunksizestr = std::string(buffer, pos);
@@ -360,17 +360,17 @@ const char* HTTPContent::inputAndParse(const char* buffer, int len, bool chunked
 				//是否结束标识 2个HTTPHREADERLINEEND 
 				if (memcmp(buffer + pos, HTTPHREADERLINEEND HTTPHREADERLINEEND, strlen(HTTPHREADERLINEEND) * 2) != 0) return buffer;
 
-				len -= pos + strlen(HTTPHREADERLINEEND) * 2;
-				buffer += pos + strlen(HTTPHREADERLINEEND) * 2;
+				len -= pos + (int)strlen(HTTPHREADERLINEEND) * 2;
+				buffer += pos + (int)strlen(HTTPHREADERLINEEND) * 2;
 
 				chunedfinish = true;
 				return buffer;
 			}
-			buffer += pos + strlen(HTTPHREADERLINEEND);
-			len -= pos + strlen(HTTPHREADERLINEEND);
+			buffer += pos + (int)strlen(HTTPHREADERLINEEND);
+			len -= pos + (int)strlen(HTTPHREADERLINEEND);
 
 			//数据长度加上结束标识长度
-			internal->chunkbodysize += strlen(HTTPHREADERLINEEND);
+			internal->chunkbodysize += (int)strlen(HTTPHREADERLINEEND);
 		}
 		else
 		{

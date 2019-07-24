@@ -145,7 +145,7 @@ private:
 
 		memcpy(buffer, str.c_str(), str.length());
 
-		return str.length();
+		return (int)str.length();
 	}
 };
 

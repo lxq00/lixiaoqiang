@@ -107,7 +107,7 @@ public:
 
 	///获取Socket句柄
 	///return 句柄	、当socket创建失败 -1
-	virtual int getHandle() const ;
+	virtual SOCKET getHandle() const ;
 
 	///获取Socket网络类型
 	///param in		

@@ -263,7 +263,7 @@ private:
 			if (timerThreadPool.size() < MINTHREADPOOLSIZE)
 			{
 				//±Øíš±£×C2‚€
-				newthreadsize = MINTHREADPOOLSIZE - timerThreadPool.size();
+				newthreadsize = (int)(MINTHREADPOOLSIZE - timerThreadPool.size());
 			}
 			if (timerThreadPool.size() < MAXTHREADPOOLSIZE)
 			{
@@ -276,26 +276,26 @@ private:
 				int neednewthreadsize = 0;
 				if (needRunTimer.size() > 5 && needRunTimer.size() <= 10 && timerThreadPool.size() < 4)
 				{
-					neednewthreadsize = 4 - timerThreadPool.size();
+					neednewthreadsize = int(4 - timerThreadPool.size());
 				}
 				else if (needRunTimer.size() > 10 && needRunTimer.size() <= 30 && timerThreadPool.size() < 6)
 				{
-					neednewthreadsize = 6 - timerThreadPool.size();
+					neednewthreadsize = int(6 - timerThreadPool.size());
 				}
 				else if (needRunTimer.size() > 30 && needRunTimer.size() <= 80 && timerThreadPool.size() < 8)
 				{
-					neednewthreadsize = 8 - timerThreadPool.size();
+					neednewthreadsize = int(8 - timerThreadPool.size());
 				}
 				else if(needRunTimer.size() > 80)
 				{
-					neednewthreadsize = MAXTHREADPOOLSIZE - timerThreadPool.size();
+					neednewthreadsize = int(MAXTHREADPOOLSIZE - timerThreadPool.size());
 				}
 
 				newthreadsize = max(newthreadsize, neednewthreadsize);
 			}
 			if (newthreadsize + timerThreadPool.size() > MAXTHREADPOOLSIZE)
 			{
-				newthreadsize = MAXTHREADPOOLSIZE - timerThreadPool.size();
+				newthreadsize = int(MAXTHREADPOOLSIZE - timerThreadPool.size());
 			}
 
 			for (int i = 0; i < newthreadsize; i++)

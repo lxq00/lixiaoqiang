@@ -47,7 +47,7 @@ public:
 	/// \retval  > 0 写的数据长度
 	///          = 0 未写入
 	///          < 0 失败
-	int write(const void *buf, size_t len);
+	size_t write(const void *buf, size_t len);
 
 	/// 读数据
 	/// \param buf [out] 读数据地址
@@ -56,7 +56,7 @@ public:
 	///          = 0 没有数据
 	///          < 0 失败
 	/// \note  read 和readEx两个的调用 是线程不安全的,
-	int read(void *buf, size_t len);
+	size_t read(void *buf, size_t len);
 
 	typedef enum {
 		seekPos_Cur,
@@ -68,14 +68,14 @@ public:
 	/// \param pos [in]位置
 	/// \retval true 成功
 	///         false 失败
-	bool readSeek(const int64_t &offset, SeekPos pos);
+	bool readSeek(size_t offset, SeekPos pos);
 
 	/// 写位置Seek
 	/// \param offset [in] 偏移
 	/// \param pos [in]位置
 	/// \retval true 成功
 	///         false 失败
-	bool writeSeek(const int64_t &offset, SeekPos pos);	
+	bool writeSeek(size_t offset, SeekPos pos);
 
 	/// 获得读的位置
 	/// \retval 读的位置

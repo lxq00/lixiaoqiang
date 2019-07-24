@@ -370,8 +370,8 @@ struct BaseProcessInfo:public ProcessInfo
 			return false;
 		}
 
-		pagefileMemory = memoryInfo.PagefileUsage / 1024 / 1024;
-		workMemory = memoryInfo.WorkingSetSize / 1024 / 1024;
+		pagefileMemory = (uint32_t)(memoryInfo.PagefileUsage / 1024 / 1024);
+		workMemory = (uint32_t)(memoryInfo.WorkingSetSize / 1024 / 1024);
 		return true;
 	}
 	int getProcessThreads(HANDLE hProcess, uint32_t& threads)

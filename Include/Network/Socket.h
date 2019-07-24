@@ -278,7 +278,7 @@ public:
 	
 	///获取Socket句柄
 	///return 句柄	、当socket创建失败 -1
-	virtual int getHandle() const {return INVALIDHANDLE;}
+	virtual SOCKET getHandle() const {return INVALIDHANDLE;}
 
 	///获取Socket连接状态
 	///param in		

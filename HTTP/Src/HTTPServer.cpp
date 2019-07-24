@@ -166,7 +166,7 @@ private:
 		bufferlen += len;
 
 		const char* usedendbuf = tmp->inputData(buffer, bufferlen);
-		bufferlen = buffer + bufferlen - usedendbuf;
+		bufferlen = int(buffer + bufferlen - usedendbuf);
 		if (bufferlen > 0 && usedendbuf != buffer)
 		{
 			memmove(buffer, usedendbuf, bufferlen);

@@ -114,8 +114,9 @@
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
     <TargetName>$(ProjectName)_debug</TargetName>
-    <OutDir>Lib\$(ProjectName)\win32\x64\</OutDir>
-    <IntDir>Compile\win32\$(ProjectName)\$(Configuration)\x64\</IntDir>
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+    <OutDir>$(SolutionDir)\Lib\$(Platform)\$(ProjectName)\</OutDir>
+    <IntDir>$(SolutionDir)\__Compile\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)\Lib\win32\$(ProjectName)\</OutDir>
@@ -161,8 +162,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;_DEBUG;_CRT_SECURE_NO_WARNINGS;BASE_DLL_BUILD;LOG_DLL_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Include;$(SolutionDir)\openssl\include;Src;$(SolutionDir)\boost\Include;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;_DEBUG;_CRT_SECURE_NO_WARNINGS;HTTP_DLL_BUILD;HAVE_OPENSSL;_WEBSOCKETPP_CPP11_FUNCTIONAL_;_WEBSOCKETPP_CPP11_SYSTEM_ERROR_;_WEBSOCKETPP_CPP11_RANDOM_DEVICE_;_WEBSOCKETPP_CPP11_MEMORY_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader>
@@ -171,13 +172,12 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Base/Base_debug.lib;Network/Network_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName)_debug.dll</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\Lib\$(Platform);$(SolutionDir)\boost\Lib\win32;$(SolutionDir)\openssl\lib\win32</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Message>Install文件，自己添加mk\UserInstallConfig.bat文件.使用方法见mk\WinInstall.bat</Message>

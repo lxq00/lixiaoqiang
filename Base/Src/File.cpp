@@ -132,7 +132,7 @@ void File::close()
 	internal->file = NULL;
 }
 
-long File::read(void* pBuffer, size_t dwCount)
+size_t File::read(void* pBuffer, size_t dwCount)
 {
 	if(internal->file == NULL)
 	{
@@ -144,7 +144,7 @@ long File::read(void* pBuffer, size_t dwCount)
 
 	return len;
 }
-long File::write(void *pBuffer, size_t dwCount)
+size_t File::write(void *pBuffer, size_t dwCount)
 {
 	if(internal->file == NULL)
 	{
@@ -168,7 +168,7 @@ void File::flush()
 
 }
 
-uint64_t File::seek(int64_t lOff, SeekPosition nFrom)
+size_t File::seek(int64_t lOff, SeekPosition nFrom)
 {
 	if (internal->file == NULL)
 	{
@@ -191,7 +191,7 @@ uint64_t File::seek(int64_t lOff, SeekPosition nFrom)
 #ifdef WIN32
 	if(::_fseeki64(internal->file, lOff, origin) >= 0)
 	{
-		int64_t pos = ::_ftelli64(internal->file);
+		size_t pos = ::_ftelli64(internal->file);
 
 		return pos;
 	};
@@ -207,10 +207,10 @@ uint64_t File::seek(int64_t lOff, SeekPosition nFrom)
 	return 0;
 }
 
-uint64_t File::getPosition()
+size_t File::getPosition()
 {
 #ifdef WIN32
-	int64_t pos = ::_ftelli64(internal->file);
+	size_t pos = ::_ftelli64(internal->file);
 
 	return pos;
 #else
@@ -220,7 +220,7 @@ uint64_t File::getPosition()
 #endif // WIN32
 }
 
-char* File::gets(char* s, size_t size)
+char* File::gets(char* s, uint32_t size)
 {
 	if(!internal->file)
 	{
@@ -234,14 +234,14 @@ char* File::gets(char* s, size_t size)
 }
 
 
-long File::puts(const char* s)
+size_t File::puts(const char* s)
 {
 	if(!internal->file)
 	{
 		return 0;
 	}
 
-	long ret = ::fputs(s, internal->file);
+	size_t ret = ::fputs(s, internal->file);
 
 	return ret;
 }
@@ -329,7 +329,7 @@ std::string File::getExcutableFileName()
 		return "";
 	}
 	s[ret] = 0;
-	for (int i = ret; i >= 0; i--)
+	for (size_t i = ret; i >= 0; i--)
 	{
 		if (s[i] == PATH_SEPARATOR)
 		{
@@ -357,7 +357,7 @@ std::string File::getExcutableFileFullPath()
 		return "";
 	}
 	s[ret] = 0;
-	for (int i = ret; i >= 0; i--)
+	for (size_t i = ret; i >= 0; i--)
 	{
 		if (s[i] == PATH_SEPARATOR)
 		{
@@ -544,7 +544,7 @@ bool File::copy(const std::string& srcfile, const std::string& tofile)
 	while (1)
 	{
 		char buffer[1024];
-		int readlen = fread(buffer, 1, 1024, srcfd);
+		size_t readlen = fread(buffer, 1, 1024, srcfd);
 		if (readlen <= 0) break;
 
 		if ((int)fwrite(buffer, 1, readlen, tofd) != readlen)

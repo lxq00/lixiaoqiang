@@ -49,11 +49,11 @@ struct SimPipe::Internal
 			File::remove(name.c_str());
 		}
 	}
-	int write(const void *buf, size_t len)
+	size_t write(const void *buf, size_t len)
 	{
 		Guard guard(mutex);
 		::fseek(file, (long)writepos, SEEK_SET);
-		int wlen = ::fwrite(buf,1,len, file);
+		size_t wlen = ::fwrite(buf,1,len, file);
 		if (wlen > 0)
 		{
 			writepos += wlen;
@@ -63,11 +63,11 @@ struct SimPipe::Internal
 		}
 		return wlen;
 	}
-	int read(void *buf, size_t len)
+	size_t read(void *buf, size_t len)
 	{
 		Guard guard(mutex);
 		::fseek(file,  (long)readpos, SEEK_SET);
-		int rlen = ::fread(buf,1,  len, file);
+		size_t rlen = ::fread(buf,1,  len, file);
 
 		if (rlen >= 0)
 		{
@@ -76,7 +76,7 @@ struct SimPipe::Internal
 		return rlen;
 	}
 	
-	bool readSeek(const int64_t &offset, SimPipe::SeekPos pos)
+	bool readSeek(size_t offset, SimPipe::SeekPos pos)
 	{
 		Guard guard(mutex);
 		if (pos == SimPipe::seekPos_Cur)
@@ -89,7 +89,7 @@ struct SimPipe::Internal
 			}
 			else return false;
 		}
-		else if (offset >= 0 && offset <= (int64_t)writepos)
+		else if (offset >= 0 && offset <= writepos)
 		{
 			readpos = (uint64_t)offset;
 			return true;
@@ -102,7 +102,7 @@ struct SimPipe::Internal
 	/// \param pos [in]位置
 	/// \retval true 成功
 	///         false 失败
-	bool writeSeek(const int64_t &offset, SeekPos pos)
+	bool writeSeek(size_t offset, SeekPos pos)
 	{
 		Guard guard(mutex);
 		if (pos == SimPipe::seekPos_Cur)
@@ -115,14 +115,14 @@ struct SimPipe::Internal
 			}
 			else return false;
 		}
-		else if (offset >= (int64_t)readpos && offset <= (int64_t)writepos)
+		else if (offset >= readpos && offset <= writepos)
 		{
 			writepos = (uint64_t)offset;
 			return true;
 		}
 		return false;	
 	}
-	uint64_t getReadPos()
+	size_t getReadPos()
 	{
 		Guard gurad(mutex);
 		return readpos;
@@ -130,7 +130,7 @@ struct SimPipe::Internal
 
 	/// 获得写的位置
 	/// \retval 写的位置
-	uint64_t getWritePos()
+	size_t getWritePos()
 	{
 		Guard gurad(mutex);
 		return writepos;
@@ -140,8 +140,8 @@ struct SimPipe::Internal
 	bool status;
 	std::string name;
 	FILE *file;
-	uint64_t readpos;
-	uint64_t writepos;
+	size_t readpos;
+	size_t writepos;
 	Mutex mutex;
 	bool isSave;
 };
@@ -188,7 +188,7 @@ SimPipe::~SimPipe()
 /// \retval  > 0 写的数据长度
 ///          = 0 未写入
 ///          < 0 失败
-int SimPipe::write(const void *buf, size_t len)
+size_t SimPipe::write(const void *buf, size_t len)
 {
 	if(internal == NULL)
 	{
@@ -203,7 +203,7 @@ int SimPipe::write(const void *buf, size_t len)
 /// \retval  > 0 读的数据长度
 ///          = 0 没有数据
 ///          < 0 失败
-int SimPipe::read(void *buf, size_t len)
+size_t SimPipe::read(void *buf, size_t len)
 {
 	if(internal == NULL)
 	{
@@ -218,7 +218,7 @@ int SimPipe::read(void *buf, size_t len)
 /// \param pos [in]位置
 /// \retval true 成功
 ///         false 失败
-bool SimPipe::readSeek(const int64_t &offset, SeekPos pos)
+bool SimPipe::readSeek(size_t offset, SeekPos pos)
 {
 	if(internal == NULL)
 	{
@@ -232,7 +232,7 @@ bool SimPipe::readSeek(const int64_t &offset, SeekPos pos)
 /// \param pos [in]位置
 /// \retval true 成功
 ///         false 失败
-bool SimPipe::writeSeek(const int64_t &offset, SeekPos pos)
+bool SimPipe::writeSeek(size_t offset, SeekPos pos)
 {
 	if(internal == NULL)
 	{

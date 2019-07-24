@@ -75,7 +75,7 @@ public:
 
 	//split() 方法用于把一个字符串分割成字符串数组
 	static std::vector<std::string> split(const std::string& src, const std::string& howmany);
-	static std::vector<std::string> split(const char* src,int len, const std::string& howmany);
+	static std::vector<std::string> split(const char* src,size_t len, const std::string& howmany);
 
 	//左右清理,默认清理空格/回车/tabl
 	static std::string strip(const std::string& src,const std::vector<std::string>& howmany = defaultHowmany());
@@ -88,20 +88,20 @@ public:
 	static std::vector<std::string> defaultHowmany();
 
 	//从字符串中从头开始查找指定字符串，返回位置，未找到返回-1
-	static int indexOf(const std::string& src, const std::string& fromindex);
-	static int indexOf(const char* src,int len, const std::string& fromindex);
+	static size_t indexOf(const std::string& src, const std::string& fromindex);
+	static size_t indexOf(const char* src, size_t len, const std::string& fromindex);
 
 	//从字符串中从头开始查找指定字符串，返回位置，未找到返回-1 忽略大小写
-	static int indexOfByCase(const std::string& src, const std::string& fromindex);
-	static int indexOfByCase(const char* src, int len, const std::string& fromindex);
+	static size_t indexOfByCase(const std::string& src, const std::string& fromindex);
+	static size_t indexOfByCase(const char* src, size_t len, const std::string& fromindex);
 
 	//从字符串中从尾开始查找指定字符串，返回位置，未找到返回-1
-	static int lastIndexOf(const std::string& src, const std::string& fromindex);
-	static int lastIndexOf(const char* src, int len, const std::string& fromindex);
+	static size_t lastIndexOf(const std::string& src, const std::string& fromindex);
+	static size_t lastIndexOf(const char* src, size_t len, const std::string& fromindex);
 
 	//从字符串中从尾开始查找指定字符串，返回位置，未找到返回-1 忽略大小写
-	static int lastIndexOfByCase(const std::string& src, const std::string& fromindex);
-	static int lastIndexOfByCase(const char* src, int len, const std::string& fromindex);
+	static size_t lastIndexOfByCase(const std::string& src, const std::string& fromindex);
+	static size_t lastIndexOfByCase(const char* src, size_t len, const std::string& fromindex);
 
 	static std::string replace(const std::string& src,const std::string& substr,const std::string& replacement);
     

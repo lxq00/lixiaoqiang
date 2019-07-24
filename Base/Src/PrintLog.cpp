@@ -157,7 +157,7 @@ inline void print(LOG_Level lev,char const* s)
 
 		set_console_color(levelColor[lev]);
 		
-		int len = strlen(s);
+		size_t len = strlen(s);
 		bool ishaveenter = false;
 		if(len > 1 && (s[len-1] == '\n' || s[len-1] == '\r'))
 		{

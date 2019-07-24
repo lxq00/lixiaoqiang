@@ -48,7 +48,7 @@ using namespace xlslib_strings;
 
 struct function_property {
 	cell_op_class_t		op_class;
-	unsigned32_t		num_args;
+	int					num_args;
 	// const char		*name;	// same structure used elsewhere
 };
 

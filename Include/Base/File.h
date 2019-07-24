@@ -29,7 +29,7 @@ struct FileInfo
 	uint64_t	timeCreate;	///< 文件创建时间
 	uint64_t	timeAccess;	///< 文件访问时间
 	uint64_t	timeWrite;		///< 文件修改时间
-	uint64_t	size;			///< 文件大小
+	size_t		size;			///< 文件大小
 };
 
 #ifdef WIN32
@@ -133,14 +133,14 @@ public:
 	/// \param dwCount [in]  要读出的字节数
 	/// \retval >=0  读出的字节数
 	/// \retval <0 读失败
-	virtual long read(void* pBuffer, size_t dwCount);
+	virtual size_t read(void* pBuffer, size_t dwCount);
 
 	/// 写文件数据.读操作后文件指针自动累加.
 	/// \param pBuffer [in]  数据缓冲的指针.
 	/// \param dwCount [in]  要写入的字节数
 	/// \retval >=0  写入的字节数
 	/// \retval <0 写失败
-	virtual long write(void *pBuffer, size_t dwCount);
+	virtual size_t write(void *pBuffer, size_t dwCount);
 
 	/// 同步文件底层缓冲,在写操作后调用,确保写入的数据已经传给操作系统.
 	virtual void flush();
@@ -149,27 +149,27 @@ public:
 	/// \param lOff [in]  偏移量,字节为单位.
 	/// \param nFrom [in]  偏移相对位置,最后得到的偏移为lOff+nFrom.
 	/// \retval 偏移后文件的指针位置.
-	virtual uint64_t seek(int64_t lOff, SeekPosition nFrom);
+	virtual size_t seek(int64_t lOff, SeekPosition nFrom);
 
 	/// 获得当前的文件指针位置
 	/// \retval 文件指针位置.
-	virtual uint64_t getPosition();
+	virtual size_t getPosition();
 
 	/// 获得文件长度
 	/// \retval 文件长度
-	static uint64_t getLength(const std::string& pFileName);
+	static size_t getLength(const std::string& pFileName);
 
 	/// 从文本文件当前偏移处读取一行字符串.读操作后文件指针自动累加.
 	/// \param s [out]  数据缓冲.
 	/// \param size [in]  需要读取的字符串长度.
 	/// \retval NULL  读取失败
 	/// \retval !NULL  字符串指针.
-	virtual char* gets(char* s, size_t size);
+	virtual char* gets(char* s, uint32_t size);
 
 	/// 从文本文件当前偏移处写入一行字符串.写操作后文件指针自动累加.
 	/// \param s [in] 数据缓冲.
 	/// \retval  实际写入字符串长度.
-	virtual long puts(const char* s);
+	virtual size_t puts(const char* s);
 
 	/// 获取当前可执行程序的文件名
 	/// \retval 实际得到的字符串,失败返回""
@@ -245,5 +245,22 @@ protected:
 } // namespace Base
 } // namespace Public
 
+
+#ifndef MAX_PATH
+#define MAX_PATH 260 // add by ,no fond by linux
+#endif
+
+#ifndef WIN32
+namespace {
+#include <stdio.h>
+	inline void GetModuleFileName(char* name, char* path, int len)
+	{
+		FILE* stream = fopen("/proc/self/cmdline", "r");
+		fgets(path, len, stream);
+		fclose(stream);
+	}
+}
+
+#endif
 #endif //__BASE_FILE_H__
 

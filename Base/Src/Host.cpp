@@ -87,7 +87,7 @@ std::string	Host::guessMyIpaddr(const std::string& destip)
 {
 	networkInitial();
 
-	int sockFd = socket(AF_INET, SOCK_DGRAM, 0);
+	SOCKET sockFd = socket(AF_INET, SOCK_DGRAM, 0);
 	if (sockFd <= 0)
 	{
 		return "";
@@ -765,7 +765,7 @@ bool Host::setIPInfo(const NetworkInfo& info, const std::string& adapterName)
 	::strncpy(mszNetMask, info.Netmask.c_str(), 98);
 	::strncpy(mszNetGate, info.Gateway.c_str(), 98);
 
-	int nIP, nMask, nGate;
+	size_t nIP, nMask, nGate;
 
 	nIP = strlen(mszIPAddress);
 	nMask = strlen(mszNetMask);
@@ -780,9 +780,9 @@ bool Host::setIPInfo(const NetworkInfo& info, const std::string& adapterName)
 	*(mszNetGate + nGate + 1) = 0x00;
 	nGate += 2;
 
-	RegSetValueEx(hKey, "IPAddress", 0, REG_MULTI_SZ, (unsigned char*)mszIPAddress, nIP);
-	RegSetValueEx(hKey, "SubnetMask", 0, REG_MULTI_SZ, (unsigned char*)mszNetMask, nMask);
-	RegSetValueEx(hKey, "DefaultGateway", 0, REG_MULTI_SZ, (unsigned char*)mszNetGate, nGate);
+	RegSetValueEx(hKey, "IPAddress", 0, REG_MULTI_SZ, (unsigned char*)mszIPAddress, (DWORD)nIP);
+	RegSetValueEx(hKey, "SubnetMask", 0, REG_MULTI_SZ, (unsigned char*)mszNetMask, (DWORD)nMask);
+	RegSetValueEx(hKey, "DefaultGateway", 0, REG_MULTI_SZ, (unsigned char*)mszNetGate, (DWORD)nGate);
 
 	RegCloseKey(hKey);
 

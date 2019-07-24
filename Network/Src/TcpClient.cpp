@@ -118,7 +118,7 @@ bool TCPClient::nonBlocking(bool nonblock)
 	}
 	return sockobj->nonBlocking(nonblock);
 }
-int TCPClient::getHandle() const
+SOCKET TCPClient::getHandle() const
 {
 	boost::shared_ptr<ASIOSocketConneter> sockobj;
 

@@ -107,7 +107,7 @@ public:
 		                 NULL,                    // default secURLty 
 						 PAGE_READWRITE | SEC_COMMIT,          // read/write access
 		                 0,                       // max. object size 
-		                 size,                // buffer size  
+						(DWORD)size,                // buffer size  
 		                sharename.c_str()); // name of mapping object
 		 
 		   if (hMapFile == NULL) 

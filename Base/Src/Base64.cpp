@@ -14,11 +14,11 @@ namespace Base {
 const char base[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 
 /* Base64 ±àÂë */ 
-char *base64_encode(const char* data, int data_len) 
+char *base64_encode(const char* data, size_t data_len) 
 {     
 	int prepare = 0;     
-	int ret_len;     
-	int temp = 0;     
+	size_t ret_len;
+	size_t temp = 0;
 	char *ret = NULL;     
 	char *f = NULL;     
 	int tmp = 0;     
@@ -79,12 +79,12 @@ static char find_pos(char ch)
 {     
 	char *ptr = (char*)strrchr(base, ch);
 	//the last position (the only) in base[]     
-	return (ptr - base); 
+	return (char)(ptr - base); 
 }  
 /* Base64 ½âÂë */ 
-char *base64_decode(const char *data, int data_len,int &len) 
+char *base64_decode(const char *data, size_t data_len, size_t&len)
 {     
-	int ret_len = (data_len / 4) * 3;     
+	size_t ret_len = (data_len / 4) * 3;
 	int equal_count = 0;     
 	char *ret = NULL;     
 	char *f = NULL;     
@@ -157,7 +157,7 @@ char *base64_decode(const char *data, int data_len,int &len)
 		}     
 	}     
 	*f = '\0';     
-	len = f - ret;
+	len = (f - ret);
 	return ret; 
 }
 
@@ -179,7 +179,7 @@ std::string Base64::encode(const std::string& src)
 /// base64 decode
 std::string Base64::decode(const std::string& src)
 {
-	int len = 0;
+	size_t len = 0;
 	char* decstr = base64_decode(src.c_str(), src.length(), len);
 	if (decstr == NULL) return "";
 

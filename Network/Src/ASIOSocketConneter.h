@@ -94,7 +94,7 @@ public:
 		}
 		boost::system::error_code er;
 
-		int sendlen = sockptr->send(boost::asio::buffer(buffer, len), 0, er);
+		int sendlen = (int)sockptr->send(boost::asio::buffer(buffer, len), 0, er);
 
 		return !er ? sendlen : -1;
 	}
@@ -112,7 +112,7 @@ public:
 		}
 		boost::system::error_code er;
 
-		int recvlen = sockptr->receive(boost::asio::buffer(buffer, maxlen), 0, er);
+		int recvlen = (int)sockptr->receive(boost::asio::buffer(buffer, maxlen), 0, er);
 
 		if (er.value() == boost::asio::error::eof || er.value() == boost::asio::error::connection_reset)
 		{

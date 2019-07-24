@@ -29,7 +29,7 @@ TCPServer::~TCPServer()
 	disconnect();
 	SAFE_DELETE(tcpserverinternal);
 }
-int TCPServer::getHandle() const
+SOCKET TCPServer::getHandle() const
 {
 	boost::shared_ptr<ASIOSocketAcceptor> sockobj;
 	{

@@ -798,7 +798,8 @@ bool operator == (const shared_ptr<T>& ptr, void* pointer)
 template<typename T>
 bool operator == (const shared_ptr<T>& ptr, int pointer)
 {
-	return ptr.get() == (void*)pointer;
+	size_t ptrtmpval = pointer;
+	return ptr.get() == (void*)ptrtmpval;
 }
 
 template<typename T>

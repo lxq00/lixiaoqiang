@@ -19,7 +19,7 @@ SqlDB_Row::~SqlDB_Row()
 }
 int SqlDB_Row::getColumnCount()
 {
-	return internal->FiledIndexList.size();
+	return (int)internal->FiledIndexList.size();
 }
 void SqlDB_Row::putFiled(int index, const Value& val)
 {

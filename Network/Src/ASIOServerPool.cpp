@@ -23,7 +23,7 @@ class IOWorker::IOWorkerInternal
 public:
 	IOWorkerInternal(uint32_t threadnum);
 	~IOWorkerInternal();
-	uint32_t threadNum() { return threadPool.size(); }
+	uint32_t threadNum() { return (uint32_t)threadPool.size(); }
 private:
 	void threadRunProc(Thread* t, void* param);
 public:

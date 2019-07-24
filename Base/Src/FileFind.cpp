@@ -222,7 +222,7 @@ static void _findclose(long handle)
 
 struct FileFind::FileFindInternal
 {
-	long handle;
+	size_t handle;
 	std::string searchfile;
 	std::string path;			///< ²éÕÒÂ·¾¶¡£
 };

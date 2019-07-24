@@ -166,23 +166,6 @@ public:
 } // namespace Public
 
 
-#ifndef MAX_PATH
-#define MAX_PATH 260 // add by ,no fond by linux
-#endif
-
-#ifndef WIN32
-namespace {
-#include <stdio.h>
-inline void GetModuleFileName(char *name, char *path, int len)
-{
-	FILE *stream = fopen("/proc/self/cmdline", "r");
-	fgets(path, len, stream);
-	fclose(stream);
-}
-}
-
-#endif
-
 
 #endif //_BASE_THREAD_H_
 

@@ -53,7 +53,7 @@ public:
 
 		boost::asio::ip::udp::endpoint otehrpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address::from_string(otheraddr.getIP()), otheraddr.getPort());
 
-		int sendlen = sockptr->send_to(boost::asio::buffer(buffer, len), otehrpoint, 0, er);
+		int sendlen = (int)sockptr->send_to(boost::asio::buffer(buffer, len), otehrpoint, 0, er);
 
 		return !er ? sendlen : -1;
 	}
@@ -73,7 +73,7 @@ public:
 
 		boost::asio::ip::udp::endpoint otehrpoint;
 
-		int recvlen = sockptr->receive_from(boost::asio::buffer(buffer, maxlen), otehrpoint, 0, er);
+		int recvlen = (int)sockptr->receive_from(boost::asio::buffer(buffer, maxlen), otehrpoint, 0, er);
 
 		if (!er)
 		{

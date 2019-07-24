@@ -242,7 +242,7 @@ public:
 			return false;
 		}
 
-		int vecIdx = ((uint8_t*)addr - realDataBufferAddr)/memChunkSize;
+		int vecIdx = (int)(((uint8_t*)addr - realDataBufferAddr)/memChunkSize);
 		int idx = nodeHeader[vecIdx].usedIdx - minBlockIdx;
 
 		uint32_t realsize = 1 << nodeHeader[vecIdx].usedIdx;

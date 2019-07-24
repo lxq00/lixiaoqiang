@@ -71,7 +71,7 @@ std::string URLEncoding::decode(const std::string& enurl)
 		return "";
 	}
 
-	int urlbuflen = enurl.length() + 100;
+	size_t urlbuflen = enurl.length() + 100;
 	char* urlbuf = new char[urlbuflen + 10];
 
 	int urlbufpos = 0;

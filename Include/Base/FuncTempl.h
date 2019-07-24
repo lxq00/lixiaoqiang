@@ -114,7 +114,7 @@ class FUNCTION_TEMPL
 		virtual IDENT ident()
 		{
 			IDENT identi;
-			identi.func = (void*)*(int*)&f;
+			identi.func = f;
 			identi.obj = NULL;
 			return identi;
 		}
@@ -164,7 +164,7 @@ class FUNCTION_TEMPL
 		virtual IDENT ident()
 		{
 			IDENT identi;
-			identi.func = (void*)*(int*)&f;
+			identi.func = &f;
 			identi.obj = o;
 			shared_ptr<O> tmp = ptr.lock();
 			if (tmp != NULL)

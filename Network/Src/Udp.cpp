@@ -125,7 +125,7 @@ bool UDP::nonBlocking(bool nonblock)
 
 	return sockobj->nonBlocking(nonblock);
 }
-int UDP::getHandle() const
+SOCKET UDP::getHandle() const
 {
 	boost::shared_ptr<ASIOSocketUDP> sockobj;
 

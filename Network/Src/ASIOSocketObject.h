@@ -88,7 +88,7 @@ public:
 		return true;
 	}
 
-	virtual int getHandle() const
+	virtual SOCKET getHandle() const
 	{
 		boost::shared_ptr<SocketType> sockptr;
 		{
@@ -229,7 +229,7 @@ public:
 	virtual int recvfrom(char* buffer, int maxlen, NetAddr& otheraddr) { return -1; }
 	bool setSocketTimeout(uint32_t recvTimeout, uint32_t sendTimeout)
 	{
-		int sock = getHandle();
+		SOCKET sock = getHandle();
 		if (sock == -1)
 		{
 			return false;
@@ -242,7 +242,7 @@ public:
 	}
 	bool getSocketTimeout(uint32_t& recvTimeout, uint32_t& sendTimeout)
 	{
-		int sock = getHandle();
+		SOCKET sock = getHandle();
 		if (sock == -1)
 		{
 			return false;
@@ -258,7 +258,7 @@ public:
 
 	bool setSocketOpt(int level, int optname, const void *optval, int optlen)
 	{
-		int sock = getHandle();
+		SOCKET sock = getHandle();
 		if (sock == -1)
 		{
 			return false;
@@ -268,7 +268,7 @@ public:
 	}
 	bool getSocketOpt(int level, int optname, void *optval, int *optlen) const
 	{
-		int sock = getHandle();
+		SOCKET sock = getHandle();
 		if (sock == -1)
 		{
 			return false;
@@ -400,7 +400,7 @@ public:
 		}
 		else if (!er && needDoRecvInternal != NULL)
 		{
-			needDoRecvInternal->setRecvResult(sockobjptr, length);
+			needDoRecvInternal->setRecvResult(sockobjptr, (int)length);
 		}
 
 		///清除当前回调的记录信息
@@ -424,7 +424,7 @@ public:
 		bool sendover = true;
 		if (needDoSendInternal != NULL)
 		{
-			sendover = needDoSendInternal->setSendResultAndCheckIsOver(sockobjptr, !er ? length : 0);
+			sendover = needDoSendInternal->setSendResultAndCheckIsOver(sockobjptr, int(!er ? length : 0));
 		}
 
 		{

@@ -88,8 +88,8 @@ std::string String::tolower(const std::string& src)
 {
 	std::string tmp;
 	const char* tmpbuf = src.c_str();
-	int len = src.length();
-	for (int i = 0; i < len; i++)
+	size_t len = src.length();
+	for (size_t i = 0; i < len; i++)
 	{
 		char tmpc = ::tolower(tmpbuf[i]);
 		tmp.push_back(tmpc);
@@ -103,8 +103,8 @@ std::string String::toupper(const std::string& src)
 {
 	std::string tmp;
 	const char* tmpbuf = src.c_str();
-	int len = src.length();
-	for (int i = 0; i < len; i++)
+	size_t len = src.length();
+	for (size_t i = 0; i < len; i++)
 	{
 		char tmpc = ::toupper(tmpbuf[i]);
 		tmp.push_back(tmpc);
@@ -119,9 +119,9 @@ std::string String::ansi2utf8(const std::string& inString)
 	do 
 	{
 #ifdef WIN32
-		int len = MultiByteToWideChar(CP_ACP, 0, inString.c_str(), inString.length(), NULL, 0);
+		int len = MultiByteToWideChar(CP_ACP, 0, inString.c_str(), (int)inString.length(), NULL, 0);
 		wchar_t *wstr = new wchar_t[len + 1];
-		int tmplen  = MultiByteToWideChar(CP_ACP, 0,inString.c_str(), inString.length(), wstr, len);
+		int tmplen  = MultiByteToWideChar(CP_ACP, 0,inString.c_str(), (int)inString.length(), wstr, len);
 		len = WideCharToMultiByte(CP_UTF8, 0, wstr, tmplen, NULL, 0, NULL, NULL);
 		char *buf = new char[len + 1];
 		WideCharToMultiByte(CP_UTF8, 0, wstr, tmplen,buf, len, NULL, NULL);
@@ -164,9 +164,9 @@ std::string  String::utf82ansi(const std::string& inString)
 	do 
 	{
 #ifdef WIN32
-		int len = MultiByteToWideChar(CP_UTF8, 0, inString.c_str(), inString.length(), NULL, 0);
+		int len = MultiByteToWideChar(CP_UTF8, 0, inString.c_str(), (int)inString.length(), NULL, 0);
 		wchar_t *wstr = new wchar_t[len + 1];
-		int lentmp = MultiByteToWideChar(CP_UTF8, 0,inString.c_str(), inString.length(), wstr, len);
+		int lentmp = MultiByteToWideChar(CP_UTF8, 0,inString.c_str(), (int)inString.length(), wstr, len);
 		len = WideCharToMultiByte(CP_ACP, 0, wstr, lentmp, NULL, 0, NULL, NULL);
 		char *buf = new char[len + 1];
 		WideCharToMultiByte(CP_ACP, 0, wstr, lentmp,buf, len, NULL, NULL);
@@ -212,13 +212,13 @@ std::vector<std::string> String::split(const std::string& src, const std::string
 	return split(src.c_str(), src.length(), howmany.c_str());
 }
 
-const char* mystrstr(const char* src, int len, const char* findstr)
+const char* mystrstr(const char* src, size_t len, const char* findstr)
 {
 	const char* tmp = src;
 	const char* tmpend = src + len;
-	int findlend = strlen(findstr);
+	size_t findlend = strlen(findstr);
 
-	while (tmp < tmpend && tmpend - tmp >= findlend)
+	while (tmp < tmpend && size_t(tmpend - tmp) >= findlend)
 	{
 		if (memcmp(tmp, findstr, findlend) == 0)
 		{
@@ -230,7 +230,7 @@ const char* mystrstr(const char* src, int len, const char* findstr)
 	return NULL;
 }
 
-std::vector<std::string> String::split(const char* src, int len, const std::string& howmany)
+std::vector<std::string> String::split(const char* src, size_t len, const std::string& howmany)
 {
 	if (src == NULL || len <= 0) return std::vector<std::string>();
 
@@ -326,17 +326,17 @@ std::string String::rtrip(const std::string& src, const std::vector<std::string>
 	return std::move(std::string(tmp, tmpend - tmp));
 }
 
-int String::indexOf(const std::string& src, const std::string& fromindex)
+size_t String::indexOf(const std::string& src, const std::string& fromindex)
 {
 	return indexOf(src.c_str(), src.length(), fromindex);
 }
-int String::indexOf(const char* src, int len, const std::string& fromindex)
+size_t String::indexOf(const char* src, size_t len, const std::string& fromindex)
 {
 	const char* tmp = src;
 	const char* tmpend = tmp + len;
 	const char* fromtmp = fromindex.c_str();
-	int fromlen = fromindex.length();
-	while (tmpend - tmp >= fromlen)
+	size_t fromlen = fromindex.length();
+	while (size_t(tmpend - tmp) >= fromlen)
 	{
 		if (strncmp(tmp, fromtmp, fromlen) == 0)  return tmp - src;
 		tmp++;
@@ -344,17 +344,17 @@ int String::indexOf(const char* src, int len, const std::string& fromindex)
 
 	return -1;
 }
-int String::indexOfByCase(const std::string& src, const std::string& fromindex)
+size_t String::indexOfByCase(const std::string& src, const std::string& fromindex)
 {
 	return indexOfByCase(src.c_str(), src.length(), fromindex);
 }
-int String::indexOfByCase(const char* src, int len, const std::string& fromindex)
+size_t String::indexOfByCase(const char* src, size_t len, const std::string& fromindex)
 {
 	const char* tmp = src;
 	const char* tmpend = tmp + len;
 	const char* fromtmp = fromindex.c_str();
-	int fromlen = fromindex.length();
-	while (tmpend - tmp >= fromlen)
+	size_t fromlen = fromindex.length();
+	while (size_t(tmpend - tmp) >= fromlen)
 	{
 		if (strncasecmp(tmp, fromtmp, fromlen) == 0)  return tmp - src;
 		tmp++;
@@ -362,17 +362,17 @@ int String::indexOfByCase(const char* src, int len, const std::string& fromindex
 
 	return -1;
 }
-int String::lastIndexOf(const std::string& src, const std::string& fromindex)
+size_t String::lastIndexOf(const std::string& src, const std::string& fromindex)
 {
 	return lastIndexOf(src.c_str(), src.length(), fromindex);
 }
-int String::lastIndexOf(const char* src, int len, const std::string& fromindex)
+size_t String::lastIndexOf(const char* src, size_t len, const std::string& fromindex)
 {
 	const char* tmp = src;
 	const char* tmpend = tmp + len;
 	const char* fromtmp = fromindex.c_str();
-	int fromlen = fromindex.length();
-	while (tmpend - tmp >= fromlen)
+	size_t fromlen = fromindex.length();
+	while (size_t(tmpend - tmp) >= fromlen)
 	{
 		if (strncmp(tmpend - fromlen, fromtmp, fromlen) == 0)  return tmpend - fromlen - tmp;
 		tmpend--;;
@@ -380,17 +380,17 @@ int String::lastIndexOf(const char* src, int len, const std::string& fromindex)
 
 	return -1;
 }
-int String::lastIndexOfByCase(const std::string& src, const std::string& fromindex)
+size_t String::lastIndexOfByCase(const std::string& src, const std::string& fromindex)
 {
 	return lastIndexOfByCase(src.c_str(), src.length(), fromindex);
 }
-int String::lastIndexOfByCase(const char* src, int len, const std::string& fromindex)
+size_t String::lastIndexOfByCase(const char* src, size_t len, const std::string& fromindex)
 {
 	const char* tmp = src;
 	const char* tmpend = tmp + len;
 	const char* fromtmp = fromindex.c_str();
-	int fromlen = fromindex.length();
-	while (tmpend - tmp >= fromlen)
+	size_t fromlen = fromindex.length();
+	while (size_t(tmpend - tmp) >= fromlen)
 	{
 		if (strncasecmp(tmpend - fromlen, fromtmp, fromlen) == 0)  return tmpend - tmp;
 		tmpend--;;

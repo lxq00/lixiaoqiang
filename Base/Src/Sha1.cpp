@@ -111,7 +111,7 @@ public:
 		a = b = c = d = e = 0;
 #endif
 	}
-	void Update(const unsigned char* pbData, unsigned int uLen)
+	void Update(const unsigned char* pbData, size_t uLen)
 	{
 		unsigned int j = ((m_count[0] >> 3) & 0x3F);
 
@@ -120,7 +120,7 @@ public:
 
 		m_count[1] += (uLen >> 29);
 
-		unsigned int i;
+		size_t i;
 		if((j + uLen) > 63)
 		{
 			i = 64 - j;
@@ -172,7 +172,7 @@ public:
 		memcpy(pbDest20, m_digest, 20);
 		return true;
 	}
-	int ReportHash(char* tszReport, REPORT_TYPE rtReportType) const
+	size_t ReportHash(char* tszReport, REPORT_TYPE rtReportType) const
 	{
 		if(tszReport == NULL) return 0;
 
@@ -222,7 +222,7 @@ private:
 	} SHA1_WORKSPACE_BLOCK;
 private:
 	unsigned int m_state[5];
-	unsigned int m_count[2];
+	size_t m_count[2];
 	unsigned int m_reserved0[1];
 	unsigned char m_buffer[64];
 	unsigned char m_digest[20];
@@ -252,7 +252,7 @@ std::string Sha1::hashFile(const std::string& file, REPORT_TYPE type)
 	char buffer[1024];
 	while (true)
 	{
-		int readlen = fread(buffer, 1, 1024, fpIn);
+		size_t readlen = fread(buffer, 1, 1024, fpIn);
 		if (readlen <= 0)
 		{
 			break;
@@ -283,7 +283,7 @@ std::string Sha1::report(REPORT_TYPE type)
 	internal->Final();
 
 	char tszOut[84] = { 0 };
-	int len = internal->ReportHash(tszOut, type);
+	size_t len = internal->ReportHash(tszOut, type);
 	
 	return std::string(tszOut,len);
 }

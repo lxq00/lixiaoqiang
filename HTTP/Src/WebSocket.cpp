@@ -296,7 +296,7 @@ struct WebSocketSession::WebSocketSessionInternal
 		{
 			return -1;
 		}
-		return tmp->get_send_frame_size();
+		return (uint32_t)tmp->get_send_frame_size();
 	}
 
 	NetAddr remoteAddr()
@@ -601,7 +601,7 @@ struct WebSocketClient::WebSocketClientInternal
 		{
 			return 0;
 		}
-		return tmp->get_send_frame_size();
+		return (uint32_t)tmp->get_send_frame_size();
 	}
 
 	bool send(const std::string &data, WebSocketDataType type)
