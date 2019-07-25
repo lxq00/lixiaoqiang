@@ -137,7 +137,7 @@ int main(int argc, const char* argv[])
 }
 #endif
 
-#if 1
+#if 0
 #include "OnvifClient/OnvifClient.h"
 using namespace Public::Onvif;
 
