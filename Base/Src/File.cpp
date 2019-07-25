@@ -191,7 +191,7 @@ size_t File::seek(int64_t lOff, SeekPosition nFrom)
 #ifdef WIN32
 	if(::_fseeki64(internal->file, lOff, origin) >= 0)
 	{
-		size_t pos = ::_ftelli64(internal->file);
+		size_t pos = (size_t)::_ftelli64(internal->file);
 
 		return pos;
 	};
@@ -210,7 +210,7 @@ size_t File::seek(int64_t lOff, SeekPosition nFrom)
 size_t File::getPosition()
 {
 #ifdef WIN32
-	size_t pos = ::_ftelli64(internal->file);
+	size_t pos = (size_t)::_ftelli64(internal->file);
 
 	return pos;
 #else
@@ -297,7 +297,7 @@ bool File::save(const std::string& pFileName, const std::string& data)
 	return true;
 }
 
-uint64_t File::getLength(const std::string& pFileName)
+size_t File::getLength(const std::string& pFileName)
 {
 	FileInfo info;
 
@@ -523,7 +523,7 @@ bool File::stat(const std::string& path, FileInfo& info)
 	info.timeWrite = s.st_mtime;
 	info.timeAccess = s.st_atime;
 	info.timeCreate = s.st_ctime;
-	info.size = s.st_size;
+	info.size = (size_t)s.st_size;
 
 	return true;
 }
