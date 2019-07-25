@@ -3,5 +3,8 @@ __Compile/*
 *.exp
 *.ilk
 Bin/*
-./Lib/win32/*
+Lib/*
 .vscode/*
+boost/Include/boost/*
+boost/Lib/win32/*
+ffmpeg/Lib/win32/*
