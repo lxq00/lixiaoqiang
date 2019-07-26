@@ -197,7 +197,7 @@ struct HTTPContent::HTTPContentInternal
 	CheckConnectionIsOk	checkfunc;
 
 	std::string			readtofilename;
-	
+	ReadDataCallback	readcalblack;
 
 	HTTPContentInternal(FileMediaInfo* info)
 		:mediainfo(info),writetype(HTTPContentType_Normal), chunkbodysize(0)
@@ -276,6 +276,12 @@ bool HTTPContent::readToFile(const std::string& filename)
 
 	return true;
 }
+bool HTTPContent::setReadCallback(const ReadDataCallback& callback)
+{
+	internal->readcalblack = callback;
+
+	return true;
+}
 
 HTTPContent::HTTPContentType& HTTPContent::writetype()
 {
@@ -295,6 +301,13 @@ bool HTTPContent::setChunkEOF()
 bool HTTPContent::write(const char* buffer, int len)
 {
 	if (buffer == NULL && len <= 0) return false;
+
+	if (internal->readcalblack)
+	{
+		internal->readcalblack(buffer, len);
+
+		return true;
+	}
 
 	if (internal->checkfunc != NULL && !internal->checkfunc()) return false;
 

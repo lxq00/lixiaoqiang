@@ -18,6 +18,7 @@ namespace HTTP {
 #define CONNECTION	"Connection"
 #define CONNECTION_Close	"Close"
 #define CONNECTION_KeepAlive	"keep-alive"
+#define CONNECTION_Upgrade		"Upgrade"
 
 
 

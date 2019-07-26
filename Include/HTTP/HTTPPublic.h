@@ -58,6 +58,7 @@ public:
 		HTTPContentType_Chunk,
 	}HTTPContentType;
 	typedef Function0<bool> CheckConnectionIsOk;
+	typedef Function2<void, const char*, uint32_t> ReadDataCallback;
 public:
 	HTTPContent(FileMediaInfo* info,const CheckConnectionIsOk& check = CheckConnectionIsOk());
 	virtual ~HTTPContent();
@@ -70,6 +71,7 @@ public:
 	int read(char* buffer, int maxlen);
 	std::string read();
 	bool readToFile(const std::string& filename);
+	bool setReadCallback(const ReadDataCallback& callback);
 
 
 	HTTPContentType& writetype();

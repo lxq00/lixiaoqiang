@@ -1,23 +1,78 @@
 #include "HTTP/WebSocket.h"
-#include "HTTPParser.h"
 #include "WebSocketProtocol.h"
 #include "boost/regex.hpp" 
+#include "HTTPSession.h"
+
 namespace Public {
 namespace HTTP {
 
+#define MAXSESSIONCACHESIZE		1024
+
 struct WebSocketSession::WebSocketSessionInternal:public WebSocketProtocol
 {
-	ReadyCallback					readycallback;
-	ErrorCallback					errcallback;
 	RecvDataCallback				datacallbck;
 	DisconnectCallback				disconnectcallback;
-
 	WebSocketSession*				session;
+	char*							bufferAddr;
+	int								bufferUsedLen;
 
-	WebSocketSessionInternal():WebSocketProtocol(false){}
+	
+	WebSocketSessionInternal(const shared_ptr<HTTPSession_Service>& session):WebSocketProtocol(false)
+	{
+		session->request->content()->setReadCallback(HTTPContent::ReadDataCallback(&WebSocketSessionInternal::httpDataRecvCallback, this));
+		bufferAddr = new char[MAXSESSIONCACHESIZE + 100];
+		bufferUsedLen = 0;
+	}
 	~WebSocketSessionInternal()
 	{
 		WebSocketProtocol::close();
+		SAFE_DELETE(bufferAddr);
+	}
+
+	void httpDataRecvCallback(const char* buffer, uint32_t len)
+	{
+		while (len > 0)
+		{
+			const char* buffertmp = buffer;
+			uint32_t datalen = len;
+	
+			if (bufferUsedLen != 0)
+			{
+				uint32_t needlen = min(MAXSESSIONCACHESIZE - bufferUsedLen, datalen);
+				memcpy(bufferAddr + bufferUsedLen, buffertmp, needlen);
+				bufferUsedLen += needlen;
+
+				buffertmp = bufferAddr;
+				datalen = bufferUsedLen;
+
+				buffer += needlen;
+				len -= needlen;
+			}
+
+			const char* usedtmp = parseProtocol(buffertmp, datalen);
+			if (usedtmp == NULL) break;
+
+			int haveparselen = usedtmp - buffertmp;
+
+			if (buffertmp == buffer)
+			{
+				buffer += haveparselen;
+				len -= haveparselen;
+			}
+			else
+			{
+				int bufferleavlen = bufferUsedLen - haveparselen;
+				if (bufferUsedLen > 0)
+				{
+					memmove(bufferAddr, bufferAddr + haveparselen, bufferleavlen);
+				}
+				bufferUsedLen = bufferleavlen;
+			}
+		}
+	}
+	void httpDisconnectCallback(HTTPRequest*, const std::string&)
+	{
+		disconnectcallback(session);
 	}
 
 	void socketDisConnectcallback(const weak_ptr<Socket>& /*connectSock*/, const std::string&)

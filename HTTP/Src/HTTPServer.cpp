@@ -58,7 +58,12 @@ private:
 struct HTTPServerObject
 {
 public:
-	typedef Function1<ListenInfo, const shared_ptr<HTTPRequest>& > QueryCallback;
+	struct CallbackInfo
+	{
+		ListenInfo		httpLitsenInfo;
+		HTTPServer::WebsocketCallback websocketCallback;
+	};
+	typedef Function1<CallbackInfo, const shared_ptr<HTTPRequest>& > QueryCallback;
 	typedef Function1<void, HTTPServerObject*>	DisconnectCallback;
 private:
 	shared_ptr<Socket>				sock;
@@ -68,6 +73,7 @@ private:
 	std::string						useragent;
 	char							buffer[MAXRECVBUFFERLEN];
 	int								bufferlen;
+	shared_ptr<WebSocketSession>	websocketsession;
 public:
 	HTTPServerObject(const shared_ptr<Socket>& _sock, const std::string& _useragent,const QueryCallback& _querycallback,const DisconnectCallback& _discallback)
 	{
@@ -78,7 +84,7 @@ public:
 		sock = _sock;
 		useragent = _useragent;
 		session = make_shared<HTTPSession_Service>(sock, _useragent,
-			HTTPParser<HTTPRequest>::HeaderParseSuccessCallback(&HTTPServerObject::headerParseCallback,this));
+			HTTPProtocolParser<HTTPRequest>::HeaderParseSuccessCallback(&HTTPServerObject::headerParseCallback,this));
 
 		sock->setDisconnectCallback(Socket::DisconnectedCallback(&HTTPServerObject::socketDisconnectCallback, this));
 		sock->async_recv(buffer, MAXRECVBUFFERLEN,Socket::ReceivedCallback(&HTTPServerObject::recvCallback, this));
@@ -88,6 +94,7 @@ public:
 		sock->disconnect();
 		sock = NULL;
 		session = NULL;
+		websocketsession = NULL;
 	}
 	void onPoolTimerProc()
 	{
@@ -122,9 +129,14 @@ public:
 private:
 	void headerParseCallback(const shared_ptr<HTTPRequest>& req)
 	{
-		ListenInfo callback = queryCallback(req);
+		CallbackInfo callback = queryCallback(req);
 
-		if (callback.callback == NULL || callback.type == HTTPServer::CacheType_File)
+		if (callback.websocketCallback != NULL)
+		{
+			websocketsession = make_shared<WebSocketSession>(session);
+			callback.websocketCallback(websocketsession);
+		}
+		else if (callback.httpLitsenInfo.callback == NULL || callback.httpLitsenInfo.type == HTTPServer::CacheType_File)
 		{
 			char buffer[256] = { 0 };
 			snprintf_x(buffer, 255, "%llu_%x.cache", Time::getCurrentMilliSecond(), buffer);
@@ -178,8 +190,17 @@ private:
 				(HTTPContent::CheckConnectionIsOk(&HTTPSession_Service::checkSocketIsOk,tmp));
 
 			tmp->setResponse(response);
-			ListenInfo callback = queryCallback(tmp->request);
-			if (callback.callback == NULL)
+			CallbackInfo callback = queryCallback(tmp->request);
+			
+			if (callback.websocketCallback)
+			{
+
+			}
+			else if (callback.httpLitsenInfo.callback)
+			{
+				callback.httpLitsenInfo.callback(tmp->request, response);
+			}
+			else 
 			{
 				response->statusCode() = 405;
 				response->errorMessage() = "Method Not Allowed";
@@ -187,10 +208,6 @@ private:
 				disconnectCallback(this);
 
 				return;
-			}
-			else
-			{
-				callback.callback(tmp->request, response);
 			}
 		}
 
@@ -240,6 +257,7 @@ struct HTTPServer::HTTPServrInternal:public Thread
 	
 	Mutex														  mutex;
 	std::map<std::string, std::map<std::string, ListenInfo> >     listencallbackmap;
+	std::map<std::string, HTTPServer::WebsocketCallback>		  listenwebsocketcallbackmap;
 	std::map<std::string, ListenInfo>							  defaultcallback;
 
 	std::map<HTTPServerObject*,shared_ptr<HTTPServerObject> >	  objectlist;
@@ -323,15 +341,42 @@ struct HTTPServer::HTTPServrInternal:public Thread
 			}
 		}
 	}
-	
-	ListenInfo getHttpRequestCallback(const shared_ptr<HTTPRequest>& request)
+	HTTPServerObject::CallbackInfo getHttpRequestCallback(const shared_ptr<HTTPRequest>& request)
 	{
-		ListenInfo callback;
+		HTTPServerObject::CallbackInfo callback;
 		{
 			std::string requestPathname = String::tolower(request->url().pathname);
 			std::string method = String::tolower(request->method());
+			std::string connection = request->header(CONNECTION).readString();
+
+			bool isWebsocket = false;
+			if (strcasecmp(connection.c_str(), CONNECTION_Upgrade) == 0 && strcasecmp(request->method().c_str(), "post") == 0 && strcasecmp(request->url().protocol.c_str(), "wss") == 0)
+			{
+				isWebsocket = true;
+			}
 
 			Guard locker(mutex);
+
+			if (isWebsocket)
+			{
+				for (std::map<std::string, HTTPServer::WebsocketCallback>::iterator iter = listenwebsocketcallbackmap.begin(); iter != listenwebsocketcallbackmap.end(); iter++)
+				{
+					boost::regex oRegex(iter->first);
+					if (!boost::regex_match(requestPathname, oRegex))
+					{
+						continue;
+					}
+
+					callback.websocketCallback = iter->second;
+					break;
+				}
+			}
+
+			if (strcasecmp(connection.c_str(), CONNECTION_Upgrade) == 0 || strcasecmp(request->url().protocol.c_str(), "wss") == 0)
+			{
+				return callback;
+			}			
+
 			for (std::map<std::string, std::map<std::string, ListenInfo> >::iterator citer = listencallbackmap.begin(); citer != listencallbackmap.end() && callback.callback == NULL; citer++)
 			{
 				boost::regex oRegex(citer->first);
@@ -343,7 +388,7 @@ struct HTTPServer::HTTPServrInternal:public Thread
 				{
 					if (strcasecmp(method.c_str(), miter->first.c_str()) == 0)
 					{
-						callback = miter->second;
+						callback.httpLitsenInfo = miter->second;
 						break;
 					}
 				}
@@ -352,7 +397,7 @@ struct HTTPServer::HTTPServrInternal:public Thread
 			{
 				if (strcasecmp(method.c_str(), miter->first.c_str()) == 0)
 				{
-					callback = miter->second;
+					callback.httpLitsenInfo = miter->second;
 					break;
 				}
 			}
@@ -395,7 +440,16 @@ bool HTTPServer::listen(const std::string& path, const std::string& method, cons
 
 	return true;
 }
+bool HTTPServer::listen(const std::string& path, const HTTPServer::WebsocketCallback& callback)
+{
+	std::string flag1 = String::tolower(path);
+	
+	Guard locker(internal->mutex);
 
+	internal->listenwebsocketcallbackmap[flag1] = callback;
+
+	return true;
+}
 bool HTTPServer::defaultListen(const std::string& method, const HTTPCallback& callback,CacheType type)
 {
 	std::string flag2 = String::tolower(method);

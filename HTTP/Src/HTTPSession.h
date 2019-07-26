@@ -1,7 +1,7 @@
 #pragma once
 #include "HTTP/HTTPPublic.h"
-#include "HTTPBuilder.h"
-#include "HTTPParser.h"
+#include "HTTPProtocolBuilder.h"
+#include "HTTPProtocolParser.h"
 namespace Public {
 namespace HTTP {
 
@@ -24,22 +24,22 @@ public:
 
 class HTTPSession_Client:public HTTPSession
 {
-	shared_ptr<HTTPBuilder<HTTPRequest> > builder;
-	shared_ptr<HTTPParser<HTTPResponse> > parser;
+	shared_ptr<HTTPProtocolBuilder<HTTPRequest> > builder;
+	shared_ptr<HTTPProtocolParser<HTTPResponse> > parser;
 public:
 	HTTPSession_Client(const shared_ptr<HTTPRequest>& req, const shared_ptr<Socket>& _sock, const std::string& _useragent)
 	{
 		request = req;
 		response = make_shared<HTTPResponse>();
 
-		builder = make_shared<HTTPBuilder<HTTPRequest> >(request,_sock, _useragent);
-		parser = make_shared<HTTPParser<HTTPResponse> >(response, HTTPParser<HTTPResponse>::HeaderParseSuccessCallback());
+		builder = make_shared<HTTPProtocolBuilder<HTTPRequest> >(request,_sock, _useragent);
+		parser = make_shared<HTTPProtocolParser<HTTPResponse> >(response, HTTPProtocolParser<HTTPResponse>::HeaderParseSuccessCallback());
 	}
 	~HTTPSession_Client() {}
 
 	virtual const char* inputData(const char* buftmp, int len)
 	{
-        shared_ptr<HTTPParser<HTTPResponse> > tmpParser = parser;
+        shared_ptr<HTTPProtocolParser<HTTPResponse> > tmpParser = parser;
         if (tmpParser == NULL)
         {
             return NULL;
@@ -49,8 +49,8 @@ public:
 	}
 	virtual bool isFinish()
 	{
-        shared_ptr<HTTPParser<HTTPResponse> > tmpParser = parser;
-        shared_ptr<HTTPBuilder<HTTPRequest> > tmpBuilder = builder;
+        shared_ptr<HTTPProtocolParser<HTTPResponse> > tmpParser = parser;
+        shared_ptr<HTTPProtocolBuilder<HTTPRequest> > tmpBuilder = builder;
         if (tmpParser == NULL || tmpBuilder == NULL)
         {
             return false;
@@ -60,7 +60,7 @@ public:
 	}
 	virtual void onPoolTimerProc()
 	{
-        shared_ptr<HTTPBuilder<HTTPRequest> > tmpBuilder = builder;
+        shared_ptr<HTTPProtocolBuilder<HTTPRequest> > tmpBuilder = builder;
         if (tmpBuilder != NULL)
         {
             tmpBuilder->onPoolTimerProc();
@@ -68,8 +68,8 @@ public:
 	}
 	virtual uint64_t prevAliveTime()
 	{
-        shared_ptr<HTTPParser<HTTPResponse> > tmpParser = parser;
-        shared_ptr<HTTPBuilder<HTTPRequest> > tmpBuilder = builder;
+        shared_ptr<HTTPProtocolParser<HTTPResponse> > tmpParser = parser;
+        shared_ptr<HTTPProtocolBuilder<HTTPRequest> > tmpBuilder = builder;
         if (tmpParser == NULL || tmpBuilder == NULL)
         {
             return 0;
@@ -84,15 +84,15 @@ public:
 
 class HTTPSession_Service:public HTTPSession
 {
-	shared_ptr<HTTPBuilder<HTTPResponse> > builder;
-	shared_ptr<HTTPParser<HTTPRequest> > parser;
+	shared_ptr<HTTPProtocolBuilder<HTTPResponse> > builder;
+	shared_ptr<HTTPProtocolParser<HTTPRequest> > parser;
 	weak_ptr<Socket>					sock;
 	std::string							useragent;
 public:
-	HTTPSession_Service(const shared_ptr<Socket>& _sock, const std::string& _useragent, const HTTPParser<HTTPRequest>::HeaderParseSuccessCallback& callback)
+	HTTPSession_Service(const shared_ptr<Socket>& _sock, const std::string& _useragent, const HTTPProtocolParser<HTTPRequest>::HeaderParseSuccessCallback& callback)
 	{
 		request = make_shared<HTTPRequest>();
-		parser = make_shared<HTTPParser<HTTPRequest> >(request,callback);
+		parser = make_shared<HTTPProtocolParser<HTTPRequest> >(request,callback);
 
 		sock = _sock;
 		useragent = _useragent;
@@ -121,7 +121,7 @@ public:
 #endif
 		response->headers()[CONNECTION] = connection;
 
-		builder = make_shared<HTTPBuilder<HTTPResponse> >(response, sock.lock(), useragent);
+		builder = make_shared<HTTPProtocolBuilder<HTTPResponse> >(response, sock.lock(), useragent);
 	}
 
 	virtual const char* inputData(const char* buftmp, int len)
@@ -130,26 +130,27 @@ public:
 	}
 	virtual bool isFinish()
 	{
-		shared_ptr<HTTPBuilder<HTTPResponse> > buildertmp = builder;
+		shared_ptr<HTTPProtocolBuilder<HTTPResponse> > buildertmp = builder;
 		if (buildertmp == NULL) return false;
 
 		return buildertmp->isFinish(response.use_count()) && parser->isFinish();
 	}
 	virtual void onPoolTimerProc()
 	{
-		if (response == NULL) return;
+		shared_ptr<HTTPResponse> tmp = response;
+		if (tmp == NULL) return;
 
 		//response 无人使用了，或者有数据了，表示可以发送了
-		if (response.use_count() == 1 || response->content()->size() > 0)
+		if (tmp.use_count() == 1 || tmp->content()->size() > 0)
 		{
-			shared_ptr<HTTPBuilder<HTTPResponse> > buildertmp = builder;
+			shared_ptr<HTTPProtocolBuilder<HTTPResponse> > buildertmp = builder;
 
 			if(buildertmp != NULL)	buildertmp->onPoolTimerProc();
 		}
 	}	
 	virtual uint64_t prevAliveTime()
 	{
-		shared_ptr<HTTPBuilder<HTTPResponse> > buildertmp = builder;
+		shared_ptr<HTTPProtocolBuilder<HTTPResponse> > buildertmp = builder;
 
 		uint64_t buildtime = buildertmp == NULL ? 0 : buildertmp->prevAliveTime();
 

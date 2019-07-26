@@ -22,6 +22,7 @@
     <ClInclude Include="..\Include\HTTP\Defs.h" />
     <ClInclude Include="..\Include\HTTP\HTTP.h" />
     <ClInclude Include="..\Include\HTTP\HTTPClient.h" />
+    <ClInclude Include="..\Include\HTTP\HTTPParse.h" />
     <ClInclude Include="..\Include\HTTP\HTTPPublic.h" />
     <ClInclude Include="..\Include\HTTP\HTTPServer.h" />
     <ClInclude Include="..\Include\HTTP\WebSocket.h" />
@@ -118,11 +119,11 @@
     <ClInclude Include="..\websocketpp\utf8_validator.hpp" />
     <ClInclude Include="..\websocketpp\utilities.hpp" />
     <ClInclude Include="..\websocketpp\version.hpp" />
-    <ClInclude Include="Src\HTTPBuilder.h" />
+    <ClInclude Include="Src\HTTPProtocolBuilder.h" />
     <ClInclude Include="Src\HTTPDefine.h" />
-    <ClInclude Include="Src\HTTPParser.h" />
+    <ClInclude Include="Src\HTTPProtocolParser.h" />
     <ClInclude Include="Src\HTTPSession.h" />
-    <ClInclude Include="Src\WebSocketCallbackAgent.h" />
+    <ClInclude Include="Src\WebSocketProtocol.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Version.rc" />
@@ -131,8 +132,7 @@
     <ClCompile Include="Src\HTTPClient.cpp" />
     <ClCompile Include="Src\HTTPPublic.cpp" />
     <ClCompile Include="Src\HTTPServer.cpp" />
-    <ClCompile Include="Src\WebSocketClient.cpp" />
-    <ClCompile Include="Src\WebSocketServer.cpp" />
+    <ClCompile Include="Src\WebSocket.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Include\HTTP\Version.tpl" />

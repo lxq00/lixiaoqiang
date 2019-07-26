@@ -30,12 +30,6 @@
     <ClInclude Include="..\Include\HTTP\HTTPServer.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Src\HTTPParser.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\HTTPBuilder.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
     <ClInclude Include="Src\HTTPDefine.h">
       <Filter>源文件</Filter>
     </ClInclude>
@@ -47,9 +41,6 @@
     </ClInclude>
     <ClInclude Include="..\Include\HTTP\HTTP.h">
       <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\WebSocketCallbackAgent.h">
-      <Filter>源文件</Filter>
     </ClInclude>
     <ClInclude Include="..\websocketpp\client.hpp">
       <Filter>头文件\websocketapp</Filter>
@@ -330,6 +321,18 @@
     <ClInclude Include="..\websocketpp\transport\stub\endpoint.hpp">
       <Filter>头文件\websocketapp</Filter>
     </ClInclude>
+    <ClInclude Include="Src\WebSocketProtocol.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\HTTP\HTTPParse.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\HTTPProtocolParser.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\HTTPProtocolBuilder.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Version.rc">
@@ -346,10 +349,7 @@
     <ClCompile Include="Src\HTTPServer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Src\WebSocketServer.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\WebSocketClient.cpp">
+    <ClCompile Include="Src\WebSocket.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
