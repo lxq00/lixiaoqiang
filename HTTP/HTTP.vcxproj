@@ -132,7 +132,8 @@
     <ClCompile Include="Src\HTTPClient.cpp" />
     <ClCompile Include="Src\HTTPPublic.cpp" />
     <ClCompile Include="Src\HTTPServer.cpp" />
-    <ClCompile Include="Src\WebSocket.cpp" />
+    <ClCompile Include="Src\WebSocketSession.cpp" />
+    <ClCompile Include="Src\WebSocketClient.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Include\HTTP\Version.tpl" />

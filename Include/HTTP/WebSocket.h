@@ -26,6 +26,8 @@ public:
 	WebSocketSession(const shared_ptr<HTTPSession_Service>& session);
 	virtual ~WebSocketSession();
 
+	bool initProtocol();
+
 	void start(const RecvDataCallback& datacallback,const DisconnectCallback& disconnectcallback);
 	void stop();
 	bool connected() const;

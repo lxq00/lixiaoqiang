@@ -59,6 +59,7 @@ public:
 	}HTTPContentType;
 	typedef Function0<bool> CheckConnectionIsOk;
 	typedef Function2<void, const char*, uint32_t> ReadDataCallback;
+	typedef Function2<uint32_t, char*, uint32_t> WriteDataCallback;
 public:
 	HTTPContent(FileMediaInfo* info,const CheckConnectionIsOk& check = CheckConnectionIsOk());
 	virtual ~HTTPContent();
@@ -81,6 +82,7 @@ public:
 	/*bool write(const HTTPTemplate& temp);*/
 	//writeFromFile chanegd writetype to HTTPContentType_Normal 
 	bool writeFromFile(const std::string& filename,bool needdeletefile = false);
+	bool setWriteCallback(const WriteDataCallback& writecallback);
 
 	const char* inputAndParse(const char* buffer, int len,bool chunked,bool& chunedfinish);
 private:

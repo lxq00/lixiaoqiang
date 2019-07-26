@@ -420,6 +420,11 @@ bool HTTPContent::writeFromFile(const std::string& filename, bool deleteFile)
 	return true;
 }
 
+bool HTTPContent::setWriteCallback(const WriteDataCallback& writecallback)
+{
+
+}
+
 struct HTTPRequest::HTTPRequestInternal:public FileMediaInfo
 {
 	std::string					 method;

@@ -349,7 +349,10 @@
     <ClCompile Include="Src\HTTPServer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Src\WebSocket.cpp">
+    <ClCompile Include="Src\WebSocketSession.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\WebSocketClient.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

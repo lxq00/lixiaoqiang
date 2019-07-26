@@ -9,7 +9,7 @@ using namespace Public::Network;
 namespace Public {
 namespace HTTP {
 
-std::string mask = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+#define WEBSOCKETMASK "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
 
 /*
@@ -517,10 +517,6 @@ private:
 
 	Mutex							mutex;
 	std::list<shared_ptr<SendItemInfo> > sendlist;
-public:
-	std::map<std::string, Value>	headers;
-	uint32_t						errorCode;
-	URL								url;
 };
 
 
