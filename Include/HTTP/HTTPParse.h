@@ -19,9 +19,10 @@ namespace HTTP {
 #define CONNECTION_KeepAlive	"keep-alive"
 #define CONNECTION_Upgrade		"Upgrade"
 
+#define HTTPSEPERATOR				"\r\n"
+
 class HTTPParse
 {
-#define SEPERATOR				"\r\n"
 public:
 	struct Header
 	{
@@ -29,7 +30,7 @@ public:
 		URL				url;
 		struct {
 			std::string protocol;
-			int			version;
+			std::string	version;
 		}verinfo;
 
 		int				statuscode;
@@ -39,16 +40,19 @@ public:
 
 		Header()
 		{
-			verinfo.version = 0;
-			statuscode = 0;
+			statuscode = 200;
 			headerIsOk = false;
 		}
 		Value header(const std::string& key)
 		{
-			std::map<std::string, Value>::iterator iter = headers.find(key);
-			if (iter == headers.end()) return Value();
-
-			return iter->second;
+			for (std::map<std::string, Value>::iterator iter = headers.begin(); iter != headers.end(); iter++)
+			{
+				if (strcasecmp(key.c_str(), iter->first.c_str()) == 0)
+				{
+					return iter->second;
+				}
+			}
+			return Value();
 		}
 	private:
 		friend class HTTPParse;
@@ -67,15 +71,15 @@ public:
 		{
 			if (content == NULL) content = make_shared<Header>();
 
-			size_t pos = String::indexOf(data, datalen, SEPERATOR);
+			size_t pos = String::indexOf(data, datalen, HTTPSEPERATOR);
 			if (pos == -1) break;
 
 			const char* startlineaddr = data;
 			uint32_t linedatalen = pos;
 
-			data += pos + strlen(SEPERATOR);
-			datalen -= pos + strlen(SEPERATOR);
-			useddata += pos + strlen(SEPERATOR);
+			data += pos + strlen(HTTPSEPERATOR);
+			datalen -= pos + strlen(HTTPSEPERATOR);
+			useddata += pos + strlen(HTTPSEPERATOR);
 
 			//连续两个SEPERATOR表示header结束
 			if (pos == 0)
@@ -141,7 +145,7 @@ private:
 		{
 			std::vector<std::string> tmp = String::split(versionstr, "/");
 			if (tmp.size() >= 1) content->verinfo.protocol = tmp[0];
-			if (tmp.size() >= 2) content->verinfo.version = Value(tmp[1]).readInt();
+			if (tmp.size() >= 2) content->verinfo.version = tmp[1];
 		}
 	}
 	void parseHeaderLine(const char* startlienaddr, uint32_t linedatalen)

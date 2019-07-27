@@ -36,13 +36,22 @@
     <ClInclude Include="..\Include\RTSP\RTSPServer.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="common\sdp.h">
-      <Filter>源文件\common</Filter>
-    </ClInclude>
     <ClInclude Include="common\rtspProtocol.h">
       <Filter>源文件\common</Filter>
     </ClInclude>
-    <ClInclude Include="common\respCmd.h">
+    <ClInclude Include="common\rtspRange.h">
+      <Filter>源文件\common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\rtspTransport.h">
+      <Filter>源文件\common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\sdpParse.h">
+      <Filter>源文件\common</Filter>
+    </ClInclude>
+    <ClInclude Include="server\RTSPServerSession.h">
+      <Filter>源文件\service</Filter>
+    </ClInclude>
+    <ClInclude Include="common\rtspCMD.h">
       <Filter>源文件\common</Filter>
     </ClInclude>
   </ItemGroup>
@@ -52,13 +61,16 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="common\sdp.c">
+    <ClCompile Include="common\rtspRange.c">
       <Filter>源文件\common</Filter>
     </ClCompile>
-    <ClCompile Include="server\RTSPServer.cpp">
-      <Filter>源文件\service</Filter>
+    <ClCompile Include="common\rtspTransport.c">
+      <Filter>源文件\common</Filter>
     </ClCompile>
-    <ClCompile Include="common\respCmd.cpp">
+    <ClCompile Include="common\sdpParse.cpp">
+      <Filter>源文件\common</Filter>
+    </ClCompile>
+    <ClCompile Include="common\rtspCMD.cpp">
       <Filter>源文件\common</Filter>
     </ClCompile>
   </ItemGroup>

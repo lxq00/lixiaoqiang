@@ -99,7 +99,59 @@ std::string RTSPUrlInfo::buildAuthenString(const std::string& cmd)
 
 	return std::string("Authorization: ") + authstring + "\r\n";
 }
+bool RTSPUrlInfo::checkAuthen(const std::string& cmd,const std::string& username, const std::string& password, const std::string& pAuthorization)
+{
+	if (NULL == strstr(pAuthorization.c_str(), "Digest"))
+	{
+		const char* authenstart = strstr(pAuthorization.c_str(), "Basic ");
+		if (authenstart == NULL) return false;
+		
+		std::string authenresult = pAuthorization.c_str() + strlen("Basic ");
 
+		std::string authyenstr = username + ":" + password;
+		std::string buffer = Base64::encode(authyenstr);
+
+		return buffer == authenresult;
+	}
+	else
+	{
+		std::string  szrealm = getAuthenAttr(pAuthorization,"realm");
+		std::string szRtspUrl = getAuthenAttr(pAuthorization, "uri");
+		std::string szNonce = getAuthenAttr(pAuthorization, "nonce");
+		std::string szResponse = getAuthenAttr(pAuthorization, "response");
+
+		std::string authen1, authen2, authen3;
+		{
+			std::string strHash1src = username + ":" + szrealm + ":" + password;
+
+
+			Md5 md5;
+			md5.init();
+			md5.update((uint8_t const*)strHash1src.c_str(), strHash1src.length());
+			authen1 = md5.hex();
+		}
+
+		{
+			std::string strHash2src = cmd + ":" + szRtspUrl;
+
+			Md5 md5;
+			md5.init();
+			md5.update((uint8_t const*)strHash2src.c_str(), strHash2src.length());
+			authen2 = md5.hex();
+		}
+
+		{
+			std::string strHash3src = std::string(authen1) + ":" + szNonce + ":" + authen2;
+
+			Md5 md5;
+			md5.init();
+			md5.update((uint8_t const*)strHash3src.c_str(), strHash3src.length());
+			authen3 = md5.hex();
+		}
+
+		return response == authen3;
+	}
+}
 RTSPUrlInfo::RTSPUrlInfo() :m_nCSeq(0), needAuth(false) {}
 
 bool RTSPUrlInfo::parse(const std::string& url)
@@ -167,33 +219,8 @@ bool RTSPUrlInfo::parseAuthenString(const std::string& pAuthorization)
 	{
 		needBasic = false;
 
-		const char* tmpstr = pAuthorization.c_str();
-		{
-			std::string flag = "realm=\"";
-			const char* findstr = strstr(tmpstr, flag.c_str());
-			if (findstr != NULL)
-			{
-				findstr += flag.length();
-				const char* endstr = strchr(findstr, '"');
-				if (endstr != NULL)
-				{
-					m_szRealm = std::string(findstr, endstr - findstr);
-				}
-			}
-		}
-		{
-			std::string flag = "nonce=\"";
-			const char* findstr = strstr(tmpstr, flag.c_str());
-			if (findstr != NULL)
-			{
-				findstr += flag.length();
-				const char* endstr = strchr(findstr, '"');
-				if (endstr != NULL)
-				{
-					m_szNonce = std::string(findstr, endstr - findstr);
-				}
-			}
-		}
+		m_szRealm = getAuthenAttr(pAuthorization,"realm");
+		m_szNonce = getAuthenAttr(pAuthorization, "nonce");
 	}
 	else
 	{
@@ -201,6 +228,25 @@ bool RTSPUrlInfo::parseAuthenString(const std::string& pAuthorization)
 	}
 
 	return true;
+}
+std::string RTSPUrlInfo::getAuthenAttr(const std::string& pAuthorization, const std::string& key)
+{
+	const char* tmpstr = pAuthorization.c_str();
+	
+	std::string flag = key + "=\"";
+	const char* findstr = strstr(tmpstr, flag.c_str());
+	if (findstr == NULL)
+	{
+		return "";
+	}
+	findstr += flag.length();
+	const char* endstr = strchr(findstr, '"');
+	if (endstr == NULL)
+	{
+		return "";
+	}
+	return std::string(findstr, endstr - findstr);
+
 }
 
 CMDBuilder_OPTIONS::CMDBuilder_OPTIONS() :CMDBuilder("OPTIONS", RTSPCmd_OPTIONS) {}

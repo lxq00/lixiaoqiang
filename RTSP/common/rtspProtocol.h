@@ -22,31 +22,40 @@ class RTSPProtocol:public HTTPParse
 		unsigned int channel : 8; //0-1
 		unsigned int rtp_len : 16;
 	};
+	struct TCPInterleaved
+	{
+		int videoChannel;
+		int audioChannel;
+	};
 public:
 	typedef Function2<void, const shared_ptr<HTTPParse::Header>&, const std::string&> CommandCallback;
-	typedef Function2<void, const char*, uint32_t> ExternDataCallback;
+	typedef Function3<void, bool,const char*, uint32_t> ExternDataCallback;
 	typedef Function0<void> DisconnectCallback;
 protected:
 	RTSPProtocol(const shared_ptr<Socket>& sock, const CommandCallback& cmdcallback, const ExternDataCallback& datacallback, const DisconnectCallback& disconnectCallback,bool server)
-		:HTTPParse(!server), m_isserver(server)
+		:HTTPParse(!server)
 	{
 		m_sock = sock;
 		m_cmdcallback = cmdcallback;
 		m_extdatacallback = datacallback;
 		m_disconnect = disconnectCallback;
 		m_prevalivetime = Time::getCurrentMilliSecond();
+		m_bodylen = 0;
+		m_haveFindHeaderStart = false;
+		m_extdataLen = 0;
 
 		m_recvBuffer = new char[MAXPARSERTSPBUFFERLEN + 100];
 		m_recvBufferDataLen = 0;
 
 
 		m_sock->setDisconnectCallback(Socket::DisconnectedCallback(&RTSPProtocol::onSocketDisconnectCallback, this));
-		m_sock->async_recv(Socket::ReceivedCallback(&RTSPProtocol::onSocketRecvCallback, this));
+		m_sock->async_recv(m_recvBuffer, MAXPARSERTSPBUFFERLEN, Socket::ReceivedCallback(&RTSPProtocol::onSocketRecvCallback, this));
 	}
 	~RTSPProtocol()
 	{
 		m_sock->disconnect();
 		m_sock = NULL;
+		SAFE_DELETEARRAY(m_recvBuffer);
 	}
 
 	uint64_t prevalivetime() const { return m_prevalivetime; }
@@ -63,15 +72,14 @@ protected:
 		return listsize;
 	}
 
-	void sendCmd(const shared_ptr<CMDProtocol>& cmd)
+	void sendProtocolData(const std::string& cmdstr)
 	{
-		std::string cmdstr = cmd->build();
 		if (cmdstr.length() == 0) return;
 
 		Guard locker(m_mutex);
 		_addAndCheckSendData(cmdstr);
 	}
-	void sendMedia(int channel,bool isvideo,const char* rtpheader, uint32_t rtpheaderlen, const char* dataaddr, uint32_t datalen)
+	void sendMedia(int channel,const char* rtpheader, uint32_t rtpheaderlen, const char* dataaddr, uint32_t datalen)
 	{
 		Guard locker(m_mutex);
 
@@ -87,6 +95,12 @@ protected:
 		_addAndCheckSendData(std::string(rtpheader, rtpheaderlen));
 		_addAndCheckSendData(std::string(dataaddr, datalen));
 	}
+	void setTCPInterleaved(int videochannel,int audiochannel)
+	{
+		m_tcpinterleaved = make_shared<TCPInterleaved>();
+		m_tcpinterleaved->videoChannel = videochannel;
+		m_tcpinterleaved->audioChannel = audiochannel;
+	}
 private:
 	void _addAndCheckSendData(const std::string& data)
 	{
@@ -99,6 +113,8 @@ private:
 			shared_ptr<SendItem> item = make_shared<SendItem>();
 			const char* sendbuffer = item->data.c_str();
 			uint32_t sendbufferlen = item->data.length();
+			
+			m_prevalivetime = Time::getCurrentMilliSecond();
 
 			m_sock->async_send(sendbuffer, sendbufferlen, Socket::SendedCallback(&RTSPProtocol::onSocketSendCallback, this));
 		}
@@ -133,6 +149,8 @@ private:
 			const char* sendbuffer = item->data.c_str() + item->havesendlen;
 			uint32_t sendbufferlen = item->data.length() - item->havesendlen;
 
+			m_prevalivetime = Time::getCurrentMilliSecond();
+
 			m_sock->async_send(sendbuffer, sendbufferlen, Socket::SendedCallback(&RTSPProtocol::onSocketSendCallback, this));
 		}
 	}
@@ -142,29 +160,118 @@ private:
 	}
 	void onSocketRecvCallback(const weak_ptr<Socket>& sock, const char* buffer, int len)
 	{
+		m_prevalivetime = Time::getCurrentMilliSecond();
 		if (len <= 0) return;
 
 		if (m_recvBufferDataLen + len > MAXPARSERTSPBUFFERLEN) return;
 
 		m_recvBufferDataLen += len;
+		
+		const char* buffertmp = m_recvBuffer;
+		uint32_t buffertmplen = m_recvBufferDataLen;
 
+		while (buffertmplen > 0)
+		{
+			if (m_header != NULL && m_bodylen != m_body.length())
+			{
+				uint32_t needlen = min(m_bodylen - m_body.length(), buffertmplen);
+				m_body += std::string(buffertmp, needlen);
+				buffertmp += needlen;
+				buffertmplen -= needlen;
+			}
+			else if (m_header == NULL && m_haveFindHeaderStart)
+			{
+				uint32_t usedlen = 0;
+				m_header = HTTPParse::parse(buffertmp, buffertmplen, usedlen);
+				buffertmp += usedlen;
+				buffertmplen -= usedlen;
+				if (m_header != NULL)
+				{
+					m_bodylen = m_header->header(Content_Length).readInt();
+				}
+			}
+			else if (m_extdataLen != 0 && m_extdataLen != m_extdata.length())
+			{
+				uint32_t needlen = min(m_bodylen - m_body.length(), buffertmplen);
+				m_extdata += std::string(buffertmp, needlen);
+				buffertmp += needlen;
+				buffertmplen -= needlen;
+			}
+			else if (m_tcpinterleaved != NULL && *buffertmp == RTPOVERTCPMAGIC)
+			{
+				if (buffertmplen < sizeof(INTERLEAVEDFRAME)) break;
+
+				INTERLEAVEDFRAME* frame = (INTERLEAVEDFRAME*)buffertmp;
+				m_extdataLen = ntohs(frame->rtp_len);
+				m_extdatach = frame->channel;
+
+				buffertmp += sizeof(INTERLEAVEDFRAME);
+				buffertmplen -= sizeof(INTERLEAVEDFRAME);
+			}
+			else
+			{
+				m_haveFindHeaderStart = true;
+			}
+
+			if (m_header != NULL && m_bodylen == m_body.length())
+			{
+				m_cmdcallback(m_header, m_body);
+				m_header = NULL;
+				m_body = "";
+				m_haveFindHeaderStart = false;;
+			}
+			else if (m_extdataLen != 0 && m_extdataLen == m_extdata.length())
+			{
+				if (m_extdatach == m_tcpinterleaved->videoChannel)
+				{
+					m_extdatacallback(true, m_extdata.c_str(), m_extdata.length());
+				}
+				else if (m_extdatach == m_tcpinterleaved->audioChannel)
+				{
+					m_extdatacallback(false, m_extdata.c_str(), m_extdata.length());
+				}
+				
+				m_extdataLen = 0;
+				m_extdata = "";
+			}
+		}
+		if (buffertmplen > 0)
+		{
+			memmove(m_recvBuffer, buffertmp, buffertmplen);
+		}
+		m_recvBufferDataLen = buffertmplen;
+
+
+		shared_ptr<Socket> socktmp = sock.lock();
+		if (socktmp != NULL)
+		{
+			socktmp->async_recv(m_recvBuffer + m_recvBufferDataLen, MAXPARSERTSPBUFFERLEN - m_recvBufferDataLen, Socket::ReceivedCallback(&RTSPProtocol::onSocketRecvCallback, this));
+		}
 	}
+public:
+	shared_ptr<Socket>			m_sock;
 private:
-	bool						m_isserver;
-	Mutex						m_mutex;
-
 	CommandCallback				m_cmdcallback;
 	ExternDataCallback			m_extdatacallback;
 	DisconnectCallback			m_disconnect;
 
-	shared_ptr<Socket>			m_sock;
-
 	char*						m_recvBuffer;
 	uint32_t					m_recvBufferDataLen;
 
+	Mutex						m_mutex;
 	std::list<shared_ptr<SendItem> > m_sendList;
 
 	uint64_t					m_prevalivetime;
+	bool						m_haveFindHeaderStart;
+	shared_ptr<HTTPParse::Header> m_header;
+	uint32_t					m_bodylen;
+	std::string					m_body;
+
+	uint32_t					m_extdataLen;
+	uint32_t					m_extdatach;
+	std::string					m_extdata;
+
+	shared_ptr<TCPInterleaved>  m_tcpinterleaved;
 };
 
 

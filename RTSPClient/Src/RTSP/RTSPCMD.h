@@ -41,6 +41,7 @@ private:
 	std::string					m_szNonce;
 public:
 	std::string buildAuthenString(const std::string& cmd);
+	static bool checkAuthen(const std::string& cmd, const std::string& username, const std::string& password, const std::string& authenstr);
 public:
 
 	RTSPUrlInfo();
@@ -48,6 +49,8 @@ public:
 	bool parse(const std::string& url);
 
 	bool parseAuthenString(const std::string& pAuthorization);
+
+	static std::string getAuthenAttr(const std::string& pAuthorization, const std::string& key);
 };
 
 

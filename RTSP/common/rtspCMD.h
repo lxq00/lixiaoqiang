@@ -41,6 +41,8 @@ private:
 	std::string					m_szNonce;
 public:
 	std::string buildAuthenString(const std::string& cmd);
+	static bool checkAuthen(const std::string& cmd, const std::string& username, const std::string& password, const std::string& authenstr);
+	static std::string buildWWWAuthen(const std::string& cmd, const std::string& username, const std::string& password);
 public:
 
 	RTSPUrlInfo();
@@ -48,6 +50,8 @@ public:
 	bool parse(const std::string& url);
 
 	bool parseAuthenString(const std::string& pAuthorization);
+
+	static std::string getAuthenAttr(const std::string& pAuthorization, const std::string& key);
 };
 
 
@@ -60,13 +64,13 @@ typedef enum {
 	RTSPCmd_TEARDOWN,
 }RTSPCmd;
 
-class CMDProtocol
+class CMDBuilder
 {
 public:
-	CMDProtocol(const std::string& _cmd, RTSPCmd _cmdtype):cmd(_cmd),cmdType(_cmdtype) {}
-	virtual ~CMDProtocol() {}
+	CMDBuilder(const std::string& _cmd, RTSPCmd _cmdtype):cmd(_cmd),cmdType(_cmdtype) {}
+	virtual ~CMDBuilder() {}
 
-	virtual std::string build() = 0;
+	virtual std::string build(shared_ptr<RTSPUrlInfo>& url) = 0;
 public:
 	std::string cmd;
 	uint32_t	m_nCSeq;
