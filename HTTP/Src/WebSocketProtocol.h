@@ -99,7 +99,7 @@ class WebSocketProtocol
 		std::string		needsenddata;
 		uint32_t		havesendlen;
 
-		SendItemInfo():havesendlen(0){}
+		SendItemInfo() :havesendlen(0) {}
 	};
 public:
 	WebSocketProtocol(bool client):isClient(client), errorCode(408)
@@ -268,7 +268,7 @@ public:
 
 		return buffer;
 	}
-	private:
+private:
 	bool parseAndCheckHeader(const char* buffer, int len, shared_ptr<FrameInfo>& tmpframe)
 	{
 		int fine = (buffer[0] >> 7) & 1;

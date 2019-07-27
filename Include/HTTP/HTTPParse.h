@@ -101,6 +101,13 @@ public:
 
 		return shared_ptr<Header>();
 	}
+
+	bool isFindFirstLine()
+	{
+		if (content == NULL || content->verinfo.protocol == "") return false;
+
+		return true;
+	}
 private:
 	void parseFirstLine(const char* startlienaddr, uint32_t linedatalen)
 	{

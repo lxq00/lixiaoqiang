@@ -199,6 +199,8 @@ struct HTTPContent::HTTPContentInternal
 	std::string			readtofilename;
 	ReadDataCallback	readcalblack;
 
+	WriteDataCallback	writecallback;
+
 	HTTPContentInternal(FileMediaInfo* info)
 		:mediainfo(info),writetype(HTTPContentType_Normal), chunkbodysize(0)
 	{
@@ -228,6 +230,11 @@ int HTTPContent::size()
 int HTTPContent::read(char* buffer, int maxlen)
 {
 	if (buffer == NULL || maxlen <= 0) return 0;
+
+	if (internal->writecallback)
+	{
+		return internal->writecallback(buffer, maxlen);
+	}
 
 	return internal->cache->read(buffer, maxlen);
 }
@@ -420,9 +427,11 @@ bool HTTPContent::writeFromFile(const std::string& filename, bool deleteFile)
 	return true;
 }
 
-bool HTTPContent::setWriteCallback(const WriteDataCallback& writecallback)
+bool HTTPContent::setWriteCallback(const WriteDataCallback& _writecallback)
 {
+	internal->writecallback = _writecallback;
 
+	return true;
 }
 
 struct HTTPRequest::HTTPRequestInternal:public FileMediaInfo

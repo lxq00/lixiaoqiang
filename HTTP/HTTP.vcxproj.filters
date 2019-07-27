@@ -36,9 +36,6 @@
     <ClInclude Include="Src\HTTPSession.h">
       <Filter>源文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\Include\HTTP\WebSocket.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="..\Include\HTTP\HTTP.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -331,6 +328,9 @@
       <Filter>源文件</Filter>
     </ClInclude>
     <ClInclude Include="Src\HTTPProtocolBuilder.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\HTTPServerSession.h">
       <Filter>源文件</Filter>
     </ClInclude>
   </ItemGroup>

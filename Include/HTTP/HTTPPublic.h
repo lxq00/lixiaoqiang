@@ -146,7 +146,12 @@ private:
 	HTTPResponseInternal* internal;
 };
 
-typedef Function2<void, const shared_ptr<HTTPRequest>&, shared_ptr<HTTPResponse>&> HTTPCallback;
+
+typedef enum {
+	WebSocketDataType_Txt,
+	WebSocketDataType_Bin,
+}WebSocketDataType;
+
 
 }
 }

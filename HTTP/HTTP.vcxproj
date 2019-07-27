@@ -25,7 +25,6 @@
     <ClInclude Include="..\Include\HTTP\HTTPParse.h" />
     <ClInclude Include="..\Include\HTTP\HTTPPublic.h" />
     <ClInclude Include="..\Include\HTTP\HTTPServer.h" />
-    <ClInclude Include="..\Include\HTTP\WebSocket.h" />
     <ClInclude Include="..\websocketpp\base64\base64.hpp" />
     <ClInclude Include="..\websocketpp\client.hpp" />
     <ClInclude Include="..\websocketpp\close.hpp" />
@@ -122,6 +121,7 @@
     <ClInclude Include="Src\HTTPProtocolBuilder.h" />
     <ClInclude Include="Src\HTTPDefine.h" />
     <ClInclude Include="Src\HTTPProtocolParser.h" />
+    <ClInclude Include="Src\HTTPServerSession.h" />
     <ClInclude Include="Src\HTTPSession.h" />
     <ClInclude Include="Src\WebSocketProtocol.h" />
   </ItemGroup>

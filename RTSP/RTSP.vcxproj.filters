@@ -16,6 +16,9 @@
     <Filter Include="源文件\common">
       <UniqueIdentifier>{d92e0db4-ad67-4291-9572-158475069aa1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\service">
+      <UniqueIdentifier>{6821f5da-f911-42cd-a955-2a5988d5e3f4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\RTSP\RTSPClient.h">
@@ -27,10 +30,36 @@
     <ClInclude Include="..\Include\RTSP\Defs.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="..\Include\RTSP\RTSPClientErrorCode.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\RTSP\RTSPServer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="common\sdp.h">
+      <Filter>源文件\common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\rtspProtocol.h">
+      <Filter>源文件\common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\respCmd.h">
+      <Filter>源文件\common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Include\RTSP\Version.tpl">
       <Filter>头文件</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="common\sdp.c">
+      <Filter>源文件\common</Filter>
+    </ClCompile>
+    <ClCompile Include="server\RTSPServer.cpp">
+      <Filter>源文件\service</Filter>
+    </ClCompile>
+    <ClCompile Include="common\respCmd.cpp">
+      <Filter>源文件\common</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

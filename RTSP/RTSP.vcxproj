@@ -106,10 +106,20 @@
   <ItemGroup>
     <ClInclude Include="..\Include\RTSP\Defs.h" />
     <ClInclude Include="..\Include\RTSP\RTSPClient.h" />
+    <ClInclude Include="..\Include\RTSP\RTSPClientErrorCode.h" />
+    <ClInclude Include="..\Include\RTSP\RTSPServer.h" />
     <ClInclude Include="..\Include\RTSP\RTSPStructs.h" />
+    <ClInclude Include="common\respCmd.h" />
+    <ClInclude Include="common\rtspProtocol.h" />
+    <ClInclude Include="common\sdp.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Include\RTSP\Version.tpl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="common\respCmd.cpp" />
+    <ClCompile Include="common\sdp.c" />
+    <ClCompile Include="server\RTSPServer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="$(ProjectDir)packages-depend.targets" />
