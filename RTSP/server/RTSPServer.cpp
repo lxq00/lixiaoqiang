@@ -15,7 +15,7 @@ struct RTSPServer::RTSPServerInternal
 	uint32_t							port;
 
 	Mutex								mutex;
-	std::map<Socket*, shared_ptr<RTSPSession> >	serverlist;
+	std::map<Socket*, shared_ptr<RTSPServerSession> >	serverlist;
 
 	ListenCallback						listencallback;
 
@@ -23,13 +23,13 @@ struct RTSPServer::RTSPServerInternal
 
 	void onpooltimerproc(unsigned long)
 	{
-		std::list< shared_ptr<RTSPSession> > freelisttmp;
+		std::list< shared_ptr<RTSPServerSession> > freelisttmp;
 		{
 			Guard locker(mutex); 
 
 			uint64_t nowtime = Time::getCurrentMilliSecond();
 
-			for (std::map<Socket*, shared_ptr<RTSPSession> >::iterator iter = serverlist.begin(); iter != serverlist.end();)
+			for (std::map<Socket*, shared_ptr<RTSPServerSession> >::iterator iter = serverlist.begin(); iter != serverlist.end();)
 			{
 				uint64_t prevtime = iter->second->prevAlivetime();
 				if (nowtime > prevtime && nowtime - prevtime > MAXRTSPCONNECTIONTIMEOUT)
@@ -44,9 +44,9 @@ struct RTSPServer::RTSPServerInternal
 			}
 		}
 
-		for (std::list< shared_ptr<RTSPSession> >::iterator iter = freelisttmp.begin(); iter != freelisttmp.end(); iter++)
+		for (std::list< shared_ptr<RTSPServerSession> >::iterator iter = freelisttmp.begin(); iter != freelisttmp.end(); iter++)
 		{
-			shared_ptr<RTSPCommandRequestHandler> handler = (*iter)->handler();
+			shared_ptr<RTSPServerHandler> handler = (*iter)->handler();
 			if (handler)
 			{
 				handler->onClose(*iter);
@@ -56,8 +56,8 @@ struct RTSPServer::RTSPServerInternal
 	void onsocketaccept(const weak_ptr<Socket>& sock, const shared_ptr<Socket>& newsock)
 	{
 		{
-			shared_ptr<RTSPSession> session = make_shared<RTSPSession>(newsock, listencallback, useragent);
-			session->initRTSPSessionPtr(session);
+			shared_ptr<RTSPServerSession> session = make_shared<RTSPServerSession>(newsock, listencallback, useragent);
+			session->initRTSPServerSessionPtr(session);
 
 
 			Guard locker(mutex);

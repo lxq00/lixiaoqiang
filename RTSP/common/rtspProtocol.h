@@ -7,6 +7,8 @@ using namespace Public::HTTP;
 #define RTPOVERTCPMAGIC		'$'
 #define RTSPCMDFLAG			"RTSP/1.0"
 
+#define RTSPCONENTTYPESDP	"application/sdp"
+
 class RTSPProtocol:public HTTPParse
 {
 	struct SendItem

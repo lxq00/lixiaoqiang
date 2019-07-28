@@ -5,3 +5,4 @@
 using namespace Public::Base;
 
 int rtsp_header_range(const char* field, MEDIA_INFO* range);
+std::string rtspBuildRange(const MEDIA_INFO& range);

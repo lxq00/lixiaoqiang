@@ -19,6 +19,9 @@
     <Filter Include="源文件\service">
       <UniqueIdentifier>{6821f5da-f911-42cd-a955-2a5988d5e3f4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\client">
+      <UniqueIdentifier>{b5683006-31f2-44ee-ae83-c1207547d57a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\RTSP\RTSPClient.h">
@@ -28,9 +31,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="..\Include\RTSP\Defs.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Include\RTSP\RTSPClientErrorCode.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="..\Include\RTSP\RTSPServer.h">
@@ -54,6 +54,9 @@
     <ClInclude Include="common\rtspCMD.h">
       <Filter>源文件\common</Filter>
     </ClInclude>
+    <ClInclude Include="client\RTSPClient.cpp">
+      <Filter>源文件\client</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Include\RTSP\Version.tpl">
@@ -75,6 +78,9 @@
     </ClCompile>
     <ClCompile Include="server\RTSPServer.cpp">
       <Filter>源文件\service</Filter>
+    </ClCompile>
+    <ClCompile Include="client\RTSPClientManager.cpp">
+      <Filter>源文件\client</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

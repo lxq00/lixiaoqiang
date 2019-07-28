@@ -43,11 +43,13 @@ public:
 	std::string buildAuthenString(const std::string& cmd);
 	static bool checkAuthen(const std::string& cmd, const std::string& username, const std::string& password, const std::string& authenstr);
 	static std::string buildWWWAuthen(const std::string& cmd, const std::string& username, const std::string& password);
+	std::string buildAuthorization(const std::string& cmd, const std::string& url, const std::string& wwwauthen);
 public:
 
 	RTSPUrlInfo();
 
 	bool parse(const std::string& url);
+	std::string toUrl();
 
 	bool parseAuthenString(const std::string& pAuthorization);
 

@@ -141,8 +141,16 @@ typedef struct _FRAME_INFO
 }FRAME_INFO, *LPFRAME_INFO;
 
 
+//RTSP命令信息
+struct RTSP_API RTSPCommandInfo :public HTTPParse::Header
+{
+	uint32_t		CSeq;
+	std::string		session;
 
+	std::string		body;
 
+	RTSPCommandInfo():CSeq(0){}
+};
 
 
 /*日志记录级别*/
