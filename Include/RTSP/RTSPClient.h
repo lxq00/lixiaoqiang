@@ -17,13 +17,14 @@ class RTSP_API RTSPClient
 	friend class RTSPClientManager;
 	struct RTSPClientInternal;
 
+	typedef Function0<uint32_t> AllockUdpPortCallback;
 	RTSPClient(const std::shared_ptr<IOWorker>& work, const shared_ptr<RTSPClientHandler>& handler, const std::string& rtspUrl,const std::string& useragent);
 public:
 	~RTSPClient();
 
 	/*设置RTP数据接收方式 0:TCP，1:UDP  默认UDP*/
 	bool initRTPOverTcpType();
-	bool initRTPOverUdpType(uint32_t startport = 40000, uint32_t stopport = 4100);
+	bool initRTPOverUdpType(const AllockUdpPortCallback& allockport);
 
 	/*准备数据接收，包括启动数据接收线程，心跳线程*/
 	//timeout 连接超时时间，
@@ -48,10 +49,13 @@ public:
 	//同步命令,同步返回
 	bool sendGetparameterRequest(const std::string& body, uint32_t timeout);
 
+
 	//异步命令，使用RTSPClientHandler->onTeradownResponse接收结果
 	shared_ptr<RTSPCommandInfo> sendTeradownRequest();
 	//同步命令,同步返回
 	bool sendTeradownRequest(uint32_t timeout);
+
+	bool sendMedia(bool isvideo, uint32_t timestmap, const char* buffer, uint32_t bufferlen);
 private:
 	RTSPClientInternal *internal;
 };
@@ -74,7 +78,7 @@ public:
 	virtual void onErrorResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo,int statuscode,const std::string& errmsg) {}
 
 	virtual void onClose() = 0;
-	virtual void onMediaCallback(bool video, const FRAME_INFO& info, const char* buffer, uint32_t bufferlen) {}
+	virtual void onMediaCallback(bool isvideo, uint32_t timestmap, const char* buffer, uint32_t bufferlen) {}
 };
 
 class RTSP_API RTSPClientManager
@@ -85,6 +89,8 @@ public:
 	RTSPClientManager(const shared_ptr<IOWorker>& iowrker,const std::string& useragent);
 	~RTSPClientManager();
 
+	//rtp 模式地址
+	bool initRTPOverUdpType(uint32_t startport = 40000, uint32_t stopport = 4100);
 
 	//创建一个对象
 	shared_ptr<RTSPClient> create(const shared_ptr<RTSPClientHandler>& handler, const std::string& pRtspUrl);

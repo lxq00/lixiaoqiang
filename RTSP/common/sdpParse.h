@@ -2,9 +2,10 @@
 #ifndef _SDP_PARSE_H_
 #define _SDP_PARSE_H_
 #include "Base/Base.h"
+#include "RTSP/RTSP.h"
+using namespace Public::RTSP;
 using namespace Public::Base;
 
-#include "RTSPClient/RTSPStructs.h"
 
 std::string BuildSdp(const MEDIA_INFO& info);
 bool ParseSDP(char const* sdpDescription, MEDIA_INFO* pMediaInfo);

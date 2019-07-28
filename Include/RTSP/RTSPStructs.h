@@ -1,6 +1,8 @@
 #pragma once
 #include "Base/Base.h"
-
+#include "HTTP/HTTPParse.h"
+using namespace Public::Base;
+using namespace Public::HTTP;
 
 
 // Transport: RTP/AVP/TCP;interleaved=0-1
@@ -19,16 +21,9 @@ struct TRANSPORT_INFO
 		MULTICAST_UNICAST = 1,
 		MULTICAST_MULTICAST,
 	} multicast; // 0-unicast/1-multicast, default multicast
-	std::string destination; // IPv4/IPv6
-	std::string source; // IPv4/IPv6
-	int layer; // rtsp setup response only
-	enum {
-		MODE_NONE,
-		MODE_PLAY = 1,
-		MODE_RECORD
-	} mode; // PLAY/RECORD, default PLAY, rtsp setup response only
-	int append; // use with RECORD mode only, rtsp setup response only
-	int interleaved1, interleaved2; // rtsp setup response only
+
+	int ssrc; // RTP only(synchronization source (SSRC) identifier) 4-bytes
+	
 	union rtsp_header_transport_rtp_u
 	{
 		struct rtsp_header_transport_multicast_t
@@ -41,8 +36,13 @@ struct TRANSPORT_INFO
 		{
 			unsigned short client_port1, client_port2; // unicast RTP/RTCP port pair, RTP only
 			unsigned short server_port1, server_port2; // unicast RTP/RTCP port pair, RTP only
-			int ssrc; // RTP only(synchronization source (SSRC) identifier) 4-bytes
 		} u;
+
+		struct rtsp_header_transport_tcp_t
+		{
+			int		videointerleaved;
+			int		audiointerleaved;
+		}t;
 	} rtp;
 };
 
@@ -82,7 +82,12 @@ struct MEDIA_INFO
 	STREAM_INFO stStreamAudio;	//“Ù∆µ¡˜–≈œ¢
 };
 
-
+struct RTSP_MEDIA_INFO
+{
+	MEDIA_INFO	media;
+	TRANSPORT_INFO	videoTransport;
+	TRANSPORT_INFO	audioTransport;
+};
 
 
 enum ERTSP_RANGE_TIME {

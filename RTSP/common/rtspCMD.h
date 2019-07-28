@@ -1,7 +1,7 @@
 #ifndef __RTSPCMD_H__
 #define __RTSPCMD_H__
-#include "RTSPClient/RTSPClient.h"
-using namespace Public::RTSPClient;
+#include "RTSP/RTSP.h"
+using namespace Public::RTSP;
 
 struct SDPInfo
 {

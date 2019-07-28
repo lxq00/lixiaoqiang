@@ -42,7 +42,7 @@ struct time_clock_t
 
 #define RANGE_SPECIAL ",;\r\n"
 
-inline uint64_t utc_mktime(const struct tm *t)
+ uint64_t utc_mktime(const struct tm *t)
 {
     int mon = t->tm_mon+1, year = t->tm_year+1900;
 
@@ -60,7 +60,7 @@ inline uint64_t utc_mktime(const struct tm *t)
             )*60 + t->tm_sec; /* finally seconds */
 }
 
-inline const char* string_token_int(const char* str, int *value)
+ const char* string_token_int(const char* str, int *value)
 {
 	*value = 0;
 	while ('0' <= *str && *str <= '9')
@@ -71,7 +71,7 @@ inline const char* string_token_int(const char* str, int *value)
 	return str;
 }
 
-inline const char* string_token_int64(const char* str, int64_t *value)
+ const char* string_token_int64(const char* str, int64_t *value)
 {
 	*value = 0;
 	while ('0' <= *str && *str <= '9')
@@ -84,7 +84,7 @@ inline const char* string_token_int64(const char* str, int64_t *value)
 
 // smpte-time = 1*2DIGIT ":" 1*2DIGIT ":" 1*2DIGIT [ ":" 1*2DIGIT ][ "." 1*2DIGIT ]
 // hours:minutes:seconds:frames.subframes
-inline const char* rtsp_header_range_smpte_time(const char* str, int *hours, int *minutes, int *seconds, int *frames, int *subframes)
+ const char* rtsp_header_range_smpte_time(const char* str, int *hours, int *minutes, int *seconds, int *frames, int *subframes)
 {
 	const char* p;
 
@@ -122,7 +122,7 @@ inline const char* rtsp_header_range_smpte_time(const char* str, int *hours, int
 //	smpte=10:07:33-
 //	smpte=10:07:00-10:07:33:05.01
 //	smpte-25=10:07:00-10:07:33:05.01
-inline int rtsp_header_range_smpte(const char* fields, struct rtsp_header_range_t* range)
+ int rtsp_header_range_smpte(const char* fields, struct rtsp_header_range_t* range)
 {
 	const char *p;
 	int hours, minutes, seconds, frames, subframes;
@@ -162,7 +162,7 @@ inline int rtsp_header_range_smpte(const char* fields, struct rtsp_header_range_
 // npt-hh = 1*DIGIT ; any positive number
 // npt-mm = 1*2DIGIT ; 0-59
 // npt-ss = 1*2DIGIT ; 0-59
-inline const char* rtsp_header_range_npt_time(const char* str, uint64_t *seconds, int *fraction)
+ const char* rtsp_header_range_npt_time(const char* str, uint64_t *seconds, int *fraction)
 {
 	const char* p;
 	int v1, v2;
@@ -211,7 +211,7 @@ inline const char* rtsp_header_range_npt_time(const char* str, uint64_t *seconds
 //	npt=123.45-125
 //	npt=12:05:35.3-
 //	npt=now-
-inline int rtsp_header_range_npt(const char* fields, RANGE_INFO* range)
+ int rtsp_header_range_npt(const char* fields, RANGE_INFO* range)
 {
 	const char* p;
 	uint64_t seconds;
@@ -266,7 +266,7 @@ inline int rtsp_header_range_npt(const char* fields, RANGE_INFO* range)
 // utc-time = utc-date "T" utc-time "Z"
 // utc-date = 8DIGIT ; < YYYYMMDD >
 // utc-time = 6DIGIT [ "." fraction ] ; < HHMMSS.fraction >
-inline const char* rtsp_header_range_clock_time(const char* str, uint64_t *second, int *fraction)
+ const char* rtsp_header_range_clock_time(const char* str, uint64_t *second, int *fraction)
 {
 	struct tm t;
 	const char* p;
@@ -337,7 +337,7 @@ static int rtsp_header_range_clock(const char* fields, struct rtsp_header_range_
 	return 0;
 }
 
-inline int rtsp_header_range(const char* field, MEDIA_INFO* range)
+ int rtsp_header_range(const char* field, MEDIA_INFO* range)
 {
 	int r = 0;
 

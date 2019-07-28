@@ -4,6 +4,8 @@
 #include "../common/rtspTransport.h"
 #include "../common/rtspRange.h"
 #include "../common/rtspCMD.h"
+#include "../common/rtpovertcp.h"
+#include "../common/rtpoverudp.h"
 
 namespace Public {
 namespace RTSP {
@@ -38,12 +40,8 @@ struct RTSPClient::RTSPClientInternal
 	shared_ptr<RTSPProtocol>	protocol;
 	shared_ptr<RTSPUrlInfo>		rtspurl;
 
-	MEDIA_INFO					mediainfo;
-	TRANSPORT_INFO				videotransport;
-	TRANSPORT_INFO				audiotransport;
+	RTSP_MEDIA_INFO				rtspmedia;
 
-	uint32_t					udpstartport;
-	uint32_t					udpstopport;
 
 	uint32_t					connecttimeout;
 	uint64_t					startconnecttime;
@@ -56,15 +54,20 @@ struct RTSPClient::RTSPClientInternal
 	std::string					sessionstr;
 	shared_ptr<Timer>			pooltimer;
 
+	shared_ptr<rtp>				rtp;
+
+	AllockUdpPortCallback		allockportcallback;
+
 	RTSPClientInternal(const shared_ptr<RTSPClientHandler>& _handler,const shared_ptr<IOWorker>& worker, const std::string& url, const std::string& _useragent)
-		:handler(_handler),socketconnected(false), ioworker(worker), useragent(_useragent),
-		udpstartport(40000), udpstopport(41000), connecttimeout(10000), protocolstartcseq(0)
+		:handler(_handler),socketconnected(false), ioworker(worker), useragent(_useragent),connecttimeout(10000), protocolstartcseq(0)
 	{
 		rtspurl = make_shared<RTSPUrlInfo>();
 		rtspurl->parse(url);
 
-		videotransport.transport = TRANSPORT_INFO::TRANSPORT_RTP_TCP;
-		audiotransport.transport = TRANSPORT_INFO::TRANSPORT_RTP_TCP;
+		rtspmedia.videoTransport.transport = TRANSPORT_INFO::TRANSPORT_RTP_TCP;
+		rtspmedia.videoTransport.rtp.t.videointerleaved = 0;
+		rtspmedia.videoTransport.rtp.t.audiointerleaved = 1;
+		rtspmedia.audioTransport = rtspmedia.videoTransport;
 	}
 	~RTSPClientInternal() 
 	{
@@ -89,6 +92,7 @@ struct RTSPClient::RTSPClientInternal
 		pooltimer = NULL;
 		if (socket) socket->disconnect();
 		protocol = NULL;
+		rtp = NULL;
 
 		return true;
 	}
@@ -136,11 +140,67 @@ struct RTSPClient::RTSPClientInternal
 	}
 	shared_ptr<CommandInfo> sendDescribeRequest()
 	{
+		shared_ptr<CommandInfo> cmdinfo = make_shared<CommandInfo>();
+		cmdinfo->cmd->method = "DESCRIBE";
+		cmdinfo->cmd->url = rtspurl->toUrl();
 
+		rtspBuildRtspCommand(cmdinfo);
+
+		return cmdinfo;
 	}
 	shared_ptr<CommandInfo> sendSetupRequest()
 	{
+		shared_ptr<CommandInfo> cmdinfo = make_shared<CommandInfo>();
+		cmdinfo->cmd->method = "SETUP";
 
+		if(sessionstr.length() == 0) sessionstr = Value(Time::getCurrentMilliSecond()).readString();
+		
+		if (rtspmedia.videoTransport.transport == TRANSPORT_INFO::TRANSPORT_RTP_TCP || rtspmedia.audioTransport.transport == TRANSPORT_INFO::TRANSPORT_RTP_TCP)
+		{
+			cmdinfo->cmd->url = rtspurl->toUrl() + "/" + (rtspmedia.media.bHasVideo ? rtspmedia.media.stStreamVideo.szTrackID : rtspmedia.media.stStreamAudio.szTrackID);
+			cmdinfo->cmd->headers["Transport"] = buildTransport(rtspmedia.media.bHasVideo ? rtspmedia.videoTransport : rtspmedia.audioTransport);
+		}
+		else if (rtspmedia.media.bHasVideo && rtspmedia.videoTransport.rtp.u.server_port1 == 0)
+		{
+			if (rtspmedia.videoTransport.rtp.u.client_port1 == 0)
+			{
+				uint32_t rtpport = allockportcallback();
+
+				rtspmedia.videoTransport.rtp.u.client_port1 = rtpport;
+				rtspmedia.videoTransport.rtp.u.client_port2 = rtpport + 1;
+				rtspmedia.audioTransport.rtp.u.client_port1 = rtpport + 2;
+				rtspmedia.audioTransport.rtp.u.client_port2 = rtpport + 3;
+			}
+			cmdinfo->cmd->url = rtspurl->toUrl() + "/" + rtspmedia.media.stStreamVideo.szTrackID;
+			cmdinfo->cmd->headers["Transport"] = buildTransport(rtspmedia.videoTransport);
+		}
+		else if (rtspmedia.media.bHasAudio && rtspmedia.audioTransport.rtp.u.server_port1 == 0)
+		{
+			if (rtspmedia.audioTransport.rtp.u.client_port1 == 0)
+			{
+				uint32_t rtpport = allockportcallback();
+
+				rtspmedia.videoTransport.rtp.u.client_port1 = rtpport;
+				rtspmedia.videoTransport.rtp.u.client_port2 = rtpport + 1;
+				rtspmedia.audioTransport.rtp.u.client_port1 = rtpport + 2;
+				rtspmedia.audioTransport.rtp.u.client_port2 = rtpport + 3;
+			}
+			cmdinfo->cmd->url = rtspurl->toUrl() + "/" + rtspmedia.media.stStreamAudio.szTrackID;
+			cmdinfo->cmd->headers["Transport"] = buildTransport(rtspmedia.audioTransport);
+		}
+
+		rtspBuildRtspCommand(cmdinfo);
+
+		return cmdinfo;
+	}
+
+	bool sendMedia(bool isvideo, uint32_t timestmap, const char* buffer, uint32_t bufferlen)
+	{
+		if (!rtp) return false;
+
+		rtp->sendData(isvideo, timestmap, buffer, bufferlen);
+
+		return true;
 	}
 private:
 	void onpooltimerproc(unsigned long)
@@ -186,7 +246,6 @@ private:
 		handler->onConnectResponse(true, "OK");
 
 		protocol = make_shared<RTSPProtocol>(sock, RTSPProtocol::CommandCallback(&RTSPClientInternal::rtspCommandCallback, this),
-			RTSPProtocol::ExternDataCallback(&RTSPClientInternal::rtpovertcpCallback, this),
 			RTSPProtocol::DisconnectCallback(&RTSPClientInternal::socketDisconnectCallback, this), false);
 	}
 	void rtspBuildRtspCommand(const shared_ptr<CommandInfo>& cmdinfo, const std::string& body = "", const std::string& contentype = "")
@@ -298,10 +357,10 @@ private:
 		}
 		else if (strcasecmp(cmdinfo->cmd->method.c_str(), "DESCRIBE") == 0)
 		{
-			ParseSDP(cmdbody.c_str(), &mediainfo);
+			ParseSDP(cmdbody.c_str(), &rtspmedia.media);
 
 			if(cmdinfo->waitsem == NULL)
-				handler->onDescribeResponse(cmdinfo->cmd, mediainfo);
+				handler->onDescribeResponse(cmdinfo->cmd, rtspmedia.media);
 
 			sendSetupRequest();
 		}
@@ -309,29 +368,45 @@ private:
 		{
 			std::string tranportstr = cmdheader->header("Transport").readString();
 
-			if (mediainfo.bHasVideo && strcasestr(cmdinfo->cmd->url.href().c_str(), mediainfo.stStreamVideo.szTrackID) == 0)
-			{
-				rtsp_header_transport(cmdbody.c_str(), &videotransport);
+			TRANSPORT_INFO transport;
+			rtsp_header_transport(tranportstr.c_str(), &transport);
 
-				if (cmdinfo->waitsem == NULL)
-					handler->onSetupResponse(cmdinfo->cmd, true, videotransport);
-			}
-			else
+			//build socket
 			{
-				rtsp_header_transport(cmdbody.c_str(), &audiotransport);
+				if (transport.transport == TRANSPORT_INFO::TRANSPORT_RTP_TCP)
+				{
+					rtspmedia.videoTransport = rtspmedia.audioTransport = transport;
 
-				if (cmdinfo->waitsem == NULL)
-					handler->onSetupResponse(cmdinfo->cmd, false, audiotransport);
+					//rtpOverTcp(bool _isserver, const shared_ptr<RTSPProtocol>& _protocol, const RTSP_MEDIA_INFO& _rtspmedia, const RTPDataCallback& _datacallback)
+					rtp = make_shared<rtpOverTcp>(false, this, rtspmedia, rtp::RTPDataCallback(&RTSPClientInternal::rtpDataCallback, this));
+				}
+				else if (rtspmedia.media.bHasVideo && String::indexOfByCase(cmdinfo->cmd->url.href(), rtspmedia.media.stStreamVideo.szTrackID) != 0)
+				{
+					rtspmedia.videoTransport = transport;
+				}
+				else if (rtspmedia.media.bHasAudio && String::indexOfByCase(cmdinfo->cmd->url.href(), rtspmedia.media.stStreamAudio.szTrackID) != 0)
+				{
+					rtspmedia.audioTransport = transport;
+				}
+
+				if (!(transport.transport != TRANSPORT_INFO::TRANSPORT_RTP_UDP ||
+					(rtspmedia.media.bHasVideo && rtspmedia.videoTransport.transport == TRANSPORT_INFO::TRANSPORT_NONE) ||
+					(rtspmedia.media.bHasAudio && rtspmedia.audioTransport.transport == TRANSPORT_INFO::TRANSPORT_NONE)))
+				{
+					//rtpOverUdp(bool _isserver, const shared_ptr<IOWorker>& work,const std::string& _dstaddr,const RTSP_MEDIA_INFO& _rtspmedia, const RTPDataCallback& _datacallback)
+					rtp = make_shared<rtpOverUdp>(false, ioworker, rtspurl->m_szServerIp, rtspmedia, rtp::RTPDataCallback(&RTSPClientInternal::rtpDataCallback, this));
+				}
 			}
 
-			if (mediainfo.bHasVideo && videotransport.transport != TRANSPORT_INFO::TRANSPORT_NONE &&
-				mediainfo.bHasAudio && audiotransport.transport != TRANSPORT_INFO::TRANSPORT_NONE)
-			{
-				sendPlayRequest(RANGE_INFO());
-			}
-			else
+			if ((transport.transport != TRANSPORT_INFO::TRANSPORT_RTP_UDP ||
+				(rtspmedia.media.bHasVideo && rtspmedia.videoTransport.transport == TRANSPORT_INFO::TRANSPORT_NONE) ||
+				(rtspmedia.media.bHasAudio && rtspmedia.audioTransport.transport == TRANSPORT_INFO::TRANSPORT_NONE)))
 			{
 				sendSetupRequest();
+			}
+			else
+			{
+				sendPlayRequest(RANGE_INFO());
 			}
 		}
 		else if (strcasecmp(cmdheader->method.c_str(), "PLAY") == 0)
@@ -361,9 +436,9 @@ private:
 			cmdinfo->waitsem->post();
 		}
 	}
-	void rtpovertcpCallback(bool isvideo, const char* data, uint32_t len)
+	void rtpDataCallback(bool isvideo, uint32_t timestmap, const char* buffer, uint32_t bufferlen)
 	{
-
+		if (handler) handler->onMediaCallback(isvideo, timestmap, buffer, bufferlen);
 	}
 	void socketDisconnectCallback()
 	{
@@ -384,18 +459,20 @@ RTSPClient::~RTSPClient()
 }
 bool RTSPClient::initRTPOverTcpType()
 {
-	internal->videotransport.transport = TRANSPORT_INFO::TRANSPORT_RTP_TCP;
-	internal->audiotransport.transport = TRANSPORT_INFO::TRANSPORT_RTP_TCP;
+	internal->rtspmedia.videoTransport.transport = TRANSPORT_INFO::TRANSPORT_RTP_TCP;
+	internal->rtspmedia.videoTransport.rtp.t.videointerleaved = 0;
+	internal->rtspmedia.videoTransport.rtp.t.audiointerleaved = 1;
+	internal->rtspmedia.audioTransport = internal->rtspmedia.videoTransport;
+
 
 	return true;
 }
-bool RTSPClient::initRTPOverUdpType(uint32_t startport, uint32_t stopport)
+bool RTSPClient::initRTPOverUdpType(const AllockUdpPortCallback& allockport)
 {
-	internal->videotransport.transport = TRANSPORT_INFO::TRANSPORT_RTP_UDP;
-	internal->audiotransport.transport = TRANSPORT_INFO::TRANSPORT_RTP_UDP;
+	internal->rtspmedia.videoTransport.transport = TRANSPORT_INFO::TRANSPORT_RTP_UDP;
+	internal->rtspmedia.audioTransport.transport = TRANSPORT_INFO::TRANSPORT_RTP_UDP;
 
-	internal->udpstartport = startport;
-	internal->udpstopport = stopport;
+	internal->allockportcallback = allockport;
 
 	return true;
 }
@@ -460,7 +537,7 @@ shared_ptr<RTSPCommandInfo> RTSPClient::sendTeradownRequest()
 }
 bool RTSPClient::sendTeradownRequest(uint32_t timeout)
 {
-	shared_ptr<RTSPClientInternal::CommandInfo> cmdinfo = internal->sendTeradownRequest(timeout)->waitsem->pend(timeout);
+	shared_ptr<RTSPClientInternal::CommandInfo> cmdinfo = internal->sendTeradownRequest(timeout);
 	if (!cmdinfo->waitsem->pend(timeout) || cmdinfo->responseheader == NULL)
 	{
 		return false;

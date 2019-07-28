@@ -57,6 +57,21 @@
     <ClInclude Include="client\RTSPClient.cpp">
       <Filter>源文件\client</Filter>
     </ClInclude>
+    <ClInclude Include="common\rtp.h">
+      <Filter>源文件\common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\rtpovertcp.h">
+      <Filter>源文件\common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\rtpoverudp.h">
+      <Filter>源文件\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\RTSP\RTSP.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="common\strDup.h">
+      <Filter>源文件\common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Include\RTSP\Version.tpl">
@@ -81,6 +96,9 @@
     </ClCompile>
     <ClCompile Include="client\RTSPClientManager.cpp">
       <Filter>源文件\client</Filter>
+    </ClCompile>
+    <ClCompile Include="common\strDup.cpp">
+      <Filter>源文件\common</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

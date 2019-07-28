@@ -34,12 +34,12 @@ public:
 	typedef Function3<void, bool,const char*, uint32_t> ExternDataCallback;
 	typedef Function0<void> DisconnectCallback;
 public:
-	RTSPProtocol(const shared_ptr<Socket>& sock, const CommandCallback& cmdcallback, const ExternDataCallback& datacallback, const DisconnectCallback& disconnectCallback,bool server)
+	RTSPProtocol(const shared_ptr<Socket>& sock, const CommandCallback& cmdcallback, const DisconnectCallback& disconnectCallback,bool server)
 		:HTTPParse(!server)
 	{
 		m_sock = sock;
 		m_cmdcallback = cmdcallback;
-		m_extdatacallback = datacallback;
+		
 		m_disconnect = disconnectCallback;
 		m_prevalivetime = Time::getCurrentMilliSecond();
 		m_bodylen = 0;
@@ -58,6 +58,11 @@ public:
 		m_sock->disconnect();
 		m_sock = NULL;
 		SAFE_DELETEARRAY(m_recvBuffer);
+	}
+
+	void setRTPOverTcpCallback(const ExternDataCallback& datacallback)
+	{
+		m_extdatacallback = datacallback;
 	}
 
 	uint64_t prevalivetime() const { return m_prevalivetime; }
@@ -81,14 +86,15 @@ public:
 		Guard locker(m_mutex);
 		_addAndCheckSendData(cmdstr);
 	}
-	void sendMedia(int channel,const char* rtpheader, uint32_t rtpheaderlen, const char* dataaddr, uint32_t datalen)
+	void sendMedia(bool isvideo,const char* rtpheader, uint32_t rtpheaderlen, const char* dataaddr, uint32_t datalen)
 	{
+		if (m_tcpinterleaved == NULL) return;
 		Guard locker(m_mutex);
 
 		{
 			INTERLEAVEDFRAME frame;
 			frame.magic = RTPOVERTCPMAGIC;
-			frame.channel = channel;
+			frame.channel = isvideo ? m_tcpinterleaved->videoChannel :m_tcpinterleaved->audioChannel ;
 			frame.rtp_len = htons(rtpheaderlen + datalen);
 
 			_addAndCheckSendData(std::string((char*)&frame, sizeof(frame)));

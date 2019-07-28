@@ -35,7 +35,7 @@ class RTSP_API RTSPServerSession
 {
 	friend struct RTSPServer::RTSPServerInternal;
 private:
-	RTSPServerSession(const shared_ptr<Socket>& sock, const RTSPServer::ListenCallback& querycallback, const std::string& useragent);
+	RTSPServerSession(const shared_ptr<IOWorker>& worker, const shared_ptr<Socket>& sock, const RTSPServer::ListenCallback& querycallback, const std::string& useragent);
 	void initRTSPServerSessionPtr(const weak_ptr<RTSPServerSession>& session);
 public:
 	virtual ~RTSPServerSession();
@@ -55,7 +55,7 @@ public:
 	void sendGetparameterResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, const std::string& content);
 
 	void sendErrorResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, int errcode, const std::string& errmsg);
-	void sendMedia(bool video, const FRAME_INFO& info, const char* buffer, uint32_t bufferlen);
+	void sendMedia(bool isvideo, uint32_t timestmap, const char* buffer, uint32_t bufferlen);
 private:
 	struct RTSPServerSessionInternal;
 	RTSPServerSessionInternal* internal;
@@ -76,7 +76,7 @@ public:
 	virtual void onGetparameterRequest(const shared_ptr<RTSPServerSession>& session, const shared_ptr<RTSPCommandInfo>& cmdinfo, const std::string& content) { session->sendErrorResponse(cmdinfo, 500, "NOT SUPPORT"); }
 
 	virtual void onClose(const shared_ptr<RTSPServerSession>& session) = 0;
-	virtual void onMediaCallback(bool video, const FRAME_INFO& info, const char* buffer, uint32_t bufferlen) {}
+	virtual void onMediaCallback(bool isvideo, uint32_t timestmap, const char* buffer, uint32_t bufferlen) {}
 };
 
 }
