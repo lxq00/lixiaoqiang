@@ -1,5 +1,3 @@
-#pragma once
-
 #ifndef RTSP_STRUCTS_H_
 #define RTSP_STRUCTS_H_
 
@@ -9,7 +7,7 @@
 #define  SMPTE_TIME	2
 
 //帧信息结构定义
-typedef struct _FRAME_INFO
+typedef struct
 {
 	int nFrameType;		//帧类型 0:I帧, 1:p帧, 2音频帧, 3:sps
 	long nFrameNum;		//帧号 从1开始
@@ -28,7 +26,7 @@ typedef struct _FRAME_INFO
 }FRAME_INFO, *LPFRAME_INFO;
 
 //流信息结构定义
-typedef struct _STREAM_INFO
+typedef struct
 {
 	int  nPayLoad;				//荷载类型
 	int	 nWidth;				//图像宽度(只有视频有效)

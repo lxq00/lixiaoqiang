@@ -124,6 +124,7 @@
     <ClCompile Include="common\rtspRange.c" />
     <ClCompile Include="common\rtspTransport.c" />
     <ClCompile Include="common\sdpParse.cpp" />
+    <ClCompile Include="server\RTSPServer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="$(ProjectDir)packages-depend.targets" />

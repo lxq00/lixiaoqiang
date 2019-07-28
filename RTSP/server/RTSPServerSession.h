@@ -6,11 +6,14 @@
 #include "../common/rtspRange.h"
 #include "../common/rtspCMD.h"
 
+using namespace Public::RTSP;
+
 struct RTSPSession::RTSPSessionInternal:public RTSPProtocol
 {
 	bool									socketdisconnected;
-	QueryHandlerCallback					queryhandlercallback;
-	QuerySessionCallback					querysessioncallback;
+	RTSPServer::ListenCallback				queryhandlercallback;
+	
+	weak_ptr<RTSPSession>					sessionptr;
 
 	URL										url;
 	std::string								password;
@@ -20,11 +23,11 @@ struct RTSPSession::RTSPSessionInternal:public RTSPProtocol
 
 	std::string								sessionstr;
 
-	RTSPSessionInternal(const shared_ptr<Socket>& sock, const QueryHandlerCallback& queryhandle,const QuerySessionCallback& querysession)
+	RTSPSessionInternal(const shared_ptr<Socket>& sock, const RTSPServer::ListenCallback& queryhandle,const std::string&  _useragent)
 		:RTSPProtocol(sock, RTSPProtocol::CommandCallback(&RTSPSessionInternal::rtspCommandCallback, this),
 			RTSPProtocol::ExternDataCallback(&RTSPSessionInternal::rtpovertcpCallback, this),
 			RTSPProtocol::DisconnectCallback(&RTSPSessionInternal::socketDisconnectCallback, this),true)
-		, socketdisconnected(false), queryhandlercallback(queryhandle),querysessioncallback(querysession)
+		, socketdisconnected(false), queryhandlercallback(queryhandle),useragent(_useragent)
 	{
 
 	}
@@ -33,21 +36,35 @@ struct RTSPSession::RTSPSessionInternal:public RTSPProtocol
 	void rtspCommandCallback(const shared_ptr<HTTPParse::Header>& cmdheader, const std::string& cmdbody)
 	{
 		shared_ptr<RTSPCommandInfo> cmdinfo = make_shared<RTSPCommandInfo>();
-		cmdinfo->code = cmdheader->header("CSeq").readInt();
-		cmdinfo->method = cmdheader->method;
-		cmdinfo->url = cmdheader->url;
-
-		if (cmdheader->method == "" || cmdinfo->code == 0) return sendErrorResponse(cmdinfo, 400, "Bad Request");
+		*(HTTPParse::Header*)cmdinfo.get() = *cmdheader.get();
+		cmdinfo->CSeq = cmdheader->header("CSeq").readInt();
+		cmdinfo->body = cmdbody;
+		
+		if (cmdheader->method == "" || cmdinfo->CSeq == 0) return sendErrorResponse(cmdinfo, 400, "Bad Request");
 		if(strcasecmp(cmdheader->verinfo.protocol.c_str(),"rtsp") != 0 || cmdheader->verinfo.version != "1.0") 
 		{
 			return sendErrorResponse(cmdinfo, 505, "RTSP Version Not Supported");
 		}	
 
+		shared_ptr<RTSPSession> session = sessionptr.lock();
+		if (session == NULL)
+		{
+			socketdisconnected = true;
+			return;
+		}
+
 		if (handler == NULL)
 		{
 			url = cmdheader->url;
 
-			handler = queryhandlercallback(m_sock.get());
+			handler = queryhandlercallback(session);
+		}
+
+		if (handler == NULL)
+		{
+			sendErrorResponse(cmdinfo, 500, "NOT SUPPORT");
+			socketdisconnected = true;
+			return;
 		}
 
 		if (username != "" || password != "")
@@ -60,17 +77,16 @@ struct RTSPSession::RTSPSessionInternal:public RTSPProtocol
 				return sendErrorResponse(cmdinfo, 403, "Forbidden");
 			}
 		}
-		shared_ptr<RTSPSession> session = querysessioncallback(m_sock.get());
-
-		if (strcasecmp(cmdheader->method.c_str(), "OPTIONS") == 0 && handler != NULL && session != NULL)
+		
+		if (strcasecmp(cmdheader->method.c_str(), "OPTIONS") == 0)
 		{
 			handler->onOptionRequest(session, cmdinfo);
 		}
-		else if (strcasecmp(cmdheader->method.c_str(), "DESCRIBE") == 0 && handler != NULL && session != NULL)
+		else if (strcasecmp(cmdheader->method.c_str(), "DESCRIBE") == 0)
 		{
 			handler->onDescribeRequest(session, cmdinfo);
 		}
-		else if (strcasecmp(cmdheader->method.c_str(), "SETUP") == 0 && handler != NULL && session != NULL)
+		else if (strcasecmp(cmdheader->method.c_str(), "SETUP") == 0)
 		{
 			if(sessionstr == "") sessionstr = cmdheader->header("Session").readString();
 			std::string tranportstr = cmdheader->header("Transport").readString();
@@ -80,7 +96,7 @@ struct RTSPSession::RTSPSessionInternal:public RTSPProtocol
 			rtsp_header_transport(cmdbody.c_str(), &transport);
 			handler->onSetupRequest(session, cmdinfo, transport);
 		}
-		else if (strcasecmp(cmdheader->method.c_str(), "PLAY") == 0 && handler != NULL && session != NULL)
+		else if (strcasecmp(cmdheader->method.c_str(), "PLAY") == 0)
 		{
 			cmdinfo->session = sessionstr;
 
@@ -90,19 +106,19 @@ struct RTSPSession::RTSPSessionInternal:public RTSPProtocol
 			rtsp_header_range(cmdbody.c_str(), &range);
 			handler->onPlayRequest(session, cmdinfo, range);
 		}
-		else if (strcasecmp(cmdheader->method.c_str(), "PAUSE") == 0 && handler != NULL && session != NULL)
+		else if (strcasecmp(cmdheader->method.c_str(), "PAUSE") == 0)
 		{
 			cmdinfo->session = sessionstr;
 
 			handler->onPauseRequest(session, cmdinfo);
 		}
-		else if (strcasecmp(cmdheader->method.c_str(), "GET_PARAMETER") == 0 && handler != NULL && session != NULL)
+		else if (strcasecmp(cmdheader->method.c_str(), "GET_PARAMETER"))
 		{
 			cmdinfo->session = sessionstr;
 
 			handler->onGetparameterRequest(session, cmdinfo,cmdbody);
 		}
-		else if (strcasecmp(cmdheader->method.c_str(), "TERADOWN") == 0 && handler != NULL && session != NULL)
+		else if (strcasecmp(cmdheader->method.c_str(), "TERADOWN") == 0)
 		{
 			cmdinfo->session = sessionstr;
 
@@ -111,7 +127,6 @@ struct RTSPSession::RTSPSessionInternal:public RTSPProtocol
 		else 
 		{
 			sendErrorResponse(cmdinfo, 500, "NOT SUPPORT");
-			socketdisconnected = true;
 		}
 	}
 	void rtpovertcpCallback(bool isvideo, const char* data, uint32_t len)
@@ -164,8 +179,11 @@ struct RTSPSession::RTSPSessionInternal:public RTSPProtocol
 		HTTPParse::Header header;
 		header.statuscode = errcode;
 		header.statusmsg = errmsg;
-		header.headers["WWW-Authenticate"] = RTSPUrlInfo::buildWWWAuthen(cmdinfo->method, username, password);
-
+		if (errcode == 401)
+		{
+			header.headers["WWW-Authenticate"] = RTSPUrlInfo::buildWWWAuthen(cmdinfo->method, username, password);
+		}
+		
 		sendProtocol(cmdinfo, header);
 	}
 	void sendMedia(bool video, const FRAME_INFO& info, const char* buffer, uint32_t bufferlen)
@@ -182,7 +200,7 @@ struct RTSPSession::RTSPSessionInternal:public RTSPProtocol
 			header.headers[Content_Type] = "application/sdp";
 		}
 		if (useragent.length() > 0) header.headers["User-Agent"] = useragent;
-		if (cmdinfo != NULL && cmdinfo->code != 0) header.headers["CSeq"] = cmdinfo->code;
+		if (cmdinfo != NULL && cmdinfo->CSeq != 0) header.headers["CSeq"] = cmdinfo->CSeq;
 		if (cmdinfo->session.length() > 0) header.headers["Session"] = cmdinfo->session;
 
 		std::string responsestr = std::string("RTSP/1.0 ") + Value(header.statuscode).readString() + " " + header.statusmsg + HTTPSEPERATOR;
@@ -197,3 +215,79 @@ struct RTSPSession::RTSPSessionInternal:public RTSPProtocol
 		RTSPProtocol::sendProtocolData(responsestr);
 	}
 };
+
+RTSPSession::RTSPSession(const shared_ptr<Socket>& sock, const RTSPServer::ListenCallback& querycallback, const std::string& useragent)
+{
+	internal = new RTSPSessionInternal(sock, querycallback,useragent);
+	internal->useragent = useragent;
+}
+void RTSPSession::initRTSPSessionPtr(const weak_ptr<RTSPSession>& session)
+{
+	internal->sessionptr = session;
+}
+
+RTSPSession::~RTSPSession()
+{
+	SAFE_DELETE(internal);
+}
+
+void RTSPSession::setAuthenInfo(const std::string& username, const std::string& password)
+{
+	internal->username = username;
+	internal->password = password;
+}
+const URL& RTSPSession::url() const
+{
+	return internal->url;
+}
+uint32_t RTSPSession::sendListSize() const
+{
+	return internal->sendListSize();
+}
+uint64_t RTSPSession::prevAlivetime() const
+{
+	if (internal->socketdisconnected) return 0;
+
+	return internal->prevalivetime();
+}
+shared_ptr<RTSPCommandRequestHandler> RTSPSession::handler()
+{
+	return internal->handler;
+}
+void RTSPSession::sendOptionResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, const std::string& cmdstr)
+{
+	internal->sendOptionResponse(cmdinfo, cmdstr);
+}
+void RTSPSession::sendDescribeResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, const MEDIA_INFO& mediainfo)
+{
+	internal-> sendDescribeResponse(cmdinfo, mediainfo);
+}
+void RTSPSession::sendSetupResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, const TRANSPORT_INFO& transport)
+{
+	internal->sendSetupResponse(cmdinfo, transport);
+}
+void RTSPSession::sendPlayResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo)
+{
+	internal->sendPlayResponse(cmdinfo);
+}
+void RTSPSession::sendPauseResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo)
+{
+	internal->sendPauseResponse(cmdinfo);
+}
+void RTSPSession::sendTeradownResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo)
+{
+	internal->sendTeradownResponse(cmdinfo);
+}
+void RTSPSession::sendGetparameterResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, const std::string& content)
+{
+	internal->sendGetparameterResponse(cmdinfo, content);
+}
+
+void RTSPSession::sendErrorResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, int errcode, const std::string& errmsg)
+{
+	internal->sendErrorResponse(cmdinfo, errcode, errmsg);
+}
+void RTSPSession::sendMedia(bool video, const FRAME_INFO& info, const char* buffer, uint32_t bufferlen)
+{
+	internal->sendMedia(video, info, buffer, bufferlen);
+}

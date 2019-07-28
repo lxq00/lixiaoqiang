@@ -1,5 +1,5 @@
 #pragma once
-#include "respCmd.h"
+#include "rtspCmd.h"
 #include "HTTP/HTTPParse.h"
 using namespace Public::HTTP;
 
@@ -31,7 +31,7 @@ public:
 	typedef Function2<void, const shared_ptr<HTTPParse::Header>&, const std::string&> CommandCallback;
 	typedef Function3<void, bool,const char*, uint32_t> ExternDataCallback;
 	typedef Function0<void> DisconnectCallback;
-protected:
+public:
 	RTSPProtocol(const shared_ptr<Socket>& sock, const CommandCallback& cmdcallback, const ExternDataCallback& datacallback, const DisconnectCallback& disconnectCallback,bool server)
 		:HTTPParse(!server)
 	{

@@ -47,6 +47,25 @@ struct TRANSPORT_INFO
 };
 
 
+//流信息结构定义
+typedef struct _STREAM_INFO
+{
+	int  nPayLoad;				//荷载类型
+	int	 nWidth;				//图像宽度(只有视频有效)
+	int  nHight;				//图像高度(只有视频有效)
+	int  nSampRate;				//采样率
+	int  nBandwidth;			//带宽(有的媒体信息可能没有描述)
+	int  nChannles;				//通道数(只有音频有效)
+
+	double	 fFramRate;			//帧率(一般只存在于视频描述信息)
+
+	char szProtocol[8];		//传输协议(一般为RTP)
+	char szMediaName[128];		//媒体名称
+	char szTrackID[256];		//track id 用于请求命令
+	char szCodec[10];			//编码方式
+	char szSpsPps[512];		//sps信息(一般为Base64的编码串,用于初始化解码器,一般只存在于视频描述信息)
+
+} STREAM_INFO, * LPSTREAM_INFO;
 
 //媒体信息结构定义
 struct MEDIA_INFO
@@ -121,25 +140,7 @@ typedef struct _FRAME_INFO
 
 }FRAME_INFO, *LPFRAME_INFO;
 
-//流信息结构定义
-typedef struct _STREAM_INFO
-{
-	int  nPayLoad;				//荷载类型
-	int	 nWidth;				//图像宽度(只有视频有效)
-	int  nHight;				//图像高度(只有视频有效)
-	int  nSampRate;				//采样率
-	int  nBandwidth;			//带宽(有的媒体信息可能没有描述)
-	int  nChannles;				//通道数(只有音频有效)
 
-	double	 fFramRate;			//帧率(一般只存在于视频描述信息)
-
-	char szProtocol[8];		//传输协议(一般为RTP)
-	char szMediaName[128];		//媒体名称
-	char szTrackID[256];		//track id 用于请求命令
-	char szCodec[10];			//编码方式
-	char szSpsPps[512];		//sps信息(一般为Base64的编码串,用于初始化解码器,一般只存在于视频描述信息)
-
-} STREAM_INFO, *LPSTREAM_INFO;
 
 
 
@@ -281,4 +282,3 @@ typedef enum
 #define AUDIO_L16 "L16"
 #define VIDEO_H264 "H264"
 
-#endif
