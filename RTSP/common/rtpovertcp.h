@@ -29,14 +29,17 @@ public:
 
 		if (header->m)
 		{
-			datacallback(isvideo, ntohl(header->ts), framedata.c_str(), framedata.length());
+			datacallback(isvideo, ntohl(header->ts), framedata);
 			framedata = "";
 		}
 	}
-	void sendData(bool isvideo, uint32_t timesmap, const char* buffer, uint32_t bufferlen)
+	void sendData(bool isvideo, uint32_t timesmap, const String& data)
 	{
 		if (isvideo && !rtspmedia.media.bHasVideo) return;
 		if (!isvideo && !rtspmedia.media.bHasAudio) return;
+
+		const char* buffer = data.c_str();
+		uint32_t bufferlen = data.length();
 
 		while (bufferlen > 0)
 		{
@@ -60,5 +63,5 @@ public:
 private:
 	RTSPProtocol*			 protocol;
 	uint16_t				 rtpsn;
-	std::string				 framedata;
+	String					 framedata;
 };

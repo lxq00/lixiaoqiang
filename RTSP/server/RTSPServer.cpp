@@ -56,7 +56,7 @@ struct RTSPServer::RTSPServerInternal
 	void onsocketaccept(const weak_ptr<Socket>& sock, const shared_ptr<Socket>& newsock)
 	{
 		{
-			shared_ptr<RTSPServerSession> session = make_shared<RTSPServerSession>(ioworker,newsock, listencallback, useragent);
+			shared_ptr<RTSPServerSession> session = shared_ptr<RTSPServerSession>(new  RTSPServerSession(ioworker,newsock, listencallback, useragent));
 			session->initRTSPServerSessionPtr(session);
 
 

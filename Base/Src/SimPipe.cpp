@@ -84,7 +84,7 @@ struct SimPipe::Internal
 			uint64_t off = (uint64_t)((int64_t)readpos + offset);
 			if (off >= 0 && off <= writepos)
 			{
-				readpos = off;
+				readpos = (size_t)off;
 				return true;
 			}
 			else return false;
@@ -110,7 +110,7 @@ struct SimPipe::Internal
 			uint64_t off = (uint64_t)((int64_t)writepos + offset);
 			if (off >= readpos && off <= writepos)
 			{
-				writepos = off;
+				writepos = (size_t)off;
 				return true;
 			}
 			else return false;

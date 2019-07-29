@@ -32,8 +32,8 @@ typedef int (*stricmpFunc)(const char* str1, const char* str2);
 extern stricmpFunc stricmp;
 
 #ifdef WIN32
-	snprintfFunc snprintf = ::_snprintf;
-	stricmpFunc stricmp = ::_stricmp;
+snprintfFunc snprintf = ::_snprintf;
+stricmpFunc stricmp = ::_stricmp;
 #else
 	snprintfFunc snprintf = ::snprintf;
 	stricmpFunc stricmp = ::strcasecmp;
@@ -447,6 +447,183 @@ std::string String::snprintf_x(int maxsize, const char* fmt, ...)
     va_end(arg);
     return strbuf.c_str();
 }
+
+
+
+
+
+struct String::StringInternal
+{
+	struct StringBufer
+	{
+		char* buffer;
+		size_t bufferSize;
+		size_t dataLength;
+		shared_ptr<IMempoolInterface> mempool;
+
+		StringBufer() :buffer(NULL), bufferSize(0), dataLength(0) {}
+		~StringBufer()
+		{
+			if (buffer != NULL)
+			{
+				if (mempool) mempool->Free(buffer);
+				else SAFE_DELETEARRAY(buffer);
+			}
+
+			buffer = NULL;
+			bufferSize = 0;
+			dataLength = 0;
+		}
+	};
+
+	shared_ptr<StringBufer> buffer;
+	shared_ptr<IMempoolInterface> mempool;
+
+
+	void resize(size_t size)
+	{
+		shared_ptr<StringBufer> newbuffer;
+		if (size > 0)
+		{
+			newbuffer = make_shared<StringBufer>();
+			newbuffer->mempool = mempool;
+
+			if (mempool) newbuffer->buffer = (char*)mempool->Malloc(size, newbuffer->bufferSize);
+		}
+
+		buffer = newbuffer;
+	}
+
+	void setval(const char* ptr, size_t size)
+	{
+		if (ptr == NULL || size <= 0) return;
+
+		if (buffer == NULL || size > buffer->bufferSize)
+		{
+			resize(size);
+		}
+
+		if (buffer == NULL || buffer->buffer == NULL) return;
+
+		memcpy(buffer->buffer, ptr, size);
+		buffer->dataLength = size;
+	}
+
+	void append(const char* ptr, size_t size)
+	{
+		if (ptr == NULL || size <= 0) return;
+
+		if (buffer == NULL || size + buffer->dataLength > buffer->bufferSize)
+		{
+			shared_ptr<StringBufer> nowbuffer = buffer;
+
+			resize(buffer == NULL ? size : size + buffer->dataLength);
+
+			if (nowbuffer != NULL || buffer != NULL)
+			{
+				memcpy(buffer->buffer, nowbuffer->buffer, nowbuffer->dataLength);
+				buffer->dataLength = nowbuffer->dataLength;
+			}
+		}
+
+		if (buffer == NULL || buffer->buffer == NULL || buffer->dataLength + size > buffer->bufferSize) return;
+		memcpy(buffer->buffer + buffer->dataLength, ptr, size);
+		buffer->dataLength += size;
+	}
+};
+
+String::String(const shared_ptr<IMempoolInterface>& mempool)
+{
+	internal = new StringInternal;
+	internal->mempool = mempool;
+}
+String::String(const char* str, const shared_ptr<IMempoolInterface>& mempool)
+{
+	internal = new StringInternal;
+	internal->mempool = mempool;
+
+	if (str != NULL)
+		internal->setval(str, strlen(str));
+}
+String::String(const char* str, size_t len, const shared_ptr<IMempoolInterface>& mempool)
+{
+	internal = new StringInternal;
+	internal->mempool = mempool;
+
+	if(str != NULL && len > 0)
+		internal->setval(str, len);
+}
+String::String(const std::string& str, const shared_ptr<IMempoolInterface>& mempool)
+{
+	internal = new StringInternal;
+	internal->mempool = mempool;
+	internal->setval(str.c_str(), str.length());
+}
+String::String(const String& str, const shared_ptr<IMempoolInterface>& mempool)
+{
+	internal = new StringInternal;
+	internal->mempool = mempool;
+	internal->buffer = str.internal->buffer;
+}
+String::~String()
+{
+	SAFE_DELETE(internal);
+}
+
+const char* String::c_str() const
+{
+	static const char* emtpystr = "";
+	if (internal == NULL || internal->buffer == NULL || internal->buffer->buffer == NULL) return emtpystr;
+
+	return internal->buffer->buffer;
+}
+size_t String::length() const
+{
+	if (internal == NULL || internal->buffer == NULL) return 0;
+
+	return internal->buffer->dataLength;
+}
+void String::resize(size_t size)
+{
+	internal->resize(size);
+}
+
+String& String::operator = (const char* str)
+{
+	if (str != NULL)
+		internal->setval(str, strlen(str));
+	return *this;
+}
+String& String::operator = (const std::string& str)
+{
+	internal->setval(str.c_str(), str.length());
+	return *this;
+}
+String& String::operator = (const String& str)
+{
+	internal->buffer = str.internal->buffer;
+	return *this;
+}
+
+String& String::operator +=(const char* str)
+{
+	if (str != NULL)
+		internal->append(str, strlen(str));
+	return *this;
+}
+String& String::operator +=(const std::string& str)
+{
+	internal->append(str.c_str(), str.length());
+	return *this;
+}
+String& String::operator +=(const String& str)
+{
+	if (str.internal->buffer && str.internal->buffer->buffer)
+		internal->append(str.internal->buffer->buffer, str.internal->buffer->dataLength);
+	return *this;
+}
+
+
 
 } // namespace Base
 } // namespace Public

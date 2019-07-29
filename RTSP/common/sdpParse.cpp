@@ -100,8 +100,8 @@ bool ParseSDP(char const* sdpDescription, MEDIA_INFO* pMediaInfo)
 		//»ñÈ¡PayLoad
 		pStreanInfo->nPayLoad = payloadFormat;
 		//copy info
-		strcpy(pStreanInfo->szProtocol, protocolName);
-		strcpy(pStreanInfo->szMediaName, mediumName);
+		pStreanInfo->szProtocol = protocolName;
+		pStreanInfo->szMediaName = mediumName;
 
 		while (1)
 		{
@@ -250,14 +250,14 @@ bool parseSDPAttribute_framerate(char const* sdpLine, double &fVideoFPS)
 	return parseSuccess;
 }
 
-bool parseSDPAttribute_control(char const* sdpLine, char *pcontrol)
+bool parseSDPAttribute_control(char const* sdpLine, std::string& pcontrol)
 {
 	bool parseSuccess = false;
 
 	char* controlPath = strDupSize(sdpLine); // ensures we have enough space
 	if (sscanf(sdpLine, "a=control: %s", controlPath) == 1)
 	{
-		strcpy(pcontrol, controlPath);
+		pcontrol = controlPath;
 		parseSuccess = true;
 	}
 	delete[] controlPath;
@@ -265,7 +265,7 @@ bool parseSDPAttribute_control(char const* sdpLine, char *pcontrol)
 	return parseSuccess;
 }
 
-bool parseSDPAttribute_range(char const* sdpLine, char* pRange)
+bool parseSDPAttribute_range(char const* sdpLine, std::string& pRange)
 {
 	bool parseSuccess = false;
 
@@ -283,7 +283,7 @@ bool parseSDPAttribute_source_filter(char const* sdpLine)
 	return true;
 }
 
-bool parseSDPAttribute_rtpmap(char const* sdpLine, char* pCodecName, int &nPayLoad, int &nTimestampFrequency, int &nNumChannels)
+bool parseSDPAttribute_rtpmap(char const* sdpLine, std::string& pCodecName, int &nPayLoad, int &nTimestampFrequency, int &nNumChannels)
 {
 	// Check for a "a=rtpmap:<fmt> <codec>/<freq>" line:
 	// (Also check without the "/<freq>"; RealNetworks omits this)
@@ -298,7 +298,7 @@ bool parseSDPAttribute_rtpmap(char const* sdpLine, char* pCodecName, int &nPayLo
 		sscanf(sdpLine, "a=rtpmap: %u %[^/]/%u", &rtpmapPayloadFormat, codecName, &rtpTimestampFrequency) == 3 ||
 		sscanf(sdpLine, "a=rtpmap: %u %s", &rtpmapPayloadFormat, codecName) == 2)
 	{
-		strcpy(pCodecName, codecName);
+		pCodecName = codecName;
 		nTimestampFrequency = rtpTimestampFrequency;
 		nPayLoad = rtpmapPayloadFormat;
 		nNumChannels = numChannels;
@@ -344,9 +344,14 @@ static char* parseCLine(char const* sdpLine)
 	return resultStr;
 }
 
-static bool parseRangeAttribute(char const* sdpLine, char* strRange)
+static bool parseRangeAttribute(char const* sdpLine, std::string& strRange)
 {
-	return sscanf(sdpLine, "a=range:npt=%[^/\r\n]", strRange) == 1;
+	char rangebuffer[1024] = { 0 };
+	if (sscanf(sdpLine, "a=range:npt=%[^/\r\n]", rangebuffer) != 1) return false;
+
+	strRange = rangebuffer;
+
+	return true;
 }
 
 //.........................................................................................................
@@ -367,7 +372,7 @@ bool parseSDPAttribute_x_dimensions(char const* sdpLine, int& nWidth, int& nHeig
 	return parseSuccess;
 }
 
-bool parseSDPAttribute_fmtp(char const* sdpLine, char* pSpsBufer)
+bool parseSDPAttribute_fmtp(char const* sdpLine, std::string& pSpsBufer)
 {
 	// Check for a "a=fmtp:" line:
 	// TEMP: We check only for a handful of expected parameter names #####
@@ -460,7 +465,7 @@ bool parseSDPAttribute_fmtp(char const* sdpLine, char* pSpsBufer)
 			else if (sscanf(sdpLine, " sprop-parameter-sets = %[^; \t\r\n]", valueStr) == 1)
 			{
 				// Note: We used "sdpLine" here, because the value is case-sensitive.
-				strcpy(pSpsBufer, valueStr);
+				pSpsBufer = valueStr;
 			}
 			else if (sscanf(line, " emphasis = %[^; \t\r\n]", valueStr) == 1)
 			{
@@ -523,7 +528,7 @@ bool ParseTrackID(char *sdp, MEDIA_INFO *sMediaInfo)
 	if ((int)std::string::npos == endPos_tarck_video) 
 		return false;
 	// /trackVedio
-	memcpy(sMediaInfo->stStreamVideo.szTrackID, sdp + beginPos_tarck_video + strlen("a=control:"), endPos_tarck_video - beginPos_tarck_video - strlen("a=control:"));
+	sMediaInfo->stStreamVideo.szTrackID = std::string(sdp + beginPos_tarck_video + strlen("a=control:"), endPos_tarck_video - beginPos_tarck_video - strlen("a=control:"));
 
 	int nAudioPose =  strInfo.find("m=audio");
 	if ((int)std::string::npos == nAudioPose)
@@ -541,7 +546,7 @@ bool ParseTrackID(char *sdp, MEDIA_INFO *sMediaInfo)
 			endPos_tarck_audio = strInfo.find('\n', beginPos_tarck_audio + 1);
 		if ((int)std::string::npos == endPos_tarck_audio) 
 			return false;
-		memcpy(sMediaInfo->stStreamAudio.szTrackID, sdp + beginPos_tarck_audio + strlen("a=control:"), endPos_tarck_audio - beginPos_tarck_audio - strlen("a=control:"));
+		sMediaInfo->stStreamAudio.szTrackID = std::string(sdp + beginPos_tarck_audio + strlen("a=control:"), endPos_tarck_audio - beginPos_tarck_audio - strlen("a=control:"));
 	}
 
 	return true;

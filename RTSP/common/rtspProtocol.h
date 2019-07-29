@@ -1,5 +1,4 @@
 #pragma once
-#include "rtspCmd.h"
 #include "HTTP/HTTPParse.h"
 using namespace Public::HTTP;
 
@@ -30,7 +29,7 @@ class RTSPProtocol:public HTTPParse
 		int audioChannel;
 	};
 public:
-	typedef Function2<void, const shared_ptr<HTTPParse::Header>&, const std::string&> CommandCallback;
+	typedef Function1<void, const shared_ptr<RTSPCommandInfo>&> CommandCallback;
 	typedef Function3<void, bool,const char*, uint32_t> ExternDataCallback;
 	typedef Function0<void> DisconnectCallback;
 public:
@@ -223,7 +222,19 @@ private:
 
 			if (m_header != NULL && m_bodylen == m_body.length())
 			{
-				m_cmdcallback(m_header, m_body);
+				shared_ptr<RTSPCommandInfo> cmd = make_shared<RTSPCommandInfo>();
+				cmd->method = m_header->method;
+				cmd->url = m_header->url.href();
+				cmd->verinfo.protocol = m_header->verinfo.protocol;
+				cmd->verinfo.version = m_header->verinfo.version;
+				cmd->statuscode = m_header->statuscode;
+				cmd->statusmsg = m_header->statusmsg;
+				cmd->headers = std::move(m_header->headers);
+				
+				cmd->body = std::move(m_body);
+				cmd->cseq = cmd->header("CSeq").readInt();
+
+				m_cmdcallback(cmd);
 				m_header = NULL;
 				m_body = "";
 				m_haveFindHeaderStart = false;;

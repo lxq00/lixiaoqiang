@@ -3,7 +3,6 @@
 #include "../common/sdpParse.h"
 #include "../common/rtspTransport.h"
 #include "../common/rtspRange.h"
-#include "../common/rtspCMD.h"
 
 namespace Public {
 namespace RTSP {
@@ -60,34 +59,23 @@ RTSPClientManager::~RTSPClientManager()
 }
 
 
-shared_ptr<RTSPClient> RTSPClientManager::create(const shared_ptr<RTSPClientHandler>& handler, const std::string& pRtspUrl)
+shared_ptr<RTSPClient> RTSPClientManager::create(const shared_ptr<RTSPClientHandler>& handler, const RTSPUrl& pRtspUrl)
 {
-	if (!CheckUrl(pRtspUrl) || handler == NULL) return make_shared<RTSPClient>();
+	if (handler == NULL) return shared_ptr<RTSPClient>();
 
 	//const std::shared_ptr<IOWorker>& work, const shared_ptr<RTSPClientHandler>& handler, const std::string& rtspUrl,const std::string& useragent);
-	shared_ptr<RTSPClient> client = make_shared<RTSPClient>(internal->worker,handler,pRtspUrl,internal->useragent);
+	shared_ptr<RTSPClient> client = shared_ptr<RTSPClient>(new RTSPClient(internal->worker,handler,
+		RTSPClient::AllockUdpPortCallback(&RTSPClientManagerInternal::allockRTPPort, internal),pRtspUrl,internal->useragent));
 
 	return client;
 }
-
-bool RTSPClientManager::CheckUrl(const std::string& pRtspUrltmp)
+bool RTSPClientManager::initRTPOverUdpType(uint32_t startport, uint32_t stopport)
 {
-	RTSPUrlInfo info;
-
-	return info.parse(pRtspUrltmp);
-}
-
-bool RTSPClientManager::GetUserInfo(const std::string& pRtspUrl, std::string& pUserName, std::string& pPassWord)
-{
-	RTSPUrlInfo info;
-	if (!info.parse(pRtspUrl))
-	{
-		return false;
-	}
-	pUserName = info.m_szUserName;
-	pPassWord = info.m_szPassWord;
+	internal->udpstartport = internal->nowudpport = min(startport,stopport);
+	internal->udpstopport = max(startport, stopport);
 
 	return true;
 }
+
 }
 }

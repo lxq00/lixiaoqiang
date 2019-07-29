@@ -1,10 +1,11 @@
-#ifndef _rtsp_header_transport_h_
-#define _rtsp_header_transport_h_
-#include "RTSP/RTSPStructs.h"
+#pragma  once
 
+#include "Base/Base.h"
+#include "RTSP/RTSP.h"
+using namespace Public::RTSP;
+using namespace Public::Base;
 
-int rtsp_header_transport(const char* field, TRANSPORT_INFO* t);
+int rtsp_header_parse_transport(const char* field, TRANSPORT_INFO* t);
 
-std::string buildTransport(const TRANSPORT_INFO& transport);
+std::string rtsp_header_build_transport(const TRANSPORT_INFO& transport);
 
-#endif

@@ -3,6 +3,7 @@
 #include "Defs.h"
 #include "Base/Base.h"
 #include "RTSPStructs.h"
+#include "RTSPUrl.h"
 #include "Network/Network.h"
 using namespace Public::Base;
 using namespace Public::Network;
@@ -18,13 +19,13 @@ class RTSP_API RTSPClient
 	struct RTSPClientInternal;
 
 	typedef Function0<uint32_t> AllockUdpPortCallback;
-	RTSPClient(const std::shared_ptr<IOWorker>& work, const shared_ptr<RTSPClientHandler>& handler, const std::string& rtspUrl,const std::string& useragent);
+	RTSPClient(const std::shared_ptr<IOWorker>& work, const shared_ptr<RTSPClientHandler>& handler, const AllockUdpPortCallback& allockport,const RTSPUrl& rtspUrl,const std::string& useragent);
 public:
 	~RTSPClient();
 
 	/*设置RTP数据接收方式 0:TCP，1:UDP  默认UDP*/
 	bool initRTPOverTcpType();
-	bool initRTPOverUdpType(const AllockUdpPortCallback& allockport);
+	bool initRTPOverUdpType();
 
 	/*准备数据接收，包括启动数据接收线程，心跳线程*/
 	//timeout 连接超时时间，
@@ -55,7 +56,7 @@ public:
 	//同步命令,同步返回
 	bool sendTeradownRequest(uint32_t timeout);
 
-	bool sendMedia(bool isvideo, uint32_t timestmap, const char* buffer, uint32_t bufferlen);
+	bool sendMedia(bool isvideo, uint32_t timestmap, const String& data);
 private:
 	RTSPClientInternal *internal;
 };
@@ -78,7 +79,7 @@ public:
 	virtual void onErrorResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo,int statuscode,const std::string& errmsg) {}
 
 	virtual void onClose() = 0;
-	virtual void onMediaCallback(bool isvideo, uint32_t timestmap, const char* buffer, uint32_t bufferlen) {}
+	virtual void onMediaCallback(bool isvideo, uint32_t timestmap, const String& data) {}
 };
 
 class RTSP_API RTSPClientManager
@@ -93,14 +94,7 @@ public:
 	bool initRTPOverUdpType(uint32_t startport = 40000, uint32_t stopport = 4100);
 
 	//创建一个对象
-	shared_ptr<RTSPClient> create(const shared_ptr<RTSPClientHandler>& handler, const std::string& pRtspUrl);
-
-
-	/*检查url是否合法，如果合法*/
-	static bool CheckUrl(const std::string& pRtspUrl);
-
-	/*获取用户名密码，解析出url中包含的服务器地址，端口，用户名，密码*/
-	static bool GetUserInfo(const std::string& pRtspUrl, std::string& pUserName, std::string& pPassWord);
+	shared_ptr<RTSPClient> create(const shared_ptr<RTSPClientHandler>& handler, const RTSPUrl& pRtspUrl);
 private:
 	RTSPClientManagerInternal * internal;
 };

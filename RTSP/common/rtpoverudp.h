@@ -65,10 +65,13 @@ public:
 		audiortcp = NULL;
 	}
 	
-	void sendData(bool isvideo, uint32_t timesmap, const char* buffer, uint32_t bufferlen)
+	void sendData(bool isvideo, uint32_t timesmap, const String& data)
 	{
 		if (isvideo && !rtspmedia.media.bHasVideo) return;
 		if (!isvideo && !rtspmedia.media.bHasAudio) return;
+
+		const char* buffer = data.c_str();
+		uint32_t bufferlen = data.length();
 
 		while (bufferlen > 0)
 		{
@@ -254,7 +257,7 @@ public:
 		while (framelist.size() > 0)
 		{
 			bool isdatafull = false;
-
+			uint32_t framesize = 0;
 			{
 				uint32_t checkframesize = 0;
 				for (std::list<FrameInfo>::iterator iter = framelist.begin(); iter != framelist.end(); iter++, checkframesize++)
@@ -274,6 +277,8 @@ public:
 					if (prevframesn > iter->sn || prevframesn == 0) prevframesn = iter->sn;
 					else if (prevframesn + 1 != nextiter->sn) break;
 
+					framesize += iter->framedata.length();
+
 					if (iter->mark || nextiter->mark)
 					{
 						isdatafull = true;
@@ -288,7 +293,8 @@ public:
 			{
 				uint32_t getframenum = 0;
 				uint32_t timestmap = 0;
-				std::string framedata;
+				String framedata;
+				framedata.resize(framesize);
 
 				while (framelist.size() > 0)
 				{
@@ -311,7 +317,7 @@ public:
 
 				if (framedata.length() > 0)
 				{
-					datacallback(isvideo, timestmap, framedata.c_str(), framedata.length());
+					datacallback(isvideo, timestmap, framedata);
 				}
 			}
 		}

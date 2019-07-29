@@ -1,5 +1,6 @@
 #pragma once
 #include "Base/Base.h"
+#include "RTSP/RTSPStructs.h"
 #include "HTTP/HTTPParse.h"
 using namespace Public::Base;
 using namespace Public::HTTP;
@@ -59,11 +60,11 @@ typedef struct _STREAM_INFO
 
 	double	 fFramRate;			//帧率(一般只存在于视频描述信息)
 
-	char szProtocol[8];		//传输协议(一般为RTP)
-	char szMediaName[128];		//媒体名称
-	char szTrackID[256];		//track id 用于请求命令
-	char szCodec[10];			//编码方式
-	char szSpsPps[512];		//sps信息(一般为Base64的编码串,用于初始化解码器,一般只存在于视频描述信息)
+	std::string szProtocol;		//传输协议(一般为RTP)
+	std::string szMediaName;		//媒体名称
+	std::string szTrackID;		//track id 用于请求命令
+	std::string szCodec;			//编码方式
+	std::string szSpsPps;		//sps信息(一般为Base64的编码串,用于初始化解码器,一般只存在于视频描述信息)
 
 } STREAM_INFO, * LPSTREAM_INFO;
 
@@ -147,14 +148,36 @@ typedef struct _FRAME_INFO
 
 
 //RTSP命令信息
-struct RTSP_API RTSPCommandInfo :public HTTPParse::Header
+struct RTSP_API RTSPCommandInfo
 {
-	uint32_t		CSeq;
-	std::string		session;
+	std::string		method;
+	std::string		url;
+	struct {
+		std::string protocol;
+		std::string	version;
+	}verinfo;
+
+	int				statuscode;
+	std::string		statusmsg;
+
+	std::map<std::string, Value> headers;
+
+	uint32_t		cseq;
 
 	std::string		body;
 
-	RTSPCommandInfo():CSeq(0){}
+	RTSPCommandInfo():cseq(0){}
+	Value header(const std::string& key) const
+	{
+		for (std::map<std::string, Value>::const_iterator iter = headers.begin(); iter != headers.end(); iter++)
+		{
+			if (strcasecmp(key.c_str(), iter->first.c_str()) == 0)
+			{
+				return iter->second;
+			}
+		}
+		return Value();
+	}
 };
 
 

@@ -109,11 +109,13 @@
     <ClInclude Include="..\Include\RTSP\RTSPClient.h" />
     <ClInclude Include="..\Include\RTSP\RTSPServer.h" />
     <ClInclude Include="..\Include\RTSP\RTSPStructs.h" />
+    <ClInclude Include="..\Include\RTSP\RTSPUrl.h" />
     <ClInclude Include="client\RTSPClient.cpp" />
+    <ClInclude Include="client\RTSPClientInternal.h" />
     <ClInclude Include="common\rtp.h" />
     <ClInclude Include="common\rtpovertcp.h" />
     <ClInclude Include="common\rtpoverudp.h" />
-    <ClInclude Include="common\rtspCMD.h" />
+    <ClInclude Include="common\WWW_Authenticate.h" />
     <ClInclude Include="common\rtspProtocol.h" />
     <ClInclude Include="common\rtspRange.h" />
     <ClInclude Include="common\rtspTransport.h" />
@@ -126,9 +128,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="client\RTSPClientManager.cpp" />
-    <ClCompile Include="common\rtspCMD.cpp" />
     <ClCompile Include="common\rtspRange.c" />
     <ClCompile Include="common\rtspTransport.c" />
+    <ClCompile Include="common\RTSPUrl.cpp" />
     <ClCompile Include="common\sdpParse.cpp" />
     <ClCompile Include="common\strDup.cpp" />
     <ClCompile Include="server\RTSPServer.cpp" />

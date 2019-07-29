@@ -19,8 +19,6 @@
 
 namespace Public {
 namespace Base {
-
-
 ///	安全的字符串连接
 ///	\param [out] dest:目标buffer,如果目标buffer没有'\0'结束，会设最后一个字符为'\0',返回0
 ///	\param [in]	dstBufLen,目标buffer空间大小,该函数最多写入dstBufLen-1个字符，并且在写入字符后面添加'\0'字符
@@ -53,6 +51,27 @@ int  BASE_API snprintf_x(char* buf, int maxlen, const char* fmt, ... );
 
 class BASE_API String
 {
+	struct StringInternal;
+	StringInternal* internal;
+public:
+	String(const shared_ptr<IMempoolInterface>& mempool = shared_ptr<IMempoolInterface>());
+	String(const char* str, const shared_ptr<IMempoolInterface>& mempool = shared_ptr<IMempoolInterface>());
+	String(const char* str, size_t len, const shared_ptr<IMempoolInterface>& mempool = shared_ptr<IMempoolInterface>());
+	String(const std::string& str, const shared_ptr<IMempoolInterface>& mempool = shared_ptr<IMempoolInterface>());
+	String(const String& str, const shared_ptr<IMempoolInterface>& mempool = shared_ptr<IMempoolInterface>());
+	~String();
+
+	const char* c_str() const;
+	size_t length() const;
+	void resize(size_t size);
+
+	String& operator = (const char* str);
+	String& operator = (const std::string& str);
+	String& operator = (const String& str);
+
+	String& operator +=(const char* str);
+	String& operator +=(const std::string& str);
+	String& operator +=(const String& str);
 public:
 	//字符串转小写
 	static std::string tolower(const std::string& src);
@@ -112,7 +131,9 @@ public:
 #define strcasecmp _stricmp
 #define snprintf _snprintf
 #define strncasecmp _strnicmp
-inline const char* strcasestr(const char* srcstr, const char* substr)
+
+
+inline	const char* strcasestr(const char* srcstr, const char* substr)
 {
 	if (srcstr == NULL || substr == NULL)
 	{
@@ -128,8 +149,8 @@ inline const char* strcasestr(const char* srcstr, const char* substr)
 	}
 	return ptmp;
 }
-#endif
 
+#endif
 
 } // namespace Base
 } // namespace Public
