@@ -9,4 +9,5 @@ using namespace Public::Base;
 std::string rtsp_header_build_sdp(const MEDIA_INFO& info);
 bool rtsp_header_parse_sdp(char const* sdpDescription, MEDIA_INFO* pMediaInfo);
 
+
 #endif

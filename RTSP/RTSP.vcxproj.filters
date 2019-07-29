@@ -63,9 +63,6 @@
     <ClInclude Include="client\RTSPClientInternal.h">
       <Filter>源文件\client</Filter>
     </ClInclude>
-    <ClInclude Include="common\WWW_Authenticate.h">
-      <Filter>源文件\common</Filter>
-    </ClInclude>
     <ClInclude Include="common\rtspHeaderRange.h">
       <Filter>源文件\common</Filter>
     </ClInclude>
@@ -73,6 +70,12 @@
       <Filter>源文件\common</Filter>
     </ClInclude>
     <ClInclude Include="common\rtspHeaderSdp.h">
+      <Filter>源文件\common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\wwwAuthenticate.h">
+      <Filter>源文件\common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\rtcp.h">
       <Filter>源文件\common</Filter>
     </ClInclude>
   </ItemGroup>
@@ -88,9 +91,6 @@
     <ClCompile Include="client\RTSPClientManager.cpp">
       <Filter>源文件\client</Filter>
     </ClCompile>
-    <ClCompile Include="common\strDup.cpp">
-      <Filter>源文件\common</Filter>
-    </ClCompile>
     <ClCompile Include="common\RTSPUrl.cpp">
       <Filter>源文件\common</Filter>
     </ClCompile>
@@ -104,6 +104,9 @@
       <Filter>源文件\common</Filter>
     </ClCompile>
     <ClCompile Include="common\rtspHeaderSdp.cpp">
+      <Filter>源文件\common</Filter>
+    </ClCompile>
+    <ClCompile Include="common\rtcp.cpp">
       <Filter>源文件\common</Filter>
     </ClCompile>
   </ItemGroup>

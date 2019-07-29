@@ -4,7 +4,7 @@
 #include "../common/rtspHeaderSdp.h"
 #include "../common/rtspHeaderTransport.h"
 #include "../common/rtspHeaderRange.h"
-#include "../common/WWW_Authenticate.h"
+#include "../common/wwwAuthenticate.h"
 #include "../common/rtpovertcp.h"
 #include "../common/rtpoverudp.h"
 

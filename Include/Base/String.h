@@ -65,6 +65,8 @@ public:
 	size_t length() const;
 	void resize(size_t size);
 
+
+
 	String& operator = (const char* str);
 	String& operator = (const std::string& str);
 	String& operator = (const String& str);
@@ -72,6 +74,10 @@ public:
 	String& operator +=(const char* str);
 	String& operator +=(const std::string& str);
 	String& operator +=(const String& str);
+
+	String& append(const char* str,size_t size);
+	String& append(const std::string& str);
+	String& append(const String& str);
 public:
 	//×Ö·û´®×ªÐ¡Ð´
 	static std::string tolower(const std::string& src);

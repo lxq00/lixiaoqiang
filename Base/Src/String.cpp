@@ -623,7 +623,25 @@ String& String::operator +=(const String& str)
 	return *this;
 }
 
+String& String::append(const char* str, size_t size)
+{
+	if (str != NULL && size >= 0)
+		internal->append(str, size);
 
+	return *this;
+}
+String& String::append(const std::string& str)
+{
+	internal->append(str.c_str(), str.length());
+
+	return *this;
+}
+String& String::append(const String& str)
+{
+	internal->append(str.c_str(), str.length());
+
+	return *this;
+}
 
 } // namespace Base
 } // namespace Public

@@ -112,10 +112,11 @@
     <ClInclude Include="..\Include\RTSP\RTSPUrl.h" />
     <ClCompile Include="client\RTSPClient.cpp" />
     <ClInclude Include="client\RTSPClientInternal.h" />
+    <ClInclude Include="common\rtcp.h" />
     <ClInclude Include="common\rtp.h" />
     <ClInclude Include="common\rtpovertcp.h" />
     <ClInclude Include="common\rtpoverudp.h" />
-    <ClInclude Include="common\WWW_Authenticate.h" />
+    <ClInclude Include="common\wwwAuthenticate.h" />
     <ClInclude Include="common\rtspProtocol.h" />
     <ClInclude Include="common\rtspHeaderRange.h" />
     <ClInclude Include="common\rtspHeaderTransport.h" />
@@ -128,11 +129,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="client\RTSPClientManager.cpp" />
+    <ClCompile Include="common\rtcp.cpp" />
     <ClCompile Include="common\rtspHeaderRange.cpp" />
     <ClCompile Include="common\rtspHeaderTransport.cpp" />
     <ClCompile Include="common\RTSPUrl.cpp" />
     <ClCompile Include="common\rtspHeaderSdp.cpp" />
-    <ClCompile Include="common\strDup.cpp" />
     <ClCompile Include="server\RTSPServer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

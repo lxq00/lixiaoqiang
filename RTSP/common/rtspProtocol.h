@@ -205,7 +205,7 @@ private:
 			if (m_header != NULL && m_bodylen > m_body.length())
 			{
 				uint32_t needlen = min(m_bodylen - m_body.length(), buffertmplen);
-				m_body += std::string(buffertmp, needlen);
+				m_body.append(buffertmp, needlen);
 				buffertmp += needlen;
 				buffertmplen -= needlen;
 			}
@@ -224,12 +224,13 @@ private:
 				if (m_header != NULL)
 				{
 					m_bodylen = m_header->header(Content_Length).readInt();
+					m_body.resize(m_bodylen);
 				}
 			}
 			else if (m_extdataLen != 0 && m_extdataLen > m_extdata.length())
 			{
 				uint32_t needlen = min(m_extdataLen - m_extdata.length(), buffertmplen);
-				m_extdata += std::string(buffertmp, needlen);
+				m_extdata.append(buffertmp, needlen);
 				buffertmp += needlen;
 				buffertmplen -= needlen;
 			}
@@ -247,7 +248,7 @@ private:
 				}
 				m_extdataLen = datalen;
 				m_extdatach = frame->channel;
-
+				m_extdata.resize(m_extdataLen);
 				if (m_extdataLen <= 0)
 				{
 					assert(0);
