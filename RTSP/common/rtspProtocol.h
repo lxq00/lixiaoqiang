@@ -257,25 +257,22 @@ private:
 			}
 			else if(!m_haveFindHeaderStart)
 			{
-				//放到头解析里去解析的数据一定是可显示的文本数据，如果不是，那么跳过
-				if (*buffertmp < 0x20 || *buffertmp >= 0x7f)
+				uint32_t ret = checkIsRTSPCommandStart(buffertmp, buffertmplen);
+				if (ret == 0)
 				{
 					assert(0);
 					buffertmp++;
 					buffertmplen--;
 					continue;
 				}
-				if (buffertmplen < strlen(RTSPCMDFLAG)) break;
-
-				if (strncasecmp(buffertmp, RTSPCMDFLAG,strlen(RTSPCMDFLAG)) != 0)
+				else if (ret == 1)
 				{
-					assert(0);
-					buffertmp++;
-					buffertmplen--;
-					continue;
+					break;
 				}
-
-				m_haveFindHeaderStart = true;
+				else
+				{
+					m_haveFindHeaderStart = true;
+				}
 			}
 			else
 			{
@@ -323,6 +320,31 @@ private:
 		{
 			socktmp->async_recv(m_recvBuffer + m_recvBufferDataLen, MAXPARSERTSPBUFFERLEN - m_recvBufferDataLen, Socket::ReceivedCallback(&RTSPProtocol::onSocketRecvCallback, this));
 		}
+	}
+	// return 0 not cmonnand,return 1 not sure need wait,return 2 is command
+	uint32_t checkIsRTSPCommandStart(const char* buffer, uint32_t len)
+	{
+		static std::string rtspcomandflag = "rtsp";
+
+		while (len > 0)
+		{
+			//b不是可现实字符，不是
+			if (!isCanShowChar(*buffer)) return 0;
+
+			if (len < rtspcomandflag.length()) break;
+
+			//找到标识，是命令
+			if (strncasecmp(buffer, rtspcomandflag.c_str(), rtspcomandflag.length()) == 0) return 2;
+
+			buffer++;
+			len--;
+		}
+		return 1;
+	}
+	//判断是否是显示字符
+	bool isCanShowChar(char ch)
+	{
+		return (ch >= 0x20 && ch < 0x7f);
 	}
 public:
 	shared_ptr<Socket>			m_sock;
