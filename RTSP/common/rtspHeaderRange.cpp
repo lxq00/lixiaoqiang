@@ -1,4 +1,4 @@
-#include "rtspRange.h"
+#include "rtspHeaderRange.h"
 
 // RFC 2326 Real Time Streaming Protocol (RTSP)
 //
@@ -16,6 +16,18 @@
 // Range: clock=19960213T143205Z-;time=19970123T143720Z
 // Range: smpte-25=10:07:00-10:07:33:05.01,smpte-25=11:07:00-11:07:33:05.01
 
+
+std::string rtsp_header_build_range(const RANGE_INFO& range)
+{
+	std::string strtmp;
+	if (range.type == RTSP_RANGE_NPT)
+	{
+		//strtmp = "npt=" + Value(range.from_value).readString()+"-";
+		//if (range.to_value != 0) strtmp + Value(range.to_value).readString();
+	}
+
+	return strtmp;
+}
 
 
 struct time_smpte_t
@@ -122,7 +134,7 @@ struct time_clock_t
 //	smpte=10:07:33-
 //	smpte=10:07:00-10:07:33:05.01
 //	smpte-25=10:07:00-10:07:33:05.01
- int rtsp_header_range_smpte(const char* fields, struct rtsp_header_range_t* range)
+ int rtsp_header_range_smpte(const char* fields, RANGE_INFO* range)
 {
 	const char *p;
 	int hours, minutes, seconds, frames, subframes;
@@ -132,14 +144,14 @@ struct time_clock_t
 	if(!p || '-' != *p)
 		return -1;
 
-	range->from_value = RTSP_RANGE_TIME_NORMAL;
+//	range->from_value = RTSP_RANGE_TIME_NORMAL;
 	range->from = (hours%24)*3600 + (minutes%60)*60 + seconds;
 	range->from = range->from * 1000 + frames % 1000;
 
 	assert('-' == *p);
 	if('\0' == p[1] || strchr(RANGE_SPECIAL, p[1]))
 	{
-		range->to_value = RTSP_RANGE_TIME_NOVALUE;
+//		range->to_value = RTSP_RANGE_TIME_NOVALUE;
 		range->to = 0;
 	}
 	else
@@ -148,7 +160,7 @@ struct time_clock_t
 		if(!p ) return -1;
 		assert('\0' == p[0] || strchr(RANGE_SPECIAL, p[0]));
 
-		range->to_value = RTSP_RANGE_TIME_NORMAL;
+//		range->to_value = RTSP_RANGE_TIME_NORMAL;
 		range->to = (hours%24)*3600 + (minutes%60)*60 + seconds;
 		range->to = range->to * 1000 + frames % 1000;
 	}
@@ -226,19 +238,19 @@ struct time_clock_t
 
 		if(0 == seconds && -1 == fraction)
 		{
-			range->from_value = RTSP_RANGE_TIME_NOW;
+//			range->from_value = RTSP_RANGE_TIME_NOW;
 			range->from = 0L;
 		}
 		else
 		{
-			range->from_value = RTSP_RANGE_TIME_NORMAL;
+//			range->from_value = RTSP_RANGE_TIME_NORMAL;
 			range->from = seconds;
 			range->from = range->from * 1000 + fraction % 1000;
 		}
 	}
 	else
 	{
-		range->from_value = RTSP_RANGE_TIME_NOVALUE;
+//		range->from_value = RTSP_RANGE_TIME_NOVALUE;
 		range->from = 0;
 	}
 
@@ -246,7 +258,7 @@ struct time_clock_t
 	if('\0' == p[1] || strchr(RANGE_SPECIAL, p[1]))
 	{
 		assert('-' != *fields);
-		range->to_value = RTSP_RANGE_TIME_NOVALUE;
+//		range->to_value = RTSP_RANGE_TIME_NOVALUE;
 		range->to = 0;
 	}
 	else
@@ -255,7 +267,7 @@ struct time_clock_t
 		if( !p ) return -1;
 		assert('\0' == p[0] || strchr(RANGE_SPECIAL, p[0]));
 
-		range->to_value = RTSP_RANGE_TIME_NORMAL;
+//		range->to_value = RTSP_RANGE_TIME_NORMAL;
 		range->to = seconds;
 		range->to = range->to * 1000 + fraction % 1000;
 	}
@@ -304,7 +316,7 @@ struct time_clock_t
 // utc-range = "clock" "=" utc-time "-" [ utc-time ]
 // Range: clock=19961108T143720.25Z-
 // Range: clock=19961110T1925-19961110T2015 (p72)
-static int rtsp_header_range_clock(const char* fields, struct rtsp_header_range_t* range)
+static int rtsp_header_range_clock(const char* fields, RANGE_INFO* range)
 {
 	const char* p;
 	uint64_t second;
@@ -314,14 +326,14 @@ static int rtsp_header_range_clock(const char* fields, struct rtsp_header_range_
 	if(!p || '-' != *p)
 		return -1;
 
-	range->from_value = RTSP_RANGE_TIME_NORMAL;
+//	range->from_value = RTSP_RANGE_TIME_NORMAL;
 	range->from = second * 1000;
 	range->from += fraction % 1000;
 
 	assert('-' == *p);
 	if('\0'==p[1] || strchr(RANGE_SPECIAL, p[1]))
 	{
-		range->to_value = RTSP_RANGE_TIME_NOVALUE;
+//		range->to_value = RTSP_RANGE_TIME_NOVALUE;
 		range->to = 0;
 	}
 	else
@@ -329,7 +341,7 @@ static int rtsp_header_range_clock(const char* fields, struct rtsp_header_range_
 		p = rtsp_header_range_clock_time(p+1, &second, &fraction);
 		if( !p ) return -1;
 
-		range->to_value = RTSP_RANGE_TIME_NORMAL;
+//		range->to_value = RTSP_RANGE_TIME_NORMAL;
 		range->to = second * 1000;
 		range->to += (unsigned int)fraction % 1000;
 	}
@@ -337,11 +349,11 @@ static int rtsp_header_range_clock(const char* fields, struct rtsp_header_range_
 	return 0;
 }
 
- int rtsp_header_range(const char* field, MEDIA_INFO* range)
+ int rtsp_header_parse_range(const char* field, RANGE_INFO* range)
 {
 	int r = 0;
 
-	range->time = 0L;
+//	range->time = 0L;
 	while(field && 0 == r)
 	{
 		if(0 == strncasecmp("clock=", field, 6))
@@ -358,33 +370,33 @@ static int rtsp_header_range_clock(const char* fields, struct rtsp_header_range_
 		{
 			range->type = RTSP_RANGE_SMPTE;
 			r = rtsp_header_range_smpte(field+6, range);
-			if(RTSP_RANGE_TIME_NORMAL == range->from_value)
+		//	if(RTSP_RANGE_TIME_NORMAL == range->from_value)
 				range->from = (range->from/1000 * 1000) + (1000/30 * (range->from%1000)); // frame to ms
-			if(RTSP_RANGE_TIME_NORMAL == range->to_value)
+		//	if(RTSP_RANGE_TIME_NORMAL == range->to_value)
 				range->to = (range->to/1000 * 1000) + (1000/30 * (range->to%1000)); // frame to ms
 		}
 		else if(0 == strncasecmp("smpte-30-drop=", field, 15))
 		{
-			range->type = RTSP_RANGE_SMPTE_30;
+		//	range->type = RTSP_RANGE_SMPTE_30;
 			r = rtsp_header_range_smpte(field+15, range);
-			if(RTSP_RANGE_TIME_NORMAL == range->from_value)
+		//	if(RTSP_RANGE_TIME_NORMAL == range->from_value)
 				range->from = (range->from/1000 * 1000) + (1000/30 * (range->from%1000)); // frame to ms
-			if(RTSP_RANGE_TIME_NORMAL == range->to_value)
+		//	if(RTSP_RANGE_TIME_NORMAL == range->to_value)
 				range->to = (range->to/1000 * 1000) + (1000/30 * (range->to%1000)); // frame to ms
 		}
 		else if(0 == strncasecmp("smpte-25=", field, 9))
 		{
-			range->type = RTSP_RANGE_SMPTE_25;
-			r = rtsp_header_range_smpte(field+9, range);
-			if(RTSP_RANGE_TIME_NORMAL == range->from_value)
-				range->from = (range->from/1000 * 1000) + (1000/25 * (range->from%1000)); // frame to ms
-			if(RTSP_RANGE_TIME_NORMAL == range->to_value)
-				range->to = (range->to/1000 * 1000) + (1000/25 * (range->to%1000)); // frame to ms
+			//range->type = RTSP_RANGE_SMPTE_25;
+			//r = rtsp_header_range_smpte(field+9, range);
+			//if(RTSP_RANGE_TIME_NORMAL == range->from_value)
+			//	range->from = (range->from/1000 * 1000) + (1000/25 * (range->from%1000)); // frame to ms
+			//if(RTSP_RANGE_TIME_NORMAL == range->to_value)
+			//	range->to = (range->to/1000 * 1000) + (1000/25 * (range->to%1000)); // frame to ms
 		}
 		else if(0 == strncasecmp("time=", field, 5))
 		{
-			if (rtsp_header_range_clock_time(field + 5, &range->time, &r))
-				range->time = range->time * 1000 + r % 1000;
+			/*if (rtsp_header_range_clock_time(field + 5, &range->time, &r))
+				range->time = range->time * 1000 + r % 1000;*/
 		}
 		
 		field = strchr(field, ';');

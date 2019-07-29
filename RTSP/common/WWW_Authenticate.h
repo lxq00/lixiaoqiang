@@ -32,6 +32,11 @@ public:
 	}
 	static std::string buildWWWAuthenticate(const std::string& method, const std::string& username, const std::string& password)
 	{
+#if 0
+		std::string wwwauthen = std::string("Basic ") + "realm=\"\"";
+
+		return wwwauthen;
+#else
 		std::string timestr = Value(Time::getCurrentMilliSecond()).readString();
 		std::string realmstr,noncestr;
 		{	
@@ -52,6 +57,7 @@ public:
 		std::string wwwauthen = std::string("Digest ") + "realm=\"" + realmstr + "\",nonce=\"" + noncestr + "\"";
 
 		return wwwauthen;
+#endif
 	}
 	static std::string buildAuthorization(const std::string& method, const std::string& username, const std::string& password,const std::string& url, const std::string& wwwauthen)
 	{

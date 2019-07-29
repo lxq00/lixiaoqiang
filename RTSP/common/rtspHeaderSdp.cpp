@@ -1,7 +1,58 @@
-#include "sdpParse.h"
+#include "rtspHeaderSdp.h"
 #include "strDup.h"
 
-bool ParseSDP(char const* sdpDescription, MEDIA_INFO* pMediaInfo)
+bool parseSDPLine(char const* input, char const*& nextLine);
+bool parseSDPLine_s(char const* sdpLine);
+bool parseSDPLine_i(char const* sdpLine);
+bool parseSDPLine_b(char const* sdpLine);
+bool parseSDPLine_c(char const* sdpLine);
+bool parseSDPAttribute_type(char const* sdpLine);
+bool parseSDPAttribute_control(char const* sdpLine, std::string& pcontrol,int& pcontrolid);
+bool parseSDPAttribute_range(char const* sdpLine, std::string& pRange);
+bool parseSDPAttribute_source_filter(char const* sdpLine);
+bool parseSDPAttribute_rtpmap(char const* sdpLine, std::string& pCodecName, int &nPayLoad, int &nTimestampFrequency/*, int &nNumChannels*/);
+bool parseSDPAttribute_framerate(char const* sdpLine, double &fVideoFPS);
+bool parseSDPAttribute_fmtp(char const* sdpLine, std::string& pSpsBufer);
+bool parseSDPAttribute_x_dimensions(char const* sdpLine, int& nWidth, int& nHeight);
+bool parseSDPAttribute_rangetime(char const* sdpLine, uint32_t& starttime, uint32_t& stoptime);
+
+//...........................................static.............................................
+
+static char* lookupPayloadFormat(unsigned char rtpPayloadType, unsigned& rtpTimestampFrequency, unsigned& numChannels);
+static unsigned guessRTPTimestampFrequency(char const* mediumName, char const* codecName);
+static char* parseCLine(char const* sdpLine);
+static bool parseRangeAttribute(char const* sdpLine, std::string& pRange);
+
+bool ParseTrackID(char *sdp, MEDIA_INFO *sMediaInfo);
+
+
+std::string rtsp_header_build_sdp(const MEDIA_INFO& info)
+{
+	std::string sdpstr;
+
+	sdpstr += "v=0\r\n";
+	sdpstr += "o=- " + Value(info.ssrc).readString() + " " + Value(info.ssrc).readString() + " IN IP4 0.0.0.0\r\n";
+	sdpstr += "c=IN IP4 0.0.0.0\r\n";
+	sdpstr += "t=" + Value(info.startRange).readString() + "-" + Value(info.stopRange).readString() + "\r\n";
+	sdpstr += "a=control:*";
+
+	if (info.bHasVideo)
+	{
+		sdpstr += "m=video 0 RTP/AVP "+Value(info.stStreamVideo.nPayLoad).readString()+ "\r\n";
+		sdpstr += "a=control:trackID="+Value(info.stStreamVideo.nTrackID).readString()+"\r\n";
+		sdpstr += "a=rtpmap:" + Value(info.stStreamVideo.nPayLoad).readString() + " " + info.stStreamVideo.szCodec + "/" + Value(info.stStreamVideo.nSampRate).readString() + "\r\n";
+	}
+	if (info.bHasAudio)
+	{
+		sdpstr += "m=video 0 RTP/AVP " + Value(info.stStreamAudio.nPayLoad).readString() + "\r\n";
+		sdpstr += "a=control:trackID=" + Value(info.stStreamAudio.nTrackID).readString() + "\r\n";
+		sdpstr += "a=rtpmap:" + Value(info.stStreamAudio.nPayLoad).readString() + " " + info.stStreamAudio.szCodec + "/" + Value(info.stStreamAudio.nSampRate).readString() + "\r\n";
+	}
+
+	return sdpstr;
+}
+
+bool rtsp_header_parse_sdp(char const* sdpDescription, MEDIA_INFO* pMediaInfo)
 {
 	if (sdpDescription == NULL)
 	{
@@ -35,9 +86,11 @@ bool ParseSDP(char const* sdpDescription, MEDIA_INFO* pMediaInfo)
 			continue;
 		if (parseSDPLine_c(sdpLine))
 			continue;
-		if (parseSDPAttribute_control(sdpLine, pMediaInfo->szControl))
-			continue;
-		if (parseSDPAttribute_range(sdpLine, pMediaInfo->szRange))
+		//if (parseSDPAttribute_control(sdpLine, pMediaInfo->szControl))
+		//	continue;
+		//if (parseSDPAttribute_range(sdpLine, pMediaInfo->szRange))
+		//	continue;
+		if(parseSDPAttribute_rangetime(sdpLine,pMediaInfo->startRange,pMediaInfo->stopRange))
 			continue;
 		if (parseSDPAttribute_type(sdpLine))
 			continue;
@@ -55,20 +108,17 @@ bool ParseSDP(char const* sdpDescription, MEDIA_INFO* pMediaInfo)
 		{
 			//video stream
 			pStreanInfo = &(pMediaInfo->stStreamVideo);
-			pMediaInfo->nStreamCount++;
 			pMediaInfo->bHasVideo = true;
 		}
 		else if (0 == strncasecmp(sdpLine, "m=audio", 7))
 		{
 			//audio stream
 			pStreanInfo = &(pMediaInfo->stStreamAudio);
-			pMediaInfo->nStreamCount++;
 			pMediaInfo->bHasAudio = true;
 		}
 		else if (0 == strncasecmp(sdpLine, "m=application", 13))
 		{
 			pStreanInfo = &(pMediaInfo->stStreamAudio);
-			pMediaInfo->nStreamCount++;
 			pMediaInfo->bHasAudio = true;
 			//break;
 		}
@@ -100,8 +150,8 @@ bool ParseSDP(char const* sdpDescription, MEDIA_INFO* pMediaInfo)
 		//»ñÈ¡PayLoad
 		pStreanInfo->nPayLoad = payloadFormat;
 		//copy info
-		pStreanInfo->szProtocol = protocolName;
-		pStreanInfo->szMediaName = mediumName;
+		//pStreanInfo->szProtocol = protocolName;
+		//pStreanInfo->szMediaName = mediumName;
 
 		while (1)
 		{
@@ -119,15 +169,15 @@ bool ParseSDP(char const* sdpDescription, MEDIA_INFO* pMediaInfo)
 				continue;
 			if (parseSDPLine_b(sdpLine))
 				continue;
-			if (parseSDPAttribute_rtpmap(sdpLine, pStreanInfo->szCodec, pStreanInfo->nPayLoad, pStreanInfo->nSampRate, pStreanInfo->nChannles))
+			if (parseSDPAttribute_rtpmap(sdpLine, pStreanInfo->szCodec, pStreanInfo->nPayLoad, pStreanInfo->nSampRate/*, pStreanInfo->nChannles*/))
 				continue;
-			if (parseSDPAttribute_framerate(sdpLine, pStreanInfo->fFramRate))
+			/*if (parseSDPAttribute_framerate(sdpLine, pStreanInfo->fFramRate))
 				continue;
 			if (parseSDPAttribute_x_dimensions(sdpLine, pMediaInfo->stStreamVideo.nWidth, pMediaInfo->stStreamVideo.nHight))
 				continue;
 			if (parseSDPAttribute_fmtp(sdpLine, pStreanInfo->szSpsPps))
-				continue;
-			if (parseSDPAttribute_control(sdpLine, pStreanInfo->szTrackID))
+				continue;*/
+			if (parseSDPAttribute_control(sdpLine, pStreanInfo->szTrackID,pStreanInfo->nTrackID))
 				continue;
 
 			// 			if (parseSDPAttribute_source_filter(sdpLine))
@@ -250,14 +300,17 @@ bool parseSDPAttribute_framerate(char const* sdpLine, double &fVideoFPS)
 	return parseSuccess;
 }
 
-bool parseSDPAttribute_control(char const* sdpLine, std::string& pcontrol)
+bool parseSDPAttribute_control(char const* sdpLine, std::string& pcontrol,int& pcontrolid)
 {
 	bool parseSuccess = false;
-
 	char* controlPath = strDupSize(sdpLine); // ensures we have enough space
 	if (sscanf(sdpLine, "a=control: %s", controlPath) == 1)
 	{
 		pcontrol = controlPath;
+
+		const char* tmp = strchr(controlPath, '=');
+		if (tmp != NULL) pcontrolid = atoi(tmp + 1);
+
 		parseSuccess = true;
 	}
 	delete[] controlPath;
@@ -277,13 +330,28 @@ bool parseSDPAttribute_range(char const* sdpLine, std::string& pRange)
 	return parseSuccess;
 }
 
+bool parseSDPAttribute_rangetime(char const* sdpLine, uint32_t& starttime, uint32_t& stoptime)
+{
+	uint32_t start = 0, stop = 0;
+
+	if (sscanf(sdpLine, "t=%d-", &start) == 1 || sscanf(sdpLine, "t=%d-%d", &start,&stop) == 2)
+	{
+		starttime = start;
+		stoptime = stop;
+
+		return true;
+	}
+
+	return false;
+}
+
 bool parseSDPAttribute_source_filter(char const* sdpLine)
 {
 
 	return true;
 }
 
-bool parseSDPAttribute_rtpmap(char const* sdpLine, std::string& pCodecName, int &nPayLoad, int &nTimestampFrequency, int &nNumChannels)
+bool parseSDPAttribute_rtpmap(char const* sdpLine, std::string& pCodecName, int &nPayLoad, int &nTimestampFrequency/*, int &nNumChannels*/)
 {
 	// Check for a "a=rtpmap:<fmt> <codec>/<freq>" line:
 	// (Also check without the "/<freq>"; RealNetworks omits this)
@@ -301,7 +369,7 @@ bool parseSDPAttribute_rtpmap(char const* sdpLine, std::string& pCodecName, int 
 		pCodecName = codecName;
 		nTimestampFrequency = rtpTimestampFrequency;
 		nPayLoad = rtpmapPayloadFormat;
-		nNumChannels = numChannels;
+	//	nNumChannels = numChannels;
 
 		parseSuccess = true;
 		if (rtpmapPayloadFormat == 96)

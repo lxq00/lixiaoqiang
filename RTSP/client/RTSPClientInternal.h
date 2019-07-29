@@ -1,9 +1,9 @@
 #pragma once
 #include "RTSP/RTSPClient.h"
 #include "../common/rtspProtocol.h"
-#include "../common/sdpParse.h"
-#include "../common/rtspTransport.h"
-#include "../common/rtspRange.h"
+#include "../common/rtspHeaderSdp.h"
+#include "../common/rtspHeaderTransport.h"
+#include "../common/rtspHeaderRange.h"
 #include "../common/WWW_Authenticate.h"
 #include "../common/rtpovertcp.h"
 #include "../common/rtpoverudp.h"
@@ -22,9 +22,9 @@ struct RTSPClient::RTSPClientInternal
 		std::string				wwwauthen;
 
 		shared_ptr<Semaphore>	waitsem;
-		shared_ptr<HTTPParse::Header> responseheader;;
+		shared_ptr<RTSPCommandInfo> responseheader;;
 
-		CommandInfo(uint32_t _timeout) :starttime(Time::getCurrentMilliSecond()), timeout(_timeout)
+		CommandInfo(uint32_t _timeout = -1) :starttime(Time::getCurrentMilliSecond()), timeout(_timeout)
 		{
 			cmd = make_shared<RTSPCommandInfo>();
 			if (_timeout != -1) waitsem = make_shared<Semaphore>();
@@ -100,7 +100,7 @@ struct RTSPClient::RTSPClientInternal
 		shared_ptr<CommandInfo> cmdinfo = make_shared<CommandInfo>(timeout);
 		cmdinfo->cmd->method = "PLAY";
 		cmdinfo->cmd->url = rtspurl.rtspurl;
-		cmdinfo->cmd->headers["Range"] = rtspBuildRange(range);
+		cmdinfo->cmd->headers["Range"] = rtsp_header_build_range(range);
 
 		rtspBuildRtspCommand(cmdinfo);
 
@@ -155,8 +155,12 @@ struct RTSPClient::RTSPClientInternal
 
 		if (rtspmedia.videoTransport.transport == TRANSPORT_INFO::TRANSPORT_RTP_TCP || rtspmedia.audioTransport.transport == TRANSPORT_INFO::TRANSPORT_RTP_TCP)
 		{
+			rtspmedia.videoTransport.rtp.t.videointerleaved = rtspmedia.media.stStreamVideo.nTrackID;
+			rtspmedia.videoTransport.rtp.t.audiointerleaved = rtspmedia.media.stStreamAudio.nTrackID;
+			rtspmedia.audioTransport = rtspmedia.videoTransport;
+
 			cmdinfo->cmd->url = rtspurl.rtspurl + "/" + (rtspmedia.media.bHasVideo ? rtspmedia.media.stStreamVideo.szTrackID : rtspmedia.media.stStreamAudio.szTrackID);
-			cmdinfo->cmd->headers["Transport"] = buildTransport(rtspmedia.media.bHasVideo ? rtspmedia.videoTransport : rtspmedia.audioTransport);
+			cmdinfo->cmd->headers["Transport"] = rtsp_header_build_transport(rtspmedia.media.bHasVideo ? rtspmedia.videoTransport : rtspmedia.audioTransport);
 		}
 		else if (rtspmedia.media.bHasVideo && rtspmedia.videoTransport.rtp.u.server_port1 == 0)
 		{
@@ -170,7 +174,7 @@ struct RTSPClient::RTSPClientInternal
 				rtspmedia.audioTransport.rtp.u.client_port2 = rtpport + 3;
 			}
 			cmdinfo->cmd->url = rtspurl.rtspurl + "/" + rtspmedia.media.stStreamVideo.szTrackID;
-			cmdinfo->cmd->headers["Transport"] = buildTransport(rtspmedia.videoTransport);
+			cmdinfo->cmd->headers["Transport"] = rtsp_header_build_transport(rtspmedia.videoTransport);
 		}
 		else if (rtspmedia.media.bHasAudio && rtspmedia.audioTransport.rtp.u.server_port1 == 0)
 		{
@@ -184,7 +188,7 @@ struct RTSPClient::RTSPClientInternal
 				rtspmedia.audioTransport.rtp.u.client_port2 = rtpport + 3;
 			}
 			cmdinfo->cmd->url = rtspurl.rtspurl + "/" + rtspmedia.media.stStreamAudio.szTrackID;
-			cmdinfo->cmd->headers["Transport"] = buildTransport(rtspmedia.audioTransport);
+			cmdinfo->cmd->headers["Transport"] = rtsp_header_build_transport(rtspmedia.audioTransport);
 		}
 
 		rtspBuildRtspCommand(cmdinfo);
@@ -243,8 +247,12 @@ private:
 		socketconnected = true;
 		handler->onConnectResponse(true, "OK");
 
-		protocol = make_shared<RTSPProtocol>(sock, RTSPProtocol::CommandCallback(&RTSPClientInternal::rtspCommandCallback, this),
-			RTSPProtocol::DisconnectCallback(&RTSPClientInternal::socketDisconnectCallback, this), false);
+		shared_ptr<Socket> socktmp = sock.lock();
+		if (socktmp)
+		{
+			protocol = make_shared<RTSPProtocol>(socktmp, RTSPProtocol::CommandCallback(&RTSPClientInternal::rtspCommandCallback, this),
+				RTSPProtocol::DisconnectCallback(&RTSPClientInternal::socketDisconnectCallback, this), false);
+		}	
 	}
 	void rtspBuildRtspCommand(const shared_ptr<CommandInfo>& cmdinfo, const std::string& body = "", const std::string& contentype = "")
 	{
@@ -353,7 +361,7 @@ private:
 		}
 		else if (strcasecmp(cmdinfo->cmd->method.c_str(), "DESCRIBE") == 0)
 		{
-			ParseSDP(cmdinfo->cmd->body.c_str(), &rtspmedia.media);
+			rtsp_header_parse_sdp(cmdinfo->cmd->body.c_str(), &rtspmedia.media);
 
 			if (cmdinfo->waitsem == NULL)
 				handler->onDescribeResponse(cmdinfo->cmd, rtspmedia.media);
@@ -365,7 +373,7 @@ private:
 			std::string tranportstr = cmdheader->header("Transport").readString();
 
 			TRANSPORT_INFO transport;
-			rtsp_header_transport(tranportstr.c_str(), &transport);
+			rtsp_header_parse_transport(tranportstr.c_str(), &transport);
 
 			//build socket
 			{
@@ -373,8 +381,10 @@ private:
 				{
 					rtspmedia.videoTransport = rtspmedia.audioTransport = transport;
 
+					protocol->setTCPInterleaved(rtspmedia.videoTransport.rtp.t.videointerleaved, rtspmedia.audioTransport.rtp.t.audiointerleaved);
+
 					//rtpOverTcp(bool _isserver, const shared_ptr<RTSPProtocol>& _protocol, const RTSP_MEDIA_INFO& _rtspmedia, const RTPDataCallback& _datacallback)
-					rtp = make_shared<rtpOverTcp>(false, this, rtspmedia, rtp::RTPDataCallback(&RTSPClientInternal::rtpDataCallback, this));
+					rtp = make_shared<rtpOverTcp>(false, protocol.get(), rtspmedia, rtp::RTPDataCallback(&RTSPClientInternal::rtpDataCallback, this));
 				}
 				else if (rtspmedia.media.bHasVideo && String::indexOfByCase(cmdinfo->cmd->url, rtspmedia.media.stStreamVideo.szTrackID) != 0)
 				{

@@ -1,10 +1,5 @@
 #include "RTSP/RTSPClient.h"
 #include "../common/rtspProtocol.h"
-#include "../common/sdpParse.h"
-#include "../common/rtspTransport.h"
-#include "../common/rtspRange.h"
-#include "../common/rtpovertcp.h"
-#include "../common/rtpoverudp.h"
 #include "RTSPClientInternal.h"
 
 namespace Public {

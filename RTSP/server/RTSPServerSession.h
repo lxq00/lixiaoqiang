@@ -1,9 +1,9 @@
 #pragma  once
 #include "RTSP/RTSPServer.h"
 #include "../common/rtspProtocol.h"
-#include "../common/sdpParse.h"
-#include "../common/rtspTransport.h"
-#include "../common/rtspRange.h"
+#include "../common/rtspHeaderSdp.h"
+#include "../common/rtspHeaderTransport.h"
+#include "../common/rtspHeaderRange.h"
 #include "../common/WWW_Authenticate.h"
 #include "../common/rtpovertcp.h"
 #include "../common/rtpoverudp.h"
@@ -33,12 +33,14 @@ struct RTSPServerSession::RTSPServerSessionInternal:public RTSPProtocol
 	shared_ptr<rtp>							rtp;
 	RTSP_MEDIA_INFO							rtspmedia;
 
+	uint32_t								ssrc;
+
 	RTSPServerSessionInternal(const shared_ptr<IOWorker>& _worker, const shared_ptr<Socket>& sock, const RTSPServer::ListenCallback& queryhandle,const std::string&  _useragent)
 		:RTSPProtocol(sock, RTSPProtocol::CommandCallback(&RTSPServerSessionInternal::rtspCommandCallback, this),
 			RTSPProtocol::DisconnectCallback(&RTSPServerSessionInternal::socketDisconnectCallback, this),true)
 		,worker(_worker), socketdisconnected(false), queryhandlercallback(queryhandle),useragent(_useragent)
 	{
-		memset(&rtspmedia, 0, sizeof(RTSP_MEDIA_INFO));
+		ssrc = (uint32_t)Time::getCurrentMilliSecond();
 	}
 	~RTSPServerSessionInternal() 
 	{
@@ -109,7 +111,7 @@ struct RTSPServerSession::RTSPServerSessionInternal:public RTSPProtocol
 			std::string rangestr = cmdinfo->header("Range").readString();
 			
 			RANGE_INFO range;
-			rtsp_header_range(rangestr.c_str(), &range);
+			rtsp_header_parse_range(rangestr.c_str(), &range);
 			handler->onPlayRequest(session, cmdinfo, range);
 		}
 		else if (strcasecmp(cmdinfo->method.c_str(), "PAUSE") == 0)
@@ -151,13 +153,14 @@ struct RTSPServerSession::RTSPServerSessionInternal:public RTSPProtocol
 	void sendDescribeResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, const MEDIA_INFO& mediainfo)
 	{
 		rtspmedia.media = mediainfo;
+		rtspmedia.media.ssrc = ssrc;
 
-		sendProtocol(cmdinfo, HTTPParse::Header(), BuildSdp(mediainfo),RTSPCONENTTYPESDP);
+		sendProtocol(cmdinfo, HTTPParse::Header(), rtsp_header_build_sdp(rtspmedia.media),RTSPCONENTTYPESDP);
 	}
 	void sendSetupResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, const TRANSPORT_INFO& transport)
 	{
 		TRANSPORT_INFO transporttmp = transport;
-		transporttmp.ssrc = (uint32_t)Time::getCurrentTime().makeTime();
+		transporttmp.ssrc = ssrc;
 
 		HTTPParse::Header header;
 		header.headers["Transport"] = rtsp_header_build_transport(transport);
@@ -168,6 +171,8 @@ struct RTSPServerSession::RTSPServerSessionInternal:public RTSPProtocol
 		{
 			if (transport.transport == TRANSPORT_INFO::TRANSPORT_RTP_TCP)
 			{
+				setTCPInterleaved(rtspmedia.videoTransport.rtp.t.videointerleaved, rtspmedia.audioTransport.rtp.t.audiointerleaved);
+
 				rtspmedia.videoTransport = rtspmedia.audioTransport = transport;
 
 				//rtpOverTcp(bool _isserver, const shared_ptr<RTSPProtocol>& _protocol, const RTSP_MEDIA_INFO& _rtspmedia, const RTPDataCallback& _datacallback)

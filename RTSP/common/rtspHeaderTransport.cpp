@@ -1,4 +1,4 @@
-#include "rtspTransport.h"
+#include "rtspHeaderTransport.h"
 
 // RFC 2326 Real Time Streaming Protocol (RTSP)
 // 12.39 Transport (p58)
@@ -40,14 +40,43 @@
 
 #define TRANSPORT_SPECIAL ",;\r\n"
 
-inline int rtsp_header_transport(const char* field, TRANSPORT_INFO* t)
+std::string rtsp_header_build_transport(const TRANSPORT_INFO& transport)
+{
+	std::string transportstr;
+	if (transport.transport == TRANSPORT_INFO::TRANSPORT_NONE)
+	{
+
+	}
+	else if (transport.transport == TRANSPORT_INFO::TRANSPORT_RTP_TCP)
+	{
+		transportstr = "RTP/AVP/TCP;unicast";
+		transportstr += ";interleaved="+Value(transport.rtp.t.videointerleaved).readString() + "-" + Value(transport.rtp.t.audiointerleaved).readString();
+	}
+	else if (transport.transport == TRANSPORT_INFO::TRANSPORT_RTP_UDP)
+	{
+		transportstr = "RTP/AVP;unicast";
+		transportstr += ";client_port="+Value(transport.rtp.u.client_port1).readString()+"-"+ Value(transport.rtp.u.client_port2).readString();
+		if (transport.rtp.u.server_port1 != 0)
+		{
+			transportstr += ";server_port=" + Value(transport.rtp.u.server_port1).readString() + "-" + Value(transport.rtp.u.server_port2).readString();
+		}
+	}
+	if (transport.ssrc != 0)
+	{
+		transportstr += ";ssrc=" + Value(transport.ssrc).readString();
+	}
+
+	return transportstr;
+}
+
+ int rtsp_header_parse_transport(const char* field, TRANSPORT_INFO* t)
 {
 	const char* p1;
 	const char* p = field;
 	size_t n;
 
 	memset(t, 0, sizeof(*t));
-	t->multicast = TRANSPORT_INFO::MULTICAST_UNICAST; // default unicast
+//	t->multicast = TRANSPORT_INFO::MULTICAST_UNICAST; // default unicast
 	t->transport = TRANSPORT_INFO::TRANSPORT_RTP_UDP;
 
 	while (p && *p)
@@ -81,7 +110,7 @@ inline int rtsp_header_transport(const char* field, TRANSPORT_INFO* t)
 		case 'U':
 			if (7 == n && 0 == strncasecmp("unicast", p, 7))
 			{
-				t->multicast = TRANSPORT_INFO::MULTICAST_UNICAST;
+			//	t->multicast = TRANSPORT_INFO::MULTICAST_UNICAST;
 			}
 			break;
 
@@ -89,14 +118,14 @@ inline int rtsp_header_transport(const char* field, TRANSPORT_INFO* t)
 		case 'M':
 			if (9 == n && 0 == strncasecmp("multicast", p, 9))
 			{
-				t->multicast = TRANSPORT_INFO::MULTICAST_MULTICAST;
+			//	t->multicast = TRANSPORT_INFO::MULTICAST_MULTICAST;
 			}
 			else if (n > 5 && 0 == strncasecmp("mode=", p, 5))
 			{
-				if ((11 == n && 0 == strcasecmp("\"PLAY\"", p + 5)) || (9 == n && 0 == strcasecmp("PLAY", p + 5)))
+				/*if ((11 == n && 0 == strcasecmp("\"PLAY\"", p + 5)) || (9 == n && 0 == strcasecmp("PLAY", p + 5)))
 					t->mode = TRANSPORT_INFO::MODE_PLAY;
 				else if ((13 == n && 0 == strcasecmp("\"RECORD\"", p + 5)) || (11 == n && 0 == strcasecmp("RECORD", p + 5)))
-					t->mode = TRANSPORT_INFO::MODE_RECORD;
+					t->mode = TRANSPORT_INFO::MODE_RECORD;*/
 			}
 			break;
 
@@ -104,7 +133,7 @@ inline int rtsp_header_transport(const char* field, TRANSPORT_INFO* t)
 		case 'D':
 			if (n >= 12 && 0 == strncasecmp("destination=", p, 12))
 			{
-				t->destination = std::string(p + 12, n - 12);
+				//t->destination = std::string(p + 12, n - 12);
 			}
 			break;
 
@@ -112,21 +141,21 @@ inline int rtsp_header_transport(const char* field, TRANSPORT_INFO* t)
 		case 'S':
 			if (n >= 7 && 0 == strncasecmp("source=", p, 7))
 			{
-				t->source = std::string(p + 7, n - 7);
+				//t->source = std::string(p + 7, n - 7);
 			}
 			else if (13 == n && 0 == strncasecmp("ssrc=", p, 5))
 			{
 				// unicast only
-				assert(0 == t->multicast);
-				t->rtp.u.ssrc = (int)strtol(p + 5, NULL, 16);
+		//		assert(0 == t->multicast);
+				t->ssrc = (int)strtol(p + 5, NULL, 16);
 			}
 			else if (2 == sscanf(p, "server_port=%hu-%hu", &t->rtp.u.server_port1, &t->rtp.u.server_port2))
 			{
-				assert(0 == t->multicast);
+		//		assert(0 == t->multicast);
 			}
 			else if (1 == sscanf(p, "server_port=%hu", &t->rtp.u.server_port1))
 			{
-				assert(0 == t->multicast);
+		//		assert(0 == t->multicast);
 				t->rtp.u.server_port1 = t->rtp.u.server_port1 / 2 * 2; // RFC 3550 (p56)
 				t->rtp.u.server_port2 = t->rtp.u.server_port1 + 1;
 			}
@@ -135,57 +164,57 @@ inline int rtsp_header_transport(const char* field, TRANSPORT_INFO* t)
 		case 'a':
 			if (6 == n && 0 == strcasecmp("append", p))
 			{
-				t->append = 1;
+				//t->append = 1;
 			}
 			break;
 
 		case 'p':
-			if (2 == sscanf(p, "port=%hu-%hu", &t->rtp.m.port1, &t->rtp.m.port2))
-			{
-				assert(1 == t->multicast);
-			}
-			else if (1 == sscanf(p, "port=%hu", &t->rtp.m.port1))
-			{
-				assert(1 == t->multicast);
-				t->rtp.m.port1 = t->rtp.m.port1 / 2 * 2; // RFC 3550 (p56)
-				t->rtp.m.port2 = t->rtp.m.port1 + 1;
-			}
+	//		if (2 == sscanf(p, "port=%hu-%hu", &t->rtp.m.port1, &t->rtp.m.port2))
+	//		{
+	////			assert(1 == t->multicast);
+	//		}
+	//		else if (1 == sscanf(p, "port=%hu", &t->rtp.m.port1))
+	//		{
+	////			assert(1 == t->multicast);
+	//			t->rtp.m.port1 = t->rtp.m.port1 / 2 * 2; // RFC 3550 (p56)
+	//			t->rtp.m.port2 = t->rtp.m.port1 + 1;
+	//		}
 			break;
 
 		case 'c':
 			if (2 == sscanf(p, "client_port=%hu-%hu", &t->rtp.u.client_port1, &t->rtp.u.client_port2))
 			{
-				assert(0 == t->multicast);
+				//assert(0 == t->multicast);
 			}
 			else if (1 == sscanf(p, "client_port=%hu", &t->rtp.u.client_port1))
 			{
-				assert(0 == t->multicast);
+				//assert(0 == t->multicast);
 				t->rtp.u.client_port1 = t->rtp.u.client_port1 / 2 * 2; // RFC 3550 (p56)
 				t->rtp.u.client_port2 = t->rtp.u.client_port1 + 1;
 			}
 			break;
 
 		case 'i':
-			if (2 == sscanf(p, "interleaved=%d-%d", &t->interleaved1, &t->interleaved2))
+			if (2 == sscanf(p, "interleaved=%d-%d", &t->rtp.t.videointerleaved, &t->rtp.t.audiointerleaved))
 			{
 			}
-			else if (1 == sscanf(p, "interleaved=%d", &t->interleaved1))
+			else if (1 == sscanf(p, "interleaved=%d", &t->rtp.t.videointerleaved))
 			{
-				t->interleaved2 = t->interleaved1 + 1;
+				t->rtp.t.audiointerleaved = t->rtp.t.videointerleaved + 1;
 			}
 			break;
 
 		case 't':
-			if (1 == sscanf(p, "ttl=%d", &t->rtp.m.ttl))
-			{
-				assert(1 == t->multicast);
-			}
+			//if (1 == sscanf(p, "ttl=%d", &t->rtp.m.ttl))
+			//{
+			//	//assert(1 == t->multicast);
+			//}
 			break;
 
 		case 'l':
-			if (1 == sscanf(p, "layers=%d", &t->layer))
+			/*if (1 == sscanf(p, "layers=%d", &t->layer))
 			{
-			}
+			}*/
 			break;
 		}
 

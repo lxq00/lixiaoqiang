@@ -1,3 +1,4 @@
+#pragma once
 #include "rtp.h"
 #include "RTSPProtocol.h"
 #include "RTSP/RTSPStructs.h"

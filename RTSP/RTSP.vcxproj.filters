@@ -39,20 +39,8 @@
     <ClInclude Include="common\rtspProtocol.h">
       <Filter>源文件\common</Filter>
     </ClInclude>
-    <ClInclude Include="common\rtspRange.h">
-      <Filter>源文件\common</Filter>
-    </ClInclude>
-    <ClInclude Include="common\rtspTransport.h">
-      <Filter>源文件\common</Filter>
-    </ClInclude>
-    <ClInclude Include="common\sdpParse.h">
-      <Filter>源文件\common</Filter>
-    </ClInclude>
     <ClInclude Include="server\RTSPServerSession.h">
       <Filter>源文件\service</Filter>
-    </ClInclude>
-    <ClInclude Include="client\RTSPClient.cpp">
-      <Filter>源文件\client</Filter>
     </ClInclude>
     <ClInclude Include="common\rtp.h">
       <Filter>源文件\common</Filter>
@@ -78,6 +66,15 @@
     <ClInclude Include="common\WWW_Authenticate.h">
       <Filter>源文件\common</Filter>
     </ClInclude>
+    <ClInclude Include="common\rtspHeaderRange.h">
+      <Filter>源文件\common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\rtspHeaderTransport.h">
+      <Filter>源文件\common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\rtspHeaderSdp.h">
+      <Filter>源文件\common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Include\RTSP\Version.tpl">
@@ -85,15 +82,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="common\rtspRange.c">
-      <Filter>源文件\common</Filter>
-    </ClCompile>
-    <ClCompile Include="common\rtspTransport.c">
-      <Filter>源文件\common</Filter>
-    </ClCompile>
-    <ClCompile Include="common\sdpParse.cpp">
-      <Filter>源文件\common</Filter>
-    </ClCompile>
     <ClCompile Include="server\RTSPServer.cpp">
       <Filter>源文件\service</Filter>
     </ClCompile>
@@ -104,6 +92,18 @@
       <Filter>源文件\common</Filter>
     </ClCompile>
     <ClCompile Include="common\RTSPUrl.cpp">
+      <Filter>源文件\common</Filter>
+    </ClCompile>
+    <ClCompile Include="client\RTSPClient.cpp">
+      <Filter>源文件\client</Filter>
+    </ClCompile>
+    <ClCompile Include="common\rtspHeaderRange.cpp">
+      <Filter>源文件\common</Filter>
+    </ClCompile>
+    <ClCompile Include="common\rtspHeaderTransport.cpp">
+      <Filter>源文件\common</Filter>
+    </ClCompile>
+    <ClCompile Include="common\rtspHeaderSdp.cpp">
       <Filter>源文件\common</Filter>
     </ClCompile>
   </ItemGroup>
