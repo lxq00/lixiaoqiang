@@ -77,9 +77,13 @@ public:
 			const char* startlineaddr = data;
 			uint32_t linedatalen = pos;
 
-			data += pos + strlen(HTTPSEPERATOR);
-			datalen -= pos + strlen(HTTPSEPERATOR);
-			useddata += pos + strlen(HTTPSEPERATOR);
+			{
+				uint32_t poslen = pos + strlen(HTTPSEPERATOR);
+
+				data += poslen;
+				datalen -= poslen;
+				useddata += poslen;
+			}
 
 			//连续两个SEPERATOR表示header结束
 			if (pos == 0)

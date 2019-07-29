@@ -202,7 +202,7 @@ private:
 
 		while (buffertmplen > 0)
 		{
-			if (m_header != NULL && m_bodylen != m_body.length())
+			if (m_header != NULL && m_bodylen > m_body.length())
 			{
 				uint32_t needlen = min(m_bodylen - m_body.length(), buffertmplen);
 				m_body += std::string(buffertmp, needlen);
@@ -226,7 +226,7 @@ private:
 					m_bodylen = m_header->header(Content_Length).readInt();
 				}
 			}
-			else if (m_extdataLen != 0 && m_extdataLen != m_extdata.length())
+			else if (m_extdataLen != 0 && m_extdataLen > m_extdata.length())
 			{
 				uint32_t needlen = min(m_extdataLen - m_extdata.length(), buffertmplen);
 				m_extdata += std::string(buffertmp, needlen);
@@ -255,11 +255,12 @@ private:
 				buffertmp += sizeof(INTERLEAVEDFRAME);
 				buffertmplen -= sizeof(INTERLEAVEDFRAME);
 			}
-			else
+			else if(!m_haveFindHeaderStart)
 			{
 				//放到头解析里去解析的数据一定是可显示的文本数据，如果不是，那么跳过
 				if (*buffertmp < 0x20 || *buffertmp >= 0x7f)
 				{
+					assert(0);
 					buffertmp++;
 					buffertmplen--;
 					continue;
@@ -268,12 +269,18 @@ private:
 
 				if (strncasecmp(buffertmp, RTSPCMDFLAG,strlen(RTSPCMDFLAG)) != 0)
 				{
+					assert(0);
 					buffertmp++;
 					buffertmplen--;
 					continue;
 				}
 
 				m_haveFindHeaderStart = true;
+			}
+			else
+			{
+				assert(0);
+				int a = 0;
 			}
 
 			if (m_header != NULL && m_bodylen == m_body.length())
@@ -293,6 +300,7 @@ private:
 				m_cmdcallback(cmd);
 				m_header = NULL;
 				m_body = "";
+				m_bodylen = 0;
 				m_haveFindHeaderStart = false;
 			}
 			else if (m_extdataLen != 0 && m_extdataLen == m_extdata.length())
@@ -303,7 +311,7 @@ private:
 				m_extdata = "";
 			}
 		}
-		if (buffertmplen > 0)
+		if (buffertmplen > 0 && m_recvBuffer != buffertmp)
 		{
 			memmove(m_recvBuffer, buffertmp, buffertmplen);
 		}
