@@ -78,7 +78,7 @@ public:
 	virtual void onConnectResponse(bool success, const std::string& errmsg) {}
 
 	virtual void onDescribeResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, const MEDIA_INFO& info) {}
-	virtual void onSetupResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, bool isVideo,const TRANSPORT_INFO& transport) {}
+	virtual void onSetupResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, const MEDIA_INFO& info,const TRANSPORT_INFO& transport) {}
 	virtual void onPlayResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo) {}
 	virtual void onPauseResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo) {}
 	virtual void onGetparameterResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, const std::string& content) {}

@@ -82,8 +82,6 @@ public:
 	{
 		if (cmdstr.length() == 0) return;
 
-		printf(cmdstr.c_str());
-
 		Guard locker(m_mutex);
 		_addAndCheckSendData(cmdstr.c_str(),cmdstr.length());
 	}
@@ -182,9 +180,20 @@ private:
 	void onSocketRecvCallback(const weak_ptr<Socket>& sock, const char* buffer, int len)
 	{
 		m_prevalivetime = Time::getCurrentMilliSecond();
-		if (len <= 0) return;
-
-		if (m_recvBufferDataLen + len > MAXPARSERTSPBUFFERLEN) return;
+		if (len <= 0)
+		{
+			assert(0);
+			return;
+		}
+		if (m_recvBuffer + m_recvBufferDataLen != buffer)
+		{
+			assert(0);
+		}
+		if (m_recvBufferDataLen + len > MAXPARSERTSPBUFFERLEN)
+		{
+			assert(0);
+			return;
+		}
 
 		m_recvBufferDataLen += len;
 		
@@ -204,8 +213,6 @@ private:
 			{
 				uint32_t usedlen = 0;
 				m_header = HTTPParse::parse(buffertmp, buffertmplen, usedlen);
-
-				printf("%s", std::string(buffertmp, usedlen).c_str());
 
 				if (usedlen > buffertmplen)
 				{
@@ -231,10 +238,17 @@ private:
 				if (buffertmplen < sizeof(INTERLEAVEDFRAME)) break;
 
 				INTERLEAVEDFRAME* frame = (INTERLEAVEDFRAME*)buffertmp;
-				m_extdataLen = ntohs(frame->rtp_len);
+				uint32_t datalen = ntohs(frame->rtp_len);
+				if (datalen <= 0 || (m_tcpinterleaved && frame->channel != m_tcpinterleaved->dataChannel && frame->channel != m_tcpinterleaved->contrlChannel))
+				{
+					buffertmp++;
+					buffertmplen--;
+					continue;
+				}
+				m_extdataLen = datalen;
 				m_extdatach = frame->channel;
 
-				if (m_extdataLen < 0)
+				if (m_extdataLen <= 0)
 				{
 					assert(0);
 				}
@@ -243,9 +257,20 @@ private:
 			}
 			else
 			{
+				//放到头解析里去解析的数据一定是可显示的文本数据，如果不是，那么跳过
 				if (*buffertmp < 0x20 || *buffertmp >= 0x7f)
 				{
-					assert(0);
+					buffertmp++;
+					buffertmplen--;
+					continue;
+				}
+				if (buffertmplen < strlen(RTSPCMDFLAG)) break;
+
+				if (strncasecmp(buffertmp, RTSPCMDFLAG,strlen(RTSPCMDFLAG)) != 0)
+				{
+					buffertmp++;
+					buffertmplen--;
+					continue;
 				}
 
 				m_haveFindHeaderStart = true;
@@ -268,7 +293,7 @@ private:
 				m_cmdcallback(cmd);
 				m_header = NULL;
 				m_body = "";
-				m_haveFindHeaderStart = false;;
+				m_haveFindHeaderStart = false;
 			}
 			else if (m_extdataLen != 0 && m_extdataLen == m_extdata.length())
 			{

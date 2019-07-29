@@ -389,6 +389,8 @@ private:
 			TRANSPORT_INFO transport;
 			rtsp_header_parse_transport(tranportstr.c_str(), &transport);
 
+			if (handler) handler->onSetupResponse(cmdinfo->cmd, rtspmedia.media, transport);
+
 			//build socket
 			{
 				if (transport.transport == TRANSPORT_INFO::TRANSPORT_RTP_TCP)

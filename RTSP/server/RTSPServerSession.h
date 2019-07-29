@@ -34,11 +34,12 @@ struct RTSPServerSession::RTSPServerSessionInternal:public RTSPProtocol
 	RTSP_MEDIA_INFO							rtspmedia;
 
 	uint32_t								ssrc;
+	bool									sessionHaveAuthen;
 
 	RTSPServerSessionInternal(const shared_ptr<IOWorker>& _worker, const shared_ptr<Socket>& sock, const RTSPServer::ListenCallback& queryhandle,const std::string&  _useragent)
 		:RTSPProtocol(sock, RTSPProtocol::CommandCallback(&RTSPServerSessionInternal::rtspCommandCallback, this),
 			RTSPProtocol::DisconnectCallback(&RTSPServerSessionInternal::socketDisconnectCallback, this),true)
-		,worker(_worker), socketdisconnected(false), queryhandlercallback(queryhandle),useragent(_useragent)
+		,worker(_worker), socketdisconnected(false), queryhandlercallback(queryhandle),useragent(_useragent), sessionHaveAuthen(false)
 	{
 		ssrc = (uint32_t)Time::getCurrentMilliSecond();
 	}
@@ -85,15 +86,22 @@ struct RTSPServerSession::RTSPServerSessionInternal:public RTSPProtocol
 			return;
 		}
 
+		//check authen info
 		if (username != "" || password != "")
 		{
 			std::string authenstr = cmdinfo->header("Authorization").readString();
-			if(authenstr == "") return sendErrorResponse(cmdinfo, 401, "No Authorization");
-
-			if (!WWW_Authenticate::checkAuthenticate(cmdinfo->method, username, password, authenstr))
+			if (authenstr.length() <= 0 && !sessionHaveAuthen)
 			{
-				return sendErrorResponse(cmdinfo, 403, "Forbidden");
+				return sendErrorResponse(cmdinfo, 401, "No Authorization");
 			}
+			else if (authenstr.length() > 0)
+			{
+				if (!WWW_Authenticate::checkAuthenticate(cmdinfo->method, username, password, authenstr))
+				{
+					return sendErrorResponse(cmdinfo, 403, "Forbidden");
+				}
+				sessionHaveAuthen = true;
+			}			
 		}
 		
 		if (strcasecmp(cmdinfo->method.c_str(), "OPTIONS") == 0)
