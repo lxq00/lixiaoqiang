@@ -25,16 +25,16 @@ class RTSPProtocol:public HTTPParse
 	};
 	struct TCPInterleaved
 	{
-		int videoChannel;
-		int audioChannel;
+		int dataChannel;
+		int contrlChannel;
 	};
 public:
 	typedef Function1<void, const shared_ptr<RTSPCommandInfo>&> CommandCallback;
-	typedef Function3<void, bool,const char*, uint32_t> ExternDataCallback;
+	typedef Function3<void, uint32_t,const char*, uint32_t> ExternDataCallback;
 	typedef Function0<void> DisconnectCallback;
 public:
 	RTSPProtocol(const shared_ptr<Socket>& sock, const CommandCallback& cmdcallback, const DisconnectCallback& disconnectCallback,bool server)
-		:HTTPParse(!server)
+		:HTTPParse(server)
 	{
 		m_sock = sock;
 		m_cmdcallback = cmdcallback;
@@ -82,42 +82,56 @@ public:
 	{
 		if (cmdstr.length() == 0) return;
 
+		printf(cmdstr.c_str());
+
 		Guard locker(m_mutex);
-		_addAndCheckSendData(cmdstr);
+		_addAndCheckSendData(cmdstr.c_str(),cmdstr.length());
 	}
 	void sendMedia(bool isvideo,const char* rtpheader, uint32_t rtpheaderlen, const char* dataaddr, uint32_t datalen)
 	{
 		if (m_tcpinterleaved == NULL) return;
+		INTERLEAVEDFRAME frame;
+		frame.magic = RTPOVERTCPMAGIC;
+		frame.channel = m_tcpinterleaved->dataChannel;
+		frame.rtp_len = htons(rtpheaderlen + datalen);
+
+		std::string rtpovertcp = std::string((char*)&frame, sizeof(frame)) + std::string(rtpheader, rtpheaderlen);
+
 		Guard locker(m_mutex);
-
-		{
-			INTERLEAVEDFRAME frame;
-			frame.magic = RTPOVERTCPMAGIC;
-			frame.channel = isvideo ? m_tcpinterleaved->videoChannel :m_tcpinterleaved->audioChannel ;
-			frame.rtp_len = htons(rtpheaderlen + datalen);
-
-			_addAndCheckSendData(std::string((char*)&frame, sizeof(frame)));
-		}
-
-		_addAndCheckSendData(std::string(rtpheader, rtpheaderlen));
-		_addAndCheckSendData(std::string(dataaddr, datalen));
+		_addAndCheckSendData(rtpovertcp.c_str(), rtpovertcp.length());
+		_addAndCheckSendData(dataaddr, datalen);
 	}
-	void setTCPInterleaved(int videochannel,int audiochannel)
+	void sendContrlData(const char* buffer, uint32_t len)
+	{
+		if (m_tcpinterleaved == NULL) return;
+
+		INTERLEAVEDFRAME frame;
+		frame.magic = RTPOVERTCPMAGIC;
+		frame.channel = m_tcpinterleaved->contrlChannel;
+		frame.rtp_len = htons(len);
+
+		std::string contorldata = std::string((char*)&frame, sizeof(frame)) + std::string(buffer, len);
+
+
+		Guard locker(m_mutex);
+		_addAndCheckSendData(contorldata.c_str(), contorldata.length());
+	}
+	void setTCPInterleavedChannel(int datachannel,int contorl)
 	{
 		m_tcpinterleaved = make_shared<TCPInterleaved>();
-		m_tcpinterleaved->videoChannel = videochannel;
-		m_tcpinterleaved->audioChannel = audiochannel;
+		m_tcpinterleaved->dataChannel = datachannel;
+		m_tcpinterleaved->contrlChannel = contorl;
 	}
 private:
-	void _addAndCheckSendData(const std::string& data)
+	void _addAndCheckSendData(const char* buffer,uint32_t len)
 	{
 		shared_ptr<SendItem> item = make_shared<SendItem>();
-		item->data = std::move(data);
+		item->data = std::string(buffer,len);
 
 		m_sendList.push_back(item);
 		if (m_sendList.size() == 1 && m_sock != NULL)
 		{
-			shared_ptr<SendItem> item = make_shared<SendItem>();
+			shared_ptr<SendItem> item = m_sendList.front();
 			const char* sendbuffer = item->data.c_str();
 			uint32_t sendbufferlen = item->data.length();
 			
@@ -190,6 +204,14 @@ private:
 			{
 				uint32_t usedlen = 0;
 				m_header = HTTPParse::parse(buffertmp, buffertmplen, usedlen);
+
+				printf("%s", std::string(buffertmp, usedlen).c_str());
+
+				if (usedlen > buffertmplen)
+				{
+					assert(0);
+				}
+
 				buffertmp += usedlen;
 				buffertmplen -= usedlen;
 				if (m_header != NULL)
@@ -199,12 +221,12 @@ private:
 			}
 			else if (m_extdataLen != 0 && m_extdataLen != m_extdata.length())
 			{
-				uint32_t needlen = min(m_bodylen - m_body.length(), buffertmplen);
+				uint32_t needlen = min(m_extdataLen - m_extdata.length(), buffertmplen);
 				m_extdata += std::string(buffertmp, needlen);
 				buffertmp += needlen;
 				buffertmplen -= needlen;
 			}
-			else if (m_tcpinterleaved != NULL && *buffertmp == RTPOVERTCPMAGIC)
+			else if (*buffertmp == RTPOVERTCPMAGIC)
 			{
 				if (buffertmplen < sizeof(INTERLEAVEDFRAME)) break;
 
@@ -212,11 +234,20 @@ private:
 				m_extdataLen = ntohs(frame->rtp_len);
 				m_extdatach = frame->channel;
 
+				if (m_extdataLen < 0)
+				{
+					assert(0);
+				}
 				buffertmp += sizeof(INTERLEAVEDFRAME);
 				buffertmplen -= sizeof(INTERLEAVEDFRAME);
 			}
 			else
 			{
+				if (*buffertmp < 0x20 || *buffertmp >= 0x7f)
+				{
+					assert(0);
+				}
+
 				m_haveFindHeaderStart = true;
 			}
 
@@ -241,14 +272,7 @@ private:
 			}
 			else if (m_extdataLen != 0 && m_extdataLen == m_extdata.length())
 			{
-				if (m_extdatach == m_tcpinterleaved->videoChannel)
-				{
-					m_extdatacallback(true, m_extdata.c_str(), m_extdata.length());
-				}
-				else if (m_extdatach == m_tcpinterleaved->audioChannel)
-				{
-					m_extdatacallback(false, m_extdata.c_str(), m_extdata.length());
-				}
+				m_extdatacallback(m_extdatach, m_extdata.c_str(), m_extdata.length());
 				
 				m_extdataLen = 0;
 				m_extdata = "";

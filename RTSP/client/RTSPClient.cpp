@@ -17,8 +17,8 @@ RTSPClient::~RTSPClient()
 bool RTSPClient::initRTPOverTcpType()
 {
 	internal->rtspmedia.videoTransport.transport = TRANSPORT_INFO::TRANSPORT_RTP_TCP;
-	internal->rtspmedia.videoTransport.rtp.t.videointerleaved = 0;
-	internal->rtspmedia.videoTransport.rtp.t.audiointerleaved = 1;
+	internal->rtspmedia.videoTransport.rtp.t.dataChannel = 0;
+	internal->rtspmedia.videoTransport.rtp.t.contorlChannel = internal->rtspmedia.videoTransport.rtp.t.dataChannel + 1;
 	internal->rtspmedia.audioTransport = internal->rtspmedia.videoTransport;
 
 

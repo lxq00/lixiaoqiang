@@ -13,8 +13,8 @@ struct TRANSPORT_INFO
 {
 	TRANSPORT_INFO():transport(TRANSPORT_NONE), /*multicast(TRANSPORT_INFO::MULTICAST_UNICAST),*/ ssrc(0)
 	{
-		rtp.t.videointerleaved = 0;
-		rtp.t.audiointerleaved = 0;
+		rtp.t.dataChannel = 0;
+		rtp.t.contorlChannel = 1;
 	}
 
 	enum {
@@ -48,8 +48,8 @@ struct TRANSPORT_INFO
 
 		struct rtsp_header_transport_tcp_t
 		{
-			int		videointerleaved;
-			int		audiointerleaved;
+			int		dataChannel;
+			int		contorlChannel;
 		}t;
 	} rtp;
 };
@@ -63,7 +63,7 @@ struct STREAM_INFO
 //	int  nHight;				//图像高度(只有视频有效)
 	int  nSampRate;				//采样率
 //	int  nBandwidth;			//带宽(有的媒体信息可能没有描述)
-	int  nTrackID;				//通道数(只有音频有效)
+//	int  nTrackID;				//通道数(只有音频有效)
 
 //	double	 fFramRate;			//帧率(一般只存在于视频描述信息)
 
@@ -74,7 +74,7 @@ struct STREAM_INFO
 //	std::string szSpsPps;		//sps信息(一般为Base64的编码串,用于初始化解码器,一般只存在于视频描述信息)
 
 
-	STREAM_INFO():nPayLoad(0),/*nWidth(0),nHight(0),*/nSampRate(0),/*nBandwidth(0),*/nTrackID(0)/*,fFramRate(0)*/{}
+	STREAM_INFO():nPayLoad(0),/*nWidth(0),nHight(0),*/nSampRate(0)/*,nBandwidth(0),nTrackID(0),fFramRate(0)*/{}
 };
 
 //媒体信息结构定义
@@ -84,7 +84,7 @@ struct MEDIA_INFO
 	bool bHasAudio;				//是否有音频流
 
 	int		ssrc;				//ssrc
-
+	
 	uint32_t startRange;
 	uint32_t stopRange;
 
@@ -94,14 +94,14 @@ struct MEDIA_INFO
 	MEDIA_INFO() :bHasVideo(false), bHasAudio(false), ssrc(0), startRange(0),stopRange(0)
 	{
 		stStreamVideo.nPayLoad = 96;
-		stStreamVideo.nTrackID = 0;
 		stStreamVideo.szCodec = "H264";
 		stStreamVideo.nSampRate = 90000;
+		stStreamVideo.szTrackID = "trackID=0";
 
 		stStreamAudio.nPayLoad = 97;
-		stStreamAudio.nTrackID = 1;
 		stStreamAudio.szCodec = "G711";
 		stStreamAudio.nSampRate = 8000;
+		stStreamAudio.szTrackID = "trackID=1";
 	}
 };
 

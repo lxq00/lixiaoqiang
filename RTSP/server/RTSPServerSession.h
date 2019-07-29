@@ -78,6 +78,13 @@ struct RTSPServerSession::RTSPServerSessionInternal:public RTSPProtocol
 			return;
 		}
 
+		std::string nowsession = cmdinfo->header("Session").readString();
+		if (sessionstr.length() > 0 && sessionstr != nowsession)
+		{
+			sendErrorResponse(cmdinfo, 451, "Session Error");
+			return;
+		}
+
 		if (username != "" || password != "")
 		{
 			std::string authenstr = cmdinfo->header("Authorization").readString();
@@ -99,7 +106,11 @@ struct RTSPServerSession::RTSPServerSessionInternal:public RTSPProtocol
 		}
 		else if (strcasecmp(cmdinfo->method.c_str(), "SETUP") == 0)
 		{
-			if(sessionstr == "") sessionstr = cmdinfo->header("Session").readString();
+			if (sessionstr.length() <= 0)
+			{
+				sessionstr = Value(Time::getCurrentMilliSecond()).readString() + Value(Time::getCurrentTime().makeTime()).readString();
+			}
+
 			std::string tranportstr = cmdinfo->header("Transport").readString();
 			TRANSPORT_INFO transport;
 
@@ -171,7 +182,7 @@ struct RTSPServerSession::RTSPServerSessionInternal:public RTSPProtocol
 		{
 			if (transport.transport == TRANSPORT_INFO::TRANSPORT_RTP_TCP)
 			{
-				setTCPInterleaved(rtspmedia.videoTransport.rtp.t.videointerleaved, rtspmedia.audioTransport.rtp.t.audiointerleaved);
+				setTCPInterleavedChannel(rtspmedia.videoTransport.rtp.t.dataChannel, rtspmedia.audioTransport.rtp.t.contorlChannel);
 
 				rtspmedia.videoTransport = rtspmedia.audioTransport = transport;
 

@@ -50,7 +50,7 @@ std::string rtsp_header_build_transport(const TRANSPORT_INFO& transport)
 	else if (transport.transport == TRANSPORT_INFO::TRANSPORT_RTP_TCP)
 	{
 		transportstr = "RTP/AVP/TCP;unicast";
-		transportstr += ";interleaved="+Value(transport.rtp.t.videointerleaved).readString() + "-" + Value(transport.rtp.t.audiointerleaved).readString();
+		transportstr += ";interleaved="+Value(transport.rtp.t.dataChannel).readString() + "-" + Value(transport.rtp.t.contorlChannel).readString();
 	}
 	else if (transport.transport == TRANSPORT_INFO::TRANSPORT_RTP_UDP)
 	{
@@ -195,12 +195,12 @@ std::string rtsp_header_build_transport(const TRANSPORT_INFO& transport)
 			break;
 
 		case 'i':
-			if (2 == sscanf(p, "interleaved=%d-%d", &t->rtp.t.videointerleaved, &t->rtp.t.audiointerleaved))
+			if (2 == sscanf(p, "interleaved=%d-%d", &t->rtp.t.dataChannel, &t->rtp.t.contorlChannel))
 			{
 			}
-			else if (1 == sscanf(p, "interleaved=%d", &t->rtp.t.videointerleaved))
+			else if (1 == sscanf(p, "interleaved=%d", &t->rtp.t.dataChannel))
 			{
-				t->rtp.t.audiointerleaved = t->rtp.t.videointerleaved + 1;
+				t->rtp.t.contorlChannel = t->rtp.t.dataChannel + 1;
 			}
 			break;
 

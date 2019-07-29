@@ -58,7 +58,7 @@ public:
 	String(const char* str, const shared_ptr<IMempoolInterface>& mempool = shared_ptr<IMempoolInterface>());
 	String(const char* str, size_t len, const shared_ptr<IMempoolInterface>& mempool = shared_ptr<IMempoolInterface>());
 	String(const std::string& str, const shared_ptr<IMempoolInterface>& mempool = shared_ptr<IMempoolInterface>());
-	String(const String& str, const shared_ptr<IMempoolInterface>& mempool = shared_ptr<IMempoolInterface>());
+	String(const String& str);
 	~String();
 
 	const char* c_str() const;

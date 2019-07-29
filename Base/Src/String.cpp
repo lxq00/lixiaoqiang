@@ -519,7 +519,7 @@ struct String::StringInternal
 
 			resize(buffer == NULL ? size : size + buffer->dataLength);
 
-			if (nowbuffer != NULL || buffer != NULL)
+			if (nowbuffer != NULL && buffer != NULL)
 			{
 				memcpy(buffer->buffer, nowbuffer->buffer, nowbuffer->dataLength);
 				buffer->dataLength = nowbuffer->dataLength;
@@ -559,10 +559,10 @@ String::String(const std::string& str, const shared_ptr<IMempoolInterface>& memp
 	internal->mempool = mempool;
 	internal->setval(str.c_str(), str.length());
 }
-String::String(const String& str, const shared_ptr<IMempoolInterface>& mempool)
+String::String(const String& str)
 {
 	internal = new StringInternal;
-	internal->mempool = mempool;
+	internal->mempool = str.internal->mempool;
 	internal->buffer = str.internal->buffer;
 }
 String::~String()

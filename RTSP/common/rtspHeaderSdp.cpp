@@ -7,7 +7,7 @@ bool parseSDPLine_i(char const* sdpLine);
 bool parseSDPLine_b(char const* sdpLine);
 bool parseSDPLine_c(char const* sdpLine);
 bool parseSDPAttribute_type(char const* sdpLine);
-bool parseSDPAttribute_control(char const* sdpLine, std::string& pcontrol,int& pcontrolid);
+bool parseSDPAttribute_control(char const* sdpLine, std::string& pcontrol);
 bool parseSDPAttribute_range(char const* sdpLine, std::string& pRange);
 bool parseSDPAttribute_source_filter(char const* sdpLine);
 bool parseSDPAttribute_rtpmap(char const* sdpLine, std::string& pCodecName, int &nPayLoad, int &nTimestampFrequency/*, int &nNumChannels*/);
@@ -39,13 +39,13 @@ std::string rtsp_header_build_sdp(const MEDIA_INFO& info)
 	if (info.bHasVideo)
 	{
 		sdpstr += "m=video 0 RTP/AVP "+Value(info.stStreamVideo.nPayLoad).readString()+ "\r\n";
-		sdpstr += "a=control:trackID="+Value(info.stStreamVideo.nTrackID).readString()+"\r\n";
+		sdpstr += "a=control:"+info.stStreamVideo.szTrackID+"\r\n";
 		sdpstr += "a=rtpmap:" + Value(info.stStreamVideo.nPayLoad).readString() + " " + info.stStreamVideo.szCodec + "/" + Value(info.stStreamVideo.nSampRate).readString() + "\r\n";
 	}
 	if (info.bHasAudio)
 	{
 		sdpstr += "m=video 0 RTP/AVP " + Value(info.stStreamAudio.nPayLoad).readString() + "\r\n";
-		sdpstr += "a=control:trackID=" + Value(info.stStreamAudio.nTrackID).readString() + "\r\n";
+		sdpstr += "a=control:" + info.stStreamAudio.szTrackID + "\r\n";
 		sdpstr += "a=rtpmap:" + Value(info.stStreamAudio.nPayLoad).readString() + " " + info.stStreamAudio.szCodec + "/" + Value(info.stStreamAudio.nSampRate).readString() + "\r\n";
 	}
 
@@ -99,10 +99,10 @@ bool rtsp_header_parse_sdp(char const* sdpDescription, MEDIA_INFO* pMediaInfo)
 
 	}
 
-	STREAM_INFO *pStreanInfo = NULL;
 	//parse the follow info
 	while (sdpLine != NULL) 
 	{
+		STREAM_INFO *pStreanInfo = NULL;
 		//chaeck stream info
 		if (0 == strncasecmp(sdpLine, "m=video", 7))
 		{
@@ -118,8 +118,8 @@ bool rtsp_header_parse_sdp(char const* sdpDescription, MEDIA_INFO* pMediaInfo)
 		}
 		else if (0 == strncasecmp(sdpLine, "m=application", 13))
 		{
-			pStreanInfo = &(pMediaInfo->stStreamAudio);
-			pMediaInfo->bHasAudio = true;
+			/*pStreanInfo = &(pMediaInfo->stStreamAudio);
+			pMediaInfo->bHasAudio = true;*/
 			//break;
 		}
 
@@ -148,7 +148,8 @@ bool rtsp_header_parse_sdp(char const* sdpDescription, MEDIA_INFO* pMediaInfo)
 			return false;
 		}
 		//»ñÈ¡PayLoad
-		pStreanInfo->nPayLoad = payloadFormat;
+		if(pStreanInfo)
+			pStreanInfo->nPayLoad = payloadFormat;
 		//copy info
 		//pStreanInfo->szProtocol = protocolName;
 		//pStreanInfo->szMediaName = mediumName;
@@ -164,6 +165,8 @@ bool rtsp_header_parse_sdp(char const* sdpDescription, MEDIA_INFO* pMediaInfo)
 			if (sdpLine[0] == 'm')
 				break; // we've reached the next stream
 
+			if (!pStreanInfo)
+				continue;
 			// Check for various special SDP lines that we understand:
 			if (parseSDPLine_c(sdpLine))
 				continue;
@@ -177,7 +180,7 @@ bool rtsp_header_parse_sdp(char const* sdpDescription, MEDIA_INFO* pMediaInfo)
 				continue;
 			if (parseSDPAttribute_fmtp(sdpLine, pStreanInfo->szSpsPps))
 				continue;*/
-			if (parseSDPAttribute_control(sdpLine, pStreanInfo->szTrackID,pStreanInfo->nTrackID))
+			if (parseSDPAttribute_control(sdpLine, pStreanInfo->szTrackID))
 				continue;
 
 			// 			if (parseSDPAttribute_source_filter(sdpLine))
@@ -300,16 +303,13 @@ bool parseSDPAttribute_framerate(char const* sdpLine, double &fVideoFPS)
 	return parseSuccess;
 }
 
-bool parseSDPAttribute_control(char const* sdpLine, std::string& pcontrol,int& pcontrolid)
+bool parseSDPAttribute_control(char const* sdpLine, std::string& pcontrol)
 {
 	bool parseSuccess = false;
 	char* controlPath = strDupSize(sdpLine); // ensures we have enough space
 	if (sscanf(sdpLine, "a=control: %s", controlPath) == 1)
 	{
 		pcontrol = controlPath;
-
-		const char* tmp = strchr(controlPath, '=');
-		if (tmp != NULL) pcontrolid = atoi(tmp + 1);
 
 		parseSuccess = true;
 	}

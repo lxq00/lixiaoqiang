@@ -52,7 +52,7 @@ int main()
 }
 
 #endif
-
+#if 0
 typedef websocketpp::client<websocketpp::config::asio_client> wsclient;
 typedef websocketpp::config::asio_client::message_type::ptr message_ptr;
 
@@ -148,3 +148,5 @@ int main()
 
 	return 0;
 }
+
+#endif
