@@ -62,7 +62,7 @@ public:
 	void sendSetupResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, const TRANSPORT_INFO& transport);
 	void sendPlayResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo);
 	void sendPauseResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo);
-	void sendTeradownResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo);
+	void sendTeardownResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo);
 	void sendGetparameterResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, const std::string& content);
 
 	void sendErrorResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, int errcode, const std::string& errmsg);

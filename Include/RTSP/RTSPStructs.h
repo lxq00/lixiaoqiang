@@ -146,9 +146,9 @@ struct RTSP_API RTSPCommandInfo
 
 	std::map<std::string, Value> headers;
 
-	uint32_t		cseq;
+	std::string body;
 
-	std::string		body;
+	uint32_t		cseq;
 
 	RTSPCommandInfo():cseq(0){}
 	Value header(const std::string& key) const
