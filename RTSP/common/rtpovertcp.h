@@ -35,22 +35,12 @@ public:
 			}
 			RTPHEADER* header = (RTPHEADER*)data;
 
-			framedata += std::string(data + sizeof(RTPHEADER), len - sizeof(RTPHEADER));
-
-			if (header->m)
-			{
-				datacallback(true, ntohl(header->ts), framedata);
-				framedata = "";
-			}
+			datacallback(true, ntohl(header->ts), data + sizeof(RTPHEADER), len - sizeof(RTPHEADER),header->m);
 		}
 	}
-	void sendData(bool isvideo, uint32_t timesmap, const String& data)
+	void sendData(bool isvideo, uint32_t timestmap, const char* buffer, uint32_t bufferlen, bool mark)
 	{
-		if (isvideo && !rtspmedia.media.bHasVideo) return;
-		if (!isvideo && !rtspmedia.media.bHasAudio) return;
-
-		const char* buffer = data.c_str();
-		uint32_t bufferlen = data.length();
+		if (buffer == NULL || bufferlen <= 0) return;
 
 		while (bufferlen > 0)
 		{
@@ -59,10 +49,10 @@ public:
 			RTPHEADER header;
 			memset(&header, 0, sizeof(header));
 			header.v = 2;
-			header.ts = htonl(timesmap);
+			header.ts = htonl(timestmap);
 			header.seq = htons(rtpsn++);
 			header.pt = isvideo ? rtspmedia.media.stStreamVideo.nPayLoad : rtspmedia.media.stStreamAudio.nPayLoad;
-			header.m = bufferlen == cansendlen;
+			header.m = bufferlen == cansendlen ? mark : false;
 			header.ssrc = htonl(isvideo ? rtspmedia.videoTransport.ssrc : rtspmedia.audioTransport.ssrc);
 
 			protocol->sendMedia(isvideo, (const char*)& header, sizeof(RTPHEADER), buffer, cansendlen);
@@ -88,7 +78,6 @@ public:
 private:
 	RTSPProtocol*			 protocol;
 	uint16_t				 rtpsn;
-	String					 framedata;
 
 	bool					 firsthearbeta;
 	shared_ptr<Timer>		 timer;

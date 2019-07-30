@@ -489,6 +489,11 @@ struct String::StringInternal
 			newbuffer->mempool = mempool;
 
 			if (mempool) newbuffer->buffer = (char*)mempool->Malloc(size, newbuffer->bufferSize);
+			else 
+			{
+				newbuffer->bufferSize = size;
+				newbuffer->buffer = new char[size];
+			}
 		}
 
 		buffer = newbuffer;

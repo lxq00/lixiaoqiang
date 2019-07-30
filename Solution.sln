@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29025.244
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.757
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Base", "Base\Base.vcxproj", "{706A8C4E-1088-4F8B-BC9C-C3A3CABC2E64}"
 EndProject
@@ -108,6 +108,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Medis", "Medis\Medis.vcxpro
 		{706A8C4E-1088-4F8B-BC9C-C3A3CABC2E64} = {706A8C4E-1088-4F8B-BC9C-C3A3CABC2E64}
 		{00D374D2-FF31-4627-BCCE-F597B4769959} = {00D374D2-FF31-4627-BCCE-F597B4769959}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "websocketpp", "websocketpp\websocketpp.vcxproj", "{7BFF54CD-14DA-4AAF-96B9-F2335DFA8B6E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -261,6 +263,14 @@ Global
 		{1A207225-9188-4FCC-9198-E20188F87C4A}.Release|Win32.Build.0 = Release|Win32
 		{1A207225-9188-4FCC-9198-E20188F87C4A}.Release|x64.ActiveCfg = Release|x64
 		{1A207225-9188-4FCC-9198-E20188F87C4A}.Release|x64.Build.0 = Release|x64
+		{7BFF54CD-14DA-4AAF-96B9-F2335DFA8B6E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7BFF54CD-14DA-4AAF-96B9-F2335DFA8B6E}.Debug|Win32.Build.0 = Debug|Win32
+		{7BFF54CD-14DA-4AAF-96B9-F2335DFA8B6E}.Debug|x64.ActiveCfg = Debug|x64
+		{7BFF54CD-14DA-4AAF-96B9-F2335DFA8B6E}.Debug|x64.Build.0 = Debug|x64
+		{7BFF54CD-14DA-4AAF-96B9-F2335DFA8B6E}.Release|Win32.ActiveCfg = Release|Win32
+		{7BFF54CD-14DA-4AAF-96B9-F2335DFA8B6E}.Release|Win32.Build.0 = Release|Win32
+		{7BFF54CD-14DA-4AAF-96B9-F2335DFA8B6E}.Release|x64.ActiveCfg = Release|x64
+		{7BFF54CD-14DA-4AAF-96B9-F2335DFA8B6E}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

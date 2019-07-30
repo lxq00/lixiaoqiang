@@ -64,7 +64,7 @@ public:
 	void sendGetparameterResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, const std::string& content);
 
 	void sendErrorResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, int errcode, const std::string& errmsg);
-	void sendMedia(bool isvideo, uint32_t timestmap, const String& data);
+	void sendMedia(bool isvideo, uint32_t timestmap, const char* buffer, uint32_t bufferlen, bool mark);
 private:
 	struct RTSPServerSessionInternal;
 	RTSPServerSessionInternal* internal;
@@ -85,7 +85,7 @@ public:
 	virtual void onGetparameterRequest(const shared_ptr<RTSPServerSession>& session, const shared_ptr<RTSPCommandInfo>& cmdinfo, const std::string& content) { session->sendErrorResponse(cmdinfo, 500, "NOT SUPPORT"); }
 
 	virtual void onClose(const shared_ptr<RTSPServerSession>& session) = 0;
-	virtual void onMediaCallback(bool isvideo, uint32_t timestmap, const String& data) {}
+	virtual void onMediaCallback(bool isvideo, uint32_t timestmap, const char* buffer, uint32_t bufferlen, bool mark) {}
 };
 
 }

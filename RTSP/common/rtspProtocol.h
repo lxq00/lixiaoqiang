@@ -43,12 +43,12 @@ public:
 		m_prevalivetime = Time::getCurrentMilliSecond();
 		m_bodylen = 0;
 		m_haveFindHeaderStart = false;
-		m_extdataLen = 0;
 
 		m_recvBuffer = new char[MAXPARSERTSPBUFFERLEN + 100];
 		m_recvBufferDataLen = 0;
 
 
+		m_sock->setSocketBuffer(1024 * 1024 * 4, 1024 * 1024);
 		m_sock->setDisconnectCallback(Socket::DisconnectedCallback(&RTSPProtocol::onSocketDisconnectCallback, this));
 		m_sock->async_recv(m_recvBuffer, MAXPARSERTSPBUFFERLEN, Socket::ReceivedCallback(&RTSPProtocol::onSocketRecvCallback, this));
 	}
@@ -202,17 +202,32 @@ private:
 
 		while (buffertmplen > 0)
 		{
-			if (m_header != NULL && m_bodylen > m_body.length())
+			if (m_cmdinfo != NULL)
 			{
-				uint32_t needlen = min(m_bodylen - m_body.length(), buffertmplen);
-				m_body.append(buffertmp, needlen);
-				buffertmp += needlen;
-				buffertmplen -= needlen;
+				if (m_bodylen > m_cmdinfo->body.length())
+				{
+					//数据不够
+					if (buffertmplen < m_bodylen - m_cmdinfo->body.length()) break;
+
+					uint32_t needlen = m_bodylen - m_cmdinfo->body.length();
+
+					m_cmdinfo->body.append(buffertmp, needlen);
+					buffertmp += needlen;
+					buffertmplen -= needlen;
+				}
+				
+				{
+					m_cmdcallback(m_cmdinfo);
+					m_cmdinfo = NULL;
+					m_bodylen = 0;
+					m_haveFindHeaderStart = false;
+				}
+				
 			}
-			else if (m_header == NULL && m_haveFindHeaderStart)
+			else if (m_cmdinfo == NULL && m_haveFindHeaderStart)
 			{
 				uint32_t usedlen = 0;
-				m_header = HTTPParse::parse(buffertmp, buffertmplen, usedlen);
+				shared_ptr<HTTPParse::Header> header = HTTPParse::parse(buffertmp, buffertmplen, usedlen);
 
 				if (usedlen > buffertmplen)
 				{
@@ -221,18 +236,30 @@ private:
 
 				buffertmp += usedlen;
 				buffertmplen -= usedlen;
-				if (m_header != NULL)
+
+				if (header != NULL)
 				{
-					m_bodylen = m_header->header(Content_Length).readInt();
-					m_body.resize(m_bodylen);
+					m_cmdinfo = make_shared<RTSPCommandInfo>();
+					m_cmdinfo->method = header->method;
+					m_cmdinfo->url = header->url.href();
+					m_cmdinfo->verinfo.protocol = header->verinfo.protocol;
+					m_cmdinfo->verinfo.version = header->verinfo.version;
+					m_cmdinfo->statuscode = header->statuscode;
+					m_cmdinfo->statusmsg = header->statusmsg;
+					m_cmdinfo->headers = std::move(header->headers);
+
+					m_cmdinfo->cseq = m_cmdinfo->header("CSeq").readInt();
+
+					m_bodylen = m_cmdinfo->header(Content_Length).readInt();
+
+					if (m_bodylen == 0)
+					{
+						m_cmdcallback(m_cmdinfo);
+						m_cmdinfo = NULL;
+						m_bodylen = 0;
+						m_haveFindHeaderStart = false;
+					}
 				}
-			}
-			else if (m_extdataLen != 0 && m_extdataLen > m_extdata.length())
-			{
-				uint32_t needlen = min(m_extdataLen - m_extdata.length(), buffertmplen);
-				m_extdata.append(buffertmp, needlen);
-				buffertmp += needlen;
-				buffertmplen -= needlen;
 			}
 			else if (*buffertmp == RTPOVERTCPMAGIC)
 			{
@@ -240,28 +267,26 @@ private:
 
 				INTERLEAVEDFRAME* frame = (INTERLEAVEDFRAME*)buffertmp;
 				uint32_t datalen = ntohs(frame->rtp_len);
-				if (datalen <= 0 || (m_tcpinterleaved && frame->channel != m_tcpinterleaved->dataChannel && frame->channel != m_tcpinterleaved->contrlChannel))
+				uint32_t datach = frame->channel;
+				if (datalen <= 0 || (m_tcpinterleaved && datach != m_tcpinterleaved->dataChannel && datach != m_tcpinterleaved->contrlChannel))
 				{
 					buffertmp++;
 					buffertmplen--;
 					continue;
 				}
-				m_extdataLen = datalen;
-				m_extdatach = frame->channel;
-				m_extdata.resize(m_extdataLen);
-				if (m_extdataLen <= 0)
-				{
-					assert(0);
-				}
-				buffertmp += sizeof(INTERLEAVEDFRAME);
-				buffertmplen -= sizeof(INTERLEAVEDFRAME);
+
+				if (datalen + sizeof(INTERLEAVEDFRAME) > buffertmplen) break;
+
+				m_extdatacallback(datach, buffertmp + sizeof(INTERLEAVEDFRAME), datalen);
+
+				buffertmp += datalen + sizeof(INTERLEAVEDFRAME);
+				buffertmplen -= datalen + sizeof(INTERLEAVEDFRAME);
 			}
 			else if(!m_haveFindHeaderStart)
 			{
 				uint32_t ret = checkIsRTSPCommandStart(buffertmp, buffertmplen);
 				if (ret == 0)
 				{
-					assert(0);
 					buffertmp++;
 					buffertmplen--;
 					continue;
@@ -279,34 +304,6 @@ private:
 			{
 				assert(0);
 				int a = 0;
-			}
-
-			if (m_header != NULL && m_bodylen == m_body.length())
-			{
-				shared_ptr<RTSPCommandInfo> cmd = make_shared<RTSPCommandInfo>();
-				cmd->method = m_header->method;
-				cmd->url = m_header->url.href();
-				cmd->verinfo.protocol = m_header->verinfo.protocol;
-				cmd->verinfo.version = m_header->verinfo.version;
-				cmd->statuscode = m_header->statuscode;
-				cmd->statusmsg = m_header->statusmsg;
-				cmd->headers = std::move(m_header->headers);
-				
-				cmd->body = std::move(m_body);
-				cmd->cseq = cmd->header("CSeq").readInt();
-
-				m_cmdcallback(cmd);
-				m_header = NULL;
-				m_body = "";
-				m_bodylen = 0;
-				m_haveFindHeaderStart = false;
-			}
-			else if (m_extdataLen != 0 && m_extdataLen == m_extdata.length())
-			{
-				m_extdatacallback(m_extdatach, m_extdata.c_str(), m_extdata.length());
-				
-				m_extdataLen = 0;
-				m_extdata = "";
 			}
 		}
 		if (buffertmplen > 0 && m_recvBuffer != buffertmp)
@@ -345,7 +342,7 @@ private:
 	//判断是否是显示字符
 	bool isCanShowChar(char ch)
 	{
-		return (ch >= 0x20 && ch < 0x7f);
+		return ((ch >= 0x20 && ch < 0x7f) || ch == '\r' || ch == '\n');
 	}
 public:
 	shared_ptr<Socket>			m_sock;
@@ -361,15 +358,12 @@ private:
 	std::list<shared_ptr<SendItem> > m_sendList;
 
 	uint64_t					m_prevalivetime;
+
+
 	bool						m_haveFindHeaderStart;
-	shared_ptr<HTTPParse::Header> m_header;
+	shared_ptr<RTSPCommandInfo>	m_cmdinfo;
 	uint32_t					m_bodylen;
-	std::string					m_body;
-
-	uint32_t					m_extdataLen;
-	uint32_t					m_extdatach;
-	std::string					m_extdata;
-
+	
 	shared_ptr<TCPInterleaved>  m_tcpinterleaved;
 };
 
