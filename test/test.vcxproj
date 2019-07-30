@@ -22,6 +22,7 @@
     <ClCompile Include="Src\test.cpp" />
     <ClCompile Include="Src\testHTTP.cpp" />
     <ClCompile Include="Src\testRTSP.cpp" />
+    <ClCompile Include="Src\testRTSPServer.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C523B4EE-1F54-45A3-972C-D44F6B2CDA60}</ProjectGuid>

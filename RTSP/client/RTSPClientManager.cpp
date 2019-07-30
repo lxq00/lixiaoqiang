@@ -62,7 +62,7 @@ shared_ptr<RTSPClient> RTSPClientManager::create(const shared_ptr<RTSPClientHand
 
 	//const std::shared_ptr<IOWorker>& work, const shared_ptr<RTSPClientHandler>& handler, const std::string& rtspUrl,const std::string& useragent);
 	shared_ptr<RTSPClient> client = shared_ptr<RTSPClient>(new RTSPClient(internal->worker,handler,
-		RTSPClient::AllockUdpPortCallback(&RTSPClientManagerInternal::allockRTPPort, internal),pRtspUrl,internal->useragent));
+		AllockUdpPortCallback(&RTSPClientManagerInternal::allockRTPPort, internal),pRtspUrl,internal->useragent));
 
 	return client;
 }

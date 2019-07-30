@@ -99,7 +99,7 @@ struct MEDIA_INFO
 		stStreamVideo.szTrackID = "trackID=0";
 
 		stStreamAudio.nPayLoad = 97;
-		stStreamAudio.szCodec = "G711";
+		stStreamAudio.szCodec = "G726-16";
 		stStreamAudio.nSampRate = 8000;
 		stStreamAudio.szTrackID = "trackID=1";
 	}
@@ -163,3 +163,7 @@ struct RTSP_API RTSPCommandInfo
 		return Value();
 	}
 };
+
+
+
+typedef Function0<uint32_t> AllockUdpPortCallback;

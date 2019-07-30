@@ -21,12 +21,11 @@ namespace RTSP {
 
 class RTSPClientManager;
 class RTSPClientHandler;
+
 class RTSP_API RTSPClient
 {
 	friend class RTSPClientManager;
 	struct RTSPClientInternal;
-
-	typedef Function0<uint32_t> AllockUdpPortCallback;
 	RTSPClient(const std::shared_ptr<IOWorker>& work, const shared_ptr<RTSPClientHandler>& handler, const AllockUdpPortCallback& allockport,const RTSPUrl& rtspUrl,const std::string& useragent);
 public:
 	~RTSPClient();

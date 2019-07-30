@@ -44,13 +44,15 @@ class RTSP_API RTSPServerSession
 {
 	friend struct RTSPServer::RTSPServerInternal;
 private:
-	RTSPServerSession(const shared_ptr<IOWorker>& worker, const shared_ptr<Socket>& sock, const RTSPServer::ListenCallback& querycallback, const std::string& useragent);
+	RTSPServerSession(const shared_ptr<IOWorker>& worker, const shared_ptr<Socket>& sock, const RTSPServer::ListenCallback& querycallback, const AllockUdpPortCallback& allocport,const std::string& useragent);
 	void initRTSPServerSessionPtr(const weak_ptr<RTSPServerSession>& session);
 public:
 	virtual ~RTSPServerSession();
 
+	void disconnect();
+
 	void setAuthenInfo(const std::string& username, const std::string& password);
-	const URL& url() const;
+	const std::string& url() const;
 	uint32_t sendListSize() const;
 	uint64_t prevAlivetime() const;
 	shared_ptr<RTSPServerHandler> handler();
@@ -76,9 +78,15 @@ public:
 	RTSPServerHandler() {}
 	virtual ~RTSPServerHandler() {}
 
-	virtual void onOptionRequest(const shared_ptr<RTSPServerSession>& session, const shared_ptr<RTSPCommandInfo>& cmdinfo) { session->sendOptionResponse(cmdinfo); }
+	virtual void onOptionRequest(const shared_ptr<RTSPServerSession>& session, const shared_ptr<RTSPCommandInfo>& cmdinfo) 
+	{
+		session->sendOptionResponse(cmdinfo); 
+	}
 	virtual void onDescribeRequest(const shared_ptr<RTSPServerSession>& session, const shared_ptr<RTSPCommandInfo>& cmdinfo) = 0;
-	virtual void onSetupRequest(const shared_ptr<RTSPServerSession>& session, const shared_ptr<RTSPCommandInfo>& cmdinfo, const TRANSPORT_INFO& transport) = 0;
+	virtual void onSetupRequest(const shared_ptr<RTSPServerSession>& session, const shared_ptr<RTSPCommandInfo>& cmdinfo, const TRANSPORT_INFO& transport)
+	{
+		session->sendSetupResponse(cmdinfo, transport);
+	}
 	virtual void onPlayRequest(const shared_ptr<RTSPServerSession>& session, const shared_ptr<RTSPCommandInfo>& cmdinfo, const RANGE_INFO& range) = 0;
 	virtual void onPauseRequest(const shared_ptr<RTSPServerSession>& session, const shared_ptr<RTSPCommandInfo>& cmdinfo) { session->sendErrorResponse(cmdinfo, 500, "NOT SUPPORT"); }
 	virtual void onTeardownRequest(const shared_ptr<RTSPServerSession>& session, const shared_ptr<RTSPCommandInfo>& cmdinfo) = 0;

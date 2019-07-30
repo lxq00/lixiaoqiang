@@ -82,6 +82,8 @@ public:
 	{
 		if (cmdstr.length() == 0) return;
 
+		printf("%s",cmdstr.c_str());
+
 		Guard locker(m_mutex);
 		_addAndCheckSendData(cmdstr.c_str(),cmdstr.length());
 	}
@@ -234,11 +236,10 @@ private:
 					assert(0);
 				}
 
-				buffertmp += usedlen;
-				buffertmplen -= usedlen;
-
 				if (header != NULL)
 				{
+					printf("%s", std::string(buffertmp,usedlen).c_str());
+
 					m_cmdinfo = make_shared<RTSPCommandInfo>();
 					m_cmdinfo->method = header->method;
 					m_cmdinfo->url = header->url.href();
@@ -260,6 +261,9 @@ private:
 						m_haveFindHeaderStart = false;
 					}
 				}
+
+				buffertmp += usedlen;
+				buffertmplen -= usedlen;
 			}
 			else if (*buffertmp == RTPOVERTCPMAGIC)
 			{

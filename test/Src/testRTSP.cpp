@@ -1,6 +1,8 @@
 #include "RTSP/RTSP.h"
 using namespace Public::RTSP;
 
+#if 0
+
 class RTSPSessiontmp :public RTSPClientHandler
 {
 	virtual void onConnectResponse(bool success, const std::string& errmsg) 
@@ -107,3 +109,5 @@ int main()
 
 	return 0;
 }
+
+#endif

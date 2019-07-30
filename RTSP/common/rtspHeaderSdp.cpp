@@ -32,22 +32,25 @@ std::string rtsp_header_build_sdp(const MEDIA_INFO& info)
 
 	sdpstr += "v=0\r\n";
 	sdpstr += "o=- " + Value(info.ssrc).readString() + " " + Value(info.ssrc).readString() + " IN IP4 0.0.0.0\r\n";
+	sdpstr += "t=" + Value(info.startRange).readString() + " " + Value(info.stopRange).readString() + "\r\n";
 	sdpstr += "c=IN IP4 0.0.0.0\r\n";
-	sdpstr += "t=" + Value(info.startRange).readString() + "-" + Value(info.stopRange).readString() + "\r\n";
-	sdpstr += "a=control:*";
+	sdpstr += "a=control:*\r\n";
 
 	if (info.bHasVideo)
 	{
 		sdpstr += "m=video 0 RTP/AVP "+Value(info.stStreamVideo.nPayLoad).readString()+ "\r\n";
 		sdpstr += "a=control:"+info.stStreamVideo.szTrackID+"\r\n";
 		sdpstr += "a=rtpmap:" + Value(info.stStreamVideo.nPayLoad).readString() + " " + info.stStreamVideo.szCodec + "/" + Value(info.stStreamVideo.nSampRate).readString() + "\r\n";
+		sdpstr += "a=recvonly\r\n";
 	}
 	if (info.bHasAudio)
 	{
-		sdpstr += "m=video 0 RTP/AVP " + Value(info.stStreamAudio.nPayLoad).readString() + "\r\n";
+		sdpstr += "m=audio 0 RTP/AVP " + Value(info.stStreamAudio.nPayLoad).readString() + "\r\n";
 		sdpstr += "a=control:" + info.stStreamAudio.szTrackID + "\r\n";
 		sdpstr += "a=rtpmap:" + Value(info.stStreamAudio.nPayLoad).readString() + " " + info.stStreamAudio.szCodec + "/" + Value(info.stStreamAudio.nSampRate).readString() + "\r\n";
+		sdpstr += "a=recvonly\r\n";
 	}
+	sdpstr += "a=appversion:1.0\r\n";
 
 	return sdpstr;
 }
