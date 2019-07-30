@@ -15,7 +15,7 @@ public:
 	~rtpOverTcp()
 	{
 	}
-	void rtpovertcpCallback(uint32_t channel, const char* data, uint32_t len)
+	void rtpovertcpCallback(uint32_t channel, const StringBuffer& data)
 	{
 		//contorl data
 		if (channel % 2 != 0)
@@ -24,20 +24,21 @@ public:
 		}
 		else
 		{
-			if (len < sizeof(RTPHEADER))
+			if (data.size() < sizeof(RTPHEADER))
 			{
 				assert(0);
 				return;
 			}
-			RTPHEADER* header = (RTPHEADER*)data;
+			RTPHEADER* header = (RTPHEADER*)data.size();
 
-			datacallback(true, ntohl(header->ts), data + sizeof(RTPHEADER), len - sizeof(RTPHEADER),header->m);
+			datacallback(true, ntohl(header->ts), StringBuffer(data, data.buffer() + sizeof(RTPHEADER), data.size() - sizeof(RTPHEADER)),header->m);
 		}
 	}
-	void sendData(bool isvideo, uint32_t timestmap, const char* buffer, uint32_t bufferlen, bool mark)
+	void sendData(bool isvideo, uint32_t timestmap, const StringBuffer& data, bool mark)
 	{
-		if (buffer == NULL || bufferlen <= 0) return;
-
+		const char* buffer = data.buffer();
+		uint32_t bufferlen = data.size();
+	
 		while (bufferlen > 0)
 		{
 			uint32_t cansendlen = min(MAXRTPPACKETLEN, bufferlen);
@@ -51,7 +52,7 @@ public:
 			header.m = bufferlen == cansendlen ? mark : false;
 			header.ssrc = htonl(isvideo ? rtspmedia.videoTransport.ssrc : rtspmedia.audioTransport.ssrc);
 
-			protocol->sendMedia(isvideo, (const char*)& header, sizeof(RTPHEADER), buffer, cansendlen);
+			protocol->sendMedia(isvideo, (const char*)& header, sizeof(RTPHEADER), StringBuffer(data, buffer, cansendlen));
 
 			buffer += cansendlen;
 			bufferlen -= cansendlen;

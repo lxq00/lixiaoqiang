@@ -2,7 +2,7 @@
 #include "HTTP/HTTPParse.h"
 using namespace Public::HTTP;
 
-#define MAXPARSERTSPBUFFERLEN	1024*16
+#define MAXPARSERTSPBUFFERLEN	1024*128
 #define RTPOVERTCPMAGIC		'$'
 #define RTSPCMDFLAG			"RTSP/1.0"
 
@@ -12,7 +12,7 @@ class RTSPProtocol:public HTTPParse
 {
 	struct SendItem
 	{
-		std::string			data;
+		StringBuffer		buffer;
 		uint32_t			havesendlen;
 
 		SendItem():havesendlen(0){}
@@ -30,7 +30,7 @@ class RTSPProtocol:public HTTPParse
 	};
 public:
 	typedef Function1<void, const shared_ptr<RTSPCommandInfo>&> CommandCallback;
-	typedef Function3<void, uint32_t,const char*, uint32_t> ExternDataCallback;
+	typedef Function2<void, uint32_t,const StringBuffer&> ExternDataCallback;
 	typedef Function0<void> DisconnectCallback;
 public:
 	RTSPProtocol(const shared_ptr<Socket>& sock, const CommandCallback& cmdcallback, const DisconnectCallback& disconnectCallback,bool server)
@@ -44,19 +44,16 @@ public:
 		m_bodylen = 0;
 		m_haveFindHeaderStart = false;
 
-		m_recvBuffer = new char[MAXPARSERTSPBUFFERLEN + 100];
-		m_recvBufferDataLen = 0;
-
+		m_recvBuffer.alloc(MAXPARSERTSPBUFFERLEN);
 
 		m_sock->setSocketBuffer(1024 * 1024 * 4, 1024 * 1024);
 		m_sock->setDisconnectCallback(Socket::DisconnectedCallback(&RTSPProtocol::onSocketDisconnectCallback, this));
-		m_sock->async_recv(m_recvBuffer, MAXPARSERTSPBUFFERLEN, Socket::ReceivedCallback(&RTSPProtocol::onSocketRecvCallback, this));
+		m_sock->async_recv((char*)m_recvBuffer.c_str(), MAXPARSERTSPBUFFERLEN, Socket::ReceivedCallback(&RTSPProtocol::onSocketRecvCallback, this));
 	}
 	~RTSPProtocol()
 	{
 		m_sock->disconnect();
 		m_sock = NULL;
-		SAFE_DELETEARRAY(m_recvBuffer);
 	}
 
 	void setRTPOverTcpCallback(const ExternDataCallback& datacallback)
@@ -72,7 +69,7 @@ public:
 		Guard locker(m_mutex);
 		for (std::list<shared_ptr<SendItem> >::iterator iter = m_sendList.begin(); iter != m_sendList.end(); iter++)
 		{
-			listsize += (*iter)->data.length();
+			listsize += (*iter)->buffer.size();
 		}
 
 		return listsize;
@@ -85,21 +82,21 @@ public:
 		printf("%s",cmdstr.c_str());
 
 		Guard locker(m_mutex);
-		_addAndCheckSendData(cmdstr.c_str(),cmdstr.length());
+		_addAndCheckSendData(StringBuffer(cmdstr));
 	}
-	void sendMedia(bool isvideo,const char* rtpheader, uint32_t rtpheaderlen, const char* dataaddr, uint32_t datalen)
+	void sendMedia(bool isvideo,const char* rtpheader, uint32_t rtpheaderlen, const StringBuffer& buffer)
 	{
 		if (m_tcpinterleaved == NULL) return;
 		INTERLEAVEDFRAME frame;
 		frame.magic = RTPOVERTCPMAGIC;
 		frame.channel = m_tcpinterleaved->dataChannel;
-		frame.rtp_len = htons(rtpheaderlen + datalen);
+		frame.rtp_len = htons(rtpheaderlen + (uint16_t)buffer.size());
 
-		std::string rtpovertcp = std::string((char*)&frame, sizeof(frame)) + std::string(rtpheader, rtpheaderlen);
+		StringBuffer rtpovertcp = std::string((char*)&frame, sizeof(frame)) + std::string(rtpheader, rtpheaderlen);
 
 		Guard locker(m_mutex);
-		_addAndCheckSendData(rtpovertcp.c_str(), rtpovertcp.length());
-		_addAndCheckSendData(dataaddr, datalen);
+		_addAndCheckSendData(rtpovertcp);
+		_addAndCheckSendData(buffer);
 	}
 	void sendContrlData(const char* buffer, uint32_t len)
 	{
@@ -110,11 +107,11 @@ public:
 		frame.channel = m_tcpinterleaved->contrlChannel;
 		frame.rtp_len = htons(len);
 
-		std::string contorldata = std::string((char*)&frame, sizeof(frame)) + std::string(buffer, len);
+		StringBuffer contorldata = std::string((char*)&frame, sizeof(frame)) + std::string(buffer, len);
 
 
 		Guard locker(m_mutex);
-		_addAndCheckSendData(contorldata.c_str(), contorldata.length());
+		_addAndCheckSendData(contorldata);
 	}
 	void setTCPInterleavedChannel(int datachannel,int contorl)
 	{
@@ -123,17 +120,17 @@ public:
 		m_tcpinterleaved->contrlChannel = contorl;
 	}
 private:
-	void _addAndCheckSendData(const char* buffer,uint32_t len)
+	void _addAndCheckSendData(const StringBuffer& buffer)
 	{
 		shared_ptr<SendItem> item = make_shared<SendItem>();
-		item->data = std::string(buffer,len);
+		item->buffer = buffer;
 
 		m_sendList.push_back(item);
 		if (m_sendList.size() == 1 && m_sock != NULL)
 		{
 			shared_ptr<SendItem> item = m_sendList.front();
-			const char* sendbuffer = item->data.c_str();
-			uint32_t sendbufferlen = item->data.length();
+			const char* sendbuffer = item->buffer.buffer();
+			uint32_t sendbufferlen = item->buffer.size();
 			
 			m_prevalivetime = Time::getCurrentMilliSecond();
 
@@ -153,12 +150,13 @@ private:
 
 		{
 			shared_ptr<SendItem> item = m_sendList.front();
-			if (buffer < item->data.c_str() || buffer > item->data.c_str() + len) return;
+			if (buffer < item->buffer.buffer() || buffer > item->buffer.buffer() + len) return;
 
-			if (item->havesendlen + len > item->data.length()) return;
+			if (item->havesendlen + len > item->buffer.size()) return;
+
 			item->havesendlen += len;
 
-			if (item->havesendlen == item->data.length())
+			if (item->havesendlen == item->buffer.size())
 			{
 				m_sendList.pop_front();
 			}
@@ -167,8 +165,8 @@ private:
 		if (m_sendList.size() > 0)
 		{
 			shared_ptr<SendItem> item = make_shared<SendItem>();
-			const char* sendbuffer = item->data.c_str() + item->havesendlen;
-			uint32_t sendbufferlen = item->data.length() - item->havesendlen;
+			const char* sendbuffer = item->buffer.buffer() + item->havesendlen;
+			uint32_t sendbufferlen = item->buffer.size() - item->havesendlen;
 
 			m_prevalivetime = Time::getCurrentMilliSecond();
 
@@ -187,20 +185,15 @@ private:
 			assert(0);
 			return;
 		}
-		if (m_recvBuffer + m_recvBufferDataLen != buffer)
+		if (m_recvBuffer.c_str() + m_recvBuffer.length() != buffer)
 		{
 			assert(0);
-		}
-		if (m_recvBufferDataLen + len > MAXPARSERTSPBUFFERLEN)
-		{
-			assert(0);
-			return;
 		}
 
-		m_recvBufferDataLen += len;
+		m_recvBuffer.resize(m_recvBuffer.length() + len);
 		
-		const char* buffertmp = m_recvBuffer;
-		uint32_t buffertmplen = m_recvBufferDataLen;
+		const char* buffertmp = m_recvBuffer.c_str();
+		uint32_t buffertmplen = m_recvBuffer.length();
 
 		while (buffertmplen > 0)
 		{
@@ -286,7 +279,7 @@ private:
 
 				if (datalen + sizeof(INTERLEAVEDFRAME) > buffertmplen) break;
 
-				m_extdatacallback(datach, buffertmp + sizeof(INTERLEAVEDFRAME), datalen);
+				m_extdatacallback(datach, StringBuffer(m_recvBuffer,buffertmp + sizeof(INTERLEAVEDFRAME), datalen));
 
 				buffertmp += datalen + sizeof(INTERLEAVEDFRAME);
 				buffertmplen -= datalen + sizeof(INTERLEAVEDFRAME);
@@ -315,17 +308,21 @@ private:
 				int a = 0;
 			}
 		}
-		if (buffertmplen > 0 && m_recvBuffer != buffertmp)
+		String newdatabuffer;
+		newdatabuffer.alloc(buffertmplen + MAXPARSERTSPBUFFERLEN);
+
+		if (buffertmplen > 0)
 		{
-			memmove(m_recvBuffer, buffertmp, buffertmplen);
+			memcpy((char*)newdatabuffer.c_str(),buffertmp, buffertmplen);
+			newdatabuffer.resize(buffertmplen);
 		}
-		m_recvBufferDataLen = buffertmplen;
+		m_recvBuffer = newdatabuffer;
 
 
 		shared_ptr<Socket> socktmp = sock.lock();
 		if (socktmp != NULL)
 		{
-			socktmp->async_recv(m_recvBuffer + m_recvBufferDataLen, MAXPARSERTSPBUFFERLEN - m_recvBufferDataLen, Socket::ReceivedCallback(&RTSPProtocol::onSocketRecvCallback, this));
+			socktmp->async_recv((char*)m_recvBuffer.c_str() + buffertmplen, MAXPARSERTSPBUFFERLEN, Socket::ReceivedCallback(&RTSPProtocol::onSocketRecvCallback, this));
 		}
 	}
 	// return 0 not cmonnand,return 1 not sure need wait,return 2 is command
@@ -360,8 +357,7 @@ private:
 	ExternDataCallback			m_extdatacallback;
 	DisconnectCallback			m_disconnect;
 
-	char*						m_recvBuffer;
-	uint32_t					m_recvBufferDataLen;
+	String						m_recvBuffer;
 
 	Mutex						m_mutex;
 	std::list<shared_ptr<SendItem> > m_sendList;

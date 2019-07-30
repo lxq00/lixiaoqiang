@@ -61,10 +61,12 @@ private:
 	{
 #define MAXBUFFERSIZE	128*1024
 		char buffer[MAXBUFFERSIZE] = { 0 };
+
+		StringBuffer bufferobj(buffer, MAXBUFFERSIZE);
 		uint32_t timestmap = 0;
 		while (looping())
 		{
-			session->sendMedia(true, timestmap += 25, buffer, MAXBUFFERSIZE, true);
+			session->sendMedia(true, timestmap += 25, bufferobj, true);
 
 			Thread::sleep(25);
 		}

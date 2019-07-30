@@ -24,13 +24,13 @@ class rtp
 {
 public:
 	//Fucntion4<bool isvideo,uint32_t timestmap,const char* buffer,uint32_t bufferlen,bool mark>RTPDataCallback
-	typedef Function5<void, bool,uint32_t, const char*,uint32_t,bool> RTPDataCallback;
+	typedef Function4<void, bool,uint32_t, const StringBuffer&,bool> RTPDataCallback;
 public:
 	rtp(bool _isserver,const RTSP_MEDIA_INFO& _rtspmedia, const RTPDataCallback& _datacallback)
 		:isserver(_isserver), rtspmedia(_rtspmedia),datacallback(_datacallback) {}
 	virtual ~rtp() {}
 
-	virtual void sendData(bool isvideo, uint32_t timestmap, const char* buffer, uint32_t bufferlen, bool mark) = 0;
+	virtual void sendData(bool isvideo, uint32_t timestmap, const StringBuffer& buffer, bool mark) = 0;
 	virtual void onPoolHeartbeat() {}
 protected:
 	bool			isserver;

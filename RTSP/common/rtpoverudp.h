@@ -23,7 +23,7 @@ class rtpOverUdp :public rtp
 	};
 	struct SendDataInfo
 	{
-		std::string framedata;
+		String		framedata;
 		uint32_t	havesendlen;
 
 		SendDataInfo():havesendlen(0){}
@@ -79,12 +79,13 @@ public:
 		audiortcp = NULL;
 	}
 	
-	void sendData(bool isvideo, uint32_t timestmap, const char* buffer, uint32_t bufferlen, bool mark)
+	void sendData(bool isvideo, uint32_t timestmap, const StringBuffer& data, bool mark)
 	{
 		if (isvideo && !rtspmedia.media.bHasVideo) return;
 		if (!isvideo && !rtspmedia.media.bHasAudio) return;
 
-		if (buffer == NULL || bufferlen <= 0) return;
+		const char* buffer = data.buffer();
+		uint32_t bufferlen = data.size();
 
 		while (bufferlen > 0)
 		{
@@ -99,21 +100,26 @@ public:
 			header.m = bufferlen == cansendlen ? mark : false;
 			header.ssrc = htonl(isvideo ? rtspmedia.videoTransport.ssrc : rtspmedia.audioTransport.ssrc);
 
-			std::string sendbuffer = std::string((const char*)& header, sizeof(RTPHEADER)) + std::string(buffer, cansendlen);
+			uint32_t needlen = sizeof(RTPHEADER) + cansendlen;
 
+			String sendbuffer;
+			sendbuffer.alloc(needlen);
+			sendbuffer.append((const char*)& header, sizeof(RTPHEADER));
+			sendbuffer.append(buffer, cansendlen);
+			
 			addFrameAndCheckSend(isvideo, sendbuffer);
 
 			buffer += cansendlen;
 			bufferlen -= cansendlen;
 		}
 	}
-	void addFrameAndCheckSend(bool isvideo, const std::string& frame)
+	void addFrameAndCheckSend(bool isvideo, const String& frame)
 	{
 		Guard locker(mutex);
 		std::list<shared_ptr<SendDataInfo> >& sendlist = isvideo ? sendvideortplist : sendaudiortplist;
 
 		shared_ptr<SendDataInfo> senddata = make_shared<SendDataInfo>();
-		senddata->framedata = std::move(frame);
+		senddata->framedata = frame;
 
 		sendlist.push_back(senddata);
 
@@ -300,10 +306,10 @@ public:
 
 			if (iter->sn + 1 == nextiter->sn || framelist.size() >= MAXRTPFRAMESIZE)
 			{
-				const char* framedataaddr = iter->framedata.c_str();
-				size_t framedatasize = iter->framedata.length();
+				const char* framedataaddr = iter->framedata.c_str() + sizeof(RTPHEADER);
+				size_t framedatasize = iter->framedata.length() - sizeof(RTPHEADER);
 
-				datacallback(isvideo, iter->tiemstmap, iter->framedata.c_str() + sizeof(RTPHEADER), iter->framedata.length() - sizeof(RTPHEADER), iter->mark);
+				datacallback(isvideo, iter->tiemstmap, StringBuffer(iter->framedata, framedataaddr, framedatasize), iter->mark);
 
 				framelist.erase(iter++);
 			}

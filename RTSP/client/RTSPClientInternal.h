@@ -211,11 +211,11 @@ struct RTSPClient::RTSPClientInternal
 		return cmdinfo;
 	}
 
-	bool sendMedia(bool isvideo, uint32_t timestmap, const char* buffer, uint32_t bufferlen, bool mark)
+	bool sendMedia(bool isvideo, uint32_t timestmap, const StringBuffer& data, bool mark)
 	{
 		if (!rtp) return false;
 
-		rtp->sendData(isvideo, timestmap, buffer,bufferlen,mark);
+		rtp->sendData(isvideo, timestmap, data, mark);
 
 		return true;
 	}
@@ -490,9 +490,9 @@ private:
 			cmdinfo->waitsem->post();
 		}
 	}
-	void rtpDataCallback(bool isvideo, uint32_t timestmap, const char* buffer, uint32_t bufferlen, bool mark)
+	void rtpDataCallback(bool isvideo, uint32_t timestmap, const StringBuffer& data, bool mark)
 	{
-		if (handler) handler->onMediaCallback(isvideo, timestmap, buffer,bufferlen,mark);
+		if (handler) handler->onMediaCallback(isvideo, timestmap, data, mark);
 	}
 	void socketDisconnectCallback()
 	{
