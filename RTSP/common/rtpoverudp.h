@@ -38,14 +38,14 @@ public:
 			videortp->bind(isserver ? rtspmedia.videoTransport.rtp.u.server_port1 : rtspmedia.videoTransport.rtp.u.client_port1);
 			videortp->setSocketBuffer(1024*1024, 0);
 
-			currvideortprecvbuffer.resize(MAXUDPPACKGELEN);
+			currvideortprecvbuffer.alloc(MAXUDPPACKGELEN);
 			videortp->async_recvfrom((char*)currvideortprecvbuffer.c_str(), MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketVideoRTPRecvCallback, this));
 
 			videortcp = UDP::create(work);
 			videortcp->bind(isserver ? rtspmedia.videoTransport.rtp.u.server_port2 : rtspmedia.videoTransport.rtp.u.client_port2);
 			videortcp->setSocketBuffer(1024 * 1024, 0);
 
-			currvideortcprecvbuffer.resize(MAXUDPPACKGELEN);
+			currvideortcprecvbuffer.alloc(MAXUDPPACKGELEN);
 			videortcp->async_recvfrom((char*)currvideortcprecvbuffer.c_str(), MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketVideoRTCPRecvCallback, this));
 		}
 
@@ -55,14 +55,14 @@ public:
 			audiortp->bind(isserver ? rtspmedia.audioTransport.rtp.u.server_port1 : rtspmedia.audioTransport.rtp.u.client_port1);
 			audiortp->setSocketBuffer(1024 * 1024, 0);
 
-			curraudiortprecvbuffer.resize(MAXUDPPACKGELEN);
+			curraudiortprecvbuffer.alloc(MAXUDPPACKGELEN);
 			audiortp->async_recvfrom((char*)curraudiortprecvbuffer.c_str(), MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketAudioRTPRecvCallback, this));
 
 			audiortcp = UDP::create(work);
 			audiortcp->bind(isserver ? rtspmedia.audioTransport.rtp.u.server_port2 : rtspmedia.audioTransport.rtp.u.client_port2);
 			audiortcp->setSocketBuffer(1024 * 1024, 0);
 
-			curraudiortcprecvbuffer.resize(MAXUDPPACKGELEN);
+			curraudiortcprecvbuffer.alloc(MAXUDPPACKGELEN);
 			audiortcp->async_recvfrom((char*)curraudiortcprecvbuffer.c_str(), MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketAudioRTCPRecvCallback, this));
 		}
 	}
@@ -196,14 +196,12 @@ public:
 	}
 	void socketVideoRTPRecvCallback(const weak_ptr<Socket>& sock, const char* buffer, int len,const NetAddr& otearaddr)
 	{
-		const char* currrecvstartaddr = currvideortprecvbuffer.c_str();
-		size_t currrecvlen = currvideortprecvbuffer.length();
-		const char* currrecvendaddr = currrecvstartaddr + currrecvlen;
-
-		if (buffer < currrecvstartaddr || buffer >= currrecvendaddr || len <= 0 || (size_t)len > currrecvlen) return;
+		if (buffer != currvideortprecvbuffer.c_str() || len <= 0 || len > MAXUDPPACKGELEN) return;
 
 		if (len > sizeof(RTPHEADER))
 		{
+			currvideortprecvbuffer.resize(len);
+
 			Guard locker(mutex);
 
 			if (otearaddr.getPort() != (isserver ? rtspmedia.videoTransport.rtp.u.client_port1 : rtspmedia.videoTransport.rtp.u.server_port1))
@@ -221,13 +219,13 @@ public:
 
 			videoframelist.push_back(info);
 
-			_checkFramelistData(isserver);
+			_checkFramelistData(true);
 		}
 		
 		shared_ptr<Socket> socktmp = sock.lock();
 		if (socktmp)
 		{
-			currvideortprecvbuffer.resize(MAXUDPPACKGELEN);
+			currvideortprecvbuffer.alloc(MAXUDPPACKGELEN);
 			socktmp->async_recvfrom((char*)currvideortprecvbuffer.c_str(), MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketVideoRTPRecvCallback, this));
 		}
 	}
@@ -236,23 +234,21 @@ public:
 		shared_ptr<Socket> socktmp = sock.lock();
 		if (socktmp)
 		{
-			currvideortcprecvbuffer.resize(MAXUDPPACKGELEN);
+			currvideortcprecvbuffer.alloc(MAXUDPPACKGELEN);
 			socktmp->async_recvfrom((char*)currvideortcprecvbuffer.c_str(), MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketVideoRTCPRecvCallback, this));
 		}
 	}
 	void socketAudioRTPRecvCallback(const weak_ptr<Socket>& sock, const char* buffer, int len, const NetAddr& otearaddr)
 	{
-		const char* currrecvstartaddr = curraudiortprecvbuffer.c_str();
-		size_t currrecvlen = curraudiortprecvbuffer.length();
-		const char* currrecvendaddr = currrecvstartaddr + currrecvlen;
-
-		if (buffer < currrecvstartaddr || buffer >= currrecvendaddr || len <= 0 || (size_t)len > currrecvlen) return;
+		if (buffer != curraudiortprecvbuffer.c_str() || len <= 0 || len > MAXUDPPACKGELEN) return;
 
 		if(len > sizeof(RTPHEADER))
 		{
+			curraudiortprecvbuffer.resize(len);
+
 			Guard locker(mutex);
 
-			if (otearaddr.getPort() != (isserver ? rtspmedia.videoTransport.rtp.u.client_port1 : rtspmedia.videoTransport.rtp.u.server_port1))
+			if (otearaddr.getPort() != (isserver ? rtspmedia.audioTransport.rtp.u.client_port1 : rtspmedia.audioTransport.rtp.u.server_port1))
 			{
 				assert(0);
 			}
@@ -267,13 +263,13 @@ public:
 
 			audioframelist.push_back(info);
 
-			_checkFramelistData(isserver);
+			_checkFramelistData(false);
 		}
 
 		shared_ptr<Socket> socktmp = sock.lock();
 		if (socktmp)
 		{
-			curraudiortprecvbuffer.resize(MAXUDPPACKGELEN);
+			curraudiortprecvbuffer.alloc(MAXUDPPACKGELEN);
 			socktmp->async_recvfrom((char*)curraudiortprecvbuffer.c_str(), MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketAudioRTPRecvCallback, this));
 		}
 	}
@@ -282,7 +278,7 @@ public:
 		shared_ptr<Socket> socktmp = sock.lock();
 		if (socktmp)
 		{
-			curraudiortcprecvbuffer.resize(MAXUDPPACKGELEN);
+			curraudiortcprecvbuffer.alloc(MAXUDPPACKGELEN);
 			socktmp->async_recvfrom((char*)curraudiortcprecvbuffer.c_str(), MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketAudioRTCPRecvCallback, this));
 		}
 	}
@@ -301,6 +297,9 @@ public:
 
 			if (iter->sn + 1 == nextiter->sn || framelist.size() >= MAXRTPFRAMESIZE)
 			{
+				const char* framedataaddr = iter->framedata.c_str();
+				size_t framedatasize = iter->framedata.length();
+
 				datacallback(isvideo, iter->tiemstmap, iter->framedata.c_str() + sizeof(RTPHEADER), iter->framedata.length() - sizeof(RTPHEADER), iter->mark);
 
 				framelist.erase(iter++);

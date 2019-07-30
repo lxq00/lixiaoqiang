@@ -59,6 +59,8 @@ struct RTSPClient::RTSPClientInternal
 
 	AllockUdpPortCallback		allockportcallback;
 
+	uint64_t				 prevheartbeattime;
+
 	RTSPClientInternal(const shared_ptr<RTSPClientHandler>& _handler, const AllockUdpPortCallback& allockport, const shared_ptr<IOWorker>& worker, const RTSPUrl& url, const std::string& _useragent)
 		:handler(_handler), socketconnected(false), ioworker(worker), useragent(_useragent), rtspurl(url), connecttimeout(10000), protocolstartcseq(1), allockportcallback(allockport)
 	{
@@ -66,6 +68,8 @@ struct RTSPClient::RTSPClientInternal
 		rtspmedia.videoTransport.rtp.t.dataChannel = 0;
 		rtspmedia.videoTransport.rtp.t.contorlChannel = rtspmedia.videoTransport.rtp.t.dataChannel + 1;
 		rtspmedia.audioTransport = rtspmedia.videoTransport;
+
+		prevheartbeattime = Time::getCurrentMilliSecond();
 	}
 	~RTSPClientInternal()
 	{
@@ -197,6 +201,10 @@ struct RTSPClient::RTSPClientInternal
 			cmdinfo->cmd->url = rtspurl.rtspurl + "/" + rtspmedia.media.stStreamAudio.szTrackID;
 			cmdinfo->cmd->headers["Transport"] = rtsp_header_build_transport(rtspmedia.audioTransport);
 		}
+		else
+		{
+			return shared_ptr<CommandInfo>();
+		}
 
 		rtspBuildRtspCommand(cmdinfo);
 
@@ -245,6 +253,24 @@ private:
 				if (handler) handler->onErrorResponse(cmdinfo->cmd, 406, "Command Timeout");
 
 				checkAndSendCommand(shared_ptr<CommandInfo>());
+			}
+		}
+
+		if(socketconnected && sessionstr.length() > 0)
+		{
+			uint64_t nowtime = Time::getCurrentMilliSecond();
+			if (nowtime > prevheartbeattime && nowtime - prevheartbeattime > 10000)
+			{
+				if (rtspmedia.videoTransport.transport == TRANSPORT_INFO::TRANSPORT_RTP_TCP)
+				{
+					if (rtp) rtp->onPoolHeartbeat();
+				}
+				else
+				{
+					sendOptionsRequest();
+				}
+
+				prevheartbeattime = nowtime;
 			}
 		}
 	}
@@ -367,7 +393,9 @@ private:
 		}
 		else if (strcasecmp(cmdinfo->cmd->method.c_str(), "OPTIONS") == 0)
 		{
-			sendDescribeRequest();
+			//没建立会话
+			if(sessionstr.length() == 0)
+				sendDescribeRequest();
 		}
 		else if (strcasecmp(cmdinfo->cmd->method.c_str(), "DESCRIBE") == 0)
 		{
@@ -402,11 +430,11 @@ private:
 					//rtpOverTcp(bool _isserver, const shared_ptr<RTSPProtocol>& _protocol, const RTSP_MEDIA_INFO& _rtspmedia, const RTPDataCallback& _datacallback)
 					rtp = make_shared<rtpOverTcp>(false, protocol.get(), rtspmedia, rtp::RTPDataCallback(&RTSPClientInternal::rtpDataCallback, this));
 				}
-				else if (rtspmedia.media.bHasVideo && String::indexOfByCase(cmdinfo->cmd->url, rtspmedia.media.stStreamVideo.szTrackID) != 0)
+				else if (rtspmedia.media.bHasVideo && String::indexOfByCase(cmdinfo->cmd->url, rtspmedia.media.stStreamVideo.szTrackID) != -1)
 				{
 					rtspmedia.videoTransport = transport;
 				}
-				else if (rtspmedia.media.bHasAudio && String::indexOfByCase(cmdinfo->cmd->url, rtspmedia.media.stStreamAudio.szTrackID) != 0)
+				else if (rtspmedia.media.bHasAudio && String::indexOfByCase(cmdinfo->cmd->url, rtspmedia.media.stStreamAudio.szTrackID) != -1)
 				{
 					rtspmedia.audioTransport = transport;
 				}

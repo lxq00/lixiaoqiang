@@ -14,7 +14,7 @@ struct TRANSPORT_INFO
 	TRANSPORT_INFO():transport(TRANSPORT_NONE), /*multicast(TRANSPORT_INFO::MULTICAST_UNICAST),*/ ssrc(0)
 	{
 		rtp.t.dataChannel = 0;
-		rtp.t.contorlChannel = 1;
+		rtp.t.contorlChannel = 0;
 	}
 
 	enum {

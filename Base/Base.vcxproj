@@ -110,6 +110,7 @@
     <ClCompile Include="Src\SqlDataBase.cpp" />
     <ClCompile Include="Src\StaticMemPool.cpp" />
     <ClCompile Include="Src\String.cpp" />
+    <ClCompile Include="Src\StringEx.cpp" />
     <ClCompile Include="Src\SystemCall.cpp" />
     <ClCompile Include="Src\Thread.cpp" />
     <ClCompile Include="Src\ThreadPool.cpp" />

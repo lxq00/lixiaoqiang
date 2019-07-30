@@ -11,13 +11,9 @@ public:
 		:rtp(_isserver,_rtspmedia,_datacallback),protocol(_protocol), rtpsn(0), firsthearbeta(true)
 	{
 		protocol->setRTPOverTcpCallback(RTSPProtocol::ExternDataCallback(&rtpOverTcp::rtpovertcpCallback, this));
-
-		timer = make_shared<Timer>("rtpOverTcp");
-		timer->start(Timer::Proc(&rtpOverTcp::onPoolTimerProc, this), 5000, 5000);
 	}
 	~rtpOverTcp()
 	{
-		timer = NULL;
 	}
 	void rtpovertcpCallback(uint32_t channel, const char* data, uint32_t len)
 	{
@@ -61,7 +57,7 @@ public:
 			bufferlen -= cansendlen;
 		}
 	}
-	void onPoolTimerProc(unsigned long)
+	void onPoolHeartbeat()
 	{
 		if (firsthearbeta && protocol)
 		{
@@ -73,12 +69,12 @@ public:
 		{
 			std::string normaltheartbeatData = normalRtpOverTcpRTCPHeartBeat();
 			protocol->sendContrlData(normaltheartbeatData.c_str(), normaltheartbeatData.length());
-		}
+		}		
 	}
 private:
 	RTSPProtocol*			 protocol;
 	uint16_t				 rtpsn;
 
 	bool					 firsthearbeta;
-	shared_ptr<Timer>		 timer;
+	
 };

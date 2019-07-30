@@ -1,4 +1,5 @@
 #include "RTSP/RTSPClient.h"
+#include "../common/wwwAuthenticate.h"
 
 namespace Public {
 namespace RTSP {

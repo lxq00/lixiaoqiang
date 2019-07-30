@@ -28,7 +28,14 @@ bool RTSPClient::initRTPOverUdpType()
 {
 	internal->rtspmedia.videoTransport.transport = TRANSPORT_INFO::TRANSPORT_RTP_UDP;
 	internal->rtspmedia.audioTransport.transport = TRANSPORT_INFO::TRANSPORT_RTP_UDP;
-
+	internal->rtspmedia.videoTransport.rtp.u.client_port1 = 0;
+	internal->rtspmedia.videoTransport.rtp.u.client_port2 = 0;
+	internal->rtspmedia.videoTransport.rtp.u.server_port1 = 0;
+	internal->rtspmedia.videoTransport.rtp.u.server_port2 = 0;
+	internal->rtspmedia.audioTransport.rtp.u.client_port1 = 0;
+	internal->rtspmedia.audioTransport.rtp.u.client_port2 = 0;
+	internal->rtspmedia.audioTransport.rtp.u.server_port1 = 0;
+	internal->rtspmedia.audioTransport.rtp.u.server_port2 = 0;
 
 	return true;
 }

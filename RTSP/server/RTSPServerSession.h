@@ -116,7 +116,7 @@ struct RTSPServerSession::RTSPServerSessionInternal:public RTSPProtocol
 		{
 			if (sessionstr.length() <= 0)
 			{
-				sessionstr = Value(Time::getCurrentMilliSecond()).readString() + Value(Time::getCurrentTime().makeTime()).readString();
+				sessionstr = Value(Time::getCurrentMilliSecond()).readString() + Value(Time::getCurrentTime().makeTime()).readString()+";timeout=60";
 			}
 
 			std::string tranportstr = cmdinfo->header("Transport").readString();

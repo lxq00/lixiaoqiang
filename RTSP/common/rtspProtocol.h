@@ -275,6 +275,11 @@ private:
 					continue;
 				}
 
+				if (datalen >= 0xffff)
+				{
+					assert(0);
+				}
+
 				if (datalen + sizeof(INTERLEAVEDFRAME) > buffertmplen) break;
 
 				m_extdatacallback(datach, buffertmp + sizeof(INTERLEAVEDFRAME), datalen);

@@ -79,7 +79,7 @@ public:
 				+ url + "\", response=\"" + authen3 + "\"";
 		}
 
-		return std::string("Authorization: ") + authstring;
+		return authstring;
 	}
 private:
 	static std::string buildAuthorization(const std::string& username, const std::string& password,  bool needBasic, const std::string& method = "", const std::string& url = "", const std::string& m_szRealm = "", const std::string& m_szNonce = "")

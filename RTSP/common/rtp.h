@@ -31,6 +31,7 @@ public:
 	virtual ~rtp() {}
 
 	virtual void sendData(bool isvideo, uint32_t timestmap, const char* buffer, uint32_t bufferlen, bool mark) = 0;
+	virtual void onPoolHeartbeat() {}
 protected:
 	bool			isserver;
 	RTPDataCallback	datacallback;

@@ -49,11 +49,13 @@ size_t BASE_API strncpy(char* dst, size_t dstBufLen, const char* src, size_t src
 int  BASE_API snprintf_x(char* buf, int maxlen, const char* fmt, ... );
 
 
+//String对象，内部采用智能指针
 class BASE_API String
 {
 	struct StringInternal;
 	StringInternal* internal;
 public:
+	//构造函数
 	String(const shared_ptr<IMempoolInterface>& mempool = shared_ptr<IMempoolInterface>());
 	String(const char* str, const shared_ptr<IMempoolInterface>& mempool = shared_ptr<IMempoolInterface>());
 	String(const char* str, size_t len, const shared_ptr<IMempoolInterface>& mempool = shared_ptr<IMempoolInterface>());
@@ -61,12 +63,17 @@ public:
 	String(const String& str);
 	~String();
 
+	//返回对象地址
 	const char* c_str() const;
+	//返回对象数据长度
 	size_t length() const;
-	void resize(size_t size);
+	//重新设置数据长度
+	String&  resize(size_t size);
+	//分配数据长度，原始数据会丢,length置为0
+	String&  alloc(size_t size);
 
 
-
+	//操作符重载
 	String& operator = (const char* str);
 	String& operator = (const std::string& str);
 	String& operator = (const String& str);
@@ -75,7 +82,8 @@ public:
 	String& operator +=(const std::string& str);
 	String& operator +=(const String& str);
 
-	String& append(const char* str,size_t size);
+	//追加数据
+	String& append(const char* str,size_t size = 0);
 	String& append(const std::string& str);
 	String& append(const String& str);
 public:
