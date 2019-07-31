@@ -20,7 +20,9 @@ typedef struct  _RTPHEADER
 
 }RTPHEADER, * LPRTPHEADER;
 
-#define MAXRTPPACKETLEN		1400
+#define MAXRTPPACKETLEN		1440
+
+#define RTP_VERSION 2
 
 class rtp
 {

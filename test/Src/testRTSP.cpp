@@ -61,8 +61,8 @@ struct RTSPClientInfo
 string rtspaddr[] = {
 //	"rtsp://admin:ms123456@192.168.7.104:554/main",
 	//"rtsp://admin:ms123456@192.168.3.135:554/main",
-//	"rtsp://192.168.9.230:554/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif",
-	"rtsp://admin:support2019@192.168.9.205:554/Streaming/Channels/102",
+	"rtsp://192.168.9.230:554/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif",
+//	"rtsp://admin:support2019@192.168.9.205:554/Streaming/Channels/102",
 	//"rtsp://admin:ms123456@192.168.10.230:554/main",
 	//"rtsp://admin:ms123456@192.168.9.230:554/main",
 	//"rtsp://admin:ms123456@192.168.4.150:554/main",
@@ -75,7 +75,40 @@ string rtspaddr[] = {
 
 int main()
 {
-	shared_ptr<IOWorker>	worker = make_shared<IOWorker>(16);
+
+	//uint16_t startcode = 0;
+	//uint16_t prevcode = 0;
+
+	//uint16_t sn = 0;
+	//uint16_t sn1 = 65533;
+
+	//uint16_t sn2 = sn - sn1;
+
+	//while (1)
+	//{
+	//	startcode++;
+
+	//	if (prevcode == 0) prevcode = startcode;
+	//	else if ((uint16_t)(prevcode + 1) != startcode)
+	//	{
+	//		int a = 0;
+	//	}
+	//	if (startcode == 0)
+	//	{
+	//		int b = 0;
+	//	}
+
+	//	prevcode = startcode;
+	//}
+
+
+
+
+
+
+
+
+	shared_ptr<IOWorker>	worker = make_shared<IOWorker>(4);
 	shared_ptr<RTSPClientManager> manager = make_shared<RTSPClientManager>(worker,"test");
 
 	std::list< RTSPClientInfo> clientlist;
@@ -98,7 +131,7 @@ int main()
 		RTSPClientInfo info;
 		info.handler = make_shared<RTSPSessiontmp>();
 		info.client = manager->create(info.handler, RTSPUrl(rtspaddr[openrtspaddrindex % rtspaddrsize]));
-//		info.client->initRTPOverUdpType();
+		info.client->initRTPOverUdpType();
 		info.client->start(10000);
 
 		clientlist.push_back(info);

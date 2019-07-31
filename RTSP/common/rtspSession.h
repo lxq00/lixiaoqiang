@@ -187,7 +187,7 @@ public:
 			rtspmedia.videoTransport.rtp.u.client_port1 = startport;
 			rtspmedia.videoTransport.rtp.u.client_port2 = startport + 1;
 			rtspmedia.audioTransport.rtp.u.client_port1 = startport + 2;
-			rtspmedia.audioTransport.rtp.u.client_port2 = startport + 2;
+			rtspmedia.audioTransport.rtp.u.client_port2 = startport + 3;
 		}
 
 		if (rtspmedia.videoTransport.transport == TRANSPORT_INFO::TRANSPORT_RTP_TCP || rtspmedia.audioTransport.transport == TRANSPORT_INFO::TRANSPORT_RTP_TCP)

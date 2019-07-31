@@ -31,6 +31,8 @@ public:
 			}
 			RTPHEADER* header = (RTPHEADER*)data.buffer();
 
+			if (header->v != RTP_VERSION) return;
+
 			datacallback(true, ntohl(header->ts), RTSPBuffer(data, data.buffer() + sizeof(RTPHEADER), data.size() - sizeof(RTPHEADER)),header->m);
 		}
 	}
@@ -45,7 +47,7 @@ public:
 
 			RTPHEADER header;
 			memset(&header, 0, sizeof(header));
-			header.v = 2;
+			header.v = RTP_VERSION;
 			header.ts = htonl(timestmap);
 			header.seq = htons(rtpsn++);
 			header.pt = isvideo ? rtspmedia.media.stStreamVideo.nPayLoad : rtspmedia.media.stStreamAudio.nPayLoad;
