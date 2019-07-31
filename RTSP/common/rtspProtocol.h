@@ -1,6 +1,8 @@
 #pragma once
 #include "HTTP/HTTPParse.h"
+#include "RTSP/RTSPBuffer.h"
 using namespace Public::HTTP;
+using namespace Public::RTSP;
 
 #define MAXPARSERTSPBUFFERLEN	1024*128
 #define RTPOVERTCPMAGIC		'$'
@@ -10,12 +12,18 @@ using namespace Public::HTTP;
 
 class RTSPProtocol:public HTTPParse
 {
+public:
 	struct SendItem
 	{
-		StringBuffer		buffer;
+		std::string			prevdata;
+		RTSPBuffer			buffer;
+		const char*			bufferaddr;
+		size_t				buffersize;
 		uint32_t			havesendlen;
 
-		SendItem():havesendlen(0){}
+
+
+		SendItem() :bufferaddr(NULL),buffersize(0),havesendlen(0) {}
 	};
 	struct INTERLEAVEDFRAME
 	{
@@ -30,7 +38,7 @@ class RTSPProtocol:public HTTPParse
 	};
 public:
 	typedef Function1<void, const shared_ptr<RTSPCommandInfo>&> CommandCallback;
-	typedef Function2<void, uint32_t,const StringBuffer&> ExternDataCallback;
+	typedef Function2<void, uint32_t,const RTSPBuffer&> ExternDataCallback;
 	typedef Function0<void> DisconnectCallback;
 public:
 	RTSPProtocol(const shared_ptr<Socket>& sock, const CommandCallback& cmdcallback, const DisconnectCallback& disconnectCallback,bool server)
@@ -44,11 +52,11 @@ public:
 		m_bodylen = 0;
 		m_haveFindHeaderStart = false;
 
-		m_recvBuffer.alloc(MAXPARSERTSPBUFFERLEN);
+		const char* buffer = m_recvBuffer.alloc(MAXPARSERTSPBUFFERLEN);
 
 		m_sock->setSocketBuffer(1024 * 1024 * 4, 1024 * 1024);
 		m_sock->setDisconnectCallback(Socket::DisconnectedCallback(&RTSPProtocol::onSocketDisconnectCallback, this));
-		m_sock->async_recv((char*)m_recvBuffer.c_str(), MAXPARSERTSPBUFFERLEN, Socket::ReceivedCallback(&RTSPProtocol::onSocketRecvCallback, this));
+		m_sock->async_recv((char*)buffer, MAXPARSERTSPBUFFERLEN, Socket::ReceivedCallback(&RTSPProtocol::onSocketRecvCallback, this));
 	}
 	~RTSPProtocol()
 	{
@@ -82,21 +90,20 @@ public:
 		printf("%s",cmdstr.c_str());
 
 		Guard locker(m_mutex);
-		_addAndCheckSendData(StringBuffer(cmdstr));
+		_addAndCheckSendData(RTSPBuffer(cmdstr));
 	}
-	void sendMedia(bool isvideo,const char* rtpheader, uint32_t rtpheaderlen, const StringBuffer& buffer)
+	void sendMedia(bool isvideo,const std::string& rtpheader, const RTSPBuffer& buffer)
 	{
 		if (m_tcpinterleaved == NULL) return;
 		INTERLEAVEDFRAME frame;
 		frame.magic = RTPOVERTCPMAGIC;
 		frame.channel = m_tcpinterleaved->dataChannel;
-		frame.rtp_len = htons(rtpheaderlen + (uint16_t)buffer.size());
+		frame.rtp_len = htons((uint16_t)rtpheader.length() + (uint16_t)buffer.size());
 
-		StringBuffer rtpovertcp = std::string((char*)&frame, sizeof(frame)) + std::string(rtpheader, rtpheaderlen);
+		std::string rtpovertcp = std::string((char*)&frame, sizeof(frame)) + rtpheader;
 
 		Guard locker(m_mutex);
-		_addAndCheckSendData(rtpovertcp);
-		_addAndCheckSendData(buffer);
+		_addAndCheckSendData(buffer, rtpovertcp);
 	}
 	void sendContrlData(const char* buffer, uint32_t len)
 	{
@@ -107,7 +114,7 @@ public:
 		frame.channel = m_tcpinterleaved->contrlChannel;
 		frame.rtp_len = htons(len);
 
-		StringBuffer contorldata = std::string((char*)&frame, sizeof(frame)) + std::string(buffer, len);
+		RTSPBuffer contorldata = std::string((char*)&frame, sizeof(frame)) + std::string(buffer, len);
 
 
 		Guard locker(m_mutex);
@@ -120,58 +127,88 @@ public:
 		m_tcpinterleaved->contrlChannel = contorl;
 	}
 private:
-	void _addAndCheckSendData(const StringBuffer& buffer)
+	void _sendAndCheckBuffer(const char* buffer = NULL, int len = 0)
+	{
+		bool needSendData = false;
+		//第一次需要发送数据
+		if (buffer == NULL && m_sendList.size() == 1 && m_sock != NULL)
+		{
+			needSendData = true;
+		}
+		else if(buffer)
+		{
+			if (len < 0) return;
+
+			if (m_sendList.size() <= 0) return;
+
+			{
+				shared_ptr<SendItem>& item = m_sendList.front();
+				if (buffer != item->bufferaddr + item->havesendlen) return;
+				if (item->havesendlen + len > item->buffersize) return;
+
+				item->havesendlen += len;
+
+				if (item->havesendlen == item->buffersize)
+				{
+					m_sendList.pop_front();
+				}
+			}
+
+			needSendData = true;
+		}
+
+		if (!needSendData) return;
+
+		shared_ptr<Socket> tmp = m_sock;
+		if (tmp == NULL || m_sendList.size() <= 0) return;
+
+		shared_ptr<SendItem>& item = m_sendList.front();
+
+		//处理数据的零拷贝问题，添加前置数据
+		if (item->bufferaddr == NULL)
+		{
+			item->bufferaddr = item->buffer.buffer();
+			item->buffersize = item->buffer.size();
+
+			if (item->prevdata.length() > 0)
+			{
+				if (item->bufferaddr - item->buffer.dataptr().c_str() < RTSPBUFFERHEADSPACE)
+				{
+					assert(0);
+				}
+				if (item->prevdata.length() > RTSPBUFFERHEADSPACE)
+				{
+					assert(0);
+				}
+
+				item->bufferaddr -= item->prevdata.length();
+				item->buffersize += item->prevdata.length();
+				memcpy((char*)item->bufferaddr, item->prevdata.c_str(), item->prevdata.length());
+			}
+		}
+		
+		const char* sendbuffer = item->bufferaddr;
+		uint32_t sendbufferlen = item->buffer.size();
+
+		m_prevalivetime = Time::getCurrentMilliSecond();
+
+		m_sock->async_send(sendbuffer + item->havesendlen, sendbufferlen - item->havesendlen, Socket::SendedCallback(&RTSPProtocol::onSocketSendCallback, this));
+	}
+	void _addAndCheckSendData(const RTSPBuffer& buffer,const std::string& prevdata = "")
 	{
 		shared_ptr<SendItem> item = make_shared<SendItem>();
+		item->prevdata = prevdata;
 		item->buffer = buffer;
 
 		m_sendList.push_back(item);
-		if (m_sendList.size() == 1 && m_sock != NULL)
-		{
-			shared_ptr<SendItem> item = m_sendList.front();
-			const char* sendbuffer = item->buffer.buffer();
-			uint32_t sendbufferlen = item->buffer.size();
-			
-			m_prevalivetime = Time::getCurrentMilliSecond();
 
-			m_sock->async_send(sendbuffer, sendbufferlen, Socket::SendedCallback(&RTSPProtocol::onSocketSendCallback, this));
-		}
+		_sendAndCheckBuffer();
 	}
 	void onSocketSendCallback(const weak_ptr<Socket>& sock, const char* buffer, int len)
 	{
 		Guard locker(m_mutex);
 
-		shared_ptr<Socket> tmp = sock.lock();
-		if (tmp == NULL) return;
-
-		if (len < 0) return;
-
-		if (m_sendList.size() <= 0) return;
-
-		{
-			shared_ptr<SendItem> item = m_sendList.front();
-			if (buffer < item->buffer.buffer() || buffer > item->buffer.buffer() + len) return;
-
-			if (item->havesendlen + len > item->buffer.size()) return;
-
-			item->havesendlen += len;
-
-			if (item->havesendlen == item->buffer.size())
-			{
-				m_sendList.pop_front();
-			}
-		}		
-
-		if (m_sendList.size() > 0)
-		{
-			shared_ptr<SendItem> item = make_shared<SendItem>();
-			const char* sendbuffer = item->buffer.buffer() + item->havesendlen;
-			uint32_t sendbufferlen = item->buffer.size() - item->havesendlen;
-
-			m_prevalivetime = Time::getCurrentMilliSecond();
-
-			m_sock->async_send(sendbuffer, sendbufferlen, Socket::SendedCallback(&RTSPProtocol::onSocketSendCallback, this));
-		}
+		_sendAndCheckBuffer(buffer,len);
 	}
 	void onSocketDisconnectCallback(const weak_ptr<Socket>&, const std::string&)
 	{
@@ -185,15 +222,15 @@ private:
 			assert(0);
 			return;
 		}
-		if (m_recvBuffer.c_str() + m_recvBuffer.length() != buffer)
+		if (m_recvBuffer.buffer() + m_recvBuffer.size() != buffer)
 		{
 			assert(0);
 		}
 
-		m_recvBuffer.resize(m_recvBuffer.length() + len);
+		m_recvBuffer.resize(m_recvBuffer.size() + len);
 		
-		const char* buffertmp = m_recvBuffer.c_str();
-		uint32_t buffertmplen = m_recvBuffer.length();
+		const char* buffertmp = m_recvBuffer.buffer();
+		uint32_t buffertmplen = m_recvBuffer.size();
 
 		while (buffertmplen > 0)
 		{
@@ -279,7 +316,7 @@ private:
 
 				if (datalen + sizeof(INTERLEAVEDFRAME) > buffertmplen) break;
 
-				m_extdatacallback(datach, StringBuffer(m_recvBuffer,buffertmp + sizeof(INTERLEAVEDFRAME), datalen));
+				m_extdatacallback(datach, RTSPBuffer(m_recvBuffer,buffertmp + sizeof(INTERLEAVEDFRAME), datalen));
 
 				buffertmp += datalen + sizeof(INTERLEAVEDFRAME);
 				buffertmplen -= datalen + sizeof(INTERLEAVEDFRAME);
@@ -308,12 +345,12 @@ private:
 				int a = 0;
 			}
 		}
-		String newdatabuffer;
-		newdatabuffer.alloc(buffertmplen + MAXPARSERTSPBUFFERLEN);
+		RTSPBuffer newdatabuffer;
+		char* newbufferaddr = newdatabuffer.alloc(buffertmplen + MAXPARSERTSPBUFFERLEN);
 
 		if (buffertmplen > 0)
 		{
-			memcpy((char*)newdatabuffer.c_str(),buffertmp, buffertmplen);
+			memcpy((char*)newbufferaddr,buffertmp, buffertmplen);
 			newdatabuffer.resize(buffertmplen);
 		}
 		m_recvBuffer = newdatabuffer;
@@ -322,7 +359,7 @@ private:
 		shared_ptr<Socket> socktmp = sock.lock();
 		if (socktmp != NULL)
 		{
-			socktmp->async_recv((char*)m_recvBuffer.c_str() + buffertmplen, MAXPARSERTSPBUFFERLEN, Socket::ReceivedCallback(&RTSPProtocol::onSocketRecvCallback, this));
+			socktmp->async_recv(newbufferaddr + buffertmplen, MAXPARSERTSPBUFFERLEN, Socket::ReceivedCallback(&RTSPProtocol::onSocketRecvCallback, this));
 		}
 	}
 	// return 0 not cmonnand,return 1 not sure need wait,return 2 is command
@@ -357,7 +394,7 @@ private:
 	ExternDataCallback			m_extdatacallback;
 	DisconnectCallback			m_disconnect;
 
-	String						m_recvBuffer;
+	RTSPBuffer					m_recvBuffer;
 
 	Mutex						m_mutex;
 	std::list<shared_ptr<SendItem> > m_sendList;

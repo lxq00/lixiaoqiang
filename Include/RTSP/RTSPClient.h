@@ -13,6 +13,7 @@
 #include "RTSPStructs.h"
 #include "RTSPUrl.h"
 #include "Network/Network.h"
+#include "RTSPBuffer.h"
 using namespace Public::Base;
 using namespace Public::Network;
 
@@ -63,7 +64,7 @@ public:
 	//同步命令,同步返回
 	bool sendTeradownRequest(uint32_t timeout);
 
-	bool sendMedia(bool isvideo, uint32_t timestmap, const StringBuffer& buffer, bool mark);
+	bool sendMedia(bool isvideo, uint32_t timestmap, const RTSPBuffer& buffer, bool mark);
 private:
 	RTSPClientInternal *internal;
 };
@@ -86,7 +87,7 @@ public:
 	virtual void onErrorResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo,int statuscode,const std::string& errmsg) {}
 
 	virtual void onClose() = 0;
-	virtual void onMediaCallback(bool isvideo, uint32_t timestmap, const StringBuffer& buffer, bool mark) {}
+	virtual void onMediaCallback(bool isvideo, uint32_t timestmap, const RTSPBuffer& buffer, bool mark) = 0;
 };
 
 class RTSP_API RTSPClientManager

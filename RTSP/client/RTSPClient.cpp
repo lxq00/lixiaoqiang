@@ -27,6 +27,7 @@ struct RTSPClient::RTSPClientInternal:public RTSPSession
 		ioworker = worker;
 		rtspurl = url;
 		useragent = _useragent;
+		allockportcallback = allockport;
 
 		rtspmedia.videoTransport.transport = TRANSPORT_INFO::TRANSPORT_RTP_TCP;
 		rtspmedia.videoTransport.rtp.t.dataChannel = 0;
@@ -197,7 +198,10 @@ private:
 		{
 			if (sessionstr.length() <= 0)
 			{
-				sessionstr = cmdheader->header("Session").readString();
+				const std::string sessionstrtmp = cmdheader->header("Session").readString();
+				const char* sessionptraddr = strchr(sessionstrtmp.c_str(), ';');
+				if (sessionptraddr != NULL) sessionstr = std::string(sessionstrtmp.c_str(), sessionptraddr - sessionstrtmp.c_str());
+				else sessionstr = sessionstrtmp;
 			}
 			std::string tranportstr = cmdheader->header("Transport").readString();
 
@@ -277,7 +281,7 @@ private:
 			cmdinfo->waitsem->post();
 		}
 	}
-	void rtpDataCallback(bool isvideo, uint32_t timestmap, const StringBuffer& data, bool mark)
+	void rtpDataCallback(bool isvideo, uint32_t timestmap, const RTSPBuffer& data, bool mark)
 	{
 		if (handler) handler->onMediaCallback(isvideo, timestmap, data, mark);
 	}

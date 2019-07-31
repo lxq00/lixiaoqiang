@@ -51,15 +51,12 @@ public:
 
 	uint32_t					ssrc;
 
-	bool						socketconnected;
-
 	RTSPSession()
 	{
-		socketconnected = false;
 		protocolstartcseq = 0;
 		rtspmedia.videoTransport.transport = TRANSPORT_INFO::TRANSPORT_RTP_TCP;
 		rtspmedia.videoTransport.rtp.t.dataChannel = 0;
-		rtspmedia.videoTransport.rtp.t.contorlChannel = rtspmedia.videoTransport.rtp.t.dataChannel + 1;
+		rtspmedia.videoTransport.rtp.t.contorlChannel = 0;
 		rtspmedia.audioTransport = rtspmedia.videoTransport;
 
 		ssrc = (uint32_t)this;
@@ -187,10 +184,10 @@ public:
 		{
 			uint32_t startport = allockportcallback();
 
-			rtspmedia.videoTransport.rtp.u.server_port1 = startport;
-			rtspmedia.videoTransport.rtp.u.server_port2 = startport + 1;
-			rtspmedia.audioTransport.rtp.u.server_port1 = startport + 2;
-			rtspmedia.audioTransport.rtp.u.server_port2 = startport + 2;
+			rtspmedia.videoTransport.rtp.u.client_port1 = startport;
+			rtspmedia.videoTransport.rtp.u.client_port2 = startport + 1;
+			rtspmedia.audioTransport.rtp.u.client_port1 = startport + 2;
+			rtspmedia.audioTransport.rtp.u.client_port2 = startport + 2;
 		}
 
 		if (rtspmedia.videoTransport.transport == TRANSPORT_INFO::TRANSPORT_RTP_TCP || rtspmedia.audioTransport.transport == TRANSPORT_INFO::TRANSPORT_RTP_TCP)
@@ -268,8 +265,8 @@ public:
 			}
 
 			if (!(transport.transport != TRANSPORT_INFO::TRANSPORT_RTP_UDP ||
-				(rtspmedia.media.bHasVideo && rtspmedia.videoTransport.transport == TRANSPORT_INFO::TRANSPORT_NONE) ||
-				(rtspmedia.media.bHasAudio && rtspmedia.audioTransport.transport == TRANSPORT_INFO::TRANSPORT_NONE)))
+				(rtspmedia.media.bHasVideo && rtspmedia.videoTransport.rtp.u.client_port1 == 0) ||
+				(rtspmedia.media.bHasAudio && rtspmedia.audioTransport.rtp.u.client_port1 == 0)))
 			{
 				//rtpOverUdp(bool _isserver, const shared_ptr<IOWorker>& work,const std::string& _dstaddr,const RTSP_MEDIA_INFO& _rtspmedia, const RTPDataCallback& _datacallback)
 				rtp = make_shared<rtpOverUdp>(true, ioworker, socket->getOtherAddr().getIP(), rtspmedia, rtp::RTPDataCallback(&RTSPSession::rtpDataCallback, this));
@@ -280,7 +277,7 @@ public:
 		header.headers["Transport"] = rtsp_header_build_transport(isVideo ? rtspmedia.videoTransport : rtspmedia.audioTransport);
 		sendResponse(cmdinfo, header);
 	}
-	bool sendMedia(bool isvideo, uint32_t timestmap, const StringBuffer& data, bool mark)
+	bool sendMedia(bool isvideo, uint32_t timestmap, const RTSPBuffer& data, bool mark)
 	{
 		if (!rtp) return false;
 
@@ -305,6 +302,7 @@ public:
 		shared_ptr<RTSPCommandInfo> respcmd = make_shared<RTSPCommandInfo>();
 		respcmd->statuscode = header.statuscode;
 		respcmd->statusmsg = header.statusmsg;
+		respcmd->headers = header.headers;
 		respcmd->cseq = cmdinfo->cseq;
 
 		_rtspBuildRtspCommand(respcmd, body, contentype);
@@ -314,7 +312,7 @@ public:
 	{
 		onSendRequestCallback(cmdinfo);
 
-		cmdinfo->cmd->url = rtspurl.rtspurl;
+		if(cmdinfo->cmd->url.length() <= 0)	cmdinfo->cmd->url = rtspurl.rtspurl;
 		if (cmdinfo->wwwauthen.length() > 0)
 		{
 			cmdinfo->cmd->headers["Authorization"] = WWW_Authenticate::buildAuthorization(cmdinfo->cmd->method, rtspurl.username, rtspurl.password, cmdinfo->cmd->url, cmdinfo->wwwauthen);
@@ -322,7 +320,7 @@ public:
 		_rtspBuildRtspCommand(cmdinfo->cmd, body, contentype);
 	}
 private:
-	virtual void rtpDataCallback(bool isvideo, uint32_t timestmap, const StringBuffer& data, bool mark) = 0;
+	virtual void rtpDataCallback(bool isvideo, uint32_t timestmap, const RTSPBuffer& data, bool mark) = 0;
 
 	void _rtspBuildRtspCommand(const shared_ptr<RTSPCommandInfo>& cmd, const std::string& body = "", const std::string& contentype = "")
 	{

@@ -11,7 +11,7 @@ class rtpOverUdp :public rtp
 {
 	struct FrameInfo
 	{
-		String			framedata;
+		RTSPBuffer		framedata;
 		uint16_t		sn;
 		uint32_t		tiemstmap;
 		bool			mark;
@@ -23,10 +23,13 @@ class rtpOverUdp :public rtp
 	};
 	struct SendDataInfo
 	{
-		String		framedata;
-		uint32_t	havesendlen;
+		std::string prevdata;
+		RTSPBuffer	framedata;
 
-		SendDataInfo():havesendlen(0){}
+		const char*	bufferaddr;
+		uint32_t	bufferlen;
+
+		SendDataInfo():bufferaddr(NULL),bufferlen(0){}
 	};
 public:
 	rtpOverUdp(bool _isserver, const shared_ptr<IOWorker>& work,const std::string& _dstaddr,const RTSP_MEDIA_INFO& _rtspmedia, const RTPDataCallback& _datacallback)
@@ -38,15 +41,15 @@ public:
 			videortp->bind(isserver ? rtspmedia.videoTransport.rtp.u.server_port1 : rtspmedia.videoTransport.rtp.u.client_port1);
 			videortp->setSocketBuffer(1024*1024, 0);
 
-			currvideortprecvbuffer.alloc(MAXUDPPACKGELEN);
-			videortp->async_recvfrom((char*)currvideortprecvbuffer.c_str(), MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketVideoRTPRecvCallback, this));
+			char* videortpbuffer = currvideortprecvbuffer.alloc(MAXUDPPACKGELEN);
+			videortp->async_recvfrom(videortpbuffer, MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketVideoRTPRecvCallback, this));
 
 			videortcp = UDP::create(work);
 			videortcp->bind(isserver ? rtspmedia.videoTransport.rtp.u.server_port2 : rtspmedia.videoTransport.rtp.u.client_port2);
 			videortcp->setSocketBuffer(1024 * 1024, 0);
 
-			currvideortcprecvbuffer.alloc(MAXUDPPACKGELEN);
-			videortcp->async_recvfrom((char*)currvideortcprecvbuffer.c_str(), MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketVideoRTCPRecvCallback, this));
+			char* videortcpbuffer = currvideortcprecvbuffer.alloc(MAXUDPPACKGELEN);
+			videortcp->async_recvfrom(videortcpbuffer, MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketVideoRTCPRecvCallback, this));
 		}
 
 		if (rtspmedia.media.bHasAudio && rtspmedia.audioTransport.rtp.u.server_port1 != 0 && rtspmedia.audioTransport.rtp.u.client_port1 != 0)
@@ -55,15 +58,15 @@ public:
 			audiortp->bind(isserver ? rtspmedia.audioTransport.rtp.u.server_port1 : rtspmedia.audioTransport.rtp.u.client_port1);
 			audiortp->setSocketBuffer(1024 * 1024, 0);
 
-			curraudiortprecvbuffer.alloc(MAXUDPPACKGELEN);
-			audiortp->async_recvfrom((char*)curraudiortprecvbuffer.c_str(), MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketAudioRTPRecvCallback, this));
+			char* audiortpbuffer = curraudiortprecvbuffer.alloc(MAXUDPPACKGELEN);
+			audiortp->async_recvfrom(audiortpbuffer, MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketAudioRTPRecvCallback, this));
 
 			audiortcp = UDP::create(work);
 			audiortcp->bind(isserver ? rtspmedia.audioTransport.rtp.u.server_port2 : rtspmedia.audioTransport.rtp.u.client_port2);
 			audiortcp->setSocketBuffer(1024 * 1024, 0);
 
-			curraudiortcprecvbuffer.alloc(MAXUDPPACKGELEN);
-			audiortcp->async_recvfrom((char*)curraudiortcprecvbuffer.c_str(), MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketAudioRTCPRecvCallback, this));
+			char* audiortcpbuffer = curraudiortcprecvbuffer.alloc(MAXUDPPACKGELEN);
+			audiortcp->async_recvfrom(audiortcpbuffer, MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketAudioRTCPRecvCallback, this));
 		}
 	}
 	~rtpOverUdp()
@@ -79,7 +82,7 @@ public:
 		audiortcp = NULL;
 	}
 	
-	void sendData(bool isvideo, uint32_t timestmap, const StringBuffer& data, bool mark)
+	void sendData(bool isvideo, uint32_t timestmap, const RTSPBuffer& data, bool mark)
 	{
 		if (isvideo && !rtspmedia.media.bHasVideo) return;
 		if (!isvideo && !rtspmedia.media.bHasAudio) return;
@@ -100,112 +103,115 @@ public:
 			header.m = bufferlen == cansendlen ? mark : false;
 			header.ssrc = htonl(isvideo ? rtspmedia.videoTransport.ssrc : rtspmedia.audioTransport.ssrc);
 
-			uint32_t needlen = sizeof(RTPHEADER) + cansendlen;
-
-			String sendbuffer;
-			sendbuffer.alloc(needlen);
-			sendbuffer.append((const char*)& header, sizeof(RTPHEADER));
-			sendbuffer.append(buffer, cansendlen);
+			std::string prevdata = std::string((const char*)& header, sizeof(RTPHEADER));
 			
-			addFrameAndCheckSend(isvideo, sendbuffer);
+			{
+				Guard locker(mutex);
+
+				shared_ptr<SendDataInfo> senddata = make_shared<SendDataInfo>();
+				senddata->framedata = RTSPBuffer(data, buffer, cansendlen);
+				senddata->prevdata = prevdata;
+
+				std::list<shared_ptr<SendDataInfo> >& sendlist = isvideo ? sendvideortplist : sendaudiortplist;
+				sendlist.push_back(senddata);
+
+				_sendAndCheckSend(isvideo);
+			}
 
 			buffer += cansendlen;
 			bufferlen -= cansendlen;
 		}
 	}
-	void addFrameAndCheckSend(bool isvideo, const String& frame)
+	void _sendAndCheckSend(bool isvideo, const char* buffer = NULL,size_t len = 0)
 	{
-		Guard locker(mutex);
 		std::list<shared_ptr<SendDataInfo> >& sendlist = isvideo ? sendvideortplist : sendaudiortplist;
 
-		shared_ptr<SendDataInfo> senddata = make_shared<SendDataInfo>();
-		senddata->framedata = frame;
 
-		sendlist.push_back(senddata);
-
-		if (sendlist.size() == 1)
+		bool needSendData = false;
+		//第一次需要发送数据
+		if (buffer == NULL && sendlist.size() == 1)
 		{
-			shared_ptr<SendDataInfo>& framedata = sendlist.front();
+			needSendData = true;
+		}
+		else if (buffer)
+		{
+			if (len < 0) return;
 
-			if (isvideo)
+			if (sendlist.size() <= 0) return;
+
 			{
-				shared_ptr<Socket> socktmp = videortp;
-				if (socktmp)
-					socktmp->async_sendto(framedata->framedata.c_str(), framedata->framedata.length(),
-						NetAddr(dstaddr, isserver ? rtspmedia.videoTransport.rtp.u.client_port1 : rtspmedia.videoTransport.rtp.u.server_port1),
-						Socket::SendedCallback(&rtpOverUdp::socketSendVideoRTPCallback,this));
+				shared_ptr<SendDataInfo>& item = sendlist.front();
+				if (buffer != item->bufferaddr) return;
+				sendlist.pop_front();
 			}
-			else
+
+			needSendData = true;
+		}
+
+		if (!needSendData) return;
+
+		if (sendlist.size() <= 0) return;
+
+		shared_ptr<SendDataInfo>& item = sendlist.front();
+
+		//处理数据的零拷贝问题，添加前置数据
+		if (item->bufferaddr == NULL)
+		{
+			item->bufferaddr = item->framedata.buffer();
+			item->bufferlen = item->framedata.size();
+
+			if (item->prevdata.length() > 0)
 			{
-				shared_ptr<Socket> socktmp = audiortp;
-				if (socktmp)
-					socktmp->async_sendto(framedata->framedata.c_str(), framedata->framedata.length(),
-						NetAddr(dstaddr, isserver ? rtspmedia.audioTransport.rtp.u.client_port1 : rtspmedia.audioTransport.rtp.u.server_port1),
-						Socket::SendedCallback(&rtpOverUdp::socketSendAudioRTPCallback, this));
+				if (item->bufferaddr - item->framedata.dataptr().c_str() < RTSPBUFFERHEADSPACE)
+				{
+					assert(0);
+				}
+				if (item->prevdata.length() > RTSPBUFFERHEADSPACE)
+				{
+					assert(0);
+				}
+
+				item->bufferaddr -= item->prevdata.length();
+				item->bufferlen += item->prevdata.length();
+				memcpy((char*)item->bufferaddr, item->prevdata.c_str(), item->prevdata.length());
 			}
+		}
+
+		const char* sendbuffer = item->bufferaddr;
+		uint32_t sendbufferlen = item->bufferlen;
+
+		if (isvideo)
+		{
+			shared_ptr<Socket> socktmp = videortp;
+			if (socktmp)
+				socktmp->async_sendto(sendbuffer, sendbufferlen,
+					NetAddr(dstaddr, isserver ? rtspmedia.videoTransport.rtp.u.client_port1 : rtspmedia.videoTransport.rtp.u.server_port1),
+					Socket::SendedCallback(&rtpOverUdp::socketSendVideoRTPCallback, this));
+		}
+		else
+		{
+			shared_ptr<Socket> socktmp = audiortp;
+			if (socktmp)
+				socktmp->async_sendto(sendbuffer, sendbufferlen,
+					NetAddr(dstaddr, isserver ? rtspmedia.audioTransport.rtp.u.client_port1 : rtspmedia.audioTransport.rtp.u.server_port1),
+					Socket::SendedCallback(&rtpOverUdp::socketSendAudioRTPCallback, this));
 		}
 	}
 	void socketSendVideoRTPCallback(const weak_ptr<Socket>& sock, const char* buffer, int len)
 	{
-		socketSendAndCheck(true, buffer, len);
+		Guard locker(mutex);
+
+		_sendAndCheckSend(true, buffer, len);
 	}
 	void socketSendAudioRTPCallback(const weak_ptr<Socket>& sock, const char* buffer, int len)
 	{
-		socketSendAndCheck(false, buffer, len);
-	}
-	void socketSendAndCheck(bool isvideo, const char* buffer, int len)
-	{
-		std::list<shared_ptr<SendDataInfo> >& sendlist = isvideo ? sendvideortplist : sendaudiortplist;
 		Guard locker(mutex);
-		
-		{
-			if (sendlist.size() <= 0) return;
 
-			shared_ptr<SendDataInfo>& framedata = sendlist.front();
-			if (buffer < framedata->framedata.c_str() || buffer > framedata->framedata.c_str() + framedata->framedata.length())
-			{
-				assert(0);
-				return;
-			}
-			if (framedata->havesendlen + len > framedata->framedata.length())
-			{
-				assert(0);
-				return;
-			}
-
-			framedata->havesendlen += len;
-			if (framedata->havesendlen == framedata->framedata.length())
-			{
-				sendlist.pop_front();
-			}
-		}
-		
-		{
-			if (sendlist.size() <= 0) return;
-
-			shared_ptr<SendDataInfo>&framedata = sendlist.front();
-
-			if (isvideo)
-			{
-				shared_ptr<Socket> socktmp = videortp;
-				if (socktmp)
-					socktmp->async_sendto(framedata->framedata.c_str() + framedata->havesendlen, framedata->framedata.length() - framedata->havesendlen,
-						NetAddr(dstaddr, isserver ? rtspmedia.videoTransport.rtp.u.client_port1 : rtspmedia.videoTransport.rtp.u.server_port1),
-						Socket::SendedCallback(&rtpOverUdp::socketSendVideoRTPCallback, this));
-			}
-			else
-			{
-				shared_ptr<Socket> socktmp = audiortp;
-				if (socktmp)
-					socktmp->async_sendto(framedata->framedata.c_str() + framedata->havesendlen, framedata->framedata.length() - framedata->havesendlen,
-						NetAddr(dstaddr, isserver ? rtspmedia.audioTransport.rtp.u.client_port1 : rtspmedia.audioTransport.rtp.u.server_port1),
-						Socket::SendedCallback(&rtpOverUdp::socketSendAudioRTPCallback, this));
-			}
-		}
+		_sendAndCheckSend(false, buffer, len);
 	}
 	void socketVideoRTPRecvCallback(const weak_ptr<Socket>& sock, const char* buffer, int len,const NetAddr& otearaddr)
 	{
-		if (buffer != currvideortprecvbuffer.c_str() || len <= 0 || len > MAXUDPPACKGELEN) return;
+		if (buffer != currvideortprecvbuffer.buffer() || len <= 0 || len > MAXUDPPACKGELEN) return;
 
 		if (len > sizeof(RTPHEADER))
 		{
@@ -234,8 +240,8 @@ public:
 		shared_ptr<Socket> socktmp = sock.lock();
 		if (socktmp)
 		{
-			currvideortprecvbuffer.alloc(MAXUDPPACKGELEN);
-			socktmp->async_recvfrom((char*)currvideortprecvbuffer.c_str(), MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketVideoRTPRecvCallback, this));
+			char* buffertmp = currvideortprecvbuffer.alloc(MAXUDPPACKGELEN);
+			socktmp->async_recvfrom(buffertmp, MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketVideoRTPRecvCallback, this));
 		}
 	}
 	void socketVideoRTCPRecvCallback(const weak_ptr<Socket>& sock, const char* buffer, int len, const NetAddr& otearaddr)
@@ -243,13 +249,13 @@ public:
 		shared_ptr<Socket> socktmp = sock.lock();
 		if (socktmp)
 		{
-			currvideortcprecvbuffer.alloc(MAXUDPPACKGELEN);
-			socktmp->async_recvfrom((char*)currvideortcprecvbuffer.c_str(), MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketVideoRTCPRecvCallback, this));
+			char* buffertmp = currvideortcprecvbuffer.alloc(MAXUDPPACKGELEN);
+			socktmp->async_recvfrom(buffertmp, MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketVideoRTCPRecvCallback, this));
 		}
 	}
 	void socketAudioRTPRecvCallback(const weak_ptr<Socket>& sock, const char* buffer, int len, const NetAddr& otearaddr)
 	{
-		if (buffer != curraudiortprecvbuffer.c_str() || len <= 0 || len > MAXUDPPACKGELEN) return;
+		if (buffer != curraudiortprecvbuffer.buffer() || len <= 0 || len > MAXUDPPACKGELEN) return;
 
 		if(len > sizeof(RTPHEADER))
 		{
@@ -278,8 +284,8 @@ public:
 		shared_ptr<Socket> socktmp = sock.lock();
 		if (socktmp)
 		{
-			curraudiortprecvbuffer.alloc(MAXUDPPACKGELEN);
-			socktmp->async_recvfrom((char*)curraudiortprecvbuffer.c_str(), MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketAudioRTPRecvCallback, this));
+			char* buffertmp = curraudiortprecvbuffer.alloc(MAXUDPPACKGELEN);
+			socktmp->async_recvfrom(buffertmp, MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketAudioRTPRecvCallback, this));
 		}
 	}
 	void socketAudioRTCPRecvCallback(const weak_ptr<Socket>& sock, const char* buffer, int len, const NetAddr& otearaddr)
@@ -287,8 +293,8 @@ public:
 		shared_ptr<Socket> socktmp = sock.lock();
 		if (socktmp)
 		{
-			curraudiortcprecvbuffer.alloc(MAXUDPPACKGELEN);
-			socktmp->async_recvfrom((char*)curraudiortcprecvbuffer.c_str(), MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketAudioRTCPRecvCallback, this));
+			char* buffertmp = curraudiortcprecvbuffer.alloc(MAXUDPPACKGELEN);
+			socktmp->async_recvfrom(buffertmp, MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketAudioRTCPRecvCallback, this));
 		}
 	}
 	void _checkFramelistData(bool isvideo)
@@ -306,10 +312,10 @@ public:
 
 			if (iter->sn + 1 == nextiter->sn || framelist.size() >= MAXRTPFRAMESIZE)
 			{
-				const char* framedataaddr = iter->framedata.c_str() + sizeof(RTPHEADER);
-				size_t framedatasize = iter->framedata.length() - sizeof(RTPHEADER);
+				const char* framedataaddr = iter->framedata.buffer() + sizeof(RTPHEADER);
+				size_t framedatasize = iter->framedata.size() - sizeof(RTPHEADER);
 
-				datacallback(isvideo, iter->tiemstmap, StringBuffer(iter->framedata, framedataaddr, framedatasize), iter->mark);
+				datacallback(isvideo, iter->tiemstmap, RTSPBuffer(iter->framedata, framedataaddr, framedatasize), iter->mark);
 
 				framelist.erase(iter++);
 			}
@@ -333,14 +339,14 @@ private:
 	TRANSPORT_INFO			 dstvideotransport;
 	TRANSPORT_INFO			 dstaudiotransport;
 
-	String					currvideortprecvbuffer;
-	String					currvideortcprecvbuffer;
+	RTSPBuffer				currvideortprecvbuffer;
+	RTSPBuffer				currvideortcprecvbuffer;
 
 	std::list<FrameInfo>	 videoframelist;
 	std::list<shared_ptr<SendDataInfo> >	 sendvideortplist;
 
-	String					curraudiortprecvbuffer;
-	String					curraudiortcprecvbuffer;
+	RTSPBuffer				curraudiortprecvbuffer;
+	RTSPBuffer				curraudiortcprecvbuffer;
 
 	std::list<FrameInfo>	 audioframelist;
 	std::list<shared_ptr<SendDataInfo> >	 sendaudiortplist;

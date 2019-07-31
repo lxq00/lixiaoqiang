@@ -1,6 +1,7 @@
 #include "RTSP/RTSP.h"
 using namespace Public::RTSP;
 
+#if 1
 
 class RTSPServerSessiontmp;
 
@@ -43,7 +44,7 @@ public:
 	}
 	virtual void onTeardownRequest(const shared_ptr<RTSPServerSession>& session, const shared_ptr<RTSPCommandInfo>& cmdinfo)
 	{
-		session->sendTeradownResponse(cmdinfo);
+		session->sendTeardownResponse(cmdinfo);
 	}
 	virtual void onGetparameterRequest(const shared_ptr<RTSPServerSession>& session, const shared_ptr<RTSPCommandInfo>& cmdinfo, const std::string& content) { session->sendErrorResponse(cmdinfo, 500, "NOT SUPPORT"); }
 
@@ -51,7 +52,7 @@ public:
 	{
 		int a = 0;
 	}
-	virtual void onMediaCallback(bool isvideo, uint32_t timestmap, const char* buffer, uint32_t bufferlen, bool mark) 
+	virtual void onMediaCallback(bool isvideo, uint32_t timestmap, const RTSPBuffer& buffer, bool mark)
 	{
 		int a = 0;
 	}
@@ -59,16 +60,18 @@ public:
 private:
 	void threadProc()
 	{
-#define MAXBUFFERSIZE	128*1024
-		char buffer[MAXBUFFERSIZE] = { 0 };
+#define MAXBUFFERSIZE	26*1024
 
-		StringBuffer bufferobj(buffer, MAXBUFFERSIZE);
+		RTSPBuffer buffer;
+		buffer.alloc(MAXBUFFERSIZE);
+		buffer.resize(MAXBUFFERSIZE);
+
 		uint32_t timestmap = 0;
 		while (looping())
 		{
-			session->sendMedia(true, timestmap += 25, bufferobj, true);
+			session->sendMedia(true, timestmap += 25, buffer, true);
 
-			Thread::sleep(25);
+			Thread::sleep(40);
 		}
 	}
 };
@@ -111,3 +114,5 @@ int main()
 
 	return 0;
 }
+
+#endif

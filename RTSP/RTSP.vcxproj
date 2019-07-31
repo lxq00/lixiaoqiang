@@ -106,6 +106,7 @@
   <ItemGroup>
     <ClInclude Include="..\Include\RTSP\Defs.h" />
     <ClInclude Include="..\Include\RTSP\RTSP.h" />
+    <ClInclude Include="..\Include\RTSP\RTSPBuffer.h" />
     <ClInclude Include="..\Include\RTSP\RTSPClient.h" />
     <ClInclude Include="..\Include\RTSP\RTSPServer.h" />
     <ClInclude Include="..\Include\RTSP\RTSPStructs.h" />
@@ -122,6 +123,7 @@
     <ClInclude Include="common\rtspHeaderTransport.h" />
     <ClInclude Include="common\rtspHeaderSdp.h" />
     <ClInclude Include="common\strDup.h" />
+    <ClCompile Include="common\RTSPBuffer.cpp" />
     <ClCompile Include="server\RTSPServerSession.cpp" />
   </ItemGroup>
   <ItemGroup>

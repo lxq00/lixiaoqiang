@@ -15,7 +15,7 @@ public:
 	~rtpOverTcp()
 	{
 	}
-	void rtpovertcpCallback(uint32_t channel, const StringBuffer& data)
+	void rtpovertcpCallback(uint32_t channel, const RTSPBuffer& data)
 	{
 		//contorl data
 		if (channel % 2 != 0)
@@ -29,12 +29,12 @@ public:
 				assert(0);
 				return;
 			}
-			RTPHEADER* header = (RTPHEADER*)data.size();
+			RTPHEADER* header = (RTPHEADER*)data.buffer();
 
-			datacallback(true, ntohl(header->ts), StringBuffer(data, data.buffer() + sizeof(RTPHEADER), data.size() - sizeof(RTPHEADER)),header->m);
+			datacallback(true, ntohl(header->ts), RTSPBuffer(data, data.buffer() + sizeof(RTPHEADER), data.size() - sizeof(RTPHEADER)),header->m);
 		}
 	}
-	void sendData(bool isvideo, uint32_t timestmap, const StringBuffer& data, bool mark)
+	void sendData(bool isvideo, uint32_t timestmap, const RTSPBuffer& data, bool mark)
 	{
 		const char* buffer = data.buffer();
 		uint32_t bufferlen = data.size();
@@ -52,7 +52,9 @@ public:
 			header.m = bufferlen == cansendlen ? mark : false;
 			header.ssrc = htonl(isvideo ? rtspmedia.videoTransport.ssrc : rtspmedia.audioTransport.ssrc);
 
-			protocol->sendMedia(isvideo, (const char*)& header, sizeof(RTPHEADER), StringBuffer(data, buffer, cansendlen));
+			std::string rtpheaderstr = std::string((const char*)& header, sizeof(RTPHEADER));
+
+			protocol->sendMedia(isvideo, rtpheaderstr, RTSPBuffer(data, buffer, cansendlen));
 
 			buffer += cansendlen;
 			bufferlen -= cansendlen;
