@@ -25,7 +25,7 @@ struct StrandInternalCallbackObj
 struct Strand::StrandInternal
 {
 	boost::asio::io_service::strand strand;
-	StrandInternal(const shared_ptr<IOWorker>& ioworker) :strand(**(boost::shared_ptr<boost::asio::io_service>*)ioworker->getBoostASIOIOServerSharedptr()){}
+	StrandInternal(const shared_ptr<IOWorker>& ioworker) :strand(*(boost::asio::io_service*)ioworker->getBoostASIOIOServerPtr()){}
 };
 Strand::Strand(const shared_ptr<IOWorker>& ioworker)
 {

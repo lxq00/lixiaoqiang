@@ -41,6 +41,7 @@
     <ClInclude Include="..\Include\Network\Strand.h">
       <Filter>Include</Filter>
     </ClInclude>
+    <ClInclude Include="Src\UserThreadInfo.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Version.rc" />

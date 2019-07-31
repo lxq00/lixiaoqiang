@@ -16,10 +16,7 @@ public:
 	virtual ~ASIOSocketUDP() {}
 	bool create()
 	{
-		boost::shared_ptr<boost::asio::ip::udp::socket> sockptr;
-		{
-			sockptr = sock;
-		}
+		shared_ptr<boost::asio::ip::udp::socket> sockptr = sock;
 		if (sockptr == NULL)
 		{
 			return false;
@@ -39,14 +36,10 @@ public:
 	}
 	int sendto(const char* buffer, int len, const NetAddr& otheraddr)
 	{
-		boost::shared_ptr<boost::asio::ip::udp::socket> sockptr;
+		shared_ptr<boost::asio::ip::udp::socket> sockptr = sock;
+		if(sockptr == NULL)
 		{
-			Guard locker(mutex);
-			if (sock == NULL || mustQuit)///如果socket已经被关闭，停止
-			{
-				return false;
-			}
-			sockptr = sock;
+			return false;
 		}
 
 		boost::system::error_code er;
@@ -59,14 +52,10 @@ public:
 	}
 	int recvfrom(char* buffer, int maxlen, NetAddr& otheraddr)
 	{
-		boost::shared_ptr<boost::asio::ip::udp::socket> sockptr;
+		shared_ptr<boost::asio::ip::udp::socket> sockptr = sock;
+		if (sockptr == NULL)
 		{
-			Guard locker(mutex);
-			if (sock == NULL || mustQuit)///如果socket已经被关闭，停止
-			{
-				return false;
-			}
-			sockptr = sock;
+			return false;
 		}
 
 		boost::system::error_code er;
@@ -89,59 +78,67 @@ public:
 
 		return !er ? recvlen : -1;
 	}
-	bool doStartSend(boost::shared_ptr<SendInternal>& internal)
+	virtual bool async_recvfrom(boost::shared_ptr<RecvCallbackObject>& recvobj)
 	{
-		boost::shared_ptr<boost::asio::ip::udp::socket> sockptr;
-
+		shared_ptr<boost::asio::ip::udp::socket> sockptr = sock;
+		if (sockptr == NULL)
 		{
-			Guard locker(mutex);
-			if (sock == NULL || internal == NULL || mustQuit || status != NetStatus_connected)///如果socket已经被关闭，停止
-			{
-				return false;
-			}
-			sockptr = sock;
+			return false;
 		}
 
 		try
 		{
-			const NetAddr& toaddr = internal->getSendAddr();
-
-			boost::asio::ip::udp::endpoint otehrpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address::from_string(toaddr.getIP()), toaddr.getPort());
-
-			sockptr->async_send_to(boost::asio::buffer(internal->getSendBuffer(), internal->getSendBufferLen()), otehrpoint,
-				boost::bind(&ASIOSocketObject::_sendCallbackPtr, ASIOSocketObject::shared_from_this(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+			sockptr->async_receive_from(boost::asio::buffer(recvobj->bufferaddr, recvobj->bufferlen), recvobj->recvpoint,
+				boost::bind(&RecvCallbackObject::_recvCallbackPtr, recvobj, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
 
 		}
 		catch (const std::exception& e)
 		{
-			logdebug("%s %d sockptr->async_send_to std::exception %s\r\n", __FUNCTION__, __LINE__, e.what());
+			logdebug("%s %d sockptr->async_receive_from std::exception %s\r\n", __FUNCTION__, __LINE__, e.what());
 
 			return false;
 		}
 
 		return true;
 	}
-	bool doPostRecv(boost::shared_ptr<RecvInternal>& internal)
+	virtual bool async_recvfrom(char* buf, uint32_t len, const RecvFromCallback& received)
 	{
-		boost::shared_ptr<boost::asio::ip::udp::socket> sockptr;
+		boost::shared_ptr<RecvCallbackObject> recvobj = boost::make_shared<RecvCallbackObject>(
+			sockobjptr,userthread,received,buf,len);
+
+	
+		return async_recvfrom(recvobj);
+	}
+	virtual bool async_recvfrom(const RecvFromCallback& received, int maxlen = 1024) 
+	{
+		boost::shared_ptr<RecvCallbackObject> recvobj = boost::shared_ptr<RecvCallbackObject>(new RecvCallbackObject(
+			sockobjptr, userthread, received, NULL, maxlen));
+
+
+		return async_recvfrom(recvobj);
+	}
+	virtual bool async_sendto(const char* buf, uint32_t len, const NetAddr& toaddr, const SendedCallback& sended)
+	{
+		shared_ptr<boost::asio::ip::udp::socket> sockptr = sock;
+		if (sockptr == NULL)
 		{
-			Guard locker(mutex);
-			if (sock == NULL || internal == NULL || mustQuit || status != NetStatus_connected)///如果socket已经被关闭，停止
-			{
-				return false;
-			}
-			sockptr = sock;
+			return false;
 		}
 
+		boost::shared_ptr<SendCallbackObject> sendobj = boost::make_shared<SendCallbackObject>(sockobjptr,
+			userthread, sended, buf, len);
+		
 		try
 		{
-			sockptr->async_receive_from(boost::asio::buffer(internal->getRecvBuffer(), internal->getRecvBufferLen()), internal->getRecvPoint(),
-				boost::bind(&ASIOSocketObject::_recvCallbackPtr, shared_from_this(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+			boost::asio::ip::udp::endpoint otehrpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address::from_string(toaddr.getIP()), toaddr.getPort());
+
+			sockptr->async_send_to(boost::asio::buffer(sendobj->bufferaddr, sendobj->bufferlen), otehrpoint,
+				boost::bind(&SendCallbackObject::_sendCallbackPtr, sendobj, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
 
 		}
 		catch (const std::exception& e)
 		{
-			logdebug("%s %d sockptr->async_receive_from std::exception %s\r\n", __FUNCTION__, __LINE__, e.what());
+			logdebug("%s %d sockptr->async_send_to std::exception %s\r\n", __FUNCTION__, __LINE__, e.what());
 
 			return false;
 		}

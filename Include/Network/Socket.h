@@ -51,8 +51,8 @@ public:
 
 	static shared_ptr<IOWorker> defaultWorker();
 
-	//返回值为shared_ptr<boost::asio::io_service>*
-	void* getBoostASIOIOServerSharedptr() const;
+	//返回值为 boost::asio::io_service*
+	void* getBoostASIOIOServerPtr() const;
 
 	uint32_t	threadNum();
 private:
@@ -84,7 +84,7 @@ public:
 
 	/// socket异步连接事件回调方法,第一个参数表示连接socket自身
 	///回调定义参考：void connectCallbackFunc(Socket* connectSock);
-	typedef Function1<void, const weak_ptr<Socket>& /*connectSock*/> ConnectedCallback;
+	typedef Function3<void, const weak_ptr<Socket>& /*connectSock*/,bool,const std::string&> ConnectedCallback;
 
 	/// socket异步断开事件回调方法,int 第一个参数表示连接socket自身，第二个表示描述断开错误描述，客户端，服务端均使用该事件
 	/// 当socket第一次连接成功后，如果10秒无数据，会主动断开连接，错误，防止 tcp恶意连接，只针对accept产生的socket
@@ -306,6 +306,8 @@ public:
 
 	//获取属性
 	virtual bool getSocketOpt(int level, int optname, void *optval, int *optlen) const  = 0;
+
+	virtual void socketReady() {}
 };
 
 };

@@ -4,25 +4,20 @@ using namespace std;
 namespace Public{
 namespace Network{
 
-struct TCPServer::TCPServerInternalPointer
+struct TCPServer::TCPServerInternalPointer:public ASIOSocketAcceptor
 {
-	boost::shared_ptr<ASIOSocketAcceptor> sock;
+	TCPServerInternalPointer(const shared_ptr<IOWorker>& _worker, const NetAddr& addr) :ASIOSocketAcceptor(_worker) { create(addr,true); }
 };
 shared_ptr<Socket> TCPServer::create(const shared_ptr<IOWorker>& _worker,const NetAddr& addr)
 {
 	shared_ptr<TCPServer> sock = shared_ptr<TCPServer>(new TCPServer(_worker,addr));
-    sock->tcpserverinternal->sock = boost::make_shared<ASIOSocketAcceptor>(_worker);
-    if (!sock->tcpserverinternal->sock->create(addr, true))
-    {
-        return shared_ptr<Socket>();
-    }
-	sock->tcpserverinternal->sock->initSocketptr(sock);
+   sock->tcpserverinternal->initSocketptr(sock);
 
 	return sock;
 }
 TCPServer::TCPServer(const shared_ptr<IOWorker>& _worker, const NetAddr& addr)
 {
-	tcpserverinternal = new TCPServerInternalPointer;
+	tcpserverinternal = new TCPServerInternalPointer(_worker,addr);
 }
 TCPServer::~TCPServer()
 {
@@ -31,16 +26,7 @@ TCPServer::~TCPServer()
 }
 SOCKET TCPServer::getHandle() const
 {
-	boost::shared_ptr<ASIOSocketAcceptor> sockobj;
-	{
-		sockobj = tcpserverinternal->sock;
-	}
-	if (sockobj == NULL)
-	{
-		return false;
-	}
-
-	return sockobj->getHandle();
+	return tcpserverinternal->getHandle();
 }
 NetStatus TCPServer::getStatus() const
 {
@@ -52,122 +38,56 @@ NetType TCPServer::getNetType() const
 }
 NetAddr TCPServer::getMyAddr() const
 {
-	boost::shared_ptr<ASIOSocketAcceptor> sockobj;
-	{
-		sockobj = tcpserverinternal->sock;
-	}
-	if (sockobj == NULL)
-	{
-		return false;
-	}
-
-	return sockobj->getMyAddr();
+	return tcpserverinternal->getMyAddr();
 }
 bool TCPServer::disconnect()
 {
-	boost::shared_ptr<ASIOSocketAcceptor> sockobj;
-	{
-		sockobj = tcpserverinternal->sock;
-	}
-	if (sockobj != NULL)
-	{
-		sockobj->disconnect();
-	}
-
-	return true;
+	return tcpserverinternal->disconnect();
 }
 bool TCPServer::async_accept(const AcceptedCallback& accepted)
 {
-	boost::shared_ptr<ASIOSocketAcceptor> sockobj;
-	{
-		sockobj = tcpserverinternal->sock;
-	}
-	if(sockobj == NULL || !accepted)
+	if(!accepted)
 	{
 		return false;
 	}
 
-	return sockobj->startListen(accepted);
+	return tcpserverinternal->async_accept(accepted);
 }
 
 shared_ptr<Socket> TCPServer::accept()
 {
-	boost::shared_ptr<ASIOSocketAcceptor> sockobj;
-	{
-		sockobj = tcpserverinternal->sock;
-	}
-	if(sockobj == NULL)
-	{
-		return NULL;
-	}
-
-	return sockobj->accept();
+	return tcpserverinternal->accept();
 }
 
 bool TCPServer::getSocketTimeout(uint32_t& recvTimeout,uint32_t& sendTimeout) const
 {
-	boost::shared_ptr<ASIOSocketAcceptor> sockobj;
-	{
-		sockobj = tcpserverinternal->sock;
-	}
-	if(sockobj == NULL)
-	{
-		return false;
-	}
-
-	return sockobj->getSocketTimeout(recvTimeout,sendTimeout);
+	return tcpserverinternal->getSocketTimeout(recvTimeout,sendTimeout);
 }
 bool TCPServer::setSocketTimeout(uint32_t recvTimeout,uint32_t sendTimeout)
 {
-	boost::shared_ptr<ASIOSocketAcceptor> sockobj;
-	{
-		sockobj = tcpserverinternal->sock;
-	}
-	if(sockobj == NULL)
-	{
-		return false;
-	}
-
-	return sockobj->setSocketTimeout(recvTimeout,sendTimeout);
+	return tcpserverinternal->setSocketTimeout(recvTimeout,sendTimeout);
 }
 bool TCPServer::nonBlocking(bool nonblock)
 {
-	boost::shared_ptr<ASIOSocketAcceptor> sockobj;
-	{
-		sockobj = tcpserverinternal->sock;
-	}
-	if(sockobj == NULL)
-	{
-		return false;
-	}
-
-	return sockobj->nonBlocking(nonblock);
+	return tcpserverinternal->nonBlocking(nonblock);
 }
 bool TCPServer::setSocketOpt(int level, int optname, const void *optval, int optlen)
 {
-	boost::shared_ptr<ASIOSocketAcceptor> sockobj;
-	{
-		sockobj = tcpserverinternal->sock;
-	}
-	if (sockobj == NULL)
+	if (optval == NULL)
 	{
 		return false;
 	}
 
-	return sockobj->setSocketOpt(level, optname, optval, optlen);
+	return tcpserverinternal->setSocketOpt(level, optname, optval, optlen);
 }
 bool TCPServer::getSocketOpt(int level, int optname, void *optval, int *optlen) const
 {
-	boost::shared_ptr<ASIOSocketAcceptor> sockobj;
-	{
-		sockobj = tcpserverinternal->sock;
-	}
-	if (sockobj == NULL)
+	if (optval == NULL)
 	{
 		return false;
 	}
 
-	return sockobj->getSocketOpt(level, optname, optval, optlen);
+	return tcpserverinternal->getSocketOpt(level, optname, optval, optlen);
 }
 
 };

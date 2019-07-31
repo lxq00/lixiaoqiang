@@ -43,6 +43,7 @@
     <ClInclude Include="Src\ASIOSocketConneter.h" />
     <ClInclude Include="Src\ASIOSocketObject.h" />
     <ClInclude Include="Src\ASIOSocketUDP.h" />
+    <ClInclude Include="Src\UserThreadInfo.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Version.rc" />

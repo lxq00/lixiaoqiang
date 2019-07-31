@@ -5,22 +5,20 @@ using namespace std;
 namespace Public{
 namespace Network{
 
-struct UDP::UDPInternalPointer
+struct UDP::UDPInternalPointer:public ASIOSocketUDP
 {
-	boost::shared_ptr<ASIOSocketUDP>			sock;
+	UDPInternalPointer(const shared_ptr<IOWorker>& worker) :ASIOSocketUDP(worker) { create(); }
 };
 shared_ptr<Socket> UDP::create(const shared_ptr<IOWorker>& worker)
 {
 	shared_ptr<UDP> sock = shared_ptr<UDP>(new UDP(worker));
-	sock->udpinternal->sock->initSocketptr(sock);
+	sock->udpinternal->initSocketptr(sock);
 
 	return sock;
 }
 UDP::UDP(const shared_ptr<IOWorker>& worker)
 {
-	udpinternal = new UDPInternalPointer;
-	udpinternal->sock = boost::make_shared<ASIOSocketUDP>(worker);
-	udpinternal->sock->create();
+	udpinternal = new UDPInternalPointer(worker);
 }
 UDP::~UDP()
 {
@@ -29,115 +27,37 @@ UDP::~UDP()
 }
 bool UDP::bind(const NetAddr& addr,bool reusedaddr)
 {
-	boost::shared_ptr<ASIOSocketUDP> sockobj;
-
-	{
-		sockobj = udpinternal->sock;
-	}
-	if(sockobj == NULL)
-	{
-		return false;
-	}
-
-	return sockobj->bind(addr,reusedaddr);
+	return udpinternal->bind(addr,reusedaddr);
 }
 bool UDP::disconnect()
 {
-	boost::shared_ptr<ASIOSocketUDP> sockobj;
-
-	{
-		sockobj = udpinternal->sock;
-	}
-	if(sockobj != NULL)
-	{
-		sockobj->disconnect();
-	}
+	udpinternal->disconnect();
 
 	return true;
 }
 bool UDP::getSocketBuffer(uint32_t& recvSize,uint32_t& sendSize) const
 {
-	boost::shared_ptr<ASIOSocketUDP> sockobj;
-
-	{
-		sockobj = udpinternal->sock;
-	}
-	if(sockobj == NULL)
-	{
-		return false;
-	}
-
-	return sockobj->getSocketBuffer(recvSize,sendSize);
+	return udpinternal->getSocketBuffer(recvSize,sendSize);
 }
 bool UDP::setSocketBuffer(uint32_t recvSize,uint32_t sendSize)
 {
-	boost::shared_ptr<ASIOSocketUDP> sockobj;
-
-	{
-		sockobj = udpinternal->sock;
-	}
-	if(sockobj == NULL)
-	{
-		return false;
-	}
-
-	return sockobj->setSocketBuffer(recvSize,sendSize);
+	return udpinternal->setSocketBuffer(recvSize,sendSize);
 }
 bool UDP::getSocketTimeout(uint32_t& recvTimeout,uint32_t& sendTimeout) const
 {
-	boost::shared_ptr<ASIOSocketUDP> sockobj;
-
-	{
-		sockobj = udpinternal->sock;
-	}
-	if(sockobj == NULL)
-	{
-		return false;
-	}
-
-	return sockobj->getSocketTimeout(recvTimeout,sendTimeout);
+	return udpinternal->getSocketTimeout(recvTimeout,sendTimeout);
 }
 bool UDP::setSocketTimeout(uint32_t recvTimeout,uint32_t sendTimeout)
 {
-	boost::shared_ptr<ASIOSocketUDP> sockobj;
-
-	{
-		sockobj = udpinternal->sock;
-	}
-	if(sockobj == NULL)
-	{
-		return false;
-	}
-
-	return sockobj->setSocketTimeout(recvTimeout,sendTimeout);
+	return udpinternal->setSocketTimeout(recvTimeout,sendTimeout);
 }
 bool UDP::nonBlocking(bool nonblock)
 {
-	boost::shared_ptr<ASIOSocketUDP> sockobj;
-
-	{
-		sockobj = udpinternal->sock;
-	}
-	if(sockobj == NULL)
-	{
-		return false;
-	}
-
-	return sockobj->nonBlocking(nonblock);
+	return udpinternal->nonBlocking(nonblock);
 }
 SOCKET UDP::getHandle() const
 {
-	boost::shared_ptr<ASIOSocketUDP> sockobj;
-
-	{
-		sockobj = udpinternal->sock;
-	}
-	if(sockobj == NULL)
-	{
-		return false;
-	}
-
-	return sockobj->getHandle();
+	return udpinternal->getHandle();
 }
 NetType UDP::getNetType() const
 {
@@ -145,116 +65,71 @@ NetType UDP::getNetType() const
 }
 NetAddr UDP::getMyAddr() const
 {
-	boost::shared_ptr<ASIOSocketUDP> sockobj;
-
-	{
-		sockobj = udpinternal->sock;
-	}
-	if(sockobj == NULL)
-	{
-		return false;
-	}
-
-	return sockobj->getMyAddr();
+	return udpinternal->getMyAddr();
 }
 
 bool UDP::async_recvfrom(char *buf , uint32_t len,const RecvFromCallback& received)
 {
-	boost::shared_ptr<ASIOSocketUDP> sockobj;
-
-	{
-		sockobj = udpinternal->sock;
-	}
-	if(sockobj == NULL || buf == NULL || len == 0 || !received)
+	if (buf == NULL || len == 0 || !received)
 	{
 		return false;
 	}
 
-	return sockobj->async_recvfrom(buf,len,received);
+	return udpinternal->async_recvfrom(buf, len, received);
 }
 bool UDP::async_recvfrom(const RecvFromCallback& received, int maxlen)
 {
-	boost::shared_ptr<ASIOSocketUDP> sockobj;
-
-	{
-		sockobj = udpinternal->sock;
-	}
-	if (sockobj == NULL || maxlen == 0 || !received)
+	if (maxlen == 0 || !received)
 	{
 		return false;
 	}
-	return sockobj->async_recvfrom(received,maxlen);
+	return udpinternal->async_recvfrom(received,maxlen);
 }
 bool UDP::async_sendto(const char * buf, uint32_t len,const NetAddr& other,const SendedCallback& sended)
 {
-	boost::shared_ptr<ASIOSocketUDP> sockobj;
-
-	{
-		sockobj = udpinternal->sock;
-	}
-	if(sockobj == NULL || buf == NULL || len == 0 || !sended)
+	if(buf == NULL || len == 0 || !sended)
 	{
 		return false;
 	}
 
-	return sockobj->async_sendto(buf,len,other,sended);
+	return udpinternal->async_sendto(buf,len,other,sended);
 }
 
 int UDP::recvfrom(char *buf , uint32_t len,NetAddr& other)
 {
-	boost::shared_ptr<ASIOSocketUDP> sockobj;
-
-	{
-		sockobj = udpinternal->sock;
-	}
-	if(sockobj == NULL || buf == NULL || len == 0)
+	if(buf == NULL || len == 0)
 	{
 		return false;
 	}
 
-	return sockobj->recvfrom(buf,len,other);
+	return udpinternal->recvfrom(buf,len,other);
 }
 int UDP::sendto(const char * buf, uint32_t len,const NetAddr& other)
 {
-	boost::shared_ptr<ASIOSocketUDP> sockobj;
-
-	{
-		sockobj = udpinternal->sock;
-	}
-	if(sockobj == NULL || buf == NULL || len == 0)
+	if(buf == NULL || len == 0)
 	{
 		return false;
 	}
 
-	return sockobj->sendto(buf,len,other);
+	return udpinternal->sendto(buf,len,other);
 }
 bool UDP::setSocketOpt(int level, int optname, const void *optval, int optlen)
 {
-	boost::shared_ptr<ASIOSocketUDP> sockobj;
-
-	{
-		sockobj = udpinternal->sock;
-	}
-	if (sockobj == NULL)
+	if (optval == NULL)
 	{
 		return false;
 	}
 
-	return sockobj->setSocketOpt(level, optname, optval,optlen);
+	return udpinternal->setSocketOpt(level, optname, optval,optlen);
 }
 bool UDP::getSocketOpt(int level, int optname, void *optval, int *optlen) const
 {
-	boost::shared_ptr<ASIOSocketUDP> sockobj;
-
-	{
-		sockobj = udpinternal->sock;
-	}
-	if (sockobj == NULL)
+	if (optval == NULL)
 	{
 		return false;
 	}
 
-	return sockobj->getSocketOpt(level, optname, optval, optlen);
+	return udpinternal->getSocketOpt(level, optname, optval, optlen);
 }
 
 };

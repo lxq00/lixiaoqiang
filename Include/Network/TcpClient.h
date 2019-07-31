@@ -153,6 +153,8 @@ public:
 
 	//ªÒ»° Ù–‘
 	virtual bool getSocketOpt(int level, int optname, void *optval, int *optlen) const;
+
+	virtual void socketReady();
 private:
 	TCPClientInternalPointer* tcpclientinternal;
 };

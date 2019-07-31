@@ -58,9 +58,9 @@ shared_ptr<IOWorker> IOWorker::defaultWorker()
 	return defaultworker;
 }
 
-void* IOWorker::getBoostASIOIOServerSharedptr() const
+void* IOWorker::getBoostASIOIOServerPtr() const
 {
-	return &internal->ioserver;
+	return internal->ioserver.get();
 }
 uint32_t IOWorker::threadNum()
 {

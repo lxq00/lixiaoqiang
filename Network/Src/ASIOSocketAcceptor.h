@@ -13,8 +13,6 @@ public:
 
 	virtual bool create(const NetAddr& point, bool reusedaddr)
 	{
-		Guard locker(mutex);
-
 		if (!point.isValid())
 		{
 			return false;
@@ -26,7 +24,7 @@ public:
 		{
 			boost::asio::ip::tcp::endpoint bindaddr = boost::asio::ip::tcp::endpoint(point.getType() == NetAddr::netaddr_ipv4 ? boost::asio::ip::tcp::v4() : boost::asio::ip::tcp::v6(), point.getPort());
 
-			sock = boost::shared_ptr<boost::asio::ip::tcp::acceptor>(new boost::asio::ip::tcp::acceptor(**(boost::shared_ptr<boost::asio::io_service>*)worker->getBoostASIOIOServerSharedptr()));
+			sock = shared_ptr<boost::asio::ip::tcp::acceptor>(new boost::asio::ip::tcp::acceptor(*(boost::asio::io_service*)worker->getBoostASIOIOServerPtr()));
 			sock->open(bindaddr.protocol());
 			sock->set_option(boost::asio::ip::tcp::acceptor::reuse_address(reusedaddr));
 			sock->bind(bindaddr);
@@ -41,115 +39,23 @@ public:
 		return true;
 	}
 
-	bool startListen(const Socket::AcceptedCallback& accepted)
+	bool async_accept(const Socket::AcceptedCallback& accepted)
 	{
+		shared_ptr<boost::asio::ip::tcp::acceptor> accepetserptr = sock;
+		if (accepetserptr == NULL) return false;
+
+		boost::shared_ptr<AcceptCallbackObject> acceptobj = boost::make_shared<AcceptCallbackObject>(sockobjptr, userthread, accepted,
+			AcceptCallbackObject::ErrorCallback(&ASIOSocketObject::acceptErrorCallback, shared_from_this()));
+
 		{
-			Guard locker(mutex);
-			if (sock == NULL || mustQuit || acceptCallback != NULL)
-			{
-				return false;
-			}
-			acceptCallback = accepted;
+			acceptobj->newsock = shared_ptr<TCPClient>(new TCPClient(worker));
+			acceptobj->newsock->tcpclientinternal->initSocketptr(acceptobj->newsock);
 		}
-
-
-		return startDoAccept();
-	}
-
-	shared_ptr<Socket> accept()
-	{
-		shared_ptr<TCPClient> acceptsock = shared_ptr<TCPClient>(new TCPClient(worker));
-
-		boost::shared_ptr<boost::asio::ip::tcp::acceptor> acceptPtr;
-		{
-			Guard locker(mutex);
-			if (sock == NULL || mustQuit || acceptsock != NULL)
-			{
-				return NULL;
-			}
-			acceptPtr = sock;
-		}
-
-		boost::system::error_code er;
-
-		boost::asio::ip::tcp::socket& newsockptr = *(boost::asio::ip::tcp::socket*)acceptsock->tcpclientinternal->sock->sock.get();
-		boost::system::error_code re = acceptPtr->accept(newsockptr, er);
-
 		
-		if (!re && !er)
-		{
-			acceptsock->tcpclientinternal->sock->setStatus(NetStatus_connected);
-			acceptsock->tcpclientinternal->sock->nonBlocking(true);
-			acceptsock->tcpclientinternal->sock->nodelay();
-		}
-		else
-		{
-			acceptsock = NULL;
-		}
-
-		return acceptsock;
-	}
-private:
-	virtual bool doStartSend(boost::shared_ptr<SendInternal>& internal) { return false; }
-	virtual bool doPostRecv(boost::shared_ptr<RecvInternal>& internal) { return false; }
-	void recreate()
-	{
-		disconnect();
-		create(listenAddr, true);
-	}
-	void _acceptCallbackPtr(const boost::system::error_code& er)
-	{
-		shared_ptr<TCPClient> socketobj;
-		Socket::AcceptedCallback callback;
-		{
-			Guard locker(mutex);
-			if (sock == NULL || mustQuit)
-			{
-				return;
-			}
-			socketobj = acceptSocket;
-			acceptSocket = NULL;
-			callback = acceptCallback;
-
-			_callbackThreadUsedStart();
-		}
-		if (!er && socketobj != NULL && callback != NULL)
-		{
-			socketobj->tcpclientinternal->sock->setStatus(NetStatus_connected);
-			socketobj->tcpclientinternal->sock->nonBlocking(true);
-			socketobj->tcpclientinternal->sock->nodelay();
-
-			callback(sockobjptr, socketobj);
-		}
-		callbackThreadUsedEnd();
-
-		if (er)
-		{
-			///socket出异常了，重置下socket
-			recreate();
-		}
-
-		startDoAccept();
-	}
-	bool startDoAccept()
-	{
-		shared_ptr<TCPClient> socketobj;
-		boost::shared_ptr<boost::asio::ip::tcp::acceptor> accepetserptr;
-		{
-			Guard locker(mutex);
-			if (sock == NULL || mustQuit || acceptCallback == NULL || acceptSocket != NULL)
-			{
-				return false;
-			}
-			socketobj = acceptSocket = shared_ptr<TCPClient>(new TCPClient(worker));
-			acceptSocket->tcpclientinternal->initSocketptr(acceptSocket);
-			accepetserptr = sock;
-		}
-
 		try
 		{
-			boost::asio::ip::tcp::socket& newsockptr = *(boost::asio::ip::tcp::socket*)socketobj->tcpclientinternal->sock->sock.get();
-			accepetserptr->async_accept(newsockptr, boost::bind(&ASIOSocketObject::_acceptCallbackPtr, ASIOSocketAcceptor::shared_from_this(), boost::asio::placeholders::error));
+			boost::asio::ip::tcp::socket& newsockptr = *(boost::asio::ip::tcp::socket*)acceptobj->newsock->tcpclientinternal->sock.get();
+			accepetserptr->async_accept(newsockptr, boost::bind(&AcceptCallbackObject::_acceptCallbackPtr, acceptobj, boost::asio::placeholders::error));
 
 		}
 		catch (const std::exception& e)
@@ -160,9 +66,38 @@ private:
 
 		return true;
 	}
+	void acceptErrorCallback(const boost::system::error_code& er, const Socket::AcceptedCallback& callback)
+	{
+		disconnect();
+		create(listenAddr, true);
+
+		async_accept(callback);
+	}
+	shared_ptr<Socket> accept()
+	{
+		shared_ptr<boost::asio::ip::tcp::acceptor> accepetserptr = sock;
+		if (accepetserptr == NULL) return false;
+
+		shared_ptr<TCPClient> acceptsock = shared_ptr<TCPClient>(new TCPClient(worker));
+
+		boost::system::error_code er;
+
+		boost::asio::ip::tcp::socket& newsockptr = *(boost::asio::ip::tcp::socket*)acceptsock->tcpclientinternal->sock.get();
+		boost::system::error_code re = accepetserptr->accept(newsockptr, er);
+
+		
+		if (!re && !er)
+		{
+			acceptsock->socketReady();
+		}
+		else
+		{
+			acceptsock = NULL;
+		}
+
+		return acceptsock;
+	}
 public:
-	Socket::AcceptedCallback								acceptCallback;
-	shared_ptr<TCPClient>									acceptSocket;
 	NetAddr													listenAddr;
 };
 

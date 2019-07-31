@@ -9,13 +9,13 @@ namespace Network{
 template<typename SocketType>
 struct SocketOthreadAddrObject
 {
-	static NetAddr getothearaddr(const boost::shared_ptr<SocketType> & sock) { return NetAddr(); }
+	static NetAddr getothearaddr(const shared_ptr<SocketType> & sock) { return NetAddr(); }
 };
 
 template<>
 struct SocketOthreadAddrObject<boost::asio::ip::tcp::socket>
 {
-	static NetAddr getothearaddr(const boost::shared_ptr<boost::asio::ip::tcp::socket> & sock)
+	static NetAddr getothearaddr(const shared_ptr<boost::asio::ip::tcp::socket> & sock)
 	{
 		try
 		{
@@ -34,13 +34,14 @@ struct SocketOthreadAddrObject<boost::asio::ip::tcp::socket>
 
 ///asio socket操作的对象，该对象基类
 template<typename SocketProtocol,typename SocketType>
-class ASIOSocketObject:public UserThreadInfo,public Socket,public boost::enable_shared_from_this<ASIOSocketObject<SocketProtocol,SocketType> >
+class ASIOSocketObject:public Socket,public enable_shared_from_this<ASIOSocketObject<SocketProtocol,SocketType> >
 {
 public:
 	ASIOSocketObject(const shared_ptr<IOWorker>& _worker,NetType _type) :worker(_worker),status(NetStatus_notconnected),type(_type)
 	{
+		userthread = make_shared<UserThreadInfo>();
 		if (worker == NULL) worker = IOWorker::defaultWorker();
-		sock = boost::make_shared<SocketType>(**(boost::shared_ptr<boost::asio::io_service>*)worker->getBoostASIOIOServerSharedptr());
+		sock = make_shared<SocketType>(*(boost::asio::io_service*)worker->getBoostASIOIOServerPtr());
 	}
 	virtual ~ASIOSocketObject() {}
 	void initSocketptr(const shared_ptr<Socket>& sock)
@@ -50,10 +51,7 @@ public:
 	virtual bool create() { return true; }
 	void nodelay()
 	{
-		boost::shared_ptr<SocketType> sockptr;
-		{
-			sockptr = sock;
-		}
+		shared_ptr<SocketType> sockptr = sock;
 		if (sockptr == NULL)
 		{
 			return;
@@ -67,18 +65,18 @@ public:
 	///true表示可以正常关闭该对象，false表示需要另外线程来释放该对象
 	virtual bool disconnect()
 	{
-		boost::shared_ptr<SocketType> sockptr;
-		{
-			Guard locker(mutex);
-
-			sockptr = sock;
-			sock = NULL;
-			sockobjptr = weak_ptr<Socket>();
-		}
-		quit();
+		shared_ptr<SocketType> sockptr = sock;
+		sock = NULL;
+		sockobjptr = weak_ptr<Socket>();
 		
-		///现在关闭应用，做相应的关闭回调处理
-		waitAllOtherCallbackThreadUsedEnd();
+		if (userthread)
+		{
+			userthread->quit();
+			///现在关闭应用，做相应的关闭回调处理
+			userthread->waitAllOtherCallbackThreadUsedEnd();
+		}
+		
+		userthread = NULL;
 
 		if (sockptr != NULL)
 		{
@@ -90,10 +88,7 @@ public:
 
 	virtual SOCKET getHandle() const
 	{
-		boost::shared_ptr<SocketType> sockptr;
-		{
-			sockptr = sock;
-		}
+		shared_ptr<SocketType> sockptr = sock;
 		if (sockptr == NULL)
 		{
 			return 0;
@@ -104,10 +99,7 @@ public:
 
 	bool bind(const NetAddr& point, bool reusedaddr)
 	{
-		boost::shared_ptr<SocketType> sockptr;
-		{
-			sockptr = sock;
-		}
+		shared_ptr<SocketType> sockptr = sock;
 		if (sockptr == NULL)
 		{
 			return false;
@@ -131,10 +123,7 @@ public:
 
 	bool nonBlocking(bool nonblock)
 	{
-		boost::shared_ptr<SocketType> sockptr;
-		{
-			sockptr = sock;
-		}
+		shared_ptr<SocketType> sockptr = sock;
 		if (sockptr == NULL)
 		{
 			return 0;
@@ -159,74 +148,6 @@ public:
 
 	virtual void setStatus(NetStatus _status){status = _status;}
 
-	bool async_recv(char *buf, uint32_t len, const ReceivedCallback& received)
-	{
-		if (buf == NULL || len == 0 || !received)
-		{
-			return false;
-		}
-
-		boost::shared_ptr<RecvInternal> recvptr = boost::make_shared<TCPRecvInternal>(buf, len, received);
-
-		return postReceive(recvptr);
-	}
-	bool async_recv(const ReceivedCallback& received, int maxlen)
-	{
-		if (maxlen == 0 || !received)
-		{
-			return false;
-		}
-
-		boost::shared_ptr<RecvInternal> recvptr = boost::make_shared<TCPRecvInternal>(maxlen, received);
-
-		return postReceive(recvptr);
-	}
-	bool async_send(const char * buf, uint32_t len, const SendedCallback& sended)
-	{
-		if (buf == NULL || len == 0 || !sended)
-		{
-			return false;
-		}
-		boost::shared_ptr<SendInternal> sendptr = boost::make_shared<RepeatSendInternal>(buf, len, sended);
-
-		return beginSend(sendptr);
-	}
-
-	bool async_recvfrom(char *buf, uint32_t len, const RecvFromCallback& received)
-	{
-		if (buf == NULL || len == 0 || !received)
-		{
-			return false;
-		}
-		boost::shared_ptr<RecvInternal> recvptr = boost::make_shared<udpRecvInternal>(buf, len, (RecvFromCallback&)received);
-
-		return postReceive(recvptr);
-	}
-	bool async_recvfrom(const RecvFromCallback& received, int maxlen)
-	{
-		if (maxlen == 0 || !received)
-		{
-			return false;
-		}
-		boost::shared_ptr<RecvInternal> recvptr = boost::make_shared<udpRecvInternal>(maxlen, (RecvFromCallback&)received);
-
-		return postReceive(recvptr);
-	}
-	bool async_sendto(const char * buf, uint32_t len, const NetAddr& other, const SendedCallback& sended)
-	{
-		if (buf == NULL || len == 0 || !sended)
-		{
-			return false;
-		}
-		boost::shared_ptr<SendInternal> sendptr = boost::make_shared<SendInternal>(buf, len, sended, other);
-
-		return beginSend(sendptr);
-	}
-
-	virtual int send(const char* buffer, int len) { return -1; }
-	virtual int recv(char* buffer, int maxlen) { return -1; }
-	virtual int sendto(const char* buffer, int len, const NetAddr& otheraddr) { return -1; }
-	virtual int recvfrom(char* buffer, int maxlen, NetAddr& otheraddr) { return -1; }
 	bool setSocketTimeout(uint32_t recvTimeout, uint32_t sendTimeout)
 	{
 		SOCKET sock = getHandle();
@@ -278,10 +199,7 @@ public:
 	}
 	NetAddr getMyAddr() const
 	{
-		boost::shared_ptr<SocketType> sockptr;
-		{
-			sockptr = sock;
-		}
+		shared_ptr<SocketType> sockptr = sock;
 		if (sockptr == NULL)
 		{
 			return NetAddr();
@@ -302,10 +220,7 @@ public:
 	}
 	NetAddr getOtherAddr() const
 	{
-		boost::shared_ptr<SocketType> sockptr;
-		{
-			sockptr = sock;
-		}
+		shared_ptr<SocketType> sockptr = sock;
 		if (sockptr == NULL)
 		{
 			return NetAddr(); 
@@ -313,8 +228,7 @@ public:
 
 		return SocketOthreadAddrObject<SocketType>::getothearaddr(sockptr);
 	}
-protected:
-	virtual void socketDisconnect(const char* error)
+	void socketErrorCallback(const boost::system::error_code& er)
 	{
 		NetStatus curstatus;
 		{
@@ -324,178 +238,21 @@ protected:
 		if (curstatus == NetStatus_connected)
 		{
 			shared_ptr<Socket> _sockptr = sockobjptr.lock();
-			if(_sockptr != NULL) disconnectCallback(_sockptr, error == NULL ? "disconnect":error);
+			if(_sockptr != NULL) disconnectCallback(_sockptr, er.message());
 		}
 	}
-	///启动接收
-	bool postReceive(boost::shared_ptr<RecvInternal>& internal)
-	{
-		{
-			Guard locker(mutex);
-			if (internal == NULL || mustQuit || currRecvInternal != NULL || status != NetStatus_connected)
-			{
-				return false;
-			}
-			currRecvInternal = internal;
-			_callbackThreadUsedStart();
-		}
-
-		bool ret = doPostRecv(currRecvInternal);
-
-		callbackThreadUsedEnd();
-
-		if (!ret)
-		{
-			///发送失败，告诉该节点 失败了
-			_recvCallbackPtr(boost::system::error_code(), -1);
-
-			return false;
-		}
-
-		return true;
-	}
-
-	///启动发送
-	bool beginSend(boost::shared_ptr<SendInternal>& internal)
-	{
-		{
-			Guard locker(mutex);
-			if (internal == NULL || mustQuit || status != NetStatus_connected)
-			{
-				return false;
-			}
-
-			sendInternalList.push_back(internal);
-
-			_callbackThreadUsedStart();
-		}
-
-		doStartSendData();
-
-		callbackThreadUsedEnd();
-
-		return true;
-	}
-public:
-	virtual void _recvCallbackPtr(const boost::system::error_code& er, std::size_t length)
-	{
-		boost::shared_ptr<RecvInternal> needDoRecvInternal;
-		{
-			Guard locker(mutex);
-			if (mustQuit || status != NetStatus_connected)///如果socket已经被关闭，停止
-			{
-				return;
-			}
-			///获取当前出发接收的节点
-			needDoRecvInternal = currRecvInternal;
-			currRecvInternal = boost::shared_ptr<RecvInternal>();
-
-			///记录当前回调的处理信息
-			_callbackThreadUsedStart();
-		}
-		if (er && type != NetType_Udp)
-		{
-			///接收失败，tcp都是断开连接，udp也不会进来，断开了
-			socketDisconnect(er.message().c_str());
-		}
-		else if (!er && needDoRecvInternal != NULL)
-		{
-			needDoRecvInternal->setRecvResult(sockobjptr, (int)length);
-		}
-
-		///清除当前回调的记录信息
-		callbackThreadUsedEnd();
-	}
-	virtual void _sendCallbackPtr(const boost::system::error_code& er, std::size_t length)
-	{
-		boost::shared_ptr<SendInternal> needDoSendInternal;
-		{
-			Guard locker(mutex);
-			if (mustQuit || status != NetStatus_connected)///如果socket已经被关闭，停止
-			{
-				return;
-			}
-			///获取当前出发接收的节点
-			needDoSendInternal = currSendInternal;
-
-			///记录当前回调的处理信息
-			_callbackThreadUsedStart();
-		}
-		bool sendover = true;
-		if (needDoSendInternal != NULL)
-		{
-			sendover = needDoSendInternal->setSendResultAndCheckIsOver(sockobjptr, int(!er ? length : 0));
-		}
-
-		{
-			///清除当前回调的记录信息
-			Guard locker(mutex);
-
-			if (sendover && sendInternalList.size() > 0)
-			{
-				boost::shared_ptr<SendInternal> internal = sendInternalList.front();
-				if (needDoSendInternal == internal)
-				{
-					sendInternalList.pop_front();
-				}
-			}
-
-			currSendInternal = boost::shared_ptr<SendInternal>();
-		}
-
-		doStartSendData();
-
-		callbackThreadUsedEnd();
-	}
-protected:
-	virtual bool doStartSend(boost::shared_ptr<SendInternal>& internal) = 0;
-	virtual bool doPostRecv(boost::shared_ptr<RecvInternal>& internal) = 0;
-	void doStartSendData()
-	{
-		boost::shared_ptr<SendInternal> needSendData;
-
-		{
-			Guard locker(mutex);
-			if (mustQuit || status != NetStatus_connected)
-			{
-				return;
-			}
-			if (currSendInternal != NULL)
-			{
-				///当前有人发送数据
-				return;
-			}
-			if (sendInternalList.size() <= 0)
-			{
-				///当前没数据可以发送
-				return;
-			}
-			needSendData = sendInternalList.front();
-			currSendInternal = needSendData;
-		}
-
-		bool ret = doStartSend(needSendData);
-		if (!ret)
-		{
-			///如果数据启动发送失败,清除当前数据
-			_sendCallbackPtr(boost::system::error_code(), -1);
-		}
-	}
-public:
-	virtual void _acceptCallbackPtr(const boost::system::error_code& er) {}
-	virtual void _connectCallbackPtr(const boost::system::error_code& er) {}
+	virtual void acceptErrorCallback(const boost::system::error_code& er, const Socket::AcceptedCallback& callback) {}
 protected:
 	shared_ptr<IOWorker>							worker;
-	boost::shared_ptr<RecvInternal>						currRecvInternal;	///当前正在接收的节点
-	std::list<boost::shared_ptr<SendInternal> >			sendInternalList;	///需要发送的节点列表
-	boost::shared_ptr<SendInternal>						currSendInternal;	///当前正在发送的节点
+	shared_ptr<UserThreadInfo>						userthread;
+
 
 	NetType											type;				///socket类型
 	NetStatus										status;				///socket状态
 	weak_ptr<Socket>								sockobjptr;
 	Socket::DisconnectedCallback					disconnectCallback;	///断开回调通知
 public:
-	boost::shared_ptr<SocketType>							sock;
+	shared_ptr<SocketType>							sock;
 };
 
 }
