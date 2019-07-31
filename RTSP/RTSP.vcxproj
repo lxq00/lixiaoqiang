@@ -116,6 +116,7 @@
     <ClInclude Include="common\rtp.h" />
     <ClInclude Include="common\rtpovertcp.h" />
     <ClInclude Include="common\rtpoverudp.h" />
+    <ClInclude Include="common\rtpPortAlloc.h" />
     <ClInclude Include="common\rtspSession.h" />
     <ClInclude Include="common\wwwAuthenticate.h" />
     <ClInclude Include="common\rtspProtocol.h" />

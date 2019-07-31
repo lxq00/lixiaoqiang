@@ -184,17 +184,21 @@ public:
 		{
 			shared_ptr<Socket> socktmp = videortp;
 			if (socktmp)
+			{
 				socktmp->async_sendto(sendbuffer, sendbufferlen,
 					NetAddr(dstaddr, isserver ? rtspmedia.videoTransport.rtp.u.client_port1 : rtspmedia.videoTransport.rtp.u.server_port1),
 					Socket::SendedCallback(&rtpOverUdp::socketSendVideoRTPCallback, this));
+			}	
 		}
 		else
 		{
 			shared_ptr<Socket> socktmp = audiortp;
 			if (socktmp)
+			{
 				socktmp->async_sendto(sendbuffer, sendbufferlen,
 					NetAddr(dstaddr, isserver ? rtspmedia.audioTransport.rtp.u.client_port1 : rtspmedia.audioTransport.rtp.u.server_port1),
 					Socket::SendedCallback(&rtpOverUdp::socketSendAudioRTPCallback, this));
+			}	
 		}
 	}
 	void socketSendVideoRTPCallback(const weak_ptr<Socket>& sock, const char* buffer, int len)

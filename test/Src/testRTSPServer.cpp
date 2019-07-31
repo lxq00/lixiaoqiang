@@ -1,7 +1,7 @@
 #include "RTSP/RTSP.h"
 using namespace Public::RTSP;
 
-#if 1
+#if 0
 
 class RTSPServerSessiontmp;
 
@@ -71,12 +71,12 @@ private:
 		{
 			session->sendMedia(true, timestmap += 25, buffer, true);
 
-			Thread::sleep(40);
+			Thread::sleep(25);
 		}
 	}
 };
 
-shared_ptr<RTSPServerHandler> rtspAceeptCallback(const shared_ptr<RTSPServerSession>& server)
+shared_ptr<RTSPServerHandler> rtspAceeptCallback1(const shared_ptr<RTSPServerSession>& server)
 {
 	//Guard locker(mutex);
 
@@ -90,12 +90,12 @@ shared_ptr<RTSPServerHandler> rtspAceeptCallback(const shared_ptr<RTSPServerSess
 }
 
 
-int main()
+int main2()
 {
-	shared_ptr<IOWorker>	worker = make_shared<IOWorker>(4);
+	shared_ptr<IOWorker>	worker = make_shared<IOWorker>(16);
 	shared_ptr<RTSPServer> manager = make_shared<RTSPServer>(worker,"test");
 
-	manager->run(554, rtspAceeptCallback);
+	manager->run(5554, rtspAceeptCallback1);
 
 
 	while (1)

@@ -34,6 +34,8 @@ public:
 	RTSPServer(const shared_ptr<IOWorker>& worker, const std::string& useragent);
 	virtual ~RTSPServer();
 
+	bool initRTPOverUdpType(uint32_t startport = 40000, uint32_t stopport = 41000);
+
 	bool run(uint32_t port, const ListenCallback& callback);
 	bool stop();
 	uint32_t listenPort() const;

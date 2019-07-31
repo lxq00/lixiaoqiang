@@ -396,6 +396,12 @@ bool RTSPClient::sendTeradownRequest(uint32_t timeout)
 	return cmdinfo->responseheader->statuscode == 200;
 }
 
+bool RTSPClient::sendMedia(bool isvideo, uint32_t timestmap, const RTSPBuffer& buffer, bool mark)
+{
+	shared_ptr<rtp> rtptmp = internal->rtp;
+	if (rtptmp) rtptmp->sendData(isvideo, timestmap, buffer, mark);
 
+	return true;
+}
 }
 }

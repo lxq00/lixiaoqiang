@@ -1,10 +1,10 @@
 #include "RTSP/RTSPServer.h"
-
+#include "../common/rtpPortAlloc.h"
 using namespace Public::RTSP;
 
 #define MAXRTSPCONNECTIONTIMEOUT	60*1000
 
-struct RTSPServer::RTSPServerInternal
+struct RTSPServer::RTSPServerInternal:public RTPPortAlloc
 {
 	std::string							useragent;
 
@@ -20,36 +20,7 @@ struct RTSPServer::RTSPServerInternal
 
 	shared_ptr<Timer>					pooltimer;
 
-	uint32_t					udpstartport;
-	uint32_t					udpstopport;
-	uint32_t					nowudpport;
-
-	RTSPServerInternal() :udpstartport(40000), udpstopport(4000), nowudpport(udpstartport) {}
-
-	uint32_t allockRTPPort()
-	{
-		uint32_t udpport = nowudpport;
-		uint32_t allocktimes = 0;
-
-		while (allocktimes < udpstopport - udpstartport)
-		{
-			if (Host::checkPortIsNotUsed(udpport, Host::SocketType_UDP)
-				&& Host::checkPortIsNotUsed(udpport + 1, Host::SocketType_UDP)
-				&& Host::checkPortIsNotUsed(udpport + 2, Host::SocketType_UDP)
-				&& Host::checkPortIsNotUsed(udpport + 3, Host::SocketType_UDP))
-			{
-				nowudpport = udpport + 1;
-
-				return nowudpport;
-			}
-
-			udpport++;
-			allocktimes++;
-			if (udpport > udpstopport - 4) udpport = udpstartport;
-		}
-
-		return udpstartport;
-	}
+	RTSPServerInternal() {}
 
 	void onpooltimerproc(unsigned long)
 	{
@@ -87,7 +58,9 @@ struct RTSPServer::RTSPServerInternal
 	void onsocketaccept(const weak_ptr<Socket>& sock, const shared_ptr<Socket>& newsock)
 	{
 		{
-			shared_ptr<RTSPServerSession> session = shared_ptr<RTSPServerSession>(new  RTSPServerSession(ioworker,newsock, listencallback, AllockUdpPortCallback(&RTSPServerInternal::allockRTPPort,this), useragent));
+			AllockUdpPortCallback alloccallback(&RTPPortAlloc::allockRTPPort, (RTPPortAlloc*)this);
+
+			shared_ptr<RTSPServerSession> session = shared_ptr<RTSPServerSession>(new  RTSPServerSession(ioworker,newsock, listencallback, alloccallback, useragent));
 			session->initRTSPServerSessionPtr(session);
 
 
@@ -122,7 +95,12 @@ RTSPServer::~RTSPServer()
 
 	SAFE_DELETE(internal);
 }
+bool RTSPServer::initRTPOverUdpType(uint32_t startport, uint32_t stopport)
+{
+	internal->setUdpPortInfo(startport, stopport);
 
+	return true;
+}
 bool RTSPServer::run(uint32_t port, const ListenCallback& callback)
 {
 	internal->listencallback = callback;

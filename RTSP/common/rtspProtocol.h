@@ -77,7 +77,7 @@ public:
 		Guard locker(m_mutex);
 		for (std::list<shared_ptr<SendItem> >::iterator iter = m_sendList.begin(); iter != m_sendList.end(); iter++)
 		{
-			listsize += (*iter)->buffer.size();
+			listsize += (*iter)->buffersize;
 		}
 
 		return listsize;
@@ -137,15 +137,21 @@ private:
 		}
 		else if(buffer)
 		{
-			if (len < 0) return;
-
-			if (m_sendList.size() <= 0) return;
+			if (len < 0 || m_sendList.size() <= 0)
+			{
+				return;
+			}
 
 			{
 				shared_ptr<SendItem>& item = m_sendList.front();
-				if (buffer != item->bufferaddr + item->havesendlen) return;
-				if (item->havesendlen + len > item->buffersize) return;
-
+				if (buffer != item->bufferaddr + item->havesendlen)
+				{
+					return;
+				}
+				if (item->havesendlen + len > item->buffersize)
+				{
+					return;
+				}
 				item->havesendlen += len;
 
 				if (item->havesendlen == item->buffersize)
@@ -188,7 +194,7 @@ private:
 		}
 		
 		const char* sendbuffer = item->bufferaddr;
-		uint32_t sendbufferlen = item->buffer.size();
+		uint32_t sendbufferlen = item->buffersize;
 
 		m_prevalivetime = Time::getCurrentMilliSecond();
 
@@ -231,6 +237,8 @@ private:
 		
 		const char* buffertmp = m_recvBuffer.buffer();
 		uint32_t buffertmplen = m_recvBuffer.size();
+
+		size_t bufferneedsize = 0;
 
 		while (buffertmplen > 0)
 		{
@@ -314,8 +322,11 @@ private:
 					assert(0);
 				}
 
-				if (datalen + sizeof(INTERLEAVEDFRAME) > buffertmplen) break;
-
+				if (datalen + sizeof(INTERLEAVEDFRAME) > buffertmplen)
+				{
+					bufferneedsize = datalen + sizeof(INTERLEAVEDFRAME) - buffertmplen;
+					break;
+				}
 				m_extdatacallback(datach, RTSPBuffer(m_recvBuffer,buffertmp + sizeof(INTERLEAVEDFRAME), datalen));
 
 				buffertmp += datalen + sizeof(INTERLEAVEDFRAME);
@@ -345,12 +356,14 @@ private:
 				int a = 0;
 			}
 		}
+		size_t newbufferlen = bufferneedsize < MAXPARSERTSPBUFFERLEN ? MAXPARSERTSPBUFFERLEN : bufferneedsize;
+
 		RTSPBuffer newdatabuffer;
-		char* newbufferaddr = newdatabuffer.alloc(buffertmplen + MAXPARSERTSPBUFFERLEN);
+		char* newbufferaddr = newdatabuffer.alloc(buffertmplen + newbufferlen);
 
 		if (buffertmplen > 0)
 		{
-			memcpy((char*)newbufferaddr,buffertmp, buffertmplen);
+			memcpy(newbufferaddr,buffertmp, buffertmplen);
 			newdatabuffer.resize(buffertmplen);
 		}
 		m_recvBuffer = newdatabuffer;
@@ -359,7 +372,7 @@ private:
 		shared_ptr<Socket> socktmp = sock.lock();
 		if (socktmp != NULL)
 		{
-			socktmp->async_recv(newbufferaddr + buffertmplen, MAXPARSERTSPBUFFERLEN, Socket::ReceivedCallback(&RTSPProtocol::onSocketRecvCallback, this));
+			socktmp->async_recv(newbufferaddr + buffertmplen, newbufferlen, Socket::ReceivedCallback(&RTSPProtocol::onSocketRecvCallback, this));
 		}
 	}
 	// return 0 not cmonnand,return 1 not sure need wait,return 2 is command

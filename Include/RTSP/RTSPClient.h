@@ -99,7 +99,7 @@ public:
 	~RTSPClientManager();
 
 	//rtp 模式地址
-	bool initRTPOverUdpType(uint32_t startport = 40000, uint32_t stopport = 4100);
+	bool initRTPOverUdpType(uint32_t startport = 40000, uint32_t stopport = 41000);
 
 	//创建一个对象
 	shared_ptr<RTSPClient> create(const shared_ptr<RTSPClientHandler>& handler, const RTSPUrl& pRtspUrl);

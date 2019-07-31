@@ -78,6 +78,9 @@
     <ClInclude Include="..\Include\RTSP\RTSPBuffer.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="common\rtpPortAlloc.h">
+      <Filter>源文件\common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Include\RTSP\Version.tpl">
