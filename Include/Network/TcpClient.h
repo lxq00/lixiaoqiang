@@ -155,6 +155,8 @@ public:
 	virtual bool getSocketOpt(int level, int optname, void *optval, int *optlen) const;
 
 	virtual void socketReady();
+
+	virtual void socketError(const std::string &errmsg);
 private:
 	TCPClientInternalPointer* tcpclientinternal;
 };

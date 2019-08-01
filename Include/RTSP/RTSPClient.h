@@ -86,7 +86,7 @@ public:
 
 	virtual void onErrorResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo,int statuscode,const std::string& errmsg) {}
 
-	virtual void onClose() = 0;
+	virtual void onClose(const std::string& errmsg) = 0;
 	virtual void onMediaCallback(bool isvideo, uint32_t timestmap, const RTSPBuffer& buffer, bool mark) = 0;
 };
 

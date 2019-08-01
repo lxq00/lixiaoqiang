@@ -80,7 +80,7 @@ public:
 
 	enum Policy
 	{
-		policyNormal = 0,			///< 普通线程
+		policyNormal = 0,		///< 普通线程
 		policyRealtime = 1		///< 实时线程
 	};
 

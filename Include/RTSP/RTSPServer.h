@@ -95,7 +95,7 @@ public:
 	virtual void onTeardownRequest(const shared_ptr<RTSPServerSession>& session, const shared_ptr<RTSPCommandInfo>& cmdinfo) = 0;
 	virtual void onGetparameterRequest(const shared_ptr<RTSPServerSession>& session, const shared_ptr<RTSPCommandInfo>& cmdinfo, const std::string& content) { session->sendErrorResponse(cmdinfo, 500, "NOT SUPPORT"); }
 
-	virtual void onClose(const shared_ptr<RTSPServerSession>& session) = 0;
+	virtual void onClose(const shared_ptr<RTSPServerSession>& session, const std::string& errmsg) = 0;
 	virtual void onMediaCallback(bool isvideo, uint32_t timestmap, const RTSPBuffer& buffer, bool mark) = 0;
 };
 

@@ -80,6 +80,18 @@ public:
 
 		return  (!er && !ret) ? true : false;
 	}
+	void nodelay()
+	{
+		shared_ptr<boost::asio::ip::tcp::socket> sockptr = sock;
+		if (sockptr == NULL)
+		{
+			return;
+		}
+
+		//取消TCP的40ms的延时
+		boost::asio::ip::tcp::no_delay option(true);
+		sockptr->set_option(option);
+	}
 	int send(const char* buffer, int len)
 	{
 		shared_ptr<boost::asio::ip::tcp::socket> sockptr = sock;
@@ -109,12 +121,12 @@ public:
 
 		if (er.value() == boost::asio::error::eof || er.value() == boost::asio::error::connection_reset)
 		{
-			socketErrorCallback(er);
+			setStatus(NetStatus_disconnected,er.message());
 		}
 
 		return !er ? recvlen : -1;
 	}
-	bool async_send(const char* buf, uint32_t len, const SendedCallback& sended)
+	bool async_send(const char* buf, uint32_t len, const Socket::SendedCallback& sended)
 	{
 		shared_ptr<boost::asio::ip::tcp::socket> sockptr = sock;
 		if (sockptr == NULL)
@@ -161,17 +173,15 @@ public:
 
 		return true;
 	}
-	virtual bool async_recv(char* buf, uint32_t len, const ReceivedCallback& received) 
+	virtual bool async_recv(char* buf, uint32_t len, const Socket::ReceivedCallback& received)
 	{
-		boost::shared_ptr<RecvCallbackObject> recvobj(new RecvCallbackObject(sockobjptr, userthread, received,
-			RecvCallbackObject::ErrorCallback(&ASIOSocketObject::socketErrorCallback, shared_from_this()), buf, len));
+		boost::shared_ptr<RecvCallbackObject> recvobj(new RecvCallbackObject(sockobjptr, userthread, received, buf, len));
 
 		return async_recv(recvobj);
 	}
-	virtual bool async_recv(const ReceivedCallback& received, int maxlen = 1024) 
+	virtual bool async_recv(const Socket::ReceivedCallback& received, int maxlen = 1024)
 	{
-		boost::shared_ptr<RecvCallbackObject> recvobj(new RecvCallbackObject(sockobjptr, userthread, received,
-			RecvCallbackObject::ErrorCallback(&ASIOSocketObject::socketErrorCallback, shared_from_this()), NULL, maxlen));
+		boost::shared_ptr<RecvCallbackObject> recvobj(new RecvCallbackObject(sockobjptr, userthread, received, NULL, maxlen));
 
 		return async_recv(recvobj);
 	}

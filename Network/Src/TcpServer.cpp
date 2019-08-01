@@ -30,7 +30,7 @@ SOCKET TCPServer::getHandle() const
 }
 NetStatus TCPServer::getStatus() const
 {
-	return NetStatus_notconnected;
+	return NetStatus_disconnected;
 }
 NetType TCPServer::getNetType() const
 {

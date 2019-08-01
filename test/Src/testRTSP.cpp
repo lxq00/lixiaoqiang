@@ -40,7 +40,7 @@ class RTSPSessiontmp :public RTSPClientHandler
 		int a = 0;
 	}
 
-	virtual void onClose()
+	virtual void onClose(const std::string& errmsg)
 	{
 		int a = 0;
 	}

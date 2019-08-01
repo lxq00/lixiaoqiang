@@ -50,7 +50,7 @@ struct RTSPServer::RTSPServerInternal:public RTPPortAlloc
 			shared_ptr<RTSPServerHandler> handler = (*iter)->handler();
 			if (handler)
 			{
-				handler->onClose(*iter);
+				handler->onClose(*iter,(*iter)->prevAlivetime() == 0 ? "disconnect":"timeout");
 			}
 			(*iter)->disconnect();
 		}

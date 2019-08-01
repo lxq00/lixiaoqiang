@@ -34,10 +34,10 @@ private:
 			poolTimer->stop();
 		}
 	}
-	void onSocketConnectCallback(const weak_ptr<Socket>& sock)
+	void onSocketConnectCallback(const weak_ptr<Socket>& sock,bool status,const std::string& errmsg)
 	{
 		poolTimer = NULL;
-		connectCallback(true, "");
+		connectCallback(status, errmsg);
 	}
 	void onSocketRecvCallback(const weak_ptr<Socket>& sock,const char* buffer, int len)
 	{

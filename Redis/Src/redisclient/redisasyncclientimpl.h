@@ -38,7 +38,7 @@ public:
 	bool isConnected() const;
 private:
 	void _socketSendCmd();
-	void socketConnectCallback(const weak_ptr<Socket>& sock);
+	void socketConnectCallback(const weak_ptr<Socket>& sock, bool status, const std::string& errmsg);
 	void socketDisconnectCallback(const weak_ptr<Socket>& sock, const std::string&);
 	void socketSendCallback(const weak_ptr<Socket>&s, const char* tmp, int len);
 	void socketRecvCallback(const weak_ptr<Socket>&s, const char* tmp, int len);

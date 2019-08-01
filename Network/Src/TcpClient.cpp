@@ -158,6 +158,11 @@ void TCPClient::socketReady()
 	tcpclientinternal->nodelay();
 }
 
+void TCPClient::socketError(const std::string &errmsg)
+{
+	tcpclientinternal->setStatus(NetStatus_disconnected,errmsg);
+}
+
 };
 };
 

@@ -122,8 +122,14 @@ private:
 			}
 		}
 	}
-	void socketconnectcallback(const weak_ptr<Socket>& sock)
+	void socketconnectcallback(const weak_ptr<Socket>& sock,bool status,const std::string& errmsg)
 	{
+		if (!status)
+		{
+			handler->onClose(std::string("connect error "+errmsg));
+			return;
+		}
+
 		//const shared_ptr<Socket>& sock, const CommandCallback& cmdcallback, const ExternDataCallback& datacallback, const DisconnectCallback& disconnectCallback,bool server
 		socketconnected = true;
 		handler->onConnectResponse(true, "OK");
@@ -165,7 +171,7 @@ private:
 			if (rtspurl.username == "" || rtspurl.password == "")
 			{
 				handler->onErrorResponse(cmdinfo->cmd, cmdheader->statuscode, cmdheader->statusmsg);
-				handler->onClose();
+				handler->onClose("no authenticate info");
 			}
 			else
 			{
@@ -288,7 +294,7 @@ private:
 	void socketDisconnectCallback()
 	{
 		socketconnected = false;
-		if (handler) handler->onClose();
+		if (handler) handler->onClose("socket disconnected");
 	}
 };
 

@@ -44,8 +44,7 @@ public:
 		shared_ptr<boost::asio::ip::tcp::acceptor> accepetserptr = sock;
 		if (accepetserptr == NULL) return false;
 
-		boost::shared_ptr<AcceptCallbackObject> acceptobj = boost::make_shared<AcceptCallbackObject>(sockobjptr, userthread, accepted,
-			AcceptCallbackObject::ErrorCallback(&ASIOSocketObject::acceptErrorCallback, shared_from_this()));
+		boost::shared_ptr<AcceptCallbackObject> acceptobj = boost::make_shared<AcceptCallbackObject>(sockobjptr, userthread, accepted);
 
 		{
 			acceptobj->newsock = shared_ptr<TCPClient>(new TCPClient(worker));

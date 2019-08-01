@@ -42,23 +42,26 @@ void RedisAsyncClientImpl::asyncConnect(const NetAddr& addr, const ConnectCallba
 	sock->async_connect(addr, Socket::ConnectedCallback(&RedisAsyncClientImpl::socketConnectCallback, this));
 }
 
-void RedisAsyncClientImpl::socketConnectCallback(const weak_ptr<Socket>&)
+void RedisAsyncClientImpl::socketConnectCallback(const weak_ptr<Socket>&, bool status, const std::string& errmsg)
 {
-	connectCallback();
-
-	shared_ptr<Socket> socktmp = sock;
-
-	if (socktmp != NULL)
+	if (status)
 	{
-		socktmp->setDisconnectCallback(Socket::DisconnectedCallback(&RedisAsyncClientImpl::socketDisconnectCallback, this));
-		socktmp->async_recv(Socket::ReceivedCallback(&RedisAsyncClientImpl::socketRecvCallback, this));
+		connectCallback();
+
+		shared_ptr<Socket> socktmp = sock;
+
+		if (socktmp != NULL)
+		{
+			socktmp->setDisconnectCallback(Socket::DisconnectedCallback(&RedisAsyncClientImpl::socketDisconnectCallback, this));
+			socktmp->async_recv(Socket::ReceivedCallback(&RedisAsyncClientImpl::socketRecvCallback, this));
+		}
+
+		//连接成功要启动数据的发送
+		{
+			Guard locker(mutex);
+			_socketSendCmd();
+		}
 	}	
-
-	//连接成功要启动数据的发送
-	{
-		Guard locker(mutex);
-		_socketSendCmd();
-	}
 }
 void RedisAsyncClientImpl::socketDisconnectCallback(const weak_ptr<Socket>& sock, const std::string&)
 {

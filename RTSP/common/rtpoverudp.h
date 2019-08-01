@@ -38,38 +38,38 @@ public:
 		ioworker = make_shared<IOWorker>(4);
 		if (rtspmedia.media.bHasVideo && rtspmedia.videoTransport.rtp.u.server_port1 != 0 && rtspmedia.videoTransport.rtp.u.client_port1 != 0)
 		{
-			/*videortp = UDP::create(ioworker);
+			videortp = UDP::create(ioworker);
 			videortp->bind(isserver ? rtspmedia.videoTransport.rtp.u.server_port1 : rtspmedia.videoTransport.rtp.u.client_port1);
-			videortp->setSocketBuffer(1024 * 1024, 1024 * 56);
+			videortp->setSocketBuffer(1024 * 1024 * 8, 0);
 			videortp->setSocketTimeout(1000, 1000);
 			videortp->nonBlocking(false);
 
 			char* videortpbuffer = currvideortprecvbuffer.alloc(MAXUDPPACKGELEN);
-			videortp->async_recvfrom(videortpbuffer, MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketVideoRTPRecvCallback, this));*/
+			videortp->async_recvfrom(videortpbuffer, MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketVideoRTPRecvCallback, this));
 
-			//videortcp = UDP::create(work);
-			//videortcp->bind(isserver ? rtspmedia.videoTransport.rtp.u.server_port2 : rtspmedia.videoTransport.rtp.u.client_port2);
-			//videortcp->setSocketBuffer(1024 * 1024, 1024 * 56);
+			videortcp = UDP::create(work);
+			videortcp->bind(isserver ? rtspmedia.videoTransport.rtp.u.server_port2 : rtspmedia.videoTransport.rtp.u.client_port2);
+			videortcp->setSocketBuffer(1024 * 56, 0);
 
-			//char* videortcpbuffer = currvideortcprecvbuffer.alloc(MAXUDPPACKGELEN);
-			//videortcp->async_recvfrom(videortcpbuffer, MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketVideoRTCPRecvCallback, this));
+			char* videortcpbuffer = currvideortcprecvbuffer.alloc(MAXUDPPACKGELEN);
+			videortcp->async_recvfrom(videortcpbuffer, MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketVideoRTCPRecvCallback, this));
 		}
 
 		if (rtspmedia.media.bHasAudio && rtspmedia.audioTransport.rtp.u.server_port1 != 0 && rtspmedia.audioTransport.rtp.u.client_port1 != 0)
 		{
-			/*audiortp = UDP::create(work);
+			audiortp = UDP::create(work);
 			audiortp->bind(isserver ? rtspmedia.audioTransport.rtp.u.server_port1 : rtspmedia.audioTransport.rtp.u.client_port1);
-			audiortp->setSocketBuffer(1024 * 1024, 1024 * 56);
+			audiortp->setSocketBuffer(1024 * 1024, 0);
 
 			char* audiortpbuffer = curraudiortprecvbuffer.alloc(MAXUDPPACKGELEN);
 			audiortp->async_recvfrom(audiortpbuffer, MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketAudioRTPRecvCallback, this));
 
 			audiortcp = UDP::create(work);
 			audiortcp->bind(isserver ? rtspmedia.audioTransport.rtp.u.server_port2 : rtspmedia.audioTransport.rtp.u.client_port2);
-			audiortcp->setSocketBuffer(1024 * 1024, 1024 * 56);
+			audiortcp->setSocketBuffer(1024 * 56, 0);
 
 			char* audiortcpbuffer = curraudiortcprecvbuffer.alloc(MAXUDPPACKGELEN);
-			audiortcp->async_recvfrom(audiortcpbuffer, MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketAudioRTCPRecvCallback, this));*/
+			audiortcp->async_recvfrom(audiortcpbuffer, MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketAudioRTCPRecvCallback, this));
 		}
 	}
 	~rtpOverUdp()
@@ -225,39 +225,22 @@ public:
 
 			Guard locker(mutex);
 
-			/*if (otearaddr.getPort() != (isserver ? rtspmedia.videoTransport.rtp.u.client_port1 : rtspmedia.videoTransport.rtp.u.server_port1))
+			if (otearaddr.getPort() != (isserver ? rtspmedia.videoTransport.rtp.u.client_port1 : rtspmedia.videoTransport.rtp.u.server_port1))
 			{
 				assert(0);
-			}*/
+			}
 
 			RTPHEADER* header = (RTPHEADER*)buffer;
 
 			if (header->v == RTP_VERSION)
 			{
-				uint16_t sn = ntohs(header->seq);
-
-				if (prevvideoframesn != 0 && (uint16_t)(prevvideoframesn + 1) != sn)
-				{
-					logwarn("RTSP start sn %d to sn :%d loss", prevvideoframesn, sn);
-				}
-
-				prevvideoframesn = sn;
-
-				/*FrameInfo info;
+				FrameInfo info;
 				info.framedata = currvideortprecvbuffer;
 				info.mark = header->m;
 				info.sn = ntohs(header->seq);
-				info.tiemstmap = ntohl(header->ts);*/
+				info.tiemstmap = ntohl(header->ts);
 
-				//{
-				//	static FILE* fd = fopen("_recvsn.txt", "wb+");
-				//	char buffer[256];
-				//	sprintf(buffer, "%d\r\n", info.sn);
-				//	fwrite(buffer, 1, strlen(buffer), fd);
-				//}
-
-
-			//	_checkFramelistData(true,info);
+				_checkFramelistData(true,info);
 			}			
 			else
 			{
@@ -272,7 +255,7 @@ public:
 		shared_ptr<Socket> socktmp = sock.lock();
 		if (socktmp)
 		{
-			//char* buffertmp = currvideortprecvbuffer.alloc(MAXUDPPACKGELEN);
+			char* buffertmp = currvideortprecvbuffer.alloc(MAXUDPPACKGELEN);
 			socktmp->async_recvfrom((char*)currvideortprecvbuffer.buffer(), MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketVideoRTPRecvCallback, this));
 		}
 		else
@@ -308,22 +291,13 @@ public:
 
 			if (header->v == RTP_VERSION)
 			{
-				uint16_t sn = ntohs(header->seq);
-
-				/*if (prevvideoframesn != 0 && (uint16_t)(prevvideoframesn + 1) != sn)
-				{
-					logwarn("RTSP start sn %d to sn :%d loss", prevvideoframesn, sn);
-				}
-
-				prevvideoframesn = sn;*/
-
-				/*FrameInfo info;
+				FrameInfo info;
 				info.framedata = curraudiortprecvbuffer;
 				info.mark = header->m;
 				info.sn = ntohs(header->seq);
 				info.tiemstmap = ntohl(header->ts);
 
-				_checkFramelistData(false,info);*/
+				_checkFramelistData(false, info);
 			}
 		}
 
@@ -343,30 +317,22 @@ public:
 			socktmp->async_recvfrom(buffertmp, MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdp::socketAudioRTCPRecvCallback, this));
 		}
 	}
-
-	void _writeLossLog(uint16_t startsn, uint16_t stopsn)
-	{
-		/*static FILE* logfd = fopen("_losssn.txt", "wb+");
-		char buffer[16];
-		sprintf(buffer, "%d-%d\r\n", startsn, stopsn);
-		fwrite(buffer, 1, strlen(buffer), logfd);*/
-
-		logwarn("RTSP start sn %d to sn :%d loss", startsn, stopsn);
-	}
-
 	void _checkFramelistData(bool isvideo,const FrameInfo& info)
 	{
-	//	std::list<FrameInfo>& framelist = isvideo ? videoframelist : audioframelist;
+		//todo：这个函数有些问题，当来一个0后，再来一个65534 这样的数据会出问题
+
+
+		std::list<FrameInfo>& framelist = isvideo ? videoframelist : audioframelist;
 		uint16_t& prevsn = isvideo ? prevvideoframesn : prevaudioframesn;
 
 		//当新数据来了，清空来数据
-		/*if (info.sn == 0 && framelist.size() > 0)
+		if (info.sn == 0 && framelist.size() > 0)
 		{
 			for (std::list<FrameInfo>::iterator iter = framelist.begin(); iter != framelist.end(); iter++)
 			{
 				if ((uint16_t)(prevsn + 1) != iter->sn)
 				{
-					_writeLossLog(prevsn, iter->sn);
+					logwarn("RTSP start sn %d to sn :%d loss", prevsn, iter->sn);
 				}
 				const char* framedataaddr = iter->framedata.buffer() + sizeof(RTPHEADER);
 				size_t framedatasize = iter->framedata.size() - sizeof(RTPHEADER);
@@ -376,45 +342,47 @@ public:
 				prevsn = iter->sn;
 			}
 			framelist.clear();
-		}*/
+			prevsn = 0;
+		}
 
-	//	FrameInfo frametmp = info;
-	//	do 
-	//	{
-			if (prevsn == 0 || (uint16_t)(prevsn + 1) == info.sn)
+		FrameInfo frametmp = info;
+		do 
+		{
+			if (prevsn == 0 || (uint16_t)(prevsn + 1) == frametmp.sn)
 			{
 				//连续数据
-			//	const char* framedataaddr = info.framedata.buffer() + sizeof(RTPHEADER);
-			//	size_t framedatasize = info.framedata.size() - sizeof(RTPHEADER);
+				const char* framedataaddr = frametmp.framedata.buffer() + sizeof(RTPHEADER);
+				size_t framedatasize = frametmp.framedata.size() - sizeof(RTPHEADER);
 
-			//	datacallback(isvideo, frametmp.tiemstmap, RTSPBuffer(frametmp.framedata, framedataaddr, framedatasize), frametmp.mark);
+				datacallback(isvideo, frametmp.tiemstmap, RTSPBuffer(frametmp.framedata, framedataaddr, framedatasize), frametmp.mark);
 
-				prevsn = info.sn;
+				prevsn = frametmp.sn;
 			}
-			else //if(frametmp.sn == info.sn)
+			else
 			{
 				//数据序号不连续放入缓存中去
-			//	framelist.push_back(frametmp);
+				framelist.push_back(frametmp);
 
-				_writeLossLog(prevsn, info.sn);
-				prevsn = info.sn;
-
-			//	uint64_t starttime = Time::getCurrentMilliSecond();
-			//	framelist.sort();
-
-			//	logerror("list sort used time %llu", Time::getCurrentMilliSecond() - starttime);
+				framelist.sort();
 			}
 
-			//if (framelist.size() <= 0) break;
+			if (framelist.size() <= 0) break;
 
-			/*if (framelist.front().sn == (uint16_t)(prevsn + 1) || framelist.size() > MAXRTPFRAMESIZE)
+			if (framelist.front().sn == (uint16_t)(prevsn + 1) || framelist.size() > MAXRTPFRAMESIZE)
 			{
 				frametmp = framelist.front();
+				
+				if (prevsn > frametmp.sn)
+				{
+					int a = 0;
+				}
+				
 				framelist.pop_front();
+
 
 				if (frametmp.sn != (uint16_t)(prevsn + 1))
 				{
-					_writeLossLog(prevsn, frametmp.sn);
+					logwarn("RTSP start sn %d to sn :%d loss", prevsn, frametmp.sn);
 				}
 
 				prevsn = 0;
@@ -422,8 +390,8 @@ public:
 			else
 			{
 				break;
-			}*/
-	//	} while (0);
+			}
+		} while (1);
 	}
 private:
 	Mutex					 mutex;

@@ -34,10 +34,10 @@ struct SocketOthreadAddrObject<boost::asio::ip::tcp::socket>
 
 ///asio socket操作的对象，该对象基类
 template<typename SocketProtocol,typename SocketType>
-class ASIOSocketObject:public Socket,public enable_shared_from_this<ASIOSocketObject<SocketProtocol,SocketType> >
+class ASIOSocketObject
 {
 public:
-	ASIOSocketObject(const shared_ptr<IOWorker>& _worker,NetType _type) :worker(_worker),status(NetStatus_notconnected),type(_type)
+	ASIOSocketObject(const shared_ptr<IOWorker>& _worker,NetType _type) :worker(_worker),status(NetStatus_disconnected),type(_type)
 	{
 		userthread = make_shared<UserThreadInfo>();
 		if (worker == NULL) worker = IOWorker::defaultWorker();
@@ -49,17 +49,6 @@ public:
 		sockobjptr = sock;
 	}
 	virtual bool create() { return true; }
-	void nodelay()
-	{
-		shared_ptr<SocketType> sockptr = sock;
-		if (sockptr == NULL)
-		{
-			return;
-		}
-		//取消TCP的40ms的延时
-		int enable = 1;
-		setsockopt(sockptr->native_handle(), IPPROTO_TCP, TCP_NODELAY, (const char*)&enable, sizeof(enable));
-	}
 	bool setDisconnectCallback(const Socket::DisconnectedCallback& callback) { disconnectCallback = callback; return true; }
 	///断开socket
 	///true表示可以正常关闭该对象，false表示需要另外线程来释放该对象
@@ -146,8 +135,57 @@ public:
 	NetType getNetType() const { return type; }
 	NetStatus getStatus() const {return status;}
 
-	virtual void setStatus(NetStatus _status){status = _status;}
+	virtual void setStatus(NetStatus _status,const std::string& errmsg = "")
+	{
+		NetStatus curstatus;
+		{
+			curstatus = status;
+			status = _status;
+		}
+		if (curstatus == NetStatus_connected && _status == NetStatus_disconnected && disconnectCallback)
+		{
+			shared_ptr<Socket> _sockptr = sockobjptr.lock();
+			if (_sockptr != NULL) disconnectCallback(_sockptr, errmsg);
 
+		}
+	}
+
+	bool getSocketBuffer(uint32_t& recvSize, uint32_t& sendSize) const
+	{
+		shared_ptr<SocketType> sockptr = sock;
+		if (sockptr == NULL)
+		{
+			return false;
+		}
+
+		boost::asio::socket_base::send_buffer_size sndsize_option;
+		sockptr->get_option(sndsize_option);
+
+		boost::asio::socket_base::receive_buffer_size recvsize_option;
+		sockptr->set_option(recvsize_option);
+
+
+		recvSize = recvsize_option.value();
+		sendSize = sndsize_option.value();
+
+		return true;
+	}
+	bool setSocketBuffer(uint32_t recvSize, uint32_t sendSize)
+	{
+		shared_ptr<SocketType> sockptr = sock;
+		if (sockptr == NULL)
+		{
+			return false;
+		}
+
+		boost::asio::socket_base::send_buffer_size sndsize_option(sendSize);
+		sockptr->set_option(sndsize_option);
+
+		boost::asio::socket_base::receive_buffer_size recvsize_option(recvSize);
+		sockptr->set_option(recvsize_option);
+
+		return true;
+	}
 	bool setSocketTimeout(uint32_t recvTimeout, uint32_t sendTimeout)
 	{
 		SOCKET sock = getHandle();
@@ -228,21 +266,7 @@ public:
 
 		return SocketOthreadAddrObject<SocketType>::getothearaddr(sockptr);
 	}
-	void socketErrorCallback(const boost::system::error_code& er)
-	{
-		NetStatus curstatus;
-		{
-			curstatus = status;
-			status = NetStatus_notconnected;
-		}
-		if (curstatus == NetStatus_connected)
-		{
-			shared_ptr<Socket> _sockptr = sockobjptr.lock();
-			if(_sockptr != NULL) disconnectCallback(_sockptr, er.message());
-		}
-	}
-	virtual void acceptErrorCallback(const boost::system::error_code& er, const Socket::AcceptedCallback& callback) {}
-protected:
+public:
 	shared_ptr<IOWorker>							worker;
 	shared_ptr<UserThreadInfo>						userthread;
 
@@ -251,7 +275,7 @@ protected:
 	NetStatus										status;				///socket状态
 	weak_ptr<Socket>								sockobjptr;
 	Socket::DisconnectedCallback					disconnectCallback;	///断开回调通知
-public:
+
 	shared_ptr<SocketType>							sock;
 };
 

@@ -28,7 +28,11 @@ public:
 			return;
 		}
 
-		callback(sock, bufferaddr, (er || length >= bufferlen) ? 0 : length);
+		shared_ptr<Socket>sockptr = sock.lock();
+		if (sockptr)
+		{
+			callback(sockptr, bufferaddr, (er || length > bufferlen) ? 0 : length);
+		}		
 
 		userthreadobj->callbackThreadUsedEnd();
 	}
@@ -45,11 +49,8 @@ public:
 struct RecvCallbackObject
 {
 public:
-	typedef Function1<void, const boost::system::error_code& > ErrorCallback;
-public:
-	RecvCallbackObject(const weak_ptr<Socket>& _sock, const shared_ptr< UserThreadInfo>& _userthread, const Socket::ReceivedCallback& _recvcallback,
-		const ErrorCallback& _errcalblack,char* buffer = NULL, size_t len = 0)
-		:sock(_sock), userthread(_userthread), recvcallback(_recvcallback), authenfree(false), bufferaddr(buffer), bufferlen(len),errcallback(_errcalblack)
+	RecvCallbackObject(const weak_ptr<Socket>& _sock, const shared_ptr< UserThreadInfo>& _userthread, const Socket::ReceivedCallback& _recvcallback,char* buffer = NULL, size_t len = 0)
+		:sock(_sock), userthread(_userthread), recvcallback(_recvcallback), authenfree(false), bufferaddr(buffer), bufferlen(len)
 	{
 		if (bufferaddr == NULL)
 		{
@@ -81,21 +82,28 @@ public:
 			return;
 		}
 
-		if (er)
+		shared_ptr<Socket>sockptr = sock.lock();
+		if (sockptr)
 		{
-			errcallback(er);
+			if (er)
+			{
+				sockptr->socketError(er.message());
+			}
+			else if (recvcallback)
+			{
+				recvcallback(sockptr, bufferaddr, (er && length > bufferlen) ? 0 : length);
+			}
+			else
+			{
+				SockAddrIPv4 ipv4 = { 0 };
+				ipv4.sin_family = AF_INET;
+				ipv4.sin_addr.s_addr = recvpoint.address().to_v4().to_ulong();
+				ipv4.sin_port = htons(recvpoint.port());
+				
+				recvfromcallback(sockptr, bufferaddr, (er && length > bufferlen) ? 0 : length, NetAddr(ipv4));
+			}
 		}
-
-		if (recvcallback)
-		{
-			recvcallback(sock, bufferaddr, (er && length > bufferlen) ? 0 : length);
-		}
-		else
-		{
-			NetAddr recvaddr(recvpoint.address().to_string(), recvpoint.port());
-
-			recvfromcallback(sock, bufferaddr, (er && length > bufferlen) ? 0 : length, recvaddr);
-		}
+		
 		userthreadobj->callbackThreadUsedEnd();
 	}
 private:
@@ -106,8 +114,6 @@ private:
 	Socket::RecvFromCallback	recvfromcallback;
 
 	bool						authenfree;
-
-	ErrorCallback				errcallback;
 public:
 	char*						bufferaddr;
 	size_t						bufferlen;
@@ -117,11 +123,8 @@ public:
 struct AcceptCallbackObject
 {
 public:
-	typedef Function2<void, const boost::system::error_code&, const Socket::AcceptedCallback&> ErrorCallback;
-public:
-	AcceptCallbackObject(const weak_ptr<Socket>& _sock, const shared_ptr<UserThreadInfo>& _userthread,
-		const Socket::AcceptedCallback& _callback, const ErrorCallback& _errcallback)
-		:sock(_sock),userthread(_userthread),acceptcallback(_callback),errcallback(_errcallback)
+	AcceptCallbackObject(const weak_ptr<Socket>& _sock, const shared_ptr<UserThreadInfo>& _userthread,const Socket::AcceptedCallback& _callback)
+		:sock(_sock),userthread(_userthread),acceptcallback(_callback)
 	{
 
 	}
@@ -135,15 +138,21 @@ public:
 			return;
 		}
 
-		if (er)
+		shared_ptr<Socket>sockptr = sock.lock();
+		if (sockptr)
 		{
-			errcallback(er, acceptcallback);
-		}
-		else
-		{
-			newsock->socketReady();
+			if (er)
+			{
+				logdebug("%s %d _acceptCallbackPtr std::exception %s\r\n", __FUNCTION__, __LINE__, er.message().c_str());
 
-			acceptcallback(sock, newsock);
+				acceptcallback(sockptr, shared_ptr<Socket>());
+			}
+			else
+			{
+				newsock->socketReady();
+
+				acceptcallback(sock, newsock);
+			}
 		}
 
 		userthreadobj->callbackThreadUsedEnd();
@@ -153,8 +162,6 @@ private:
 	weak_ptr<UserThreadInfo>	userthread;
 
 	Socket::AcceptedCallback	acceptcallback;
-
-	ErrorCallback				errcallback;
 public:
 	shared_ptr<TCPClient>		newsock;
 };
@@ -175,16 +182,14 @@ public:
 			return;
 		}
 
+		shared_ptr<Socket>sockptr = sock.lock();
+		if (sockptr)
 		{
-			shared_ptr<Socket> sockobj = sock.lock();
-			if (sockobj) sockobj->socketReady();
-		}
-		
+			if(!er)
+				sockptr->socketReady();
 
-		if (er)
-		{
-			callback(sock, er, er ? er.message() : "success");
-		}
+			callback(sockptr, !er, er ? er.message() : "success");
+		}		
 
 		userthreadobj->callbackThreadUsedEnd();
 	}

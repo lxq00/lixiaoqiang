@@ -64,7 +64,7 @@ private:
 /// Net 连接的状态
 enum NetStatus{
 	NetStatus_connected = 0, 		//	已经连接上
-	NetStatus_notconnected = -1, 	// 	未连接
+	NetStatus_disconnected = -1, 	// 	未连接
 	NetStatus_error = -2			//  出错
 };
 
@@ -304,10 +304,11 @@ public:
 	//设置socket属性
 	virtual bool setSocketOpt(int level, int optname, const void *optval, int optlen) = 0;
 
-	//获取属性
-	virtual bool getSocketOpt(int level, int optname, void *optval, int *optlen) const  = 0;
-
+	//socket准备就绪
 	virtual void socketReady() {}
+
+	//socket发生错误
+	virtual void socketError(const std::string &errmsg) {}
 };
 
 };

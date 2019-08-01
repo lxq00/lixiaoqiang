@@ -50,6 +50,22 @@ public:
 
 		return !er ? sendlen : -1;
 	}
+	bool setSocketBuffer(uint32_t recvSize, uint32_t sendSize)
+	{
+		shared_ptr<boost::asio::ip::udp::socket> sockptr = sock;
+		if (sockptr == NULL)
+		{
+			return false;
+		}
+
+		boost::asio::socket_base::send_buffer_size sndsize_option(sendSize);
+		sockptr->set_option(sndsize_option);
+
+		boost::asio::socket_base::receive_buffer_size recvsize_option(recvSize);
+		sockptr->set_option(recvsize_option);
+
+		return true;
+	}
 	int recvfrom(char* buffer, int maxlen, NetAddr& otheraddr)
 	{
 		shared_ptr<boost::asio::ip::udp::socket> sockptr = sock;
@@ -101,7 +117,7 @@ public:
 
 		return true;
 	}
-	virtual bool async_recvfrom(char* buf, uint32_t len, const RecvFromCallback& received)
+	virtual bool async_recvfrom(char* buf, uint32_t len, const Socket::RecvFromCallback& received)
 	{
 		boost::shared_ptr<RecvCallbackObject> recvobj = boost::make_shared<RecvCallbackObject>(
 			sockobjptr,userthread,received,buf,len);
@@ -109,7 +125,7 @@ public:
 	
 		return async_recvfrom(recvobj);
 	}
-	virtual bool async_recvfrom(const RecvFromCallback& received, int maxlen = 1024) 
+	virtual bool async_recvfrom(const Socket::RecvFromCallback& received, int maxlen = 1024)
 	{
 		boost::shared_ptr<RecvCallbackObject> recvobj = boost::shared_ptr<RecvCallbackObject>(new RecvCallbackObject(
 			sockobjptr, userthread, received, NULL, maxlen));
@@ -117,7 +133,7 @@ public:
 
 		return async_recvfrom(recvobj);
 	}
-	virtual bool async_sendto(const char* buf, uint32_t len, const NetAddr& toaddr, const SendedCallback& sended)
+	virtual bool async_sendto(const char* buf, uint32_t len, const NetAddr& toaddr, const Socket::SendedCallback& sended)
 	{
 		shared_ptr<boost::asio::ip::udp::socket> sockptr = sock;
 		if (sockptr == NULL)
