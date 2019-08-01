@@ -102,7 +102,8 @@ void IOWorker::IOWorkerInternal::threadRunProc(Thread* t,void* param)
 		}
 		catch(const std::exception& e)
 		{
-			logerror("%s %d std::exception %s\r\n",__FUNCTION__,__LINE__,e.what());
+			(void)e;
+		//	logerror("%s %d std::exception %s\r\n",__FUNCTION__,__LINE__,e.what());
 		}
 	}
 }

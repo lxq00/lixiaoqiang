@@ -62,6 +62,8 @@ public:
 	///type 在某协议下判断端口是否可用
 	static uint16_t getAvailablePort(uint16_t startPort = 10000,SocketType type = SocketType_TCP);
 
+	static bool getNowUsedPortMap(std::set<uint16_t>& portmap,SocketType type = SocketType_TCP);
+
 	///检测端口是否被占用
 	///type 在某协议下判断端口是否可用
 	static bool checkPortIsNotUsed(uint16_t port,SocketType type = SocketType_TCP);

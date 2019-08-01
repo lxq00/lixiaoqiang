@@ -69,12 +69,15 @@ uint16_t Host::getAvailablePort(uint16_t startPort,SocketType type)
 
 	Guard locker(getMutex);
 
+	std::set<uint16_t> usedportmap;
+	getNowUsedPortMap(usedportmap, type);
+
 	uint16_t  activeport = 0;
 	while(1)
 	{
 		activeport = startPort + getPortNum ++;
 
-		if(checkPortIsNotUsed(activeport,type))
+		if (usedportmap.find(activeport) == usedportmap.end())
 		{
 			break;
 		}
@@ -82,7 +85,6 @@ uint16_t Host::getAvailablePort(uint16_t startPort,SocketType type)
 
 	return activeport;
 }
-
 std::string	Host::guessMyIpaddr(const std::string& destip)
 {
 	networkInitial();
@@ -148,10 +150,8 @@ uint32_t Host::getSystemBits()
 	else
 		return 32;
 }
-bool Host::checkPortIsNotUsed(uint16_t port,SocketType type)
+bool Host::getNowUsedPortMap(std::set<uint16_t>& portmap, SocketType type)
 {
-	bool haveFind = false;
-
 	if(type == SocketType_TCP)
 	{
 		PMIB_TCPTABLE pTcpTable = (MIB_TCPTABLE*) malloc(sizeof(MIB_TCPTABLE));
@@ -169,11 +169,8 @@ bool Host::checkPortIsNotUsed(uint16_t port,SocketType type)
 			for (int i = 0; i < (int) pTcpTable->dwNumEntries; i++)
 			{
 				u_short cwPort = ntohs((u_short)pTcpTable->table[i].dwLocalPort);
-				if(cwPort == port)
-				{
-					haveFind = true;
-					break;
-				}
+
+				portmap.insert(cwPort);
 			}
 		}
 		free(pTcpTable);
@@ -195,22 +192,18 @@ bool Host::checkPortIsNotUsed(uint16_t port,SocketType type)
 			for (int i = 0; i < (int) pTcpTable->dwNumEntries; i++)
 			{
 				uint32_t cwPort = ntohs((u_short)pTcpTable->table[i].dwLocalPort);
-				if(cwPort == port)
-				{
-					haveFind = true;
-					break;
-				}
+				portmap.insert(cwPort);
 			}
 		}
 		free(pTcpTable);
 	}
 
-	return !haveFind;
+	return true;
 }
 
 #else
 ///检测端口是否被占用
-bool Host::checkPortIsNotUsed(uint16_t port,SocketType type)
+bool Host::getNowUsedPortMap(std::set<uint16_t>& portmap, SocketType type)
 {
 	char buffer[256];
 
@@ -225,13 +218,9 @@ bool Host::checkPortIsNotUsed(uint16_t port,SocketType type)
 
 	if(fd == NULL)
 	{
-		return true;
+		return false;
 	}
 
-	char flag[64];
-	snprintf(flag,64,":%d",port);
-
-	bool haveFind = false;
 	const char* tmp = NULL;
 	while((tmp = fgets(buffer,255,fd)) != NULL)
 	{
@@ -245,16 +234,12 @@ bool Host::checkPortIsNotUsed(uint16_t port,SocketType type)
 
 		std::string flagstr(ftmp,pftmpend-ftmp);
 
-		if(strcmp(flagstr.c_str(),flag) == 0)
-		{
-			haveFind = true;
-			break;
-		}
+		portmap.insert(Value(flagstr).readInt());
 	}
 	pclose(fd);
 
 
-	return !haveFind;
+	return true;
 }
 #endif
 

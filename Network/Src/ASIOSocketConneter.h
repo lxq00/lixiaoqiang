@@ -11,7 +11,6 @@ class ASIOSocketConneter:public ASIOSocketObject<boost::asio::ip::tcp, boost::as
 public:
 	ASIOSocketConneter(const shared_ptr<IOWorker>& worker) :ASIOSocketObject<boost::asio::ip::tcp, boost::asio::ip::tcp::socket>(worker,NetType_TcpClient)
 	{
-		nodelay();
 	}
 	virtual ~ASIOSocketConneter() {}
 	bool create()
@@ -76,6 +75,7 @@ public:
 		if (!er && !ret)
 		{
 			status = NetStatus_connected;
+			nodelay();
 		}
 
 		return  (!er && !ret) ? true : false;
@@ -88,9 +88,16 @@ public:
 			return;
 		}
 
-		//取消TCP的40ms的延时
-		boost::asio::ip::tcp::no_delay option(true);
-		sockptr->set_option(option);
+		try
+		{
+			//取消TCP的40ms的延时
+			boost::asio::ip::tcp::no_delay option(true);
+			sockptr->set_option(option);
+		}
+		catch (const std::exception& e)
+		{
+			logdebug("%s %d sockptr->nodelay std::exception %s\r\n", __FUNCTION__, __LINE__, e.what());
+		}
 	}
 	int send(const char* buffer, int len)
 	{

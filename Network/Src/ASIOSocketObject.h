@@ -158,15 +158,22 @@ public:
 			return false;
 		}
 
-		boost::asio::socket_base::send_buffer_size sndsize_option;
-		sockptr->get_option(sndsize_option);
+		try
+		{
+			boost::asio::socket_base::send_buffer_size sndsize_option;
+			sockptr->get_option(sndsize_option);
 
-		boost::asio::socket_base::receive_buffer_size recvsize_option;
-		sockptr->set_option(recvsize_option);
+			boost::asio::socket_base::receive_buffer_size recvsize_option;
+			sockptr->set_option(recvsize_option);
 
-
-		recvSize = recvsize_option.value();
-		sendSize = sndsize_option.value();
+			recvSize = recvsize_option.value();
+			sendSize = sndsize_option.value();
+		}
+		catch (const std::exception& e)
+		{
+			logdebug("%s %d sockptr->getSocketBuffer std::exception %s\r\n", __FUNCTION__, __LINE__, e.what());
+			return false;
+		}
 
 		return true;
 	}
@@ -178,11 +185,19 @@ public:
 			return false;
 		}
 
-		boost::asio::socket_base::send_buffer_size sndsize_option(sendSize);
-		sockptr->set_option(sndsize_option);
+		try
+		{
+			boost::asio::socket_base::send_buffer_size sndsize_option(sendSize);
+			sockptr->set_option(sndsize_option);
 
-		boost::asio::socket_base::receive_buffer_size recvsize_option(recvSize);
-		sockptr->set_option(recvsize_option);
+			boost::asio::socket_base::receive_buffer_size recvsize_option(recvSize);
+			sockptr->set_option(recvsize_option);
+		}
+		catch (const std::exception& e)
+		{
+			logdebug("%s %d sockptr->setSocketBuffer std::exception %s\r\n", __FUNCTION__, __LINE__, e.what());
+			return false;
+		}
 
 		return true;
 	}

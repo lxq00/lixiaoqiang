@@ -23,12 +23,15 @@ public:
 		uint32_t udpport = nowudpport;
 		uint32_t allocktimes = 0;
 
+		std::set<uint16_t> usedportmap;
+		Host::getNowUsedPortMap(usedportmap, Host::SocketType_UDP);
+
 		while (allocktimes < udpstopport - udpstartport)
 		{
-			if (Host::checkPortIsNotUsed(udpport, Host::SocketType_UDP)
-				&& Host::checkPortIsNotUsed(udpport + 1, Host::SocketType_UDP)
-				&& Host::checkPortIsNotUsed(udpport + 2, Host::SocketType_UDP)
-				&& Host::checkPortIsNotUsed(udpport + 3, Host::SocketType_UDP))
+			if (usedportmap.find(udpport) == usedportmap.end() &&
+				usedportmap.find(udpport + 1) == usedportmap.end() &&
+				usedportmap.find(udpport + 2) == usedportmap.end() &&
+				usedportmap.find(udpport + 3) == usedportmap.end())
 			{
 				nowudpport = udpport + 4;
 
