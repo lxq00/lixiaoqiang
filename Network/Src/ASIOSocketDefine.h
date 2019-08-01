@@ -123,17 +123,17 @@ public:
 struct AcceptCallbackObject
 {
 public:
-	AcceptCallbackObject(const weak_ptr<Socket>& _sock, const shared_ptr<UserThreadInfo>& _userthread,const Socket::AcceptedCallback& _callback)
-		:sock(_sock),userthread(_userthread),acceptcallback(_callback)
+	AcceptCallbackObject(const weak_ptr<IOWorker>& _worker,const weak_ptr<Socket>& _sock, const shared_ptr<UserThreadInfo>& _userthread,const Socket::AcceptedCallback& _callback)
+		:sock(_sock),userthread(_userthread),acceptcallback(_callback),worker(_worker)
 	{
-
 	}
 	~AcceptCallbackObject() {}
 
-	void _acceptCallbackPtr(const boost::system::error_code& er)
+	void _acceptCallbackPtr(const shared_ptr<boost::asio::ip::tcp::socket>& acceptsock,const boost::system::error_code& er)
 	{
+		shared_ptr<IOWorker> workerptr = worker.lock();
 		shared_ptr<UserThreadInfo> userthreadobj = userthread.lock();
-		if (userthreadobj == NULL || !userthreadobj->callbackThreadUsedStart())
+		if (userthreadobj == NULL || !userthreadobj->callbackThreadUsedStart() || !workerptr)
 		{
 			return;
 		}
@@ -141,14 +141,16 @@ public:
 		shared_ptr<Socket>sockptr = sock.lock();
 		if (sockptr)
 		{
-			if (er)
+			if (er || !acceptsock)
 			{
-				logdebug("%s %d _acceptCallbackPtr std::exception %s\r\n", __FUNCTION__, __LINE__, er.message().c_str());
+				logwarn("%s %d _acceptCallbackPtr std::exception %s\r\n", __FUNCTION__, __LINE__, er.message().c_str());
 
 				acceptcallback(sockptr, shared_ptr<Socket>());
 			}
 			else
 			{
+
+				shared_ptr<Socket> newsock = TCPClient::create(workerptr,(void*)&acceptsock);
 				newsock->socketReady();
 
 				acceptcallback(sock, newsock);
@@ -160,10 +162,8 @@ public:
 private:
 	weak_ptr<Socket>			sock;
 	weak_ptr<UserThreadInfo>	userthread;
-
+	weak_ptr<IOWorker>			worker;
 	Socket::AcceptedCallback	acceptcallback;
-public:
-	shared_ptr<TCPClient>		newsock;
 };
 
 struct ConnectCallbackObject

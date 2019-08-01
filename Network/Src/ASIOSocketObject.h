@@ -41,14 +41,32 @@ public:
 	{
 		userthread = make_shared<UserThreadInfo>();
 		if (worker == NULL) worker = IOWorker::defaultWorker();
-		sock = make_shared<SocketType>(*(boost::asio::io_service*)worker->getBoostASIOIOServerPtr());
 	}
 	virtual ~ASIOSocketObject() {}
 	void initSocketptr(const shared_ptr<Socket>& sock)
 	{
 		sockobjptr = sock;
 	}
-	virtual bool create() { return true; }
+	virtual bool create()
+	{
+		sock = make_shared<SocketType>(*(boost::asio::io_service*)worker->getBoostASIOIOServerPtr());
+		if (sock == NULL)
+		{
+			return false;
+		}
+
+		try
+		{
+			sock->open(SocketProtocol::v4());
+		}
+		catch (const std::exception& e)
+		{
+			logdebug("%s %d open std::exception %s\r\n", __FUNCTION__, __LINE__, e.what());
+			return false;
+		}
+
+		return true;
+	}
 	bool setDisconnectCallback(const Socket::DisconnectedCallback& callback) { disconnectCallback = callback; return true; }
 	///断开socket
 	///true表示可以正常关闭该对象，false表示需要另外线程来释放该对象

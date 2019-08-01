@@ -19,7 +19,7 @@ struct RTSPServerSession::RTSPServerSessionInternal:public RTSPSession
 	RTSPServerSessionInternal(const shared_ptr<IOWorker>& _worker, const shared_ptr<Socket>& sock, const RTSPServer::ListenCallback& queryhandle, const AllockUdpPortCallback& allocport, const std::string&  _useragent)
 		:socketdisconnected(false), queryhandlercallback(queryhandle),sessionHaveAuthen(false)
 	{
-		ssrc = (uint32_t)this;
+		ssrc = (uint32_t)Time::getCurrentTime().makeTime();
 		ioworker = _worker;
 		socket = sock;
 		allockportcallback = allocport;
@@ -134,9 +134,9 @@ struct RTSPServerSession::RTSPServerSessionInternal:public RTSPSession
 			sendErrorResponse(cmdinfo, 500, "NOT SUPPORT");
 		}
 	}
-	void rtpDataCallback(bool isvideo, uint32_t timestmap, const RTSPBuffer& data, bool mark)
+	void rtpDataCallback(bool isvideo, uint32_t timestmap, const RTSPBuffer& data, bool mark,const RTPHEADER* header)
 	{
-		if (handler) handler->onMediaCallback(isvideo, timestmap, data, mark);
+		if (handler) handler->onMediaCallback(isvideo, timestmap, data, mark, header);
 	}
 	void socketDisconnectCallback()
 	{
@@ -225,11 +225,11 @@ void RTSPServerSession::sendErrorResponse(const shared_ptr<RTSPCommandInfo>& cmd
 {
 	internal->sendErrorResponse(cmdinfo, errcode, errmsg);
 }
-void RTSPServerSession::sendMedia(bool isvideo, uint32_t timestmap, const RTSPBuffer& data, bool mark)
+void RTSPServerSession::sendMedia(bool isvideo, uint32_t timestmap, const RTSPBuffer& data, bool mark, const RTPHEADER* header)
 {
 	shared_ptr<rtp> rtptmp = internal->rtp;
 	if (rtptmp)
 	{
-		rtptmp->sendData(isvideo, timestmap, data,mark);
+		rtptmp->sendData(isvideo, timestmap, data,mark,header);
 	}
 }

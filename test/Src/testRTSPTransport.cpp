@@ -13,6 +13,7 @@ struct RTSPBufferInfo
 	RTSPBuffer	buffer;
 	uint32_t	timestmap;
 	bool		mark;
+	const RTPHEADER*	header;
 };
 
 std::list< RTSPBufferInfo>		cache;
@@ -27,13 +28,11 @@ public:
 	}
 	~RTSPServerSessiontmp()
 	{
-		if (fd != NULL) fclose(fd);
 		int a = 0;
 	}
 
 	shared_ptr<RTSPServerSession> session;
 	bool						  isplaying;
-	FILE* fd;
 
 	virtual void onOptionRequest(const shared_ptr<RTSPServerSession>& session, const shared_ptr<RTSPCommandInfo>& cmdinfo)
 	{
@@ -41,11 +40,11 @@ public:
 	}
 	virtual void onDescribeRequest(const shared_ptr<RTSPServerSession>& session, const shared_ptr<RTSPCommandInfo>& cmdinfo)
 	{
-	//	MEDIA_INFO info;
-	//	info.bHasVideo = true;
-	//	info.bHasAudio = true;
+		MEDIA_INFO info = sourcemedia;
+		//info.bHasVideo = true;
+		//info.bHasAudio = true;
 
-		session->sendDescribeResponse(cmdinfo, sourcemedia);
+		session->sendDescribeResponse(cmdinfo, info);
 	}
 	virtual void onSetupRequest(const shared_ptr<RTSPServerSession>& session, const shared_ptr<RTSPCommandInfo>& cmdinfo, const TRANSPORT_INFO& transport)
 	{
@@ -59,7 +58,7 @@ public:
 		Guard locker(mutex);
 		for (std::list< RTSPBufferInfo>::iterator iter = cache.begin(); iter != cache.end(); iter++)
 		{
-			session->sendMedia(iter->isvideo, iter->timestmap, iter->buffer, iter->mark);
+			session->sendMedia(iter->isvideo, iter->timestmap, iter->buffer, iter->mark,iter->header);
 		}
 	}
 	virtual void onPauseRequest(const shared_ptr<RTSPServerSession>& session, const shared_ptr<RTSPCommandInfo>& cmdinfo)
@@ -72,12 +71,12 @@ public:
 	}
 	virtual void onGetparameterRequest(const shared_ptr<RTSPServerSession>& session, const shared_ptr<RTSPCommandInfo>& cmdinfo, const std::string& content) { session->sendErrorResponse(cmdinfo, 500, "NOT SUPPORT"); }
 
-	virtual void onClose(const shared_ptr<RTSPServerSession>& session)
+	virtual void onClose(const shared_ptr<RTSPServerSession>& session,const std::string& errmsg)
 	{
 		Guard locker(mutex);
 		serverlist.erase(session.get());
 	}
-	virtual void onMediaCallback(bool isvideo, uint32_t timestmap, const RTSPBuffer& buffer, bool mark)
+	virtual void onMediaCallback(bool isvideo, uint32_t timestmap, const RTSPBuffer& buffer, bool mark,const RTPHEADER* header)
 	{
 		int a = 0;
 	}
@@ -120,13 +119,15 @@ class RTSPSessiontmp :public RTSPClientHandler
 		int a = 0;
 	}
 
-	virtual void onClose()
+	virtual void onClose(const std::string& errmsg)
 	{
 		int a = 0;
 	}
-	virtual void onMediaCallback(bool isvideo, uint32_t timestmap, const RTSPBuffer& buffer, bool mark)
+	virtual void onMediaCallback(bool isvideo, uint32_t timestmap, const RTSPBuffer& buffer, bool mark, const RTPHEADER* header)
 	{
 		std::map< RTSPServerSession*, shared_ptr< RTSPServerSessiontmp> > sendlist;
+		
+		if(1)
 		{
 			Guard locker(mutex);
 			sendlist = serverlist;
@@ -138,6 +139,7 @@ class RTSPSessiontmp :public RTSPClientHandler
 			info.buffer = buffer;
 			info.timestmap = timestmap;
 			info.mark = mark;
+			info.header = header;
 
 			cache.push_back(info);
 		}
@@ -150,7 +152,7 @@ class RTSPSessiontmp :public RTSPClientHandler
 			shared_ptr<RTSPServerSession> session = tmp->session;
 			if(session == NULL) continue;
 
-			session->sendMedia(isvideo, timestmap, buffer, mark);
+			session->sendMedia(isvideo, timestmap, buffer, mark,header);
 		}
 
 		int a = 0;

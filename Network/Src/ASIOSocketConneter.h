@@ -13,26 +13,6 @@ public:
 	{
 	}
 	virtual ~ASIOSocketConneter() {}
-	bool create()
-	{
-		shared_ptr<boost::asio::ip::tcp::socket> sockptr = sock;
-		if (sockptr == NULL)
-		{
-			return false;
-		}
-
-		try
-		{
-			sockptr->open(boost::asio::ip::tcp::v4());
-		}
-		catch (const std::exception& e)
-		{
-			logdebug("%s %d sockptr->open std::exception %s\r\n", __FUNCTION__, __LINE__, e.what());
-			return false;
-		}
-
-		return true;
-	}
 	bool startConnect(const Socket::ConnectedCallback& callback, const NetAddr& otherpoint)
 	{
 		shared_ptr<boost::asio::ip::tcp::socket> sockptr = sock;
@@ -193,11 +173,6 @@ public:
 		return async_recv(recvobj);
 	}
 };
-struct TCPClient::TCPClientInternalPointer:public ASIOSocketConneter
-{
-	TCPClientInternalPointer(const shared_ptr<IOWorker>& worker) :ASIOSocketConneter(worker) { create(); }
-};
-
 
 }
 }

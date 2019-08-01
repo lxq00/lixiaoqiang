@@ -14,26 +14,6 @@ public:
 		setStatus(NetStatus_connected);
 	}
 	virtual ~ASIOSocketUDP() {}
-	bool create()
-	{
-		shared_ptr<boost::asio::ip::udp::socket> sockptr = sock;
-		if (sockptr == NULL)
-		{
-			return false;
-		}
-
-		try
-		{
-			sockptr->open(boost::asio::ip::udp::v4());
-		}
-		catch (const std::exception& e)
-		{
-			logdebug("%s %d udpsock->open std::exception %s\r\n", __FUNCTION__, __LINE__, e.what());
-			return false;
-		}
-
-		return true;
-	}
 	int sendto(const char* buffer, int len, const NetAddr& otheraddr)
 	{
 		shared_ptr<boost::asio::ip::udp::socket> sockptr = sock;

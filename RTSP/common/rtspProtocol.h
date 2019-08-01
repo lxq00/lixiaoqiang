@@ -4,7 +4,7 @@
 using namespace Public::HTTP;
 using namespace Public::RTSP;
 
-#define MAXPARSERTSPBUFFERLEN	1024*128
+#define MAXPARSERTSPBUFFERLEN	1024*1024
 #define RTPOVERTCPMAGIC		'$'
 #define RTSPCMDFLAG			"RTSP/1.0"
 
@@ -15,22 +15,13 @@ class RTSPProtocol:public HTTPParse
 public:
 	struct SendItem
 	{
-		std::string			prevdata;
 		RTSPBuffer			buffer;
-		const char*			bufferaddr;
-		size_t				buffersize;
 		uint32_t			havesendlen;
 
 
 
-		SendItem() :bufferaddr(NULL),buffersize(0),havesendlen(0) {}
-	};
-	struct INTERLEAVEDFRAME
-	{
-		unsigned int magic : 8;// $
-		unsigned int channel : 8; //0-1
-		unsigned int rtp_len : 16;
-	};
+		SendItem() :havesendlen(0) {}
+	};	
 	struct TCPInterleaved
 	{
 		int dataChannel;
@@ -77,7 +68,7 @@ public:
 		Guard locker(m_mutex);
 		for (std::list<shared_ptr<SendItem> >::iterator iter = m_sendList.begin(); iter != m_sendList.end(); iter++)
 		{
-			listsize += (*iter)->buffersize;
+			listsize += (*iter)->buffer.size();
 		}
 
 		return listsize;
@@ -92,18 +83,20 @@ public:
 		Guard locker(m_mutex);
 		_addAndCheckSendData(RTSPBuffer(cmdstr));
 	}
-	void sendMedia(bool isvideo,const std::string& rtpheader, const RTSPBuffer& buffer)
+	void sendMedia(bool isvideo,const RTSPBuffer& rtspbuffer)
 	{
 		if (m_tcpinterleaved == NULL) return;
-		INTERLEAVEDFRAME frame;
-		frame.magic = RTPOVERTCPMAGIC;
-		frame.channel = m_tcpinterleaved->dataChannel;
-		frame.rtp_len = htons((uint16_t)rtpheader.length() + (uint16_t)buffer.size());
 
-		std::string rtpovertcp = std::string((char*)&frame, sizeof(frame)) + rtpheader;
+		const char* rtpbufferaddr = rtspbuffer.buffer();
+		size_t rtpbuffersize = rtspbuffer.size();
+
+		INTERLEAVEDFRAME* frame = (INTERLEAVEDFRAME*)rtpbufferaddr;
+		frame->magic = RTPOVERTCPMAGIC;
+		frame->channel = m_tcpinterleaved->dataChannel;
+		frame->rtp_len = htons((uint16_t)(rtpbuffersize - sizeof(INTERLEAVEDFRAME)));
 
 		Guard locker(m_mutex);
-		_addAndCheckSendData(buffer, rtpovertcp);
+		_addAndCheckSendData(rtspbuffer);
 	}
 	void sendContrlData(const char* buffer, uint32_t len)
 	{
@@ -144,17 +137,17 @@ private:
 
 			{
 				shared_ptr<SendItem>& item = m_sendList.front();
-				if (buffer != item->bufferaddr + item->havesendlen)
+				if (buffer != item->buffer.buffer() + item->havesendlen)
 				{
 					return;
 				}
-				if (item->havesendlen + len > item->buffersize)
+				if (item->havesendlen + len > item->buffer.size())
 				{
 					return;
 				}
 				item->havesendlen += len;
 
-				if (item->havesendlen == item->buffersize)
+				if (item->havesendlen == item->buffer.size())
 				{
 					m_sendList.pop_front();
 				}
@@ -170,40 +163,16 @@ private:
 
 		shared_ptr<SendItem>& item = m_sendList.front();
 
-		//处理数据的零拷贝问题，添加前置数据
-		if (item->bufferaddr == NULL)
-		{
-			item->bufferaddr = item->buffer.buffer();
-			item->buffersize = item->buffer.size();
-
-			if (item->prevdata.length() > 0)
-			{
-				if (item->bufferaddr - item->buffer.dataptr().c_str() < RTSPBUFFERHEADSPACE)
-				{
-					assert(0);
-				}
-				if (item->prevdata.length() > RTSPBUFFERHEADSPACE)
-				{
-					assert(0);
-				}
-
-				item->bufferaddr -= item->prevdata.length();
-				item->buffersize += item->prevdata.length();
-				memcpy((char*)item->bufferaddr, item->prevdata.c_str(), item->prevdata.length());
-			}
-		}
-		
-		const char* sendbuffer = item->bufferaddr;
-		uint32_t sendbufferlen = item->buffersize;
+		const char* sendbuffer = item->buffer.buffer();
+		uint32_t sendbufferlen = item->buffer.size();
 
 		m_prevalivetime = Time::getCurrentMilliSecond();
 
 		m_sock->async_send(sendbuffer + item->havesendlen, sendbufferlen - item->havesendlen, Socket::SendedCallback(&RTSPProtocol::onSocketSendCallback, this));
 	}
-	void _addAndCheckSendData(const RTSPBuffer& buffer,const std::string& prevdata = "")
+	void _addAndCheckSendData(const RTSPBuffer& buffer)
 	{
 		shared_ptr<SendItem> item = make_shared<SendItem>();
-		item->prevdata = prevdata;
 		item->buffer = buffer;
 
 		m_sendList.push_back(item);
@@ -251,7 +220,7 @@ private:
 
 					uint32_t needlen = m_bodylen - m_cmdinfo->body.length();
 
-					m_cmdinfo->body.append(buffertmp, needlen);
+					m_cmdinfo->body = std::string(buffertmp, needlen);
 					buffertmp += needlen;
 					buffertmplen -= needlen;
 				}
@@ -310,7 +279,7 @@ private:
 				INTERLEAVEDFRAME* frame = (INTERLEAVEDFRAME*)buffertmp;
 				uint32_t datalen = ntohs(frame->rtp_len);
 				uint32_t datach = frame->channel;
-				if (datalen <= 0 || (m_tcpinterleaved && datach != m_tcpinterleaved->dataChannel && datach != m_tcpinterleaved->contrlChannel))
+				if (datalen <= 0)
 				{
 					buffertmp++;
 					buffertmplen--;
@@ -327,8 +296,10 @@ private:
 					bufferneedsize = datalen + sizeof(INTERLEAVEDFRAME) - buffertmplen;
 					break;
 				}
-				m_extdatacallback(datach, RTSPBuffer(m_recvBuffer,buffertmp + sizeof(INTERLEAVEDFRAME), datalen));
-
+				if(m_tcpinterleaved && (datach == m_tcpinterleaved->dataChannel || datach == m_tcpinterleaved->contrlChannel))
+				{
+					m_extdatacallback(datach, RTSPBuffer(m_recvBuffer, buffertmp + sizeof(INTERLEAVEDFRAME), datalen));
+				}
 				buffertmp += datalen + sizeof(INTERLEAVEDFRAME);
 				buffertmplen -= datalen + sizeof(INTERLEAVEDFRAME);
 			}

@@ -6,17 +6,31 @@ using namespace std;
 namespace Public{
 namespace Network{
 
-
-shared_ptr<Socket> TCPClient::create(const shared_ptr<IOWorker>& _worker)
+struct TCPClient::TCPClientInternalPointer :public ASIOSocketConneter
 {
-	shared_ptr<TCPClient> sock = shared_ptr<TCPClient>(new TCPClient(_worker));
+	TCPClientInternalPointer(const shared_ptr<IOWorker>& worker, void* socketptr) :ASIOSocketConneter(worker)
+	{
+		if (socketptr)
+		{
+			sock = *(shared_ptr<boost::asio::ip::tcp::socket>*)socketptr;
+		}
+		else
+		{
+			create();
+		}
+	}
+};
+
+shared_ptr<Socket> TCPClient::create(const shared_ptr<IOWorker>& _worker, void* socketptr)
+{
+	shared_ptr<TCPClient> sock = shared_ptr<TCPClient>(new TCPClient(_worker, socketptr));
 	sock->tcpclientinternal->initSocketptr(sock);
 
 	return sock;
 }
-TCPClient::TCPClient(const shared_ptr<IOWorker>& worker)
+TCPClient::TCPClient(const shared_ptr<IOWorker>& worker, void* socketptr)
 {
-	tcpclientinternal = new TCPClient::TCPClientInternalPointer(worker);
+	tcpclientinternal = new TCPClient::TCPClientInternalPointer(worker,socketptr);
 }
 TCPClient::~TCPClient()
 {

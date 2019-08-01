@@ -277,11 +277,11 @@ public:
 		header.headers["Transport"] = rtsp_header_build_transport(isVideo ? rtspmedia.videoTransport : rtspmedia.audioTransport);
 		sendResponse(cmdinfo, header);
 	}
-	bool sendMedia(bool isvideo, uint32_t timestmap, const RTSPBuffer& data, bool mark)
+	bool sendMedia(bool isvideo, uint32_t timestmap, const RTSPBuffer& data, bool mark,const RTPHEADER* header)
 	{
 		if (!rtp) return false;
 
-		rtp->sendData(isvideo, timestmap, data, mark);
+		rtp->sendData(isvideo, timestmap, data, mark, header);
 
 		return true;
 	}
@@ -320,7 +320,7 @@ public:
 		_rtspBuildRtspCommand(cmdinfo->cmd, body, contentype);
 	}
 private:
-	virtual void rtpDataCallback(bool isvideo, uint32_t timestmap, const RTSPBuffer& data, bool mark) = 0;
+	virtual void rtpDataCallback(bool isvideo, uint32_t timestmap, const RTSPBuffer& data, bool mark,const RTPHEADER* header) = 0;
 
 	void _rtspBuildRtspCommand(const shared_ptr<RTSPCommandInfo>& cmd, const std::string& body = "", const std::string& contentype = "")
 	{

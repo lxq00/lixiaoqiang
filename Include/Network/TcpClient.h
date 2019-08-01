@@ -19,9 +19,9 @@ class NETWORK_API TCPClient:public Socket
 	friend class ASIOSocketAcceptor;
 
 	struct TCPClientInternalPointer;
-	TCPClient(const shared_ptr<IOWorker>& worker);
+	TCPClient(const shared_ptr<IOWorker>& worker,void* socketptr);
 public:
-	static shared_ptr<Socket> create(const shared_ptr<IOWorker>& worker);
+	static shared_ptr<Socket> create(const shared_ptr<IOWorker>& worker, void* socketptr = NULL);
 	virtual ~TCPClient();
 
 	///断开socket连接，停止socket内部工作，关闭socket句柄等

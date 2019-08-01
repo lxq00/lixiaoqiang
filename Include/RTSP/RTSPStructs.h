@@ -164,6 +164,26 @@ struct RTSP_API RTSPCommandInfo
 	}
 };
 
+typedef struct  _RTPHEADER
+{
+	unsigned short   cc : 4;
+	unsigned short   x : 1;
+	unsigned short   p : 1;
+	unsigned short   v : 2;
+	unsigned short   pt : 7;
+	unsigned short   m : 1;
 
+	unsigned short   seq;
+	unsigned long    ts;
+	unsigned long    ssrc;
+
+}RTPHEADER, *LPRTPHEADER;
+
+struct INTERLEAVEDFRAME
+{
+	unsigned int magic : 8;// $
+	unsigned int channel : 8; //0-1
+	unsigned int rtp_len : 16;
+};
 
 typedef Function0<uint32_t> AllockUdpPortCallback;

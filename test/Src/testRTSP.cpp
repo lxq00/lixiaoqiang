@@ -44,7 +44,7 @@ class RTSPSessiontmp :public RTSPClientHandler
 	{
 		int a = 0;
 	}
-	virtual void onMediaCallback(bool isvideo, uint32_t timestmap, const RTSPBuffer& buffer, bool mark)
+	virtual void onMediaCallback(bool isvideo, uint32_t timestmap, const RTSPBuffer& buffer, bool mark,const RTPHEADER* header)
 	{
 		int a = 0;
 	}
@@ -60,55 +60,22 @@ struct RTSPClientInfo
 
 string rtspaddr[] = {
 	"rtsp://admin:ms123456@192.168.7.104:554/main",
-	"rtsp://admin:ms123456@192.168.3.135:554/main",
-	"rtsp://192.168.9.230:554/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif",
-	"rtsp://admin:support2019@192.168.9.205:554/Streaming/Channels/102",
-	"rtsp://admin:ms123456@192.168.10.230:554/main",
-//	"rtsp://admin:ms123456@192.168.9.230:554/main",
-	"rtsp://admin:ms123456@192.168.4.150:554/main",
-	//"rtsp://admin:ms123456@192.168.4.111:554/main",
-	//"rtsp://admin:ms123456@192.168.2.172:554/main",
-	//"rtsp://admin:ms123456@192.168.4.105:554/main",
-	//"rtsp://admin:ms123456@192.168.10.236:554/main",
-//	"rtsp://192.168.2.46:5554/111",
+//	"rtsp://admin:ms123456@192.168.3.135:554/main",
+//	"rtsp://192.168.9.230:554/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif",
+//	"rtsp://admin:support2019@192.168.9.205:554/Streaming/Channels/102",
+//	"rtsp://admin:ms123456@192.168.10.230:554/main",
+//	"rtsp://admin:ms123456@192.168.11.230:554/main",
+//	"rtsp://admin:ms123456@192.168.4.150:554/main",
+//	"rtsp://admin:ms123456@192.168.4.111:554/main",
+//	"rtsp://admin:ms123456@192.168.2.172:554/main",
+//	"rtsp://admin:ms123456@192.168.4.105:554/main",
+//	"rtsp://admin:ms123456@192.168.10.236:554/main",
+	//"rtsp://192.168.2.46:5554/111",
 };
 
 int main()
 {
-
-	//uint16_t startcode = 0;
-	//uint16_t prevcode = 0;
-
-	//uint16_t sn = 0;
-	//uint16_t sn1 = 65533;
-
-	//uint16_t sn2 = sn - sn1;
-
-	//while (1)
-	//{
-	//	startcode++;
-
-	//	if (prevcode == 0) prevcode = startcode;
-	//	else if ((uint16_t)(prevcode + 1) != startcode)
-	//	{
-	//		int a = 0;
-	//	}
-	//	if (startcode == 0)
-	//	{
-	//		int b = 0;
-	//	}
-
-	//	prevcode = startcode;
-	//}
-
-
-
-
-
-
-
-
-	shared_ptr<IOWorker>	worker = make_shared<IOWorker>(4);
+	shared_ptr<IOWorker>	worker = make_shared<IOWorker>(8);
 	shared_ptr<RTSPClientManager> manager = make_shared<RTSPClientManager>(worker,"test");
 
 	std::list< RTSPClientInfo> clientlist;
@@ -121,6 +88,9 @@ int main()
 	{
 		if (clientlist.size() >= rtspaddrsize* MAXTESTRTSPCLIENT)
 		{
+			break;
+
+
 			Thread::sleep(10000);
 			clientlist.pop_front();
 		}		

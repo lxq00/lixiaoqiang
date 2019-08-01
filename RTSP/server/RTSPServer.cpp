@@ -57,6 +57,7 @@ struct RTSPServer::RTSPServerInternal:public RTPPortAlloc
 	}
 	void onsocketaccept(const weak_ptr<Socket>& sock, const shared_ptr<Socket>& newsock)
 	{
+		if(newsock)
 		{
 			AllockUdpPortCallback alloccallback(&RTPPortAlloc::allockRTPPort, (RTPPortAlloc*)this);
 

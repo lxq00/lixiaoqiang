@@ -64,7 +64,7 @@ public:
 	//同步命令,同步返回
 	bool sendTeradownRequest(uint32_t timeout);
 
-	bool sendMedia(bool isvideo, uint32_t timestmap, const RTSPBuffer& buffer, bool mark);
+	bool sendMedia(bool isvideo, uint32_t timestmap, const RTSPBuffer& buffer, bool mark, const RTPHEADER* rtpheader = NULL);
 private:
 	RTSPClientInternal *internal;
 };
@@ -87,7 +87,7 @@ public:
 	virtual void onErrorResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo,int statuscode,const std::string& errmsg) {}
 
 	virtual void onClose(const std::string& errmsg) = 0;
-	virtual void onMediaCallback(bool isvideo, uint32_t timestmap, const RTSPBuffer& buffer, bool mark) = 0;
+	virtual void onMediaCallback(bool isvideo, uint32_t timestmap, const RTSPBuffer& buffer, bool mark, const RTPHEADER* rtpheader) = 0;
 };
 
 class RTSP_API RTSPClientManager

@@ -44,17 +44,12 @@ public:
 		shared_ptr<boost::asio::ip::tcp::acceptor> accepetserptr = sock;
 		if (accepetserptr == NULL) return false;
 
-		boost::shared_ptr<AcceptCallbackObject> acceptobj = boost::make_shared<AcceptCallbackObject>(sockobjptr, userthread, accepted);
-
-		{
-			acceptobj->newsock = shared_ptr<TCPClient>(new TCPClient(worker));
-			acceptobj->newsock->tcpclientinternal->initSocketptr(acceptobj->newsock);
-		}
-		
+		boost::shared_ptr<AcceptCallbackObject> acceptobj = boost::make_shared<AcceptCallbackObject>(worker,sockobjptr, userthread, accepted);		
 		try
 		{
-			boost::asio::ip::tcp::socket& newsockptr = *(boost::asio::ip::tcp::socket*)acceptobj->newsock->tcpclientinternal->sock.get();
-			accepetserptr->async_accept(newsockptr, boost::bind(&AcceptCallbackObject::_acceptCallbackPtr, acceptobj, boost::asio::placeholders::error));
+			shared_ptr<boost::asio::ip::tcp::socket> acceptsock = make_shared<boost::asio::ip::tcp::socket>(*(boost::asio::io_service*)worker->getBoostASIOIOServerPtr());
+
+			accepetserptr->async_accept(*acceptsock, boost::bind(&AcceptCallbackObject::_acceptCallbackPtr, acceptobj, acceptsock,_1));
 
 		}
 		catch (const std::exception& e)
@@ -65,36 +60,28 @@ public:
 
 		return true;
 	}
-	void acceptErrorCallback(const boost::system::error_code& er, const Socket::AcceptedCallback& callback)
-	{
-		disconnect();
-		create(listenAddr, true);
-
-		async_accept(callback);
-	}
 	shared_ptr<Socket> accept()
 	{
 		shared_ptr<boost::asio::ip::tcp::acceptor> accepetserptr = sock;
 		if (accepetserptr == NULL) return false;
 
-		shared_ptr<TCPClient> acceptsock = shared_ptr<TCPClient>(new TCPClient(worker));
+		shared_ptr< boost::asio::ip::tcp::socket > acceptsock = make_shared<boost::asio::ip::tcp::socket>(*(boost::asio::io_service*)worker->getBoostASIOIOServerPtr());
 
 		boost::system::error_code er;
+		boost::system::error_code re = accepetserptr->accept(*acceptsock, er);
 
-		boost::asio::ip::tcp::socket& newsockptr = *(boost::asio::ip::tcp::socket*)acceptsock->tcpclientinternal->sock.get();
-		boost::system::error_code re = accepetserptr->accept(newsockptr, er);
 
-		
+		shared_ptr<Socket> newsock = TCPClient::create(worker,&acceptsock);
 		if (!re && !er)
 		{
-			acceptsock->socketReady();
+			newsock->socketReady();
 		}
 		else
 		{
-			acceptsock = NULL;
+			newsock = NULL;
 		}
 
-		return acceptsock;
+		return newsock;
 	}
 public:
 	NetAddr													listenAddr;
