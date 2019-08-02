@@ -63,19 +63,43 @@ public:
 	HTTPParse(bool _isRequest):isRequest(_isRequest){}
 	~HTTPParse() {}
 
+	shared_ptr<Header> parse(CircleBuffer& buffer,std::string* usedstr = NULL)
+	{
+		if (content == NULL) content = make_shared<Header>();
+
+		while (!content->headerIsOk)
+		{
+			std::string linestr;
+			if (!buffer.consumeLine(linestr)) break;
+
+			if (usedstr != NULL)
+			{
+				*usedstr += linestr + "\r\n";
+			}
+
+			parseLine(linestr.c_str(), linestr.length());
+		}
+
+		shared_ptr<Header> contenttmp = content;
+		if (contenttmp != NULL && contenttmp->headerIsOk)
+		{
+			content = NULL;
+			return contenttmp;
+		}
+
+		return shared_ptr<Header>();
+	}
 	shared_ptr<Header> parse(const char* data,uint32_t datalen,uint32_t& useddata)
 	{
+		if (content == NULL) content = make_shared<Header>();
+
 		useddata = 0;
 
-		while (datalen > 0)
+		while (datalen > 0 && !content->headerIsOk)
 		{
-			if (content == NULL) content = make_shared<Header>();
-
 			size_t pos = String::indexOf(data, datalen, HTTPSEPERATOR);
 			if (pos == -1) break;
 
-			const char* startlineaddr = data;
-			uint32_t linedatalen = pos;
 
 			{
 				uint32_t poslen = pos + strlen(HTTPSEPERATOR);
@@ -85,20 +109,7 @@ public:
 				useddata += poslen;
 			}
 
-			//连续两个SEPERATOR表示header结束
-			if (pos == 0)
-			{
-				content->headerIsOk = true;
-				break;
-			}
-			else if (!content->headerIsOk && content->verinfo.protocol == "")
-			{
-				parseFirstLine(startlineaddr, linedatalen);
-			}
-			else if (!content->headerIsOk)
-			{
-				parseHeaderLine(startlineaddr, linedatalen);
-			}
+			parseLine(data, pos);
 		}
 		shared_ptr<Header> contenttmp = content;
 		if (contenttmp != NULL && contenttmp->headerIsOk)
@@ -117,6 +128,23 @@ public:
 		return true;
 	}
 private:
+	void parseLine(const char* startlineaddr, uint32_t linedatalen)
+	{
+		//连续两个SEPERATOR表示header结束
+		if (linedatalen == 0)
+		{
+			content->headerIsOk = true;
+			return;
+		}
+		else if (!content->headerIsOk && content->verinfo.protocol == "")
+		{
+			parseFirstLine(startlineaddr, linedatalen);
+		}
+		else if (!content->headerIsOk)
+		{
+			parseHeaderLine(startlineaddr, linedatalen);
+		}
+	}
 	void parseFirstLine(const char* startlienaddr, uint32_t linedatalen)
 	{
 		std::string versionstr;

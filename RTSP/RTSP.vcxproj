@@ -111,6 +111,12 @@
     <ClInclude Include="..\Include\RTSP\RTSPStructs.h" />
     <ClInclude Include="..\Include\RTSP\RTSPUrl.h" />
     <ClCompile Include="client\RTSPClient.cpp" />
+    <ClInclude Include="common\Analyzer\irtpAnalyzer.h" />
+    <ClInclude Include="common\Analyzer\rtcpAnalyzer.h" />
+    <ClInclude Include="common\Analyzer\rtpAnalyzerStructs.h" />
+    <ClInclude Include="common\Analyzer\rtpH264Analyzer.h" />
+    <ClInclude Include="common\Analyzer\rtpJpegAnalyzer.h" />
+    <ClInclude Include="common\Analyzer\rtpXunmeiAnalyzer.h" />
     <ClInclude Include="common\rtp\rtcp.h" />
     <ClInclude Include="common\rtp\rtpovertcpSession.h" />
     <ClInclude Include="common\rtp\rtpoverudpSession.h" />
@@ -123,6 +129,10 @@
     <ClInclude Include="common\rtspSession.h" />
     <ClInclude Include="common\wwwAuthenticate.h" />
     <ClInclude Include="common\rtspProtocol.h" />
+    <ClCompile Include="common\Analyzer\rtcpAnalyzer.cpp" />
+    <ClCompile Include="common\Analyzer\rtpH264Analyzer.cpp" />
+    <ClCompile Include="common\Analyzer\rtpJpegAnalyzer.cpp" />
+    <ClCompile Include="common\Analyzer\rtpXunmeiAnalyzer.cpp" />
     <ClCompile Include="common\rtp\rtcp.cpp" />
     <ClCompile Include="common\StringParse\rtspHeaderRange.cpp" />
     <ClCompile Include="common\StringParse\rtspHeaderSdp.cpp" />

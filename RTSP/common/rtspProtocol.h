@@ -28,12 +28,12 @@ public:
 	};
 public:
 	typedef Function1<void, const shared_ptr<RTSPCommandInfo>&> CommandCallback;
-	typedef Function4<void, const shared_ptr<STREAM_TRANS_INFO>&,const RTPHEADER&,const char*,uint32_t> MediaDataCallback;
-	typedef Function3<void, const shared_ptr<STREAM_TRANS_INFO>&, const char*, uint32_t> ContorlDataCallback;
+	typedef Function3<void, const shared_ptr<STREAM_TRANS_INFO>&,const RTPHEADER&,const std::vector<CircleBuffer::BufferInfo>&> MediaDataCallback;
+	typedef Function3<void, const shared_ptr<STREAM_TRANS_INFO>&,const char*, uint32_t> ContorlDataCallback;
 	typedef Function0<void> DisconnectCallback;
 public:
 	RTSPProtocol(const shared_ptr<Socket>& sock, const CommandCallback& cmdcallback, const DisconnectCallback& disconnectCallback,bool server)
-		:HTTPParse(server)
+		:HTTPParse(server),m_recvBuffer(MAXPARSERTSPBUFFERLEN)
 	{
 		m_sock = sock;
 		m_cmdcallback = cmdcallback;
@@ -43,18 +43,14 @@ public:
 		m_bodylen = 0;
 		m_haveFindHeaderStart = false;
 
-		m_recvBufferAddr = new char[MAXPARSERTSPBUFFERLEN + 100];
-		m_recvBufferLen = 0;
-
 		m_sock->setSocketBuffer(1024 * 1024 * 4, 1024 * 1024);
 		m_sock->setDisconnectCallback(Socket::DisconnectedCallback(&RTSPProtocol::onSocketDisconnectCallback, this));
-		m_sock->async_recv(m_recvBufferAddr, MAXPARSERTSPBUFFERLEN, Socket::ReceivedCallback(&RTSPProtocol::onSocketRecvCallback, this));
+		m_sock->async_recv(m_recvBuffer.getProductionAddr(), m_recvBuffer.getProductionLength(), Socket::ReceivedCallback(&RTSPProtocol::onSocketRecvCallback, this));
 	}
 	~RTSPProtocol()
 	{
 		m_sock->disconnect();
 		m_sock = NULL;
-		SAFE_DELETEARRAY(m_recvBufferAddr);
 	}
 
 	void setRTPOverTcpCallback(const MediaDataCallback& datacallback,const ContorlDataCallback& contorlcallback)
@@ -203,35 +199,36 @@ private:
 			return;
 		}
 
-		if(buffer != m_recvBufferAddr + m_recvBufferLen)
+		if(buffer != m_recvBuffer.getProductionAddr())
 		{
 			assert(0);
 		}
 
-		if (m_recvBufferLen + len > MAXPARSERTSPBUFFERLEN)
+		if ((uint32_t)len > m_recvBuffer.getProductionLength())
 		{
 			assert(0);
 		}
 
-		m_recvBufferLen += len;
+		m_recvBuffer.setProductionLength(len);
 		
-		const char* buffertmp = m_recvBufferAddr;
-		uint32_t buffertmplen = m_recvBufferLen;
-
-		while (buffertmplen > 0)
+		while (m_recvBuffer.dataLenght() > 0)
 		{
 			if (m_cmdinfo != NULL)
 			{
 				if (m_bodylen > m_cmdinfo->body.length())
 				{
 					//数据不够
-					if (buffertmplen < m_bodylen - m_cmdinfo->body.length()) break;
+					if (m_recvBuffer.dataLenght() < m_bodylen - m_cmdinfo->body.length()) break;
 
 					uint32_t needlen = m_bodylen - m_cmdinfo->body.length();
 
-					m_cmdinfo->body = std::string(buffertmp, needlen);
-					buffertmp += needlen;
-					buffertmplen -= needlen;
+					std::vector<CircleBuffer::BufferInfo> info;
+					if (!m_recvBuffer.consumeBuffer(0 ,info, needlen)) break;
+
+					for (size_t i = 0; i < info.size(); i++)
+					{
+						m_cmdinfo->body += std::string(info[i].bufferAddr, info[i].bufferLen);
+					}
 				}
 				
 				{
@@ -244,17 +241,12 @@ private:
 			}
 			else if (m_cmdinfo == NULL && m_haveFindHeaderStart)
 			{
-				uint32_t usedlen = 0;
-				shared_ptr<HTTPParse::Header> header = HTTPParse::parse(buffertmp, buffertmplen, usedlen);
-
-				if (usedlen > buffertmplen)
-				{
-					assert(0);
-				}
+				std::string usedstr;
+				shared_ptr<HTTPParse::Header> header = HTTPParse::parse(m_recvBuffer,&usedstr);
 
 				if (header != NULL)
 				{
-					logdebug("\r\n%s", std::string(buffertmp,usedlen).c_str());
+					logdebug("\r\n%s", usedstr.c_str());
 
 					m_cmdinfo = make_shared<RTSPCommandInfo>();
 					m_cmdinfo->method = header->method;
@@ -277,25 +269,29 @@ private:
 						m_haveFindHeaderStart = false;
 					}
 				}
-
-				buffertmp += usedlen;
-				buffertmplen -= usedlen;
+				//没结束，说明数据不够
+				else
+				{
+					break;
+				}
 			}
-			else if (*buffertmp == RTPOVERTCPMAGIC)
+			else if (m_recvBuffer.readChar(0) == RTPOVERTCPMAGIC)
 			{
-				if (buffertmplen < sizeof(INTERLEAVEDFRAME) + sizeof(RTPHEADER)) break;
+				if (m_recvBuffer.dataLenght() < sizeof(INTERLEAVEDFRAME)) break;
 
-				INTERLEAVEDFRAME* frame = (INTERLEAVEDFRAME*)buffertmp;
-				uint32_t datalen = ntohs(frame->rtp_len);
+				INTERLEAVEDFRAME frame;
+				if(!m_recvBuffer.readBuffer(0,&frame,sizeof(INTERLEAVEDFRAME))) break;
+
+				uint32_t datalen = ntohs(frame.rtp_len);
 				
 				if (datalen <= 0 || datalen >= 0xffff)
 				{
-					buffertmp++;
-					buffertmplen--;
+					//跳过数据
+					m_recvBuffer.setConsumeLength(1);
 					continue;
 				}
 
-				if (datalen + sizeof(INTERLEAVEDFRAME) > buffertmplen)
+				if (datalen + sizeof(INTERLEAVEDFRAME) > m_recvBuffer.dataLenght())
 				{
 					break;
 				}
@@ -307,31 +303,50 @@ private:
 						shared_ptr<STREAM_TRANS_INFO> transportinfo = *iter;
 						if(transportinfo->transportinfo.transport != TRANSPORT_INFO::TRANSPORT_RTP_TCP) continue;
 
-						if (frame->channel == transportinfo->transportinfo.rtp.t.dataChannel)
+						if (frame.channel == transportinfo->transportinfo.rtp.t.dataChannel)
 						{
-							RTPHEADER* rtpheader = (RTPHEADER*)(buffertmp + sizeof(INTERLEAVEDFRAME));
-							if (rtpheader->v != RTP_VERSION) break;
+							RTPHEADER rtpheader;
+							if (!m_recvBuffer.readBuffer(sizeof(INTERLEAVEDFRAME), &rtpheader, sizeof(RTPHEADER))) break;
+							
+							if (rtpheader.v != RTP_VERSION) break;
 
-							m_mediadatacallback(transportinfo,*rtpheader, buffertmp + sizeof(INTERLEAVEDFRAME) + sizeof(RTPHEADER), datalen - sizeof(RTPHEADER));
+							std::vector<CircleBuffer::BufferInfo> info;
+							if (!m_recvBuffer.readBuffer(sizeof(INTERLEAVEDFRAME) + sizeof(RTPHEADER), info, datalen - sizeof(RTPHEADER))) break;
+
+							m_mediadatacallback(transportinfo,rtpheader, info);
 							break;
 						}
-						else if (frame->channel == transportinfo->transportinfo.rtp.t.contorlChannel)
+						else if (frame.channel == transportinfo->transportinfo.rtp.t.contorlChannel)
 						{
-							m_contorldatacallback(transportinfo, buffertmp + sizeof(INTERLEAVEDFRAME), datalen);
+							std::vector<CircleBuffer::BufferInfo> info;
+							if (!m_recvBuffer.readBuffer(sizeof(INTERLEAVEDFRAME), info, datalen)) break;
+
+							std::string buffertmp;
+							const char* buffertmpaddr = NULL;
+
+							if (info.size() == 1) buffertmpaddr = info[0].bufferAddr;
+							else
+							{
+								for (size_t i = 0; i < info.size(); i++)
+								{
+									buffertmp += std::string(info[i].bufferAddr, info[i].bufferLen);
+								}
+								buffertmpaddr = buffertmp.c_str();
+							}
+
+							m_contorldatacallback(transportinfo, buffertmpaddr, datalen);
 							break;
 						}
 					}
 				}
-				buffertmp += datalen + sizeof(INTERLEAVEDFRAME);
-				buffertmplen -= datalen + sizeof(INTERLEAVEDFRAME);
+				m_recvBuffer.setConsumeLength(datalen + sizeof(INTERLEAVEDFRAME));
 			}
 			else if(!m_haveFindHeaderStart)
 			{
-				uint32_t ret = checkIsRTSPCommandStart(buffertmp, buffertmplen);
+				uint32_t ret = checkIsRTSPCommandStart(m_recvBuffer);
 				if (ret == 0)
 				{
-					buffertmp++;
-					buffertmplen--;
+					m_recvBuffer.setConsumeLength(1);
 					continue;
 				}
 				else if (ret == 1)
@@ -349,36 +364,41 @@ private:
 				int a = 0;
 			}
 		}
-		if (buffertmplen > 0 && buffertmp != m_recvBufferAddr)
-		{
-			memcpy(m_recvBufferAddr,buffertmp, buffertmplen);
-		}
-		m_recvBufferLen = buffertmplen;
-
-
+		
 		shared_ptr<Socket> socktmp = sock.lock();
 		if (socktmp != NULL)
 		{
-			socktmp->async_recv(m_recvBufferAddr + buffertmplen, MAXPARSERTSPBUFFERLEN - buffertmplen, Socket::ReceivedCallback(&RTSPProtocol::onSocketRecvCallback, this));
+			socktmp->async_recv(m_recvBuffer.getProductionAddr(), m_recvBuffer.getProductionLength(), Socket::ReceivedCallback(&RTSPProtocol::onSocketRecvCallback, this));
 		}
 	}
 	// return 0 not cmonnand,return 1 not sure need wait,return 2 is command
-	uint32_t checkIsRTSPCommandStart(const char* buffer, uint32_t len)
+	uint32_t checkIsRTSPCommandStart(CircleBuffer& buffer)
 	{
-		static std::string rtspcomandflag = "rtsp";
+		static std::string rtspcmdflag = "rtsp";
 
-		while (len > 0)
+		uint32_t datalen = buffer.dataLenght();
+		uint32_t readpos = 0;
+
+		char readbufferarray[5] = { 0, };
+		while (readpos < datalen)
 		{
+			char ch = buffer.readChar(readpos);
+
 			//b不是可现实字符，不是
-			if (!isCanShowChar(*buffer)) return 0;
+			if (!isCanShowChar(ch)) return 0;
 
-			if (len < rtspcomandflag.length()) break;
+			readbufferarray[0] = readbufferarray[1];
+			readbufferarray[1] = readbufferarray[2];
+			readbufferarray[2] = readbufferarray[3];
+			readbufferarray[3] = ch;
+			readbufferarray[4] = 0;
 
-			//找到标识，是命令
-			if (strncasecmp(buffer, rtspcomandflag.c_str(), rtspcomandflag.length()) == 0) return 2;
+			if (readpos >= 4)
+			{
+				if (strncasecmp(readbufferarray, rtspcmdflag.c_str(), 4) == 0) return 2;
+			}
 
-			buffer++;
-			len--;
+			readpos++;
 		}
 		return 1;
 	}
@@ -396,8 +416,7 @@ private:
 	MediaDataCallback			m_mediadatacallback;
 	ContorlDataCallback			m_contorldatacallback;
 
-	char*						m_recvBufferAddr;
-	uint32_t					m_recvBufferLen;
+	CircleBuffer				m_recvBuffer;
 
 	Mutex						m_mutex;
 	std::list<shared_ptr<SendItem> > m_sendList;

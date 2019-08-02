@@ -220,3 +220,30 @@ int main()
 }
 
 #endif
+
+#if 1
+#include "Base/Base.h"
+using namespace Public::Base;
+
+int main()
+{
+	std::string strtmp;
+
+	strtmp.reserve(100);
+
+	char* buffer = (char*)strtmp.c_str();
+	
+	for (int i = 0; i < 10; i++)
+	{
+		strtmp.append(1,'0' + i);
+
+		printf("%x %s\r\n", strtmp.c_str(), strtmp.c_str());
+	}
+
+
+	getchar();
+
+	return 0;
+}
+
+#endif

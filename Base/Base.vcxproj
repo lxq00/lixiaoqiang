@@ -24,6 +24,7 @@
     <ClInclude Include="..\Include\Base\Base64.h" />
     <ClInclude Include="..\Include\Base\BaseTemplate.h" />
     <ClInclude Include="..\Include\Base\ByteOrder.h" />
+    <ClInclude Include="..\Include\Base\CircleBuffer.h" />
     <ClInclude Include="..\Include\Base\ConsoleCommand.h" />
     <ClInclude Include="..\Include\Base\CoreDump.h" />
     <ClInclude Include="..\Include\Base\Crc.h" />
@@ -77,6 +78,7 @@
   <ItemGroup>
     <ClCompile Include="Src\Base.cpp" />
     <ClCompile Include="Src\Base64.cpp" />
+    <ClCompile Include="Src\CircleBuffer.cpp" />
     <ClCompile Include="Src\ConsoleCommand.cpp" />
     <ClCompile Include="Src\CoreDump.cpp" />
     <ClCompile Include="Src\Crc.cpp" />

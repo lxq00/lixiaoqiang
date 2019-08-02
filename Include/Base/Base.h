@@ -9,6 +9,7 @@
 #define _BASE_CLASS_H_
 
 #include "Base/Defs.h"
+#include "Base/CircleBuffer.h"
 #include "Base/OperationResult.h"
 #include "Base/AtomicCount.h"
 #include "Base/Base64.h"

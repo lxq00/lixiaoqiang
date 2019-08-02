@@ -1,7 +1,7 @@
 #include "RTSP/RTSP.h"
 using namespace Public::RTSP;
 
-#if 1
+#if 0
 
 class RTSPSessiontmp :public RTSPClientHandler
 {

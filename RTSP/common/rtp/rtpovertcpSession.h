@@ -21,11 +21,10 @@ public:
 	{
 		contorlcallback(mediainfo, buffer, bufferlen);
 	}
-	void rtpovertcpMediaCallback(const shared_ptr<STREAM_TRANS_INFO>& mediainfo, const RTPHEADER& rtpheader, const char*  buffer, uint32_t bufferlen)
+	void rtpovertcpMediaCallback(const shared_ptr<STREAM_TRANS_INFO>& mediainfo, const RTPHEADER& rtpheader, const std::vector<CircleBuffer::BufferInfo>& buffer)
 	{
-		datacallback(mediainfo, ntohl(rtpheader.ts), buffer, bufferlen, rtpheader.m);
+		//datacallback(mediainfo, ntohl(rtpheader.ts), buffer, bufferlen, rtpheader.m);
 	}
-
 	void sendContorlData(const shared_ptr<STREAM_TRANS_INFO>& transportinfo, const char*  buffer, uint32_t bufferlen)
 	{
 		sendcontorlcallback(transportinfo, buffer, bufferlen);
