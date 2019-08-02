@@ -29,7 +29,8 @@ public:
 	};
 public:
 	typedef Function1<void, const shared_ptr<RTSPCommandInfo>&> CommandCallback;
-	typedef Function4<void, uint32_t,const RTPHEADER&,const char*,uint32_t> ExternDataCallback;
+	typedef Function4<void, const shared_ptr<STREAM_TRANS_INFO>&,const RTPHEADER&,const char*,uint32_t> MediaDataCallback;
+	typedef Function3<void, const shared_ptr<STREAM_TRANS_INFO>&, const char*, uint32_t> ContorlDataCallback;
 	typedef Function0<void> DisconnectCallback;
 public:
 	RTSPProtocol(const shared_ptr<Socket>& sock, const CommandCallback& cmdcallback, const DisconnectCallback& disconnectCallback,bool server)
@@ -57,9 +58,10 @@ public:
 		SAFE_DELETEARRAY(m_recvBufferAddr);
 	}
 
-	void setRTPOverTcpCallback(const ExternDataCallback& datacallback)
+	void setRTPOverTcpCallback(const MediaDataCallback& datacallback,const ContorlDataCallback& contorlcallback)
 	{
-		m_extdatacallback = datacallback;
+		m_mediadatacallback = datacallback;
+		m_contorldatacallback = contorlcallback;
 	}
 
 	uint64_t prevalivetime() const { return m_prevalivetime; }
@@ -85,14 +87,11 @@ public:
 		Guard locker(m_mutex);
 		_addAndCheckSendData(RTSPBuffer(cmdstr));
 	}
-	void sendMedia(bool isvideo, const RTPHEADER& rtpheader,const char*  buffer, uint32_t bufferlen)
+	void sendMedia(const shared_ptr<STREAM_TRANS_INFO>& mediainfo, const RTPHEADER& rtpheader,const char*  buffer, uint32_t bufferlen)
 	{
-		if (m_tcpinterleaved == NULL) return;
-
-
 		INTERLEAVEDFRAME frame;
 		frame.magic = RTPOVERTCPMAGIC;
-		frame.channel = m_tcpinterleaved->dataChannel;
+		frame.channel = mediainfo->transportinfo.rtp.t.dataChannel;
 		frame.rtp_len = htons((uint16_t)(bufferlen + sizeof(RTPHEADER)));
 
 		RTSPBuffer rtspheaderbuffer;
@@ -105,13 +104,11 @@ public:
 		Guard locker(m_mutex);
 		_addAndCheckSendData(rtspheaderbuffer);
 	}
-	void sendContrlData(const char* buffer, uint32_t len)
+	void sendContrlData(const shared_ptr<STREAM_TRANS_INFO>& mediainfo, const char* buffer, uint32_t len)
 	{
-		if (m_tcpinterleaved == NULL) return;
-
 		INTERLEAVEDFRAME frame;
 		frame.magic = RTPOVERTCPMAGIC;
-		frame.channel = m_tcpinterleaved->contrlChannel;
+		frame.channel = mediainfo->transportinfo.rtp.t.contorlChannel;
 		frame.rtp_len = htons(len);
 
 		RTSPBuffer contorldata = std::string((char*)&frame, sizeof(frame)) + std::string(buffer, len);
@@ -120,11 +117,9 @@ public:
 		Guard locker(m_mutex);
 		_addAndCheckSendData(contorldata);
 	}
-	void setTCPInterleavedChannel(int datachannel,int contorl)
+	void setMediaTransportInfo(const shared_ptr<MEDIA_INFO>& _rtspmedia)
 	{
-		m_tcpinterleaved = make_shared<TCPInterleaved>();
-		m_tcpinterleaved->dataChannel = datachannel;
-		m_tcpinterleaved->contrlChannel = contorl;
+		m_rtspmedia = _rtspmedia;
 	}
 private:
 	void _sendAndCheckBuffer(const char* buffer = NULL, int len = 0)
@@ -291,8 +286,8 @@ private:
 
 				INTERLEAVEDFRAME* frame = (INTERLEAVEDFRAME*)buffertmp;
 				uint32_t datalen = ntohs(frame->rtp_len);
-				RTPHEADER* rtpheader = (RTPHEADER*)(buffertmp + sizeof(INTERLEAVEDFRAME));
-				if (datalen <= sizeof(RTPHEADER) || datalen >= 0xffff || rtpheader->v != RTP_VERSION)
+				
+				if (datalen <= 0 || datalen >= 0xffff)
 				{
 					buffertmp++;
 					buffertmplen--;
@@ -303,9 +298,28 @@ private:
 				{
 					break;
 				}
-				if(m_tcpinterleaved && (frame->channel == m_tcpinterleaved->dataChannel || frame->channel == m_tcpinterleaved->contrlChannel))
+
+				if (m_rtspmedia)
 				{
-					m_extdatacallback(frame->channel, *rtpheader, buffertmp + sizeof(INTERLEAVEDFRAME) + sizeof(RTPHEADER), datalen - sizeof(RTPHEADER));
+					for (std::list<shared_ptr<STREAM_TRANS_INFO> >::iterator iter = m_rtspmedia->infos.begin(); iter != m_rtspmedia->infos.end(); iter++)
+					{
+						shared_ptr<STREAM_TRANS_INFO> transportinfo = *iter;
+						if(transportinfo->transportinfo.transport != TRANSPORT_INFO::TRANSPORT_RTP_TCP) continue;
+
+						if (frame->channel == transportinfo->transportinfo.rtp.t.dataChannel)
+						{
+							RTPHEADER* rtpheader = (RTPHEADER*)(buffertmp + sizeof(INTERLEAVEDFRAME));
+							if (rtpheader->v != RTP_VERSION) break;
+
+							m_mediadatacallback(transportinfo,*rtpheader, buffertmp + sizeof(INTERLEAVEDFRAME) + sizeof(RTPHEADER), datalen - sizeof(RTPHEADER));
+							break;
+						}
+						else if (frame->channel == transportinfo->transportinfo.rtp.t.contorlChannel)
+						{
+							m_contorldatacallback(transportinfo, buffertmp + sizeof(INTERLEAVEDFRAME), datalen);
+							break;
+						}
+					}
 				}
 				buffertmp += datalen + sizeof(INTERLEAVEDFRAME);
 				buffertmplen -= datalen + sizeof(INTERLEAVEDFRAME);
@@ -376,8 +390,10 @@ public:
 	shared_ptr<Socket>			m_sock;
 private:
 	CommandCallback				m_cmdcallback;
-	ExternDataCallback			m_extdatacallback;
 	DisconnectCallback			m_disconnect;
+
+	MediaDataCallback			m_mediadatacallback;
+	ContorlDataCallback			m_contorldatacallback;
 
 	char*						m_recvBufferAddr;
 	uint32_t					m_recvBufferLen;
@@ -392,7 +408,7 @@ private:
 	shared_ptr<RTSPCommandInfo>	m_cmdinfo;
 	uint32_t					m_bodylen;
 	
-	shared_ptr<TCPInterleaved>  m_tcpinterleaved;
+	shared_ptr<MEDIA_INFO>		m_rtspmedia;
 };
 
 

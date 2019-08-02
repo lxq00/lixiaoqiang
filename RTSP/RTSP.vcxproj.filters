@@ -39,15 +39,6 @@
     <ClInclude Include="common\rtspProtocol.h">
       <Filter>源文件\common</Filter>
     </ClInclude>
-    <ClInclude Include="common\rtp.h">
-      <Filter>源文件\common</Filter>
-    </ClInclude>
-    <ClInclude Include="common\rtpovertcp.h">
-      <Filter>源文件\common</Filter>
-    </ClInclude>
-    <ClInclude Include="common\rtpoverudp.h">
-      <Filter>源文件\common</Filter>
-    </ClInclude>
     <ClInclude Include="..\Include\RTSP\RTSP.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -79,6 +70,15 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="common\rtpPortAlloc.h">
+      <Filter>源文件\common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\rtpSession.h">
+      <Filter>源文件\common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\rtpovertcpSession.h">
+      <Filter>源文件\common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\rtpoverudpSession.h">
       <Filter>源文件\common</Filter>
     </ClInclude>
   </ItemGroup>

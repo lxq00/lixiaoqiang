@@ -1,5 +1,4 @@
 #pragma once
-#include "rtp.h"
 #include "RTSPProtocol.h"
 #include "RTSP/RTSPStructs.h"
 
@@ -29,18 +28,16 @@ public:
 		while (allocktimes < udpstopport - udpstartport)
 		{
 			if (usedportmap.find(udpport) == usedportmap.end() &&
-				usedportmap.find(udpport + 1) == usedportmap.end() &&
-				usedportmap.find(udpport + 2) == usedportmap.end() &&
-				usedportmap.find(udpport + 3) == usedportmap.end())
+				usedportmap.find(udpport + 1) == usedportmap.end() )
 			{
-				nowudpport = udpport + 4;
+				nowudpport = udpport + 2;
 
 				return udpport;
 			}
 
 			udpport++;
 			allocktimes++;
-			if (udpport > udpstopport - 4) udpport = udpstartport;
+			if (udpport > udpstopport - 2) udpport = udpstartport;
 		}
 
 		return udpstartport;

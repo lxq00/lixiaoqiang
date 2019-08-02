@@ -1,6 +1,6 @@
 #include "Network/Network.h"
 using namespace Public::Network;
-#if 1
+#if 0
 
 class NetworkServerInfo
 {

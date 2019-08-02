@@ -1,7 +1,7 @@
 #include "RTSP/RTSP.h"
 using namespace Public::RTSP;
 
-#if 0
+#if 1
 
 class RTSPSessiontmp :public RTSPClientHandler
 {
@@ -10,11 +10,12 @@ class RTSPSessiontmp :public RTSPClientHandler
 		int a = 0;
 	}
 
-	virtual void onDescribeResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, const MEDIA_INFO& info) 
+	virtual void onDescribeResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, const shared_ptr<MEDIA_INFO>& info) 
 	{
+		info->cleanExStreamInfo();
 		int a = 0;
 	}
-	virtual void onSetupResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, const MEDIA_INFO& info, const TRANSPORT_INFO& transport)
+	virtual void onSetupResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, const shared_ptr<STREAM_TRANS_INFO>& transport)
 	{
 		int a = 0;
 	}
@@ -44,13 +45,17 @@ class RTSPSessiontmp :public RTSPClientHandler
 	{
 		int a = 0;
 	}
-	virtual void onRTPPackageCallback(bool isvideo, uint32_t timestmap, const char*  buffer, uint32_t bufferlen, bool mark)
+	virtual void onMediaPackageCallback(const shared_ptr<STREAM_TRANS_INFO> mediainfo, uint32_t timestmap, const char*  buffer, uint32_t bufferlen, bool mark)
+	{
+		int a = 0;
+	}
+	virtual void onContorlPackageCallback(const shared_ptr<STREAM_TRANS_INFO> mediainfo, const char*  buffer, uint32_t bufferlen) 
 	{
 		int a = 0;
 	}
 };
 
-#define MAXTESTRTSPCLIENT		50
+#define MAXTESTRTSPCLIENT		1
 
 struct RTSPClientInfo
 {
@@ -61,7 +66,7 @@ struct RTSPClientInfo
 string rtspaddr[] = {
 	//"rtsp://admin:ms123456@192.168.7.104:554/main",
 	//"rtsp://admin:ms123456@192.168.3.135:554/main",
-	//"rtsp://192.168.9.230:554/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif",
+	"rtsp://192.168.9.230:554/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif",
 	//"rtsp://admin:support2019@192.168.9.205:554/Streaming/Channels/102",
 	//"rtsp://admin:ms123456@192.168.10.230:554/main",
 	//"rtsp://admin:ms123456@192.168.11.230:554/main",
@@ -70,7 +75,7 @@ string rtspaddr[] = {
 	//"rtsp://admin:ms123456@192.168.2.172:554/main",
 	//"rtsp://admin:ms123456@192.168.4.105:554/main",
 	//"rtsp://admin:ms123456@192.168.10.236:554/main",
-	"rtsp://192.168.2.16:5554/111",
+	//"rtsp://192.168.2.16:5554/111",
 };
 
 int main()

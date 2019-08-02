@@ -12,10 +12,11 @@ bool parseSDPAttribute_range(char const* sdpLine, std::string& pRange);
 bool parseSDPAttribute_source_filter(char const* sdpLine);
 bool parseSDPAttribute_rtpmap(char const* sdpLine, std::string& pCodecName, int &nPayLoad, int &nTimestampFrequency/*, int &nNumChannels*/);
 bool parseSDPAttribute_framerate(char const* sdpLine, double &fVideoFPS);
-bool parseSDPAttribute_fmtp(char const* sdpLine, std::string& pSpsBufer);
+bool parseSDPAttribute_fmtp(char const* sdpLine, int& profile_level_id, std::string& pSpsBufer);
 bool parseSDPAttribute_x_dimensions(char const* sdpLine, int& nWidth, int& nHeight);
 bool parseSDPAttribute_rangetime(char const* sdpLine, uint32_t& starttime, uint32_t& stoptime);
-
+bool parseSDPMediaheader(const char* sdpLine, std::string& header);
+bool parseSDPAttribute_ssrc(char const* sdpLine, std::string& ssrc);
 //...........................................static.............................................
 
 static char* lookupPayloadFormat(unsigned char rtpPayloadType, unsigned& rtpTimestampFrequency, unsigned& numChannels);
@@ -23,32 +24,44 @@ static unsigned guessRTPTimestampFrequency(char const* mediumName, char const* c
 static char* parseCLine(char const* sdpLine);
 static bool parseRangeAttribute(char const* sdpLine, std::string& pRange);
 
-bool ParseTrackID(char *sdp, MEDIA_INFO *sMediaInfo);
-
-
 std::string rtsp_header_build_sdp(const MEDIA_INFO& info)
 {
 	std::string sdpstr;
 
 	sdpstr += "v=0\r\n";
-	sdpstr += "o=- " + Value(info.ssrc).readString() + " " + Value(info.ssrc).readString() + " IN IP4 0.0.0.0\r\n";
+	sdpstr += "o=- " + info.ssrc + " " + info.ssrc + " IN IP4 0.0.0.0\r\n";
 	sdpstr += "t=" + Value(info.startRange).readString() + " " + Value(info.stopRange).readString() + "\r\n";
 	sdpstr += "c=IN IP4 0.0.0.0\r\n";
 	sdpstr += "a=control:*\r\n";
 
-	if (info.bHasVideo)
+	for (std::list<shared_ptr<STREAM_TRANS_INFO> >::const_iterator iter = info.infos.begin(); iter != info.infos.end(); iter++)
 	{
-		sdpstr += "m=video 0 RTP/AVP "+Value(info.stStreamVideo.nPayLoad).readString()+ "\r\n";
-		sdpstr += "a=control:"+info.stStreamVideo.szTrackID+"\r\n";
-		sdpstr += "a=rtpmap:" + Value(info.stStreamVideo.nPayLoad).readString() + " " + info.stStreamVideo.szCodec + "/" + Value(info.stStreamVideo.nSampRate).readString() + "\r\n";
+		sdpstr += "m="+(*iter)->streaminfo.szMediaName+" 0 RTP/AVP " + Value((*iter)->streaminfo.nPayLoad).readString() + "\r\n";
+		sdpstr += "a=control:" + (*iter)->streaminfo.szTrackID + "\r\n";
+		sdpstr += "a=rtpmap:" + Value((*iter)->streaminfo.nPayLoad).readString() + " " + (*iter)->streaminfo.szCodec + "/" + Value((*iter)->streaminfo.nSampRate).readString() + "\r\n";
 		sdpstr += "a=recvonly\r\n";
-	}
-	if (info.bHasAudio)
-	{
-		sdpstr += "m=audio 0 RTP/AVP " + Value(info.stStreamAudio.nPayLoad).readString() + "\r\n";
-		sdpstr += "a=control:" + info.stStreamAudio.szTrackID + "\r\n";
-		sdpstr += "a=rtpmap:" + Value(info.stStreamAudio.nPayLoad).readString() + " " + info.stStreamAudio.szCodec + "/" + Value(info.stStreamAudio.nSampRate).readString() + "\r\n";
-		sdpstr += "a=recvonly\r\n";
+
+		if (strcasecmp((*iter)->streaminfo.szMediaName.c_str(),"video") == 0)
+		{
+			if ((*iter)->streaminfo.Media_header.length() > 0)
+			{
+				sdpstr += "a=Media_header:" + (*iter)->streaminfo.Media_header + "\r\n";
+			}
+
+			if ((*iter)->streaminfo.nBandwidth != 0)
+			{
+				sdpstr += "b=AS:" + Value((*iter)->streaminfo.nBandwidth).readString() + "\r\n";
+			}
+			if ((*iter)->streaminfo.nWidth != 0 || (*iter)->streaminfo.nHight != 0)
+			{
+				sdpstr += "a=x-dimensions:" + Value((*iter)->streaminfo.nWidth).readString() + "," + Value((*iter)->streaminfo.nHight).readString() + "\r\n";
+			}
+			if ((*iter)->streaminfo.szSpsPps.length() > 0)
+			{
+				sdpstr += "a=fmtp:" + Value((*iter)->streaminfo.nPayLoad).readString() + " profile-level-id=" + Value((*iter)->streaminfo.profile_level_id).readString() + 
+					"; packetization-mode=1; sprop-parameter-sets=" + (*iter)->streaminfo.szSpsPps + "\r\n";
+			}
+		}
 	}
 	sdpstr += "a=appversion:1.0\r\n";
 
@@ -82,6 +95,9 @@ bool rtsp_header_parse_sdp(char const* sdpDescription, MEDIA_INFO* pMediaInfo)
 		if (sdpLine == NULL)
 			break; // there are no m= lines at all
 
+		if (parseSDPAttribute_ssrc(sdpLine, pMediaInfo->ssrc))
+			continue;
+
 		// Check for various special SDP lines that we understand:
 		if (parseSDPLine_s(sdpLine))
 			continue;
@@ -110,20 +126,20 @@ bool rtsp_header_parse_sdp(char const* sdpDescription, MEDIA_INFO* pMediaInfo)
 		if (0 == strncasecmp(sdpLine, "m=video", 7))
 		{
 			//video stream
-			pStreanInfo = &(pMediaInfo->stStreamVideo);
-			pMediaInfo->bHasVideo = true;
+			shared_ptr<STREAM_TRANS_INFO> info = pMediaInfo->addStreamInfo("video");
+			pStreanInfo = &info->streaminfo;
 		}
 		else if (0 == strncasecmp(sdpLine, "m=audio", 7))
 		{
 			//audio stream
-			pStreanInfo = &(pMediaInfo->stStreamAudio);
-			pMediaInfo->bHasAudio = true;
+			shared_ptr<STREAM_TRANS_INFO> info = pMediaInfo->addStreamInfo("audio");
+			pStreanInfo = &info->streaminfo;
 		}
 		else if (0 == strncasecmp(sdpLine, "m=application", 13))
 		{
-			/*pStreanInfo = &(pMediaInfo->stStreamAudio);
-			pMediaInfo->bHasAudio = true;*/
-			//break;
+			//extern stream
+			shared_ptr<STREAM_TRANS_INFO> info = pMediaInfo->addStreamInfo("application");
+			pStreanInfo = &info->streaminfo;
 		}
 
 		unsigned short fClientPortNum;
@@ -170,6 +186,7 @@ bool rtsp_header_parse_sdp(char const* sdpDescription, MEDIA_INFO* pMediaInfo)
 
 			if (!pStreanInfo)
 				continue;
+
 			// Check for various special SDP lines that we understand:
 			if (parseSDPLine_c(sdpLine))
 				continue;
@@ -177,13 +194,15 @@ bool rtsp_header_parse_sdp(char const* sdpDescription, MEDIA_INFO* pMediaInfo)
 				continue;
 			if (parseSDPAttribute_rtpmap(sdpLine, pStreanInfo->szCodec, pStreanInfo->nPayLoad, pStreanInfo->nSampRate/*, pStreanInfo->nChannles*/))
 				continue;
-			/*if (parseSDPAttribute_framerate(sdpLine, pStreanInfo->fFramRate))
+			if (parseSDPAttribute_framerate(sdpLine, pStreanInfo->fFramRate))
 				continue;
-			if (parseSDPAttribute_x_dimensions(sdpLine, pMediaInfo->stStreamVideo.nWidth, pMediaInfo->stStreamVideo.nHight))
+			if (parseSDPAttribute_x_dimensions(sdpLine, pStreanInfo->nWidth, pStreanInfo->nHight))
 				continue;
-			if (parseSDPAttribute_fmtp(sdpLine, pStreanInfo->szSpsPps))
-				continue;*/
+			if (parseSDPAttribute_fmtp(sdpLine,pStreanInfo->profile_level_id ,pStreanInfo->szSpsPps))
+				continue;
 			if (parseSDPAttribute_control(sdpLine, pStreanInfo->szTrackID))
+				continue;
+			if(parseSDPMediaheader(sdpLine,pStreanInfo->Media_header))
 				continue;
 
 			// 			if (parseSDPAttribute_source_filter(sdpLine))
@@ -306,6 +325,21 @@ bool parseSDPAttribute_framerate(char const* sdpLine, double &fVideoFPS)
 	return parseSuccess;
 }
 
+bool parseSDPMediaheader(const char* sdpLine, std::string& header)
+{
+	bool parseSuccess = false;
+	char* controlPath = strDupSize(sdpLine); // ensures we have enough space
+	if (sscanf(sdpLine, "a=Media_header: %s", controlPath) == 1)
+	{
+		header = controlPath;
+
+		parseSuccess = true;
+	}
+	delete[] controlPath;
+
+	return parseSuccess;
+}
+
 bool parseSDPAttribute_control(char const* sdpLine, std::string& pcontrol)
 {
 	bool parseSuccess = false;
@@ -331,6 +365,15 @@ bool parseSDPAttribute_range(char const* sdpLine, std::string& pRange)
 	}
 
 	return parseSuccess;
+}
+bool parseSDPAttribute_ssrc(char const* sdpLine, std::string& ssrc)
+{
+	if (strncmp(sdpLine, "o=", 2) != 0) return false;
+
+	std::vector<std::string> valarray = String::split(sdpLine, " ");
+	if (valarray.size() >= 2) ssrc = valarray[1];
+
+	return true;
 }
 
 bool parseSDPAttribute_rangetime(char const* sdpLine, uint32_t& starttime, uint32_t& stoptime)
@@ -443,7 +486,7 @@ bool parseSDPAttribute_x_dimensions(char const* sdpLine, int& nWidth, int& nHeig
 	return parseSuccess;
 }
 
-bool parseSDPAttribute_fmtp(char const* sdpLine, std::string& pSpsBufer)
+bool parseSDPAttribute_fmtp(char const* sdpLine,int& profile_level_id, std::string& pSpsBufer)
 {
 	// Check for a "a=fmtp:" line:
 	// TEMP: We check only for a handful of expected parameter names #####
@@ -504,7 +547,7 @@ bool parseSDPAttribute_fmtp(char const* sdpLine, std::string& pSpsBufer)
 			else if (sscanf(line, " octet-align = %u", &u) == 1)
 			{
 			}
-			else if (sscanf(line, " profile-level-id = %x", &u) == 1)
+			else if (sscanf(line, " profile-level-id = %x", &profile_level_id) == 1)
 			{
 				// Note that the "profile-level-id" parameter is assumed to be hexadecimal
 			}
@@ -581,44 +624,4 @@ bool parseSDPAttribute_fmtp(char const* sdpLine, std::string& pSpsBufer)
 	} while (0);
 
 	return false;
-}
-
-bool ParseTrackID(char *sdp, MEDIA_INFO *sMediaInfo)
-{
-	string strInfo(sdp);
-	int nVedioPose = strInfo.find("m=video");
-
-	if ((int)std::string::npos == nVedioPose)
-		return false;
-	int beginPos_tarck_video = strInfo.find("a=control:", nVedioPose + 1);
-	if ((int)std::string::npos == beginPos_tarck_video)
-		return false;
-	int endPos_tarck_video = strInfo.find('\r', beginPos_tarck_video + 1);
-	if ((int)std::string::npos == endPos_tarck_video) 
-		endPos_tarck_video = strInfo.find('\n', beginPos_tarck_video + 1);
-	if ((int)std::string::npos == endPos_tarck_video) 
-		return false;
-	// /trackVedio
-	sMediaInfo->stStreamVideo.szTrackID = std::string(sdp + beginPos_tarck_video + strlen("a=control:"), endPos_tarck_video - beginPos_tarck_video - strlen("a=control:"));
-
-	int nAudioPose =  strInfo.find("m=audio");
-	if ((int)std::string::npos == nAudioPose)
-	{
-		
-	}
-	else
-	{
-
-		int beginPos_tarck_audio = strInfo.find("a=control:", nAudioPose + 1);
-		if ((int)std::string::npos == beginPos_tarck_audio)
-			return false;
-		int endPos_tarck_audio = strInfo.find('\r', beginPos_tarck_audio + 1);
-		if ((int)std::string::npos == endPos_tarck_audio) 
-			endPos_tarck_audio = strInfo.find('\n', beginPos_tarck_audio + 1);
-		if ((int)std::string::npos == endPos_tarck_audio) 
-			return false;
-		sMediaInfo->stStreamAudio.szTrackID = std::string(sdp + beginPos_tarck_audio + strlen("a=control:"), endPos_tarck_audio - beginPos_tarck_audio - strlen("a=control:"));
-	}
-
-	return true;
 }

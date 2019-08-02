@@ -177,3 +177,46 @@ int main()
 	return 0;
 }
 #endif
+
+#if 0
+#include "Base/Base.h"
+
+using namespace Public::Base;
+
+#define MAXBUFFERLEN		1024
+
+int main()
+{
+
+	FILE* fd = fopen("test.md","wb+");
+
+	char* buffer = new char [MAXBUFFERLEN];
+
+	uint64_t startime = Time::getCurrentMilliSecond();
+	uint64_t writetotlsize = 0;
+	uint64_t	prevtime = startime;
+	while (1)
+	{
+		size_t writelen = fwrite(buffer, 1, MAXBUFFERLEN, fd);
+		if (writelen <= 0) break;
+
+		fflush(fd);
+
+		writetotlsize += MAXBUFFERLEN;
+
+		uint64_t nowtime = Time::getCurrentMilliSecond();
+
+		if (nowtime - prevtime >= 1000)
+		{
+			logdebug("write speed %llu",writetotlsize * 1000 / (nowtime - startime));
+
+			prevtime = nowtime;
+		}
+	}
+
+	fclose(fd);
+
+	getchar();
+}
+
+#endif

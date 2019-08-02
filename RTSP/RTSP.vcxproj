@@ -113,9 +113,9 @@
     <ClInclude Include="..\Include\RTSP\RTSPUrl.h" />
     <ClCompile Include="client\RTSPClient.cpp" />
     <ClInclude Include="common\rtcp.h" />
-    <ClInclude Include="common\rtp.h" />
-    <ClInclude Include="common\rtpovertcp.h" />
-    <ClInclude Include="common\rtpoverudp.h" />
+    <ClInclude Include="common\rtpSession.h" />
+    <ClInclude Include="common\rtpoverudpSession.h" />
+    <ClInclude Include="common\rtpovertcpSession.h" />
     <ClInclude Include="common\rtpPortAlloc.h" />
     <ClInclude Include="common\rtspSession.h" />
     <ClInclude Include="common\wwwAuthenticate.h" />

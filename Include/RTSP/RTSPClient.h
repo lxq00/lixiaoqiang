@@ -64,7 +64,8 @@ public:
 	//同步命令,同步返回
 	bool sendTeradownRequest(uint32_t timeout);
 
-	bool sendRTPPackage(bool isvideo, uint32_t timestmap, const char*  buffer, uint32_t bufferlen, bool mark);
+	bool sendMediaPackage(const shared_ptr<STREAM_TRANS_INFO> mediainfo, uint32_t timestmap, const char*  buffer, uint32_t bufferlen, bool mark);
+	bool sendContorlPackage(const shared_ptr<STREAM_TRANS_INFO> mediainfo, const char*  buffer, uint32_t bufferlen);
 private:
 	RTSPClientInternal *internal;
 };
@@ -77,8 +78,8 @@ public:
 
 	virtual void onConnectResponse(bool success, const std::string& errmsg) {}
 
-	virtual void onDescribeResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, const MEDIA_INFO& info) {}
-	virtual void onSetupResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, const MEDIA_INFO& info,const TRANSPORT_INFO& transport) {}
+	virtual void onDescribeResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, const shared_ptr<MEDIA_INFO>& info) { info->cleanExStreamInfo(); }
+	virtual void onSetupResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, const shared_ptr<STREAM_TRANS_INFO>& transport) {}
 	virtual void onPlayResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo) {}
 	virtual void onPauseResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo) {}
 	virtual void onGetparameterResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, const std::string& content) {}
@@ -87,7 +88,9 @@ public:
 	virtual void onErrorResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo,int statuscode,const std::string& errmsg) {}
 
 	virtual void onClose(const std::string& errmsg) = 0;
-	virtual void onRTPPackageCallback(bool isvideo, uint32_t timestmap, const char*  buffer, uint32_t bufferlen, bool mark) = 0;
+
+	virtual void onMediaPackageCallback(const shared_ptr<STREAM_TRANS_INFO> mediainfo, uint32_t timestmap, const char*  buffer, uint32_t bufferlen, bool mark) {};
+	virtual void onContorlPackageCallback(const shared_ptr<STREAM_TRANS_INFO> mediainfo, const char*  buffer, uint32_t bufferlen) {}
 };
 
 class RTSP_API RTSPClientManager

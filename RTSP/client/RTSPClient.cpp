@@ -21,18 +21,14 @@ struct RTSPClient::RTSPClientInternal:public RTSPSession
 	Mutex						mutex;
 	std::list<shared_ptr<CommandInfo> >	sendcmdlist;
 
+	uint32_t				tcpinterval;
 	RTSPClientInternal(const shared_ptr<RTSPClientHandler>& _handler, const AllockUdpPortCallback& allockport, const shared_ptr<IOWorker>& worker, const RTSPUrl& url, const std::string& _useragent)
-		:handler(_handler), socketconnected(false), connecttimeout(10000)
+		:handler(_handler), socketconnected(false), connecttimeout(10000), tcpinterval(0)
 	{
 		ioworker = worker;
 		rtspurl = url;
 		useragent = _useragent;
 		allockportcallback = allockport;
-
-		rtspmedia.videoTransport.transport = TRANSPORT_INFO::TRANSPORT_RTP_TCP;
-		rtspmedia.videoTransport.rtp.t.dataChannel = 0;
-		rtspmedia.videoTransport.rtp.t.contorlChannel = rtspmedia.videoTransport.rtp.t.dataChannel + 1;
-		rtspmedia.audioTransport = rtspmedia.videoTransport;
 
 		prevheartbeattime = Time::getCurrentMilliSecond();
 	}
@@ -104,16 +100,22 @@ private:
 			}
 		}
 
-		if(socketconnected && sessionstr.length() > 0)
+		if(socketconnected && sessionstr.length() > 0 && rtplist.size() > 0)
 		{
 			uint64_t nowtime = Time::getCurrentMilliSecond();
 			if (nowtime > prevheartbeattime && nowtime - prevheartbeattime > 10000)
 			{
-				if (rtspmedia.videoTransport.transport == TRANSPORT_INFO::TRANSPORT_RTP_TCP)
+				std::map<STREAM_TRANS_INFO*, shared_ptr<RTPSession> > rtplisttmp = rtplist;
+
+				bool havesendhearbeat = false;
+
+				for (std::map<STREAM_TRANS_INFO*, shared_ptr<RTPSession> >::iterator iter = rtplisttmp.begin(); iter != rtplisttmp.end(); iter++)
 				{
-					if (rtp) rtp->onPoolHeartbeat();
+					shared_ptr<RTPSession> rtpsession = iter->second;
+					if (rtpsession && rtpsession->onPoolHeartbeat()) havesendhearbeat = true;
 				}
-				else
+
+				if (!havesendhearbeat)
 				{
 					sendOptionsRequest();
 				}
@@ -144,6 +146,65 @@ private:
 		sendOptionsRequest();
 	}
 
+	void checkRecvSetupResponse(const shared_ptr<CommandInfo>& cmdinfo, const std::string& tranportstr)
+	{
+		TRANSPORT_INFO transport;
+		rtsp_header_parse_transport(tranportstr.c_str(), &transport);
+
+		if (transport.transport == TRANSPORT_INFO::TRANSPORT_NONE) return;
+
+		shared_ptr<STREAM_TRANS_INFO> transportinfo;
+
+		
+		for (std::list<shared_ptr<STREAM_TRANS_INFO> >::const_iterator iter = rtspmedia->infos.begin(); iter != rtspmedia->infos.end(); iter++)
+		{
+			if (String::indexOfByCase(cmdinfo->cmd->url, (*iter)->streaminfo.szTrackID) != -1)
+			{
+				transportinfo = *iter;
+
+				transportinfo->transportinfo = transport;
+
+				break;
+			}
+		}
+		
+		if(transportinfo)
+			handler->onSetupResponse(cmdinfo->cmd, transportinfo);
+	}
+	shared_ptr<STREAM_TRANS_INFO> checkAndBuildNotSetupTransport()
+	{
+		shared_ptr<STREAM_TRANS_INFO> transportinfo;
+
+		for (std::list<shared_ptr<STREAM_TRANS_INFO> >::const_iterator iter = rtspmedia->infos.begin(); iter != rtspmedia->infos.end(); iter++)
+		{
+			if ((*iter)->transportinfo.transport == TRANSPORT_INFO::TRANSPORT_NONE)
+			{
+				transportinfo = *iter;
+				break;
+			}
+		}
+
+		if (!transportinfo) return shared_ptr<STREAM_TRANS_INFO>();
+
+		if (transportbytcp)
+		{
+			transportinfo->transportinfo.transport = TRANSPORT_INFO::TRANSPORT_RTP_TCP;
+			transportinfo->transportinfo.rtp.t.dataChannel = tcpinterval;
+			transportinfo->transportinfo.rtp.t.contorlChannel = tcpinterval + 1;
+
+			tcpinterval += 2;
+		}
+		else
+		{
+			uint32_t startport = allockportcallback();
+
+			transportinfo->transportinfo.transport = TRANSPORT_INFO::TRANSPORT_RTP_UDP;
+			transportinfo->transportinfo.rtp.u.client_port1 = startport;
+			transportinfo->transportinfo.rtp.u.client_port2 = startport + 1;
+		}
+
+		return transportinfo;
+	}
 	void rtspCommandCallback(const shared_ptr<RTSPCommandInfo>& cmdheader)
 	{
 		if (strcasecmp(cmdheader->verinfo.protocol.c_str(), "rtsp") != 0 || cmdheader->verinfo.version != "1.0" || cmdheader->method.length() != 0)
@@ -188,17 +249,24 @@ private:
 		else if (strcasecmp(cmdinfo->cmd->method.c_str(), "OPTIONS") == 0)
 		{
 			//没建立会话
-			if(sessionstr.length() == 0)
+			if (rtspmedia == NULL)
+			{
 				sendDescribeRequest();
+			}	
 		}
 		else if (strcasecmp(cmdinfo->cmd->method.c_str(), "DESCRIBE") == 0)
 		{
-			rtsp_header_parse_sdp(cmdheader->body.c_str(), &rtspmedia.media);
+			rtspmedia = make_shared<MEDIA_INFO>();
 
-			if (cmdinfo->waitsem == NULL)
-				handler->onDescribeResponse(cmdinfo->cmd, rtspmedia.media);
+			rtsp_header_parse_sdp(cmdheader->body.c_str(), rtspmedia.get());
 
-			sendSetupRequest();
+			handler->onDescribeResponse(cmdinfo->cmd, rtspmedia);
+
+			shared_ptr<STREAM_TRANS_INFO> transportinfo = checkAndBuildNotSetupTransport();
+			if (transportinfo)
+			{
+				sendSetupRequest(transportinfo);
+			}
 		}
 		else if (strcasecmp(cmdinfo->cmd->method.c_str(), "SETUP") == 0)
 		{
@@ -211,53 +279,21 @@ private:
 			}
 			std::string tranportstr = cmdheader->header("Transport").readString();
 
-			TRANSPORT_INFO transport;
-			rtsp_header_parse_transport(tranportstr.c_str(), &transport);
+			//检查接收回来的setup回复
+			checkRecvSetupResponse(cmdinfo, tranportstr);
 
-			if (handler) handler->onSetupResponse(cmdinfo->cmd, rtspmedia.media, transport);
-
-			//build socket
+			//发送失败说明setup已经发送全部
+			shared_ptr<STREAM_TRANS_INFO> transportinfo = checkAndBuildNotSetupTransport();
+			if (transportinfo)
 			{
-				if (transport.transport == TRANSPORT_INFO::TRANSPORT_RTP_TCP)
-				{
-					rtspmedia.videoTransport = rtspmedia.audioTransport = transport;
-
-					protocol->setTCPInterleavedChannel(rtspmedia.videoTransport.rtp.t.dataChannel, rtspmedia.audioTransport.rtp.t.contorlChannel);
-
-					//rtpOverTcp(bool _isserver, const shared_ptr<RTSPProtocol>& _protocol, const RTSP_MEDIA_INFO& _rtspmedia, const RTPDataCallback& _datacallback)
-					rtp = make_shared<rtpOverTcp>(false, protocol, rtspmedia, rtp::RTPDataCallback(&RTSPClientInternal::rtpDataCallback, this));
-				}
-				else if (rtspmedia.media.bHasVideo && String::indexOfByCase(cmdinfo->cmd->url, rtspmedia.media.stStreamVideo.szTrackID) != -1)
-				{
-					rtspmedia.videoTransport = transport;
-				}
-				else if (rtspmedia.media.bHasAudio && String::indexOfByCase(cmdinfo->cmd->url, rtspmedia.media.stStreamAudio.szTrackID) != -1)
-				{
-					rtspmedia.audioTransport = transport;
-				}
-			}
-
-			bool haveSetupFinsh = true;
-			if ((transport.transport == TRANSPORT_INFO::TRANSPORT_RTP_UDP && rtspmedia.media.bHasVideo && rtspmedia.videoTransport.rtp.u.server_port1 == 0) ||
-				(transport.transport == TRANSPORT_INFO::TRANSPORT_RTP_UDP && rtspmedia.media.bHasAudio && rtspmedia.audioTransport.rtp.u.server_port1 == 0))
-			{
-				haveSetupFinsh = false;
-			}
-
-			if (haveSetupFinsh)
-			{
-				if (transport.transport == TRANSPORT_INFO::TRANSPORT_RTP_UDP)
-				{
-					//rtpOverUdp(bool _isserver, const shared_ptr<IOWorker>& work,const std::string& _dstaddr,const RTSP_MEDIA_INFO& _rtspmedia, const RTPDataCallback& _datacallback)
-					rtp = make_shared<rtpOverUdp>(false, ioworker, rtspurl.serverip, rtspmedia, rtp::RTPDataCallback(&RTSPClientInternal::rtpDataCallback, this));
-
-				}
-				
-				sendPlayRequest(RANGE_INFO());
+				sendSetupRequest(transportinfo);
 			}
 			else
 			{
-				sendSetupRequest();
+				prevheartbeattime = Time::getCurrentMilliSecond();
+				buildRtpSession(false);				
+
+				sendPlayRequest(RANGE_INFO());
 			}
 		}
 		else if (strcasecmp(cmdinfo->cmd->method.c_str(), "PLAY") == 0)
@@ -287,9 +323,13 @@ private:
 			cmdinfo->waitsem->post();
 		}
 	}
-	void rtpDataCallback(bool isvideo, uint32_t timestmap, const char* buffer, uint32_t len, bool mark)
+	void onContorlDataCallback(const shared_ptr<STREAM_TRANS_INFO>& transinfo, const char* buffer, uint32_t len)
 	{
-		if (handler) handler->onRTPPackageCallback(isvideo, timestmap, buffer ,len , mark);
+		handler->onContorlPackageCallback(transinfo, buffer, len);
+	}
+	void onMediaDataCallback(const shared_ptr<STREAM_TRANS_INFO>& transinfo, uint32_t timestmap, const char* buffer, uint32_t len, bool mark)
+	{
+		handler->onMediaPackageCallback(transinfo, timestmap, buffer, len, mark);
 	}
 	void socketDisconnectCallback()
 	{
@@ -309,26 +349,13 @@ RTSPClient::~RTSPClient()
 }
 bool RTSPClient::initRTPOverTcpType()
 {
-	internal->rtspmedia.videoTransport.transport = TRANSPORT_INFO::TRANSPORT_RTP_TCP;
-	internal->rtspmedia.videoTransport.rtp.t.dataChannel = 0;
-	internal->rtspmedia.videoTransport.rtp.t.contorlChannel = internal->rtspmedia.videoTransport.rtp.t.dataChannel + 1;
-	internal->rtspmedia.audioTransport = internal->rtspmedia.videoTransport;
-
+	internal->transportbytcp = true;
 
 	return true;
 }
 bool RTSPClient::initRTPOverUdpType()
 {
-	internal->rtspmedia.videoTransport.transport = TRANSPORT_INFO::TRANSPORT_RTP_UDP;
-	internal->rtspmedia.audioTransport.transport = TRANSPORT_INFO::TRANSPORT_RTP_UDP;
-	internal->rtspmedia.videoTransport.rtp.u.client_port1 = 0;
-	internal->rtspmedia.videoTransport.rtp.u.client_port2 = 0;
-	internal->rtspmedia.videoTransport.rtp.u.server_port1 = 0;
-	internal->rtspmedia.videoTransport.rtp.u.server_port2 = 0;
-	internal->rtspmedia.audioTransport.rtp.u.client_port1 = 0;
-	internal->rtspmedia.audioTransport.rtp.u.client_port2 = 0;
-	internal->rtspmedia.audioTransport.rtp.u.server_port1 = 0;
-	internal->rtspmedia.audioTransport.rtp.u.server_port2 = 0;
+	internal->transportbytcp = false;
 
 	return true;
 }
@@ -398,16 +425,35 @@ bool RTSPClient::sendTeradownRequest(uint32_t timeout)
 	{
 		return false;
 	}
-
 	return cmdinfo->responseheader->statuscode == 200;
 }
 
-bool RTSPClient::sendRTPPackage(bool isvideo, uint32_t timestmap, const char* buffer, uint32_t len, bool mark)
+bool RTSPClient::sendMediaPackage(const shared_ptr<STREAM_TRANS_INFO> mediainfo, uint32_t timestmap, const char*  buffer, uint32_t bufferlen, bool mark)
 {
-	shared_ptr<rtp> rtptmp = internal->rtp;
-	if (rtptmp && buffer != NULL && len > 0) rtptmp->sendData(isvideo, timestmap, buffer,len, mark);
+	std::map<STREAM_TRANS_INFO*, shared_ptr<RTPSession> >::iterator iter = internal->rtplist.find(mediainfo.get());
+	if (iter == internal->rtplist.end()) return false;
 
-	return true;
+	shared_ptr<RTPSession> rtpsession = iter->second;
+	if (rtpsession)
+	{
+		rtpsession->sendMediaData(mediainfo, timestmap,buffer,bufferlen,mark);
+	}
+
+	return (bool)rtpsession;
 }
+bool RTSPClient::sendContorlPackage(const shared_ptr<STREAM_TRANS_INFO> mediainfo, const char*  buffer, uint32_t bufferlen)
+{
+	std::map<STREAM_TRANS_INFO*, shared_ptr<RTPSession> >::iterator iter = internal->rtplist.find(mediainfo.get());
+	if (iter == internal->rtplist.end()) return false;
+
+	shared_ptr<RTPSession> rtpsession = iter->second;
+	if (rtpsession)
+	{
+		rtpsession->sendContorlData(mediainfo, buffer, bufferlen);
+	}
+
+	return (bool)rtpsession;
+}
+
 }
 }

@@ -59,59 +59,135 @@ struct TRANSPORT_INFO
 struct STREAM_INFO
 {
 	int  nPayLoad;				//荷载类型
-//	int	 nWidth;				//图像宽度(只有视频有效)
-//	int  nHight;				//图像高度(只有视频有效)
+	int	 nWidth;				//图像宽度(只有视频有效)
+	int  nHight;				//图像高度(只有视频有效)
 	int  nSampRate;				//采样率
-//	int  nBandwidth;			//带宽(有的媒体信息可能没有描述)
-//	int  nTrackID;				//通道数(只有音频有效)
+	int  nBandwidth;			//带宽(有的媒体信息可能没有描述)
 
-//	double	 fFramRate;			//帧率(一般只存在于视频描述信息)
+	double	 fFramRate;			//帧率(一般只存在于视频描述信息)
 
 //	std::string szProtocol;		//传输协议(一般为RTP)
-//	std::string szMediaName;	//媒体名称
+	std::string szMediaName;	//媒体名称
 	std::string szTrackID;		//track id 用于请求命令
 	std::string szCodec;		//编码方式
-//	std::string szSpsPps;		//sps信息(一般为Base64的编码串,用于初始化解码器,一般只存在于视频描述信息)
+
+	int profile_level_id;
+	std::string szSpsPps;		//sps信息(一般为Base64的编码串,用于初始化解码器,一般只存在于视频描述信息)
+
+	std::string Media_header;
 
 
-	STREAM_INFO():nPayLoad(0),/*nWidth(0),nHight(0),*/nSampRate(0)/*,nBandwidth(0),nTrackID(0),fFramRate(0)*/{}
+	STREAM_INFO():nPayLoad(0),nWidth(0),nHight(0),nSampRate(0),nBandwidth(0)/*,nTrackID(0)*/,fFramRate(0), profile_level_id(0){}
+};
+
+struct STREAM_TRANS_INFO
+{
+	uint16_t		rtpsn;
+	STREAM_INFO		streaminfo;
+	TRANSPORT_INFO	transportinfo;
+
+	STREAM_TRANS_INFO():rtpsn(0){}
 };
 
 //媒体信息结构定义
-struct MEDIA_INFO
+struct RTSP_API MEDIA_INFO
 {
-	bool bHasVideo;				//是否有视频流
-	bool bHasAudio;				//是否有音频流
-
-	int		ssrc;				//ssrc
+	std::string		ssrc;				//ssrc
 	
 	uint32_t startRange;
 	uint32_t stopRange;
 
-	STREAM_INFO stStreamVideo;	//视频流信息
-	STREAM_INFO stStreamAudio;	//音频流信息
+	std::list< shared_ptr<STREAM_TRANS_INFO> >	infos;
+	
+	MEDIA_INFO() :startRange(0),stopRange(0){}
 
-	MEDIA_INFO() :bHasVideo(false), bHasAudio(false), ssrc(0), startRange(0),stopRange(0)
+
+	const shared_ptr<STREAM_TRANS_INFO> streamInfo(const std::string& medianame)const
 	{
-		stStreamVideo.nPayLoad = 96;
-		stStreamVideo.szCodec = "H264";
-		stStreamVideo.nSampRate = 90000;
-		stStreamVideo.szTrackID = "trackID=0";
+		for (std::list<shared_ptr<STREAM_TRANS_INFO> >::const_iterator iter = infos.begin(); iter != infos.end(); iter++)
+		{
+			if (strcasecmp((*iter)->streaminfo.szMediaName.c_str(), medianame.c_str()) == 0)
+			{
+				return *iter;
+			}
+		}
 
-		stStreamAudio.nPayLoad = 97;
-		stStreamAudio.szCodec = "G726-16";
-		stStreamAudio.nSampRate = 8000;
-		stStreamAudio.szTrackID = "trackID=1";
+		return NULL;
+	}
+	const shared_ptr<STREAM_TRANS_INFO> videoStreamInfo(const std::string& medianame)const
+	{
+		return streamInfo("video");
+	}
+	const shared_ptr<STREAM_TRANS_INFO> audioStreamInfo(const std::string& medianame)const
+	{
+		return streamInfo("audio");
+	}
+	shared_ptr<STREAM_TRANS_INFO> addVideoStreamInfo()
+	{
+		shared_ptr<STREAM_TRANS_INFO> videoinfo = addStreamInfo("video");
+
+		{
+			videoinfo->streaminfo.nPayLoad = 96;
+			videoinfo->streaminfo.szCodec = "H264";
+			videoinfo->streaminfo.nSampRate = 90000;
+		}
+		
+		return videoinfo;
+	}
+
+	shared_ptr<STREAM_TRANS_INFO> addAudioStreamInfo()
+	{
+		shared_ptr<STREAM_TRANS_INFO> videoinfo = addStreamInfo("audio");
+
+		{
+			videoinfo->streaminfo.nPayLoad = 97;
+			videoinfo->streaminfo.szCodec = "G726-16";
+			videoinfo->streaminfo.nSampRate = 8000;
+		}
+
+		return videoinfo;
+	}
+
+	shared_ptr<STREAM_TRANS_INFO> addStreamInfo(const std::string& flag)
+	{
+		shared_ptr<STREAM_TRANS_INFO> info = make_shared<STREAM_TRANS_INFO>();
+
+		info->streaminfo.szTrackID = "trackID=" + Value(infos.size()).readString();
+		info->streaminfo.szMediaName = flag;
+
+		infos.push_back(info);
+		
+
+
+		return info;
+	}
+	//是否有视频流
+	bool hasVideo() const
+	{
+		return streamInfo("video") != NULL;
+	}
+	//是否有音频流
+	bool hasAudio() const
+	{
+		return streamInfo("audio") != NULL;
+	}
+
+	//清除非音视频的流信息
+	void cleanExStreamInfo()
+	{
+		for (std::list<shared_ptr<STREAM_TRANS_INFO> >::const_iterator iter = infos.begin(); iter != infos.end(); )
+		{
+			if (strcasecmp((*iter)->streaminfo.szMediaName.c_str(), "video") == 0 || strcasecmp((*iter)->streaminfo.szMediaName.c_str(), "audio") == 0)
+			{
+				iter++;
+			}
+			else
+			{
+				infos.erase(iter++);
+			}
+		}
 	}
 };
-
-struct RTSP_MEDIA_INFO
-{
-	MEDIA_INFO	media;
-	TRANSPORT_INFO	videoTransport;
-	TRANSPORT_INFO	audioTransport;
-};
-
 
 enum ERTSP_RANGE_TIME {
 	RTSP_RANGE_NONE = 0,
@@ -180,6 +256,8 @@ typedef struct  _RTPHEADER
 }RTPHEADER, *LPRTPHEADER;
 
 #define RTP_VERSION 2
+
+#define MAXRTPPACKETLEN		1440
 
 struct INTERLEAVEDFRAME
 {
