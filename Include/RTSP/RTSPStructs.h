@@ -179,6 +179,8 @@ typedef struct  _RTPHEADER
 
 }RTPHEADER, *LPRTPHEADER;
 
+#define RTP_VERSION 2
+
 struct INTERLEAVEDFRAME
 {
 	unsigned int magic : 8;// $

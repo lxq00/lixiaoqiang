@@ -29,7 +29,7 @@ public:
 	};
 public:
 	typedef Function1<void, const shared_ptr<RTSPCommandInfo>&> CommandCallback;
-	typedef Function2<void, uint32_t,const RTSPBuffer&> ExternDataCallback;
+	typedef Function4<void, uint32_t,const RTPHEADER&,const char*,uint32_t> ExternDataCallback;
 	typedef Function0<void> DisconnectCallback;
 public:
 	RTSPProtocol(const shared_ptr<Socket>& sock, const CommandCallback& cmdcallback, const DisconnectCallback& disconnectCallback,bool server)
@@ -43,16 +43,18 @@ public:
 		m_bodylen = 0;
 		m_haveFindHeaderStart = false;
 
-		const char* buffer = m_recvBuffer.alloc(MAXPARSERTSPBUFFERLEN);
+		m_recvBufferAddr = new char[MAXPARSERTSPBUFFERLEN + 100];
+		m_recvBufferLen = 0;
 
 		m_sock->setSocketBuffer(1024 * 1024 * 4, 1024 * 1024);
 		m_sock->setDisconnectCallback(Socket::DisconnectedCallback(&RTSPProtocol::onSocketDisconnectCallback, this));
-		m_sock->async_recv((char*)buffer, MAXPARSERTSPBUFFERLEN, Socket::ReceivedCallback(&RTSPProtocol::onSocketRecvCallback, this));
+		m_sock->async_recv(m_recvBufferAddr, MAXPARSERTSPBUFFERLEN, Socket::ReceivedCallback(&RTSPProtocol::onSocketRecvCallback, this));
 	}
 	~RTSPProtocol()
 	{
 		m_sock->disconnect();
 		m_sock = NULL;
+		SAFE_DELETEARRAY(m_recvBufferAddr);
 	}
 
 	void setRTPOverTcpCallback(const ExternDataCallback& datacallback)
@@ -83,20 +85,25 @@ public:
 		Guard locker(m_mutex);
 		_addAndCheckSendData(RTSPBuffer(cmdstr));
 	}
-	void sendMedia(bool isvideo,const RTSPBuffer& rtspbuffer)
+	void sendMedia(bool isvideo, const RTPHEADER& rtpheader,const char*  buffer, uint32_t bufferlen)
 	{
 		if (m_tcpinterleaved == NULL) return;
 
-		const char* rtpbufferaddr = rtspbuffer.buffer();
-		size_t rtpbuffersize = rtspbuffer.size();
 
-		INTERLEAVEDFRAME* frame = (INTERLEAVEDFRAME*)rtpbufferaddr;
-		frame->magic = RTPOVERTCPMAGIC;
-		frame->channel = m_tcpinterleaved->dataChannel;
-		frame->rtp_len = htons((uint16_t)(rtpbuffersize - sizeof(INTERLEAVEDFRAME)));
+		INTERLEAVEDFRAME frame;
+		frame.magic = RTPOVERTCPMAGIC;
+		frame.channel = m_tcpinterleaved->dataChannel;
+		frame.rtp_len = htons((uint16_t)(bufferlen + sizeof(RTPHEADER)));
+
+		RTSPBuffer rtspheaderbuffer;
+		char* rtspheaderptr = rtspheaderbuffer.alloc(sizeof(INTERLEAVEDFRAME) + sizeof(RTPHEADER) + bufferlen);
+		memcpy(rtspheaderptr, &frame, sizeof(INTERLEAVEDFRAME));
+		memcpy(rtspheaderptr + sizeof(INTERLEAVEDFRAME), &rtpheader, sizeof(RTPHEADER));
+		memcpy(rtspheaderptr + sizeof(INTERLEAVEDFRAME) + sizeof(RTPHEADER), buffer, bufferlen);
+		rtspheaderbuffer.resize(sizeof(INTERLEAVEDFRAME) + sizeof(RTPHEADER) + bufferlen);
 
 		Guard locker(m_mutex);
-		_addAndCheckSendData(rtspbuffer);
+		_addAndCheckSendData(rtspheaderbuffer);
 	}
 	void sendContrlData(const char* buffer, uint32_t len)
 	{
@@ -197,17 +204,21 @@ private:
 			assert(0);
 			return;
 		}
-		if (m_recvBuffer.buffer() + m_recvBuffer.size() != buffer)
+
+		if(buffer != m_recvBufferAddr + m_recvBufferLen)
 		{
 			assert(0);
 		}
 
-		m_recvBuffer.resize(m_recvBuffer.size() + len);
-		
-		const char* buffertmp = m_recvBuffer.buffer();
-		uint32_t buffertmplen = m_recvBuffer.size();
+		if (m_recvBufferLen + len > MAXPARSERTSPBUFFERLEN)
+		{
+			assert(0);
+		}
 
-		size_t bufferneedsize = 0;
+		m_recvBufferLen += len;
+		
+		const char* buffertmp = m_recvBufferAddr;
+		uint32_t buffertmplen = m_recvBufferLen;
 
 		while (buffertmplen > 0)
 		{
@@ -274,31 +285,25 @@ private:
 			}
 			else if (*buffertmp == RTPOVERTCPMAGIC)
 			{
-				if (buffertmplen < sizeof(INTERLEAVEDFRAME)) break;
+				if (buffertmplen < sizeof(INTERLEAVEDFRAME) + sizeof(RTPHEADER)) break;
 
 				INTERLEAVEDFRAME* frame = (INTERLEAVEDFRAME*)buffertmp;
 				uint32_t datalen = ntohs(frame->rtp_len);
-				uint32_t datach = frame->channel;
-				if (datalen <= 0)
+				RTPHEADER* rtpheader = (RTPHEADER*)(buffertmp + sizeof(INTERLEAVEDFRAME));
+				if (datalen <= sizeof(RTPHEADER) || datalen >= 0xffff || rtpheader->v != RTP_VERSION)
 				{
 					buffertmp++;
 					buffertmplen--;
 					continue;
 				}
 
-				if (datalen >= 0xffff)
-				{
-					assert(0);
-				}
-
 				if (datalen + sizeof(INTERLEAVEDFRAME) > buffertmplen)
 				{
-					bufferneedsize = datalen + sizeof(INTERLEAVEDFRAME) - buffertmplen;
 					break;
 				}
-				if(m_tcpinterleaved && (datach == m_tcpinterleaved->dataChannel || datach == m_tcpinterleaved->contrlChannel))
+				if(m_tcpinterleaved && (frame->channel == m_tcpinterleaved->dataChannel || frame->channel == m_tcpinterleaved->contrlChannel))
 				{
-					m_extdatacallback(datach, RTSPBuffer(m_recvBuffer, buffertmp + sizeof(INTERLEAVEDFRAME), datalen));
+					m_extdatacallback(frame->channel, *rtpheader, buffertmp + sizeof(INTERLEAVEDFRAME) + sizeof(RTPHEADER), datalen - sizeof(RTPHEADER));
 				}
 				buffertmp += datalen + sizeof(INTERLEAVEDFRAME);
 				buffertmplen -= datalen + sizeof(INTERLEAVEDFRAME);
@@ -327,23 +332,17 @@ private:
 				int a = 0;
 			}
 		}
-		size_t newbufferlen = bufferneedsize < MAXPARSERTSPBUFFERLEN ? MAXPARSERTSPBUFFERLEN : bufferneedsize;
-
-		RTSPBuffer newdatabuffer;
-		char* newbufferaddr = newdatabuffer.alloc(buffertmplen + newbufferlen);
-
-		if (buffertmplen > 0)
+		if (buffertmplen > 0 && buffertmp != m_recvBufferAddr)
 		{
-			memcpy(newbufferaddr,buffertmp, buffertmplen);
-			newdatabuffer.resize(buffertmplen);
+			memcpy(m_recvBufferAddr,buffertmp, buffertmplen);
 		}
-		m_recvBuffer = newdatabuffer;
+		m_recvBufferLen = buffertmplen;
 
 
 		shared_ptr<Socket> socktmp = sock.lock();
 		if (socktmp != NULL)
 		{
-			socktmp->async_recv(newbufferaddr + buffertmplen, newbufferlen, Socket::ReceivedCallback(&RTSPProtocol::onSocketRecvCallback, this));
+			socktmp->async_recv(m_recvBufferAddr + buffertmplen, MAXPARSERTSPBUFFERLEN - buffertmplen, Socket::ReceivedCallback(&RTSPProtocol::onSocketRecvCallback, this));
 		}
 	}
 	// return 0 not cmonnand,return 1 not sure need wait,return 2 is command
@@ -378,7 +377,8 @@ private:
 	ExternDataCallback			m_extdatacallback;
 	DisconnectCallback			m_disconnect;
 
-	RTSPBuffer					m_recvBuffer;
+	char*						m_recvBufferAddr;
+	uint32_t					m_recvBufferLen;
 
 	Mutex						m_mutex;
 	std::list<shared_ptr<SendItem> > m_sendList;

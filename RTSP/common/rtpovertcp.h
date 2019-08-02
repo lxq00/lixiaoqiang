@@ -15,7 +15,7 @@ public:
 	~rtpOverTcp()
 	{
 	}
-	void rtpovertcpCallback(uint32_t channel, const RTSPBuffer& data)
+	void rtpovertcpCallback(uint32_t channel, const RTPHEADER& rtpheader, const char*  buffer, uint32_t bufferlen)
 	{
 		//contorl data
 		if (channel % 2 != 0)
@@ -24,44 +24,25 @@ public:
 		}
 		else
 		{
-			if (data.size() < sizeof(RTPHEADER))
-			{
-				assert(0);
-				return;
-			}
-			RTPHEADER* header = (RTPHEADER*)data.buffer();
-
-			if (header->v != RTP_VERSION) return;
-
-			datacallback(true, ntohl(header->ts), RTSPBuffer(data, data.buffer() + sizeof(RTPHEADER), data.size() - sizeof(RTPHEADER)),header->m, header);
+			datacallback(true, ntohl(rtpheader.ts), buffer, bufferlen , rtpheader.m);
 		}
 	}
-	void sendData(bool isvideo, uint32_t timestmap, const RTSPBuffer& data, bool mark, const RTPHEADER* rtpheader)
+	void sendData(bool isvideo, uint32_t timestmap, const char*  buffer, uint32_t bufferlen, bool mark)
 	{
-		const char* buffer = data.buffer();
-		uint32_t bufferlen = data.size();
-
-		
-		while (bufferlen > 0)
+	//	while (bufferlen > 0)
 		{
-			uint32_t cansendlen = min(MAXRTPPACKETLEN, bufferlen);
+			uint32_t cansendlen = bufferlen;// min(MAXRTPPACKETLEN, bufferlen);
 
-			size_t senddatalen = cansendlen + sizeof(RTPHEADER) + sizeof(INTERLEAVEDFRAME);
-			RTSPBuffer rtspheader;
-			char* rtpheaderstr = rtspheader.alloc(senddatalen);
-			rtspheader.resize(senddatalen);
-
-			RTPHEADER* header = (RTPHEADER*)(rtpheaderstr + sizeof(INTERLEAVEDFRAME));
-			memset(header, 0, sizeof(header));
-			header->v = RTP_VERSION;
-			header->ts = htonl(timestmap);
-			header->seq = htons(rtpsn++);
-			header->pt = isvideo ? rtspmedia.media.stStreamVideo.nPayLoad : rtspmedia.media.stStreamAudio.nPayLoad;
-			header->m = bufferlen == cansendlen ? mark : false;
-			header->ssrc = htonl(isvideo ? rtspmedia.videoTransport.ssrc : rtspmedia.audioTransport.ssrc);
-			memcpy(rtpheaderstr + sizeof(INTERLEAVEDFRAME) + sizeof(RTPHEADER), buffer, cansendlen);
+			RTPHEADER rtpheader;
+			memset(&rtpheader, 0, sizeof(RTPHEADER));
+			rtpheader.v = RTP_VERSION;
+			rtpheader.ts = htonl(timestmap);
+			rtpheader.seq = htons(rtpsn++);
+			rtpheader.pt = isvideo ? rtspmedia.media.stStreamVideo.nPayLoad : rtspmedia.media.stStreamAudio.nPayLoad;
+			rtpheader.m = bufferlen == cansendlen ? mark : false;
+			rtpheader.ssrc = htonl(isvideo ? rtspmedia.videoTransport.ssrc : rtspmedia.audioTransport.ssrc);
 			
-			protocol->sendMedia(isvideo, rtspheader);
+			protocol->sendMedia(isvideo, rtpheader,buffer,bufferlen);
 
 			buffer += cansendlen;
 			bufferlen -= cansendlen;

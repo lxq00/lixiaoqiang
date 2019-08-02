@@ -287,9 +287,9 @@ private:
 			cmdinfo->waitsem->post();
 		}
 	}
-	void rtpDataCallback(bool isvideo, uint32_t timestmap, const RTSPBuffer& data, bool mark,const RTPHEADER* header)
+	void rtpDataCallback(bool isvideo, uint32_t timestmap, const char* buffer, uint32_t len, bool mark)
 	{
-		if (handler) handler->onMediaCallback(isvideo, timestmap, data, mark, header);
+		if (handler) handler->onRTPPackageCallback(isvideo, timestmap, buffer ,len , mark);
 	}
 	void socketDisconnectCallback()
 	{
@@ -402,10 +402,10 @@ bool RTSPClient::sendTeradownRequest(uint32_t timeout)
 	return cmdinfo->responseheader->statuscode == 200;
 }
 
-bool RTSPClient::sendMedia(bool isvideo, uint32_t timestmap, const RTSPBuffer& buffer, bool mark, const RTPHEADER* header)
+bool RTSPClient::sendRTPPackage(bool isvideo, uint32_t timestmap, const char* buffer, uint32_t len, bool mark)
 {
 	shared_ptr<rtp> rtptmp = internal->rtp;
-	if (rtptmp) rtptmp->sendData(isvideo, timestmap, buffer, mark,header);
+	if (rtptmp && buffer != NULL && len > 0) rtptmp->sendData(isvideo, timestmap, buffer,len, mark);
 
 	return true;
 }

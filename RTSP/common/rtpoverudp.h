@@ -84,35 +84,15 @@ public:
 		audiortcp = NULL;
 	}
 	
-	void sendData(bool isvideo, uint32_t timestmap, const RTSPBuffer& data, bool mark, const RTPHEADER* header)
+	void sendData(bool isvideo, uint32_t timestmap, const char*  buffer, uint32_t bufferlen, bool mark)
 	{
 		if (isvideo && !rtspmedia.media.bHasVideo) return;
 		if (!isvideo && !rtspmedia.media.bHasAudio) return;
-
-		const char* buffer = data.buffer();
-		uint32_t bufferlen = data.size();
-
-		//if ((void*)header == buffer - sizeof(RTPHEADER))
-		//{
-		//	shared_ptr<SendDataInfo> senddata = make_shared<SendDataInfo>();
-		//	senddata->bufferaddr = buffer - sizeof(RTPHEADER);
-		//	senddata->bufferlen = bufferlen + sizeof(RTPHEADER);
-		//	senddata->dataptr = RTSPBuffer(data, senddata->bufferaddr, senddata->bufferlen);
-
-		//	{
-		//		Guard locker(mutex);
-
-		//		std::list<shared_ptr<SendDataInfo> >& sendlist = isvideo ? sendvideortplist : sendaudiortplist;
-		//		sendlist.push_back(senddata);
-
-		//		_sendAndCheckSend(isvideo);
-		//	}
-		//}
-		//else
+		
 		{
-			while (bufferlen > 0)
+			//while (bufferlen > 0)
 			{
-				uint32_t cansendlen = min(MAXRTPPACKETLEN, bufferlen);
+				uint32_t cansendlen = bufferlen;// min(MAXRTPPACKETLEN, bufferlen);
 
 				shared_ptr<SendDataInfo> senddata = make_shared<SendDataInfo>();
 				senddata->bufferlen = cansendlen + sizeof(RTPHEADER);
@@ -129,17 +109,8 @@ public:
 				header->ssrc = htonl(isvideo ? rtspmedia.videoTransport.ssrc : rtspmedia.audioTransport.ssrc);
 
 				memcpy((char*)(senddata->bufferaddr + sizeof(RTPHEADER)), buffer,cansendlen);
-
-				std::string prevdata = std::string((const char*)& header, sizeof(RTPHEADER));
-
+				
 				{
-					
-					/*senddata->bufferlen = sizeof(RTPHEADER) + cansendlen;
-					senddata->bufferaddr = senddata->dataptr.alloc(senddata->bufferlen);
-
-					memcpy((char*)senddata->bufferaddr, &header, sizeof(RTPHEADER));
-					memcpy((char*)senddata->bufferaddr + sizeof(RTPHEADER), buffer, cansendlen);*/
-
 					Guard locker(mutex);
 
 					std::list<shared_ptr<SendDataInfo> >& sendlist = isvideo ? sendvideortplist : sendaudiortplist;
@@ -332,7 +303,7 @@ public:
 				const char* framedataaddr = iter->framedata.buffer() + sizeof(RTPHEADER);
 				size_t framedatasize = iter->framedata.size() - sizeof(RTPHEADER);
 
-				datacallback(isvideo, iter->tiemstmap, RTSPBuffer(iter->framedata, framedataaddr, framedatasize), iter->mark, header);
+				datacallback(isvideo, iter->tiemstmap, framedataaddr, framedatasize, iter->mark);
 
 				prevsn = iter->sn;
 			}
@@ -350,7 +321,7 @@ public:
 				const char* framedataaddr = frametmp.framedata.buffer() + sizeof(RTPHEADER);
 				size_t framedatasize = frametmp.framedata.size() - sizeof(RTPHEADER);
 
-				datacallback(isvideo, frametmp.tiemstmap, RTSPBuffer(frametmp.framedata, framedataaddr, framedatasize), frametmp.mark, header);
+				datacallback(isvideo, frametmp.tiemstmap,framedataaddr, framedatasize, frametmp.mark);
 
 				prevsn = frametmp.sn;
 			}

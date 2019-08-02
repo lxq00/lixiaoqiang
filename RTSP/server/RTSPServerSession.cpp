@@ -134,9 +134,9 @@ struct RTSPServerSession::RTSPServerSessionInternal:public RTSPSession
 			sendErrorResponse(cmdinfo, 500, "NOT SUPPORT");
 		}
 	}
-	void rtpDataCallback(bool isvideo, uint32_t timestmap, const RTSPBuffer& data, bool mark,const RTPHEADER* header)
+	void rtpDataCallback(bool isvideo, uint32_t timestmap, const char* buffer, uint32_t len, bool mark)
 	{
-		if (handler) handler->onMediaCallback(isvideo, timestmap, data, mark, header);
+		if (handler) handler->onRTPPackageCallback(isvideo, timestmap, buffer,len,mark);
 	}
 	void socketDisconnectCallback()
 	{
@@ -225,11 +225,11 @@ void RTSPServerSession::sendErrorResponse(const shared_ptr<RTSPCommandInfo>& cmd
 {
 	internal->sendErrorResponse(cmdinfo, errcode, errmsg);
 }
-void RTSPServerSession::sendMedia(bool isvideo, uint32_t timestmap, const RTSPBuffer& data, bool mark, const RTPHEADER* header)
+void RTSPServerSession::sendRTPPackage(bool isvideo, uint32_t timestmap, const char* buffer,uint32_t len, bool mark)
 {
 	shared_ptr<rtp> rtptmp = internal->rtp;
-	if (rtptmp)
+	if (rtptmp && buffer != NULL && len > 0)
 	{
-		rtptmp->sendData(isvideo, timestmap, data,mark,header);
+		rtptmp->sendData(isvideo, timestmap, buffer,len,mark);
 	}
 }
