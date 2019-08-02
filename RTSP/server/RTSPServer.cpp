@@ -1,10 +1,10 @@
 #include "RTSP/RTSPServer.h"
-#include "../common/rtpPortAlloc.h"
+#include "../common/udpPortAlloc.h"
 using namespace Public::RTSP;
 
 #define MAXRTSPCONNECTIONTIMEOUT	60*1000
 
-struct RTSPServer::RTSPServerInternal:public RTPPortAlloc
+struct RTSPServer::RTSPServerInternal:public UDPPortAlloc
 {
 	std::string							useragent;
 
@@ -59,7 +59,7 @@ struct RTSPServer::RTSPServerInternal:public RTPPortAlloc
 	{
 		if(newsock)
 		{
-			AllockUdpPortCallback alloccallback(&RTPPortAlloc::allockRTPPort, (RTPPortAlloc*)this);
+			AllockUdpPortCallback alloccallback(&UDPPortAlloc::allockRTPPort, (UDPPortAlloc*)this);
 
 			shared_ptr<RTSPServerSession> session = shared_ptr<RTSPServerSession>(new  RTSPServerSession(ioworker,newsock, listencallback, alloccallback, useragent));
 			session->initRTSPServerSessionPtr(session);

@@ -1,14 +1,18 @@
 #pragma once
 #include "rtpSession.h"
-#include "RTSPProtocol.h"
-#include "rtspHeaderSdp.h"
 #include "rtcp.h"
 
 class rtpOverTcpSesssion :public RTPSession
 {
 public:
-	rtpOverTcpSesssion(const shared_ptr<RTSPProtocol>& _protocol, const shared_ptr<STREAM_TRANS_INFO>& _transport, const MediaDataCallback& _datacallback, const ContorlDataCallback& _contorlcallback)
-		:RTPSession(_transport, _datacallback, _contorlcallback),protocol(_protocol),firsthearbeta(true)
+	typedef Function3<void, const shared_ptr<STREAM_TRANS_INFO>&, const char*, uint32_t > SendContrlDataCallback;
+	typedef Function4<void, const shared_ptr<STREAM_TRANS_INFO>&, const RTPHEADER&, const char*, uint32_t > SendMediaDataCallback;
+public:
+	rtpOverTcpSesssion(const shared_ptr<STREAM_TRANS_INFO>& _transport, 
+		const SendMediaDataCallback& _sendmediacallback,const SendContrlDataCallback& _sendcontrlcallback,
+		const MediaDataCallback& _datacallback, const ContorlDataCallback& _contorlcallback)
+		:RTPSession(_transport, _datacallback, _contorlcallback),firsthearbeta(true)
+		,sendmediacallback(_sendmediacallback),sendcontorlcallback(_sendcontrlcallback)
 	{}
 	~rtpOverTcpSesssion()
 	{
@@ -24,16 +28,10 @@ public:
 
 	void sendContorlData(const shared_ptr<STREAM_TRANS_INFO>& transportinfo, const char*  buffer, uint32_t bufferlen)
 	{
-		shared_ptr<RTSPProtocol> protocoltmp = protocol.lock();
-		if (protocoltmp == NULL) return;
-
-		protocoltmp->sendContrlData(transportinfo, buffer, bufferlen);
+		sendcontorlcallback(transportinfo, buffer, bufferlen);
 	}
 	void sendMediaData(const shared_ptr<STREAM_TRANS_INFO>& transportinfo, uint32_t timestmap, const char*  buffer, uint32_t bufferlen, bool mark)
 	{
-		shared_ptr<RTSPProtocol> protocoltmp = protocol.lock();
-		if (protocoltmp == NULL) return;
-		
 		while (bufferlen > 0)
 		{
 			uint32_t cansendlen = min(MAXRTPPACKETLEN, bufferlen);
@@ -47,7 +45,7 @@ public:
 			rtpheader.m = bufferlen == cansendlen ? mark : false;
 			rtpheader.ssrc = htonl(transportinfo->transportinfo.ssrc);
 			
-			protocoltmp->sendMedia(transportinfo, rtpheader,buffer,bufferlen);
+			sendmediacallback(transportinfo, rtpheader,buffer,bufferlen);
 
 			buffer += cansendlen;
 			bufferlen -= cansendlen;
@@ -56,21 +54,16 @@ public:
 	}
 	bool onPoolHeartbeat()
 	{
-		shared_ptr<RTSPProtocol> protocoltmp = protocol.lock();
-		if (protocoltmp == NULL) return false;
-
-
-
 		std::string hearbeatadata = firsthearbeta ? firstRtpOverTcpRTCPHeartBeat() : normalRtpOverTcpRTCPHeartBeat();
 		firsthearbeta = false;
 
-		protocoltmp->sendContrlData(transportinfo, hearbeatadata.c_str(), hearbeatadata.length());	
+		sendcontorlcallback(transportinfo, hearbeatadata.c_str(), hearbeatadata.length());	
 
 		return true;
 	}
 private:
-	weak_ptr<RTSPProtocol>	 protocol;
-
 	bool					 firsthearbeta;
-	
+
+	SendMediaDataCallback	sendmediacallback;
+	SendContrlDataCallback	sendcontorlcallback;
 };

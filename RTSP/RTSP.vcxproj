@@ -111,18 +111,22 @@
     <ClInclude Include="..\Include\RTSP\RTSPStructs.h" />
     <ClInclude Include="..\Include\RTSP\RTSPUrl.h" />
     <ClCompile Include="client\RTSPClient.cpp" />
-    <ClInclude Include="common\rtcp.h" />
-    <ClInclude Include="common\rtpSession.h" />
-    <ClInclude Include="common\rtpoverudpSession.h" />
-    <ClInclude Include="common\rtpovertcpSession.h" />
-    <ClInclude Include="common\rtpPortAlloc.h" />
+    <ClInclude Include="common\rtp\rtcp.h" />
+    <ClInclude Include="common\rtp\rtpovertcpSession.h" />
+    <ClInclude Include="common\rtp\rtpoverudpSession.h" />
+    <ClInclude Include="common\rtp\rtpSession.h" />
+    <ClInclude Include="common\StringParse\rtspHeaderRange.h" />
+    <ClInclude Include="common\StringParse\rtspHeaderSdp.h" />
+    <ClInclude Include="common\StringParse\rtspHeaderTransport.h" />
+    <ClInclude Include="common\StringParse\strDup.h" />
+    <ClInclude Include="common\udpPortAlloc.h" />
     <ClInclude Include="common\rtspSession.h" />
     <ClInclude Include="common\wwwAuthenticate.h" />
     <ClInclude Include="common\rtspProtocol.h" />
-    <ClInclude Include="common\rtspHeaderRange.h" />
-    <ClInclude Include="common\rtspHeaderTransport.h" />
-    <ClInclude Include="common\rtspHeaderSdp.h" />
-    <ClInclude Include="common\strDup.h" />
+    <ClCompile Include="common\rtp\rtcp.cpp" />
+    <ClCompile Include="common\StringParse\rtspHeaderRange.cpp" />
+    <ClCompile Include="common\StringParse\rtspHeaderSdp.cpp" />
+    <ClCompile Include="common\StringParse\rtspHeaderTransport.cpp" />
     <ClCompile Include="server\RTSPServerSession.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -130,11 +134,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="client\RTSPClientManager.cpp" />
-    <ClCompile Include="common\rtcp.cpp" />
-    <ClCompile Include="common\rtspHeaderRange.cpp" />
-    <ClCompile Include="common\rtspHeaderTransport.cpp" />
     <ClCompile Include="common\RTSPUrl.cpp" />
-    <ClCompile Include="common\rtspHeaderSdp.cpp" />
     <ClCompile Include="server\RTSPServer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

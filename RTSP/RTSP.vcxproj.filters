@@ -22,6 +22,12 @@
     <Filter Include="源文件\client">
       <UniqueIdentifier>{b5683006-31f2-44ee-ae83-c1207547d57a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\common\rtp">
+      <UniqueIdentifier>{c8cc0554-7f02-490d-9f2d-591dc9ec569d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\common\StringParse">
+      <UniqueIdentifier>{1e919799-53a4-437b-b632-f98849b31d30}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\RTSP\RTSPClient.h">
@@ -42,41 +48,41 @@
     <ClInclude Include="..\Include\RTSP\RTSP.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="common\strDup.h">
-      <Filter>源文件\common</Filter>
-    </ClInclude>
     <ClInclude Include="..\Include\RTSP\RTSPUrl.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="common\rtspHeaderRange.h">
-      <Filter>源文件\common</Filter>
-    </ClInclude>
-    <ClInclude Include="common\rtspHeaderTransport.h">
-      <Filter>源文件\common</Filter>
-    </ClInclude>
-    <ClInclude Include="common\rtspHeaderSdp.h">
-      <Filter>源文件\common</Filter>
-    </ClInclude>
     <ClInclude Include="common\wwwAuthenticate.h">
-      <Filter>源文件\common</Filter>
-    </ClInclude>
-    <ClInclude Include="common\rtcp.h">
       <Filter>源文件\common</Filter>
     </ClInclude>
     <ClInclude Include="common\rtspSession.h">
       <Filter>源文件\common</Filter>
     </ClInclude>
-    <ClInclude Include="common\rtpPortAlloc.h">
+    <ClInclude Include="common\udpPortAlloc.h">
       <Filter>源文件\common</Filter>
     </ClInclude>
-    <ClInclude Include="common\rtpSession.h">
-      <Filter>源文件\common</Filter>
+    <ClInclude Include="common\rtp\rtcp.h">
+      <Filter>源文件\common\rtp</Filter>
     </ClInclude>
-    <ClInclude Include="common\rtpovertcpSession.h">
-      <Filter>源文件\common</Filter>
+    <ClInclude Include="common\rtp\rtpovertcpSession.h">
+      <Filter>源文件\common\rtp</Filter>
     </ClInclude>
-    <ClInclude Include="common\rtpoverudpSession.h">
-      <Filter>源文件\common</Filter>
+    <ClInclude Include="common\rtp\rtpoverudpSession.h">
+      <Filter>源文件\common\rtp</Filter>
+    </ClInclude>
+    <ClInclude Include="common\rtp\rtpSession.h">
+      <Filter>源文件\common\rtp</Filter>
+    </ClInclude>
+    <ClInclude Include="common\StringParse\rtspHeaderRange.h">
+      <Filter>源文件\common\StringParse</Filter>
+    </ClInclude>
+    <ClInclude Include="common\StringParse\rtspHeaderSdp.h">
+      <Filter>源文件\common\StringParse</Filter>
+    </ClInclude>
+    <ClInclude Include="common\StringParse\rtspHeaderTransport.h">
+      <Filter>源文件\common\StringParse</Filter>
+    </ClInclude>
+    <ClInclude Include="common\StringParse\strDup.h">
+      <Filter>源文件\common\StringParse</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -94,23 +100,23 @@
     <ClCompile Include="common\RTSPUrl.cpp">
       <Filter>源文件\common</Filter>
     </ClCompile>
-    <ClCompile Include="common\rtspHeaderRange.cpp">
-      <Filter>源文件\common</Filter>
-    </ClCompile>
-    <ClCompile Include="common\rtspHeaderTransport.cpp">
-      <Filter>源文件\common</Filter>
-    </ClCompile>
-    <ClCompile Include="common\rtspHeaderSdp.cpp">
-      <Filter>源文件\common</Filter>
-    </ClCompile>
-    <ClCompile Include="common\rtcp.cpp">
-      <Filter>源文件\common</Filter>
-    </ClCompile>
     <ClCompile Include="client\RTSPClient.cpp">
       <Filter>源文件\client</Filter>
     </ClCompile>
     <ClCompile Include="server\RTSPServerSession.cpp">
       <Filter>源文件\service</Filter>
+    </ClCompile>
+    <ClCompile Include="common\rtp\rtcp.cpp">
+      <Filter>源文件\common\rtp</Filter>
+    </ClCompile>
+    <ClCompile Include="common\StringParse\rtspHeaderRange.cpp">
+      <Filter>源文件\common\StringParse</Filter>
+    </ClCompile>
+    <ClCompile Include="common\StringParse\rtspHeaderSdp.cpp">
+      <Filter>源文件\common\StringParse</Filter>
+    </ClCompile>
+    <ClCompile Include="common\StringParse\rtspHeaderTransport.cpp">
+      <Filter>源文件\common\StringParse</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

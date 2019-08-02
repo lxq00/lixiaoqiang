@@ -2,11 +2,11 @@
 #include "RTSPProtocol.h"
 #include "RTSP/RTSPStructs.h"
 
-class RTPPortAlloc
+class UDPPortAlloc
 {
 public:
-	RTPPortAlloc() :udpstartport(40000), udpstopport(41000), nowudpport(udpstartport) {}
-	~RTPPortAlloc() {}
+	UDPPortAlloc() :udpstartport(40000), udpstopport(41000), nowudpport(udpstartport) {}
+	~UDPPortAlloc() {}
 
 	void setUdpPortInfo(uint32_t start, uint32_t stop)
 	{

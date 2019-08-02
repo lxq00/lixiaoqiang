@@ -1,11 +1,11 @@
 #include "RTSP/RTSPClient.h"
 #include "../common/wwwAuthenticate.h"
-#include "../common/rtpPortAlloc.h"
+#include "../common/udpPortAlloc.h"
 
 namespace Public {
 namespace RTSP {
 
-struct RTSPClientManager::RTSPClientManagerInternal :public RTPPortAlloc
+struct RTSPClientManager::RTSPClientManagerInternal :public UDPPortAlloc
 {
 	shared_ptr<IOWorker> worker;
 	std::string			useragent;
@@ -31,7 +31,7 @@ shared_ptr<RTSPClient> RTSPClientManager::create(const shared_ptr<RTSPClientHand
 {
 	if (handler == NULL) return shared_ptr<RTSPClient>();
 
-	AllockUdpPortCallback alloccallback(&RTPPortAlloc::allockRTPPort, (RTPPortAlloc*)internal);
+	AllockUdpPortCallback alloccallback(&UDPPortAlloc::allockRTPPort, (UDPPortAlloc*)internal);
 
 	//const std::shared_ptr<IOWorker>& work, const shared_ptr<RTSPClientHandler>& handler, const std::string& rtspUrl,const std::string& useragent);
 	shared_ptr<RTSPClient> client = shared_ptr<RTSPClient>(new RTSPClient(internal->worker,handler, alloccallback ,pRtspUrl,internal->useragent));

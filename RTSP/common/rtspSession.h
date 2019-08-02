@@ -1,12 +1,12 @@
 #pragma once
 #include "RTSP/RTSPClient.h"
 #include "rtspProtocol.h"
-#include "rtspHeaderSdp.h"
-#include "rtspHeaderTransport.h"
-#include "rtspHeaderRange.h"
+#include "StringParse/rtspHeaderSdp.h"
+#include "StringParse/rtspHeaderTransport.h"
+#include "StringParse/rtspHeaderRange.h"
 #include "wwwAuthenticate.h"
-#include "rtpovertcpSession.h"
-#include "rtpoverudpSession.h"
+#include "rtp/rtpovertcpSession.h"
+#include "rtp/rtpoverudpSession.h"
 
 using namespace Public::RTSP;
 
@@ -246,8 +246,9 @@ protected:
 			if (transport->transportinfo.transport == TRANSPORT_INFO::TRANSPORT_RTP_TCP)
 			{
 				//rtpOverTcpSesssion(const shared_ptr<RTSPProtocol>& _protocol, const shared_ptr<STREAM_TRANS_INFO>& _transport, const MediaDataCallback& _datacallback, const ContorlDataCallback& _contorlcallback)
-				rtpsession = make_shared<rtpOverTcpSesssion>(protocol,transport,RTPSession::MediaDataCallback(&RTSPSession::onMediaDataCallback,this),
-					RTPSession::ContorlDataCallback(&RTSPSession::onContorlDataCallback,this));
+				rtpsession = make_shared<rtpOverTcpSesssion>(transport,
+					rtpOverTcpSesssion::SendMediaDataCallback(&RTSPProtocol::sendMedia,protocol),rtpOverTcpSesssion::SendContrlDataCallback(&RTSPProtocol::sendContrlData,protocol),
+					RTPSession::MediaDataCallback(&RTSPSession::onMediaDataCallback,this),RTPSession::ContorlDataCallback(&RTSPSession::onContorlDataCallback,this));
 			}
 			else if (transport->transportinfo.transport == TRANSPORT_INFO::TRANSPORT_RTP_UDP)
 			{
