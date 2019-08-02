@@ -22,5 +22,8 @@
     <ClCompile Include="Src\testRTSPTransport.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Src\testSocket.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

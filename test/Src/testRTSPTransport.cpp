@@ -10,10 +10,9 @@ std::map< RTSPServerSession*, shared_ptr< RTSPServerSessiontmp> > serverlist;
 struct RTSPBufferInfo
 {
 	bool		isvideo;
-	RTSPBuffer	buffer;
+	String		buffer;
 	uint32_t	timestmap;
 	bool		mark;
-	const RTPHEADER*	header;
 };
 
 std::list< RTSPBufferInfo>		cache;
@@ -58,7 +57,7 @@ public:
 		Guard locker(mutex);
 		for (std::list< RTSPBufferInfo>::iterator iter = cache.begin(); iter != cache.end(); iter++)
 		{
-			session->sendMedia(iter->isvideo, iter->timestmap, iter->buffer, iter->mark,iter->header);
+			session->sendRTPPackage(iter->isvideo, iter->timestmap, iter->buffer.c_str(),iter->buffer.length(), iter->mark);
 		}
 	}
 	virtual void onPauseRequest(const shared_ptr<RTSPServerSession>& session, const shared_ptr<RTSPCommandInfo>& cmdinfo)
@@ -73,10 +72,18 @@ public:
 
 	virtual void onClose(const shared_ptr<RTSPServerSession>& session,const std::string& errmsg)
 	{
-		Guard locker(mutex);
-		serverlist.erase(session.get());
+		shared_ptr< RTSPServerSessiontmp> tmp;
+		{
+			Guard locker(mutex);
+			std::map< RTSPServerSession*, shared_ptr< RTSPServerSessiontmp> >::iterator iter = serverlist.find(session.get());
+			if (iter != serverlist.end())
+			{
+				tmp = iter->second;
+				serverlist.erase(iter);
+			}
+		}		
 	}
-	virtual void onMediaCallback(bool isvideo, uint32_t timestmap, const RTSPBuffer& buffer, bool mark,const RTPHEADER* header)
+	virtual void onRTPPackageCallback(bool isvideo, uint32_t timestmap, const char* buffer, uint32_t bufferlen, bool mark)
 	{
 		int a = 0;
 	}
@@ -123,7 +130,7 @@ class RTSPSessiontmp :public RTSPClientHandler
 	{
 		int a = 0;
 	}
-	virtual void onMediaCallback(bool isvideo, uint32_t timestmap, const RTSPBuffer& buffer, bool mark, const RTPHEADER* header)
+	virtual void onRTPPackageCallback(bool isvideo, uint32_t timestmap, const char* buffer,uint32_t bufferlen, bool mark)
 	{
 		std::map< RTSPServerSession*, shared_ptr< RTSPServerSessiontmp> > sendlist;
 		
@@ -136,10 +143,9 @@ class RTSPSessiontmp :public RTSPClientHandler
 
 			RTSPBufferInfo info;
 			info.isvideo = isvideo;
-			info.buffer = buffer;
+			info.buffer = String(buffer, bufferlen);
 			info.timestmap = timestmap;
 			info.mark = mark;
-			info.header = header;
 
 			cache.push_back(info);
 		}
@@ -152,7 +158,7 @@ class RTSPSessiontmp :public RTSPClientHandler
 			shared_ptr<RTSPServerSession> session = tmp->session;
 			if(session == NULL) continue;
 
-			session->sendMedia(isvideo, timestmap, buffer, mark,header);
+			session->sendRTPPackage(isvideo, timestmap, buffer, bufferlen, mark);
 		}
 
 		int a = 0;

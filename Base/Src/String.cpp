@@ -33,7 +33,18 @@ struct String::StringInternal
 		size_t dataLength;
 		shared_ptr<IMempoolInterface> mempool;
 
-		StringBufer() :buffer(NULL), bufferSize(0), dataLength(0) {}
+		StringBufer(const shared_ptr<IMempoolInterface>& _mempool,uint32_t size = 0) :buffer(NULL), bufferSize(0), dataLength(0) ,mempool(_mempool)
+		{
+			if (size > 0)
+			{
+				if (mempool) buffer = (char*)mempool->Malloc(size, bufferSize);
+				else
+				{
+					bufferSize = size;
+					buffer = new char[size];
+				}
+			}
+		}
 		~StringBufer()
 		{
 			if (buffer != NULL)
@@ -57,15 +68,7 @@ struct String::StringInternal
 		shared_ptr<StringBufer> newbuffer;
 		if (size > 0)
 		{
-			newbuffer = make_shared<StringBufer>();
-			newbuffer->mempool = mempool;
-
-			if (mempool) newbuffer->buffer = (char*)mempool->Malloc(size, newbuffer->bufferSize);
-			else 
-			{
-				newbuffer->bufferSize = size;
-				newbuffer->buffer = new char[size];
-			}
+			newbuffer = make_shared<StringBufer>(mempool,size);
 		}
 
 		buffer = newbuffer;

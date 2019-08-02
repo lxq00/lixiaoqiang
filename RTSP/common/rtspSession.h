@@ -235,7 +235,7 @@ public:
 				rtspmedia.videoTransport = rtspmedia.audioTransport = transport;
 
 				//rtpOverTcp(bool _isserver, const shared_ptr<RTSPProtocol>& _protocol, const RTSP_MEDIA_INFO& _rtspmedia, const RTPDataCallback& _datacallback)
-				rtp = make_shared<rtpOverTcp>(true, protocol.get(), rtspmedia, rtp::RTPDataCallback(&RTSPSession::rtpDataCallback, this));
+				rtp = make_shared<rtpOverTcp>(true, protocol, rtspmedia, rtp::RTPDataCallback(&RTSPSession::rtpDataCallback, this));
 			}
 			else if (rtspmedia.media.bHasVideo && String::indexOfByCase(cmdinfo->url, rtspmedia.media.stStreamVideo.szTrackID) != -1)
 			{

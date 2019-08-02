@@ -225,7 +225,7 @@ private:
 					protocol->setTCPInterleavedChannel(rtspmedia.videoTransport.rtp.t.dataChannel, rtspmedia.audioTransport.rtp.t.contorlChannel);
 
 					//rtpOverTcp(bool _isserver, const shared_ptr<RTSPProtocol>& _protocol, const RTSP_MEDIA_INFO& _rtspmedia, const RTPDataCallback& _datacallback)
-					rtp = make_shared<rtpOverTcp>(false, protocol.get(), rtspmedia, rtp::RTPDataCallback(&RTSPClientInternal::rtpDataCallback, this));
+					rtp = make_shared<rtpOverTcp>(false, protocol, rtspmedia, rtp::RTPDataCallback(&RTSPClientInternal::rtpDataCallback, this));
 				}
 				else if (rtspmedia.media.bHasVideo && String::indexOfByCase(cmdinfo->cmd->url, rtspmedia.media.stStreamVideo.szTrackID) != -1)
 				{

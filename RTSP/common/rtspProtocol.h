@@ -188,6 +188,8 @@ private:
 	}
 	void onSocketSendCallback(const weak_ptr<Socket>& sock, const char* buffer, int len)
 	{
+		if (len <= 0) return;
+
 		Guard locker(m_mutex);
 
 		_sendAndCheckBuffer(buffer,len);
