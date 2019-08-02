@@ -162,20 +162,18 @@ size_t String::length() const
 
 	return internal->buffer->dataLength;
 }
-String&  String::resize(size_t size)
+void  String::resize(size_t size)
 {
 	if (internal->buffer != NULL || size <= internal->buffer->bufferSize)
 	{
 		internal->buffer->dataLength = size;
 	}
-
-	return *this;
 }
-String&  String::alloc(size_t size)
+char*  String::alloc(size_t size)
 {
 	internal->alloc(size);
 
-	return *this;
+	return internal->buffer ? internal->buffer->buffer : NULL;
 }
 String& String::operator = (const char* str)
 {

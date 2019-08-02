@@ -66,9 +66,6 @@
     <ClInclude Include="common\rtspSession.h">
       <Filter>源文件\common</Filter>
     </ClInclude>
-    <ClInclude Include="..\Include\RTSP\RTSPBuffer.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="common\rtpPortAlloc.h">
       <Filter>源文件\common</Filter>
     </ClInclude>
@@ -114,9 +111,6 @@
     </ClCompile>
     <ClCompile Include="server\RTSPServerSession.cpp">
       <Filter>源文件\service</Filter>
-    </ClCompile>
-    <ClCompile Include="common\RTSPBuffer.cpp">
-      <Filter>源文件\common</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

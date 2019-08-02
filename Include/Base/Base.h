@@ -39,7 +39,6 @@
 #include "Base/SimPipe.h"
 #include "Base/StaticMemPool.h"
 #include "Base/String.h"
-#include "Base/StringBuffer.h"
 #include "Base/System.h"
 #include "Base/Shared_ptr.h"
 #include "Base/Thread.h"

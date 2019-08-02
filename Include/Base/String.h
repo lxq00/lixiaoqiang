@@ -68,9 +68,9 @@ public:
 	//返回对象数据长度
 	size_t length() const;
 	//重新设置数据长度
-	String&  resize(size_t size);
+	void  resize(size_t size);
 	//分配数据长度，原始数据会丢,length置为0
-	String&  alloc(size_t size);
+	char*  alloc(size_t size);
 
 
 	//操作符重载

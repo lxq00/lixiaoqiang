@@ -1,6 +1,5 @@
 #pragma once
 #include "HTTP/HTTPParse.h"
-#include "RTSP/RTSPBuffer.h"
 using namespace Public::HTTP;
 using namespace Public::RTSP;
 
@@ -15,7 +14,7 @@ class RTSPProtocol:public HTTPParse
 public:
 	struct SendItem
 	{
-		RTSPBuffer			buffer;
+		String				buffer;
 		uint32_t			havesendlen;
 
 
@@ -72,7 +71,7 @@ public:
 		Guard locker(m_mutex);
 		for (std::list<shared_ptr<SendItem> >::iterator iter = m_sendList.begin(); iter != m_sendList.end(); iter++)
 		{
-			listsize += (*iter)->buffer.size();
+			listsize += (*iter)->buffer.length();
 		}
 
 		return listsize;
@@ -82,10 +81,10 @@ public:
 	{
 		if (cmdstr.length() == 0) return;
 
-		printf("%s",cmdstr.c_str());
+		logdebug("\r\n%s",cmdstr.c_str());
 
 		Guard locker(m_mutex);
-		_addAndCheckSendData(RTSPBuffer(cmdstr));
+		_addAndCheckSendData(String(cmdstr));
 	}
 	void sendMedia(const shared_ptr<STREAM_TRANS_INFO>& mediainfo, const RTPHEADER& rtpheader,const char*  buffer, uint32_t bufferlen)
 	{
@@ -94,15 +93,17 @@ public:
 		frame.channel = mediainfo->transportinfo.rtp.t.dataChannel;
 		frame.rtp_len = htons((uint16_t)(bufferlen + sizeof(RTPHEADER)));
 
-		RTSPBuffer rtspheaderbuffer;
-		char* rtspheaderptr = rtspheaderbuffer.alloc(sizeof(INTERLEAVEDFRAME) + sizeof(RTPHEADER) + bufferlen);
+		String sendbuffer;
+		uint32_t sendbufferlen = sizeof(INTERLEAVEDFRAME) + sizeof(RTPHEADER) + bufferlen;
+
+		char* rtspheaderptr = sendbuffer.alloc(sendbufferlen);
 		memcpy(rtspheaderptr, &frame, sizeof(INTERLEAVEDFRAME));
 		memcpy(rtspheaderptr + sizeof(INTERLEAVEDFRAME), &rtpheader, sizeof(RTPHEADER));
 		memcpy(rtspheaderptr + sizeof(INTERLEAVEDFRAME) + sizeof(RTPHEADER), buffer, bufferlen);
-		rtspheaderbuffer.resize(sizeof(INTERLEAVEDFRAME) + sizeof(RTPHEADER) + bufferlen);
+		sendbuffer.resize(sendbufferlen);
 
 		Guard locker(m_mutex);
-		_addAndCheckSendData(rtspheaderbuffer);
+		_addAndCheckSendData(sendbuffer);
 	}
 	void sendContrlData(const shared_ptr<STREAM_TRANS_INFO>& mediainfo, const char* buffer, uint32_t len)
 	{
@@ -111,7 +112,7 @@ public:
 		frame.channel = mediainfo->transportinfo.rtp.t.contorlChannel;
 		frame.rtp_len = htons(len);
 
-		RTSPBuffer contorldata = std::string((char*)&frame, sizeof(frame)) + std::string(buffer, len);
+		String contorldata = std::string((char*)&frame, sizeof(frame)) + std::string(buffer, len);
 
 
 		Guard locker(m_mutex);
@@ -139,17 +140,17 @@ private:
 
 			{
 				shared_ptr<SendItem>& item = m_sendList.front();
-				if (buffer != item->buffer.buffer() + item->havesendlen)
+				if (buffer != item->buffer.c_str() + item->havesendlen)
 				{
 					return;
 				}
-				if (item->havesendlen + len > item->buffer.size())
+				if (item->havesendlen + len > item->buffer.length())
 				{
 					return;
 				}
 				item->havesendlen += len;
 
-				if (item->havesendlen == item->buffer.size())
+				if (item->havesendlen == item->buffer.length())
 				{
 					m_sendList.pop_front();
 				}
@@ -165,14 +166,14 @@ private:
 
 		shared_ptr<SendItem>& item = m_sendList.front();
 
-		const char* sendbuffer = item->buffer.buffer();
-		uint32_t sendbufferlen = item->buffer.size();
+		const char* sendbuffer = item->buffer.c_str();
+		uint32_t sendbufferlen = item->buffer.length();
 
 		m_prevalivetime = Time::getCurrentMilliSecond();
 
 		m_sock->async_send(sendbuffer + item->havesendlen, sendbufferlen - item->havesendlen, Socket::SendedCallback(&RTSPProtocol::onSocketSendCallback, this));
 	}
-	void _addAndCheckSendData(const RTSPBuffer& buffer)
+	void _addAndCheckSendData(const String& buffer)
 	{
 		shared_ptr<SendItem> item = make_shared<SendItem>();
 		item->buffer = buffer;
@@ -253,7 +254,7 @@ private:
 
 				if (header != NULL)
 				{
-					printf("%s", std::string(buffertmp,usedlen).c_str());
+					logdebug("\r\n%s", std::string(buffertmp,usedlen).c_str());
 
 					m_cmdinfo = make_shared<RTSPCommandInfo>();
 					m_cmdinfo->method = header->method;

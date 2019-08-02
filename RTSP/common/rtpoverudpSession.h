@@ -11,7 +11,7 @@ class rtpOverUdpSession:public RTPSession
 {
 	struct FrameInfo
 	{
-		RTSPBuffer		framedata;
+		String			framedata;
 		uint16_t		sn;
 		uint32_t		tiemstmap;
 		bool			mark;
@@ -173,7 +173,7 @@ public:
 	}
 	void RTP_RecvCallback(const weak_ptr<Socket>& sock, const char* buffer, int len,const NetAddr& otearaddr)
 	{
-		if (buffer != rtp_RecvBuffer.buffer() || len <= 0 || len > MAXUDPPACKGELEN) return;
+		if (buffer != rtp_RecvBuffer.c_str() || len <= 0 || len > MAXUDPPACKGELEN) return;
 
 		if (len > sizeof(RTPHEADER))
 		{
@@ -207,14 +207,14 @@ public:
 	}
 	void RTCP_RecvCallback(const weak_ptr<Socket>& sock, const char* buffer, int len, const NetAddr& otearaddr)
 	{
-		if (buffer != rtcp_RecvBuffer.buffer() || len <= 0 || len > MAXUDPPACKGELEN) return;
+		if (buffer != rtcp_RecvBuffer.c_str() || len <= 0 || len > MAXUDPPACKGELEN) return;
 
 		contorlcallback(transportinfo, buffer, len);
 
 		shared_ptr<Socket> socktmp = sock.lock();
 		if (socktmp)
 		{
-			socktmp->async_recvfrom((char*)rtcp_RecvBuffer.buffer(), MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdpSession::RTCP_RecvCallback, this));
+			socktmp->async_recvfrom((char*)rtcp_RecvBuffer.c_str(), MAXUDPPACKGELEN, Socket::RecvFromCallback(&rtpOverUdpSession::RTCP_RecvCallback, this));
 		}
 	}
 	void _checkRTPFramelistData(const FrameInfo& info)
@@ -232,9 +232,9 @@ public:
 				{
 					logwarn("RTSP start sn %d to sn :%d loss", prevsn, iter->sn);
 				}
-				RTPHEADER* header = (RTPHEADER*)iter->framedata.buffer();
-				const char* framedataaddr = iter->framedata.buffer() + sizeof(RTPHEADER);
-				size_t framedatasize = iter->framedata.size() - sizeof(RTPHEADER);
+				RTPHEADER* header = (RTPHEADER*)iter->framedata.c_str();
+				const char* framedataaddr = iter->framedata.c_str() + sizeof(RTPHEADER);
+				size_t framedatasize = iter->framedata.length() - sizeof(RTPHEADER);
 
 				datacallback(transportinfo, iter->tiemstmap, framedataaddr, framedatasize, iter->mark);
 
@@ -250,9 +250,9 @@ public:
 			if (prevsn == 0 || (uint16_t)(prevsn + 1) == frametmp.sn)
 			{
 				//连续数据
-				RTPHEADER* header = (RTPHEADER*)frametmp.framedata.buffer();
-				const char* framedataaddr = frametmp.framedata.buffer() + sizeof(RTPHEADER);
-				size_t framedatasize = frametmp.framedata.size() - sizeof(RTPHEADER);
+				RTPHEADER* header = (RTPHEADER*)frametmp.framedata.c_str();
+				const char* framedataaddr = frametmp.framedata.c_str() + sizeof(RTPHEADER);
+				size_t framedatasize = frametmp.framedata.length() - sizeof(RTPHEADER);
 
 				datacallback(transportinfo, frametmp.tiemstmap,framedataaddr, framedatasize, frametmp.mark);
 
@@ -303,8 +303,8 @@ private:
 	shared_ptr<Socket>		 rtp_sock;
 	shared_ptr<Socket>		 rtcp_sock;
 
-	RTSPBuffer				 rtp_RecvBuffer;
-	RTSPBuffer 				 rtcp_RecvBuffer;
+	String					 rtp_RecvBuffer;
+	String 					 rtcp_RecvBuffer;
 
 	std::list<FrameInfo>	 rtp_framelist;
 	uint16_t				 rtp_prevframesn;
