@@ -50,8 +50,6 @@ public:
 	uint32_t					ssrc;
 
 	bool						transportbytcp;
-
-	std::map<STREAM_TRANS_INFO*, shared_ptr<RTPSession> > rtplist;
 public:
 	RTSPSession()
 	{
@@ -75,7 +73,7 @@ public:
 		protocol = NULL;		
 		socket = NULL;
 		ioworker = NULL;
-		rtplist.clear();
+		rtspmedia = NULL;
 
 		return true;
 	}
@@ -236,17 +234,17 @@ protected:
 	void buildRtpSession(bool isserver)
 	{
 		protocol->setMediaTransportInfo(rtspmedia);
-		protocol->setRTPOverTcpCallback(RTSPProtocol::MediaDataCallback(&RTSPSession::tcpMediaCallback, this), RTSPProtocol::ContorlDataCallback(&RTSPSession::tcpContorlCallback, this));
-
+		
 		for (std::list< shared_ptr<STREAM_TRANS_INFO> >::iterator iter = rtspmedia->infos.begin(); iter != rtspmedia->infos.end(); iter++)
 		{
 			shared_ptr<STREAM_TRANS_INFO> transport = *iter;
-			shared_ptr<RTPSession> rtpsession;
+			
+			if (transport->rtpsession) break;
 
 			if (transport->transportinfo.transport == TRANSPORT_INFO::TRANSPORT_RTP_TCP)
 			{
 				//rtpOverTcpSesssion(const shared_ptr<RTSPProtocol>& _protocol, const shared_ptr<STREAM_TRANS_INFO>& _transport, const MediaDataCallback& _datacallback, const ContorlDataCallback& _contorlcallback)
-				rtpsession = make_shared<rtpOverTcpSesssion>(transport,
+				transport->rtpsession = make_shared<rtpOverTcpSesssion>(transport,
 					rtpOverTcpSesssion::SendMediaDataCallback(&RTSPProtocol::sendMedia,protocol),rtpOverTcpSesssion::SendContrlDataCallback(&RTSPProtocol::sendContrlData,protocol),
 					RTPSession::MediaDataCallback(&RTSPSession::onMediaDataCallback,this),RTPSession::ContorlDataCallback(&RTSPSession::onContorlDataCallback,this));
 			}
@@ -263,7 +261,7 @@ protected:
 				}
 
 				//rtpOverUdpSession(bool _isserver, const shared_ptr<IOWorker>& ioworker,const std::string& _dstaddr, const shared_ptr<STREAM_TRANS_INFO>& _transport, const RTPSession::MediaDataCallback& _datacallback, const RTPSession::ContorlDataCallback& _contorlcallback)
-				rtpsession = make_shared<rtpOverUdpSession>(isserver,ioworker, dstaddr,transport,
+				transport->rtpsession = make_shared<rtpOverUdpSession>(isserver,ioworker, dstaddr,transport,
 					RTPSession::MediaDataCallback(&RTSPSession::onMediaDataCallback, this),
 					RTPSession::ContorlDataCallback(&RTSPSession::onContorlDataCallback, this));
 			}
@@ -271,8 +269,6 @@ protected:
 			{
 				continue;
 			}
-
-			rtplist[transport.get()] = rtpsession;
 		}
 	}
 private:
@@ -326,27 +322,4 @@ private:
 	}
 
 	virtual void onSendRequestCallback(const shared_ptr<CommandInfo>& cmd){}
-
-	void tcpContorlCallback(const shared_ptr<STREAM_TRANS_INFO>& mediainfo, const char*  buffer, uint32_t bufferlen)
-	{
-		std::map<STREAM_TRANS_INFO*, shared_ptr<RTPSession> >::iterator iter = rtplist.find(mediainfo.get());
-		if (iter == rtplist.end()) return;
-
-		shared_ptr<RTPSession> rtpsession = iter->second;
-		if (rtpsession)
-		{
-			rtpsession->rtpovertcpContorlCallback(mediainfo, buffer, bufferlen);
-		}
-	}
-	void tcpMediaCallback(const shared_ptr<STREAM_TRANS_INFO>& mediainfo, const RTPHEADER& rtpheader, const std::vector<CircleBuffer::BufferInfo>& buffer)
-	{
-		std::map<STREAM_TRANS_INFO*, shared_ptr<RTPSession> >::iterator iter = rtplist.find(mediainfo.get());
-		if (iter == rtplist.end()) return;
-
-		shared_ptr<RTPSession> rtpsession = iter->second;
-		if (rtpsession)
-		{
-			rtpsession->rtpovertcpMediaCallback(mediainfo, rtpheader, buffer);
-		}
-	}
 };

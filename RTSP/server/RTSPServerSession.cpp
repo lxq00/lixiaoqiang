@@ -130,8 +130,7 @@ struct RTSPServerSession::RTSPServerSessionInternal:public RTSPSession
 		}
 		else if (strcasecmp(cmdinfo->method.c_str(), "PLAY") == 0)
 		{
-			if (rtplist.size() == 0) buildRtpSession(true);
-
+			buildRtpSession(true);
 
 			std::string rangestr = cmdinfo->header("Range").readString();
 			
@@ -190,7 +189,7 @@ void RTSPServerSession::disconnect()
 {
 	internal->stop();
 	internal->handler = NULL;
-	internal->rtplist.clear();
+	internal->rtspmedia = NULL;
 }
 
 void RTSPServerSession::setAuthenInfo(const std::string& username, const std::string& password)
@@ -255,27 +254,21 @@ void RTSPServerSession::sendErrorResponse(const shared_ptr<RTSPCommandInfo>& cmd
 }
 bool RTSPServerSession::sendMediaPackage(const shared_ptr<STREAM_TRANS_INFO> mediainfo, uint32_t timestmap, const char*  buffer, uint32_t bufferlen, bool mark)
 {
-	std::map<STREAM_TRANS_INFO*, shared_ptr<RTPSession> >::iterator iter = internal->rtplist.find(mediainfo.get());
-	if (iter == internal->rtplist.end()) return false;
+	shared_ptr<RTPSession> rtpsession = mediainfo->rtpsession;
 
-	shared_ptr<RTPSession> rtpsession = iter->second;
-	if (rtpsession)
-	{
-		rtpsession->sendMediaData(mediainfo, timestmap, buffer, bufferlen, mark);
-	}
+	if (mediainfo == NULL || rtpsession == NULL || buffer ==NULL || bufferlen <= 0) return false;
 
-	return (bool)rtpsession;
+	rtpsession->sendMediaData(mediainfo, timestmap, buffer, bufferlen, mark);
+
+	return true;
 }
 bool RTSPServerSession::sendContorlPackage(const shared_ptr<STREAM_TRANS_INFO> mediainfo, const char*  buffer, uint32_t bufferlen)
 {
-	std::map<STREAM_TRANS_INFO*, shared_ptr<RTPSession> >::iterator iter = internal->rtplist.find(mediainfo.get());
-	if (iter == internal->rtplist.end()) return false;
+	shared_ptr<RTPSession> rtpsession = mediainfo->rtpsession;
 
-	shared_ptr<RTPSession> rtpsession = iter->second;
-	if (rtpsession)
-	{
-		rtpsession->sendContorlData(mediainfo, buffer, bufferlen);
-	}
+	if (mediainfo == NULL || rtpsession == NULL || buffer == NULL || bufferlen <= 0) return false;
 
-	return (bool)rtpsession;
+	rtpsession->sendContorlData(mediainfo, buffer, bufferlen);
+
+	return true;
 }

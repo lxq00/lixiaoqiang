@@ -28,9 +28,6 @@
     <Filter Include="源文件\common\StringParse">
       <UniqueIdentifier>{1e919799-53a4-437b-b632-f98849b31d30}</UniqueIdentifier>
     </Filter>
-    <Filter Include="源文件\common\Analyzer">
-      <UniqueIdentifier>{3becde86-a5d0-45d2-bdb9-aa52d65bd76a}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\RTSP\RTSPClient.h">
@@ -87,24 +84,6 @@
     <ClInclude Include="common\StringParse\strDup.h">
       <Filter>源文件\common\StringParse</Filter>
     </ClInclude>
-    <ClInclude Include="common\Analyzer\irtpAnalyzer.h">
-      <Filter>源文件\common\Analyzer</Filter>
-    </ClInclude>
-    <ClInclude Include="common\Analyzer\rtcpAnalyzer.h">
-      <Filter>源文件\common\Analyzer</Filter>
-    </ClInclude>
-    <ClInclude Include="common\Analyzer\rtpAnalyzerStructs.h">
-      <Filter>源文件\common\Analyzer</Filter>
-    </ClInclude>
-    <ClInclude Include="common\Analyzer\rtpH264Analyzer.h">
-      <Filter>源文件\common\Analyzer</Filter>
-    </ClInclude>
-    <ClInclude Include="common\Analyzer\rtpJpegAnalyzer.h">
-      <Filter>源文件\common\Analyzer</Filter>
-    </ClInclude>
-    <ClInclude Include="common\Analyzer\rtpXunmeiAnalyzer.h">
-      <Filter>源文件\common\Analyzer</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Include\RTSP\Version.tpl">
@@ -138,18 +117,6 @@
     </ClCompile>
     <ClCompile Include="common\StringParse\rtspHeaderTransport.cpp">
       <Filter>源文件\common\StringParse</Filter>
-    </ClCompile>
-    <ClCompile Include="common\Analyzer\rtcpAnalyzer.cpp">
-      <Filter>源文件\common\Analyzer</Filter>
-    </ClCompile>
-    <ClCompile Include="common\Analyzer\rtpH264Analyzer.cpp">
-      <Filter>源文件\common\Analyzer</Filter>
-    </ClCompile>
-    <ClCompile Include="common\Analyzer\rtpJpegAnalyzer.cpp">
-      <Filter>源文件\common\Analyzer</Filter>
-    </ClCompile>
-    <ClCompile Include="common\Analyzer\rtpXunmeiAnalyzer.cpp">
-      <Filter>源文件\common\Analyzer</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -100,19 +100,20 @@ private:
 			}
 		}
 
-		if(socketconnected && sessionstr.length() > 0 && rtplist.size() > 0)
+		if(socketconnected && sessionstr.length() > 0 && rtspmedia)
 		{
 			uint64_t nowtime = Time::getCurrentMilliSecond();
 			if (nowtime > prevheartbeattime && nowtime - prevheartbeattime > 10000)
 			{
-				std::map<STREAM_TRANS_INFO*, shared_ptr<RTPSession> > rtplisttmp = rtplist;
+				std::list<shared_ptr< STREAM_TRANS_INFO> > transinfos = rtspmedia->infos;
 
-				bool havesendhearbeat = false;
-
-				for (std::map<STREAM_TRANS_INFO*, shared_ptr<RTPSession> >::iterator iter = rtplisttmp.begin(); iter != rtplisttmp.end(); iter++)
+				bool havesendhearbeat = true;
+				
+				for (std::list<shared_ptr< STREAM_TRANS_INFO> >::iterator iter = transinfos.begin(); iter != transinfos.end(); iter++)
 				{
-					shared_ptr<RTPSession> rtpsession = iter->second;
-					if (rtpsession && rtpsession->onPoolHeartbeat()) havesendhearbeat = true;
+					shared_ptr<RTPSession> rtpsession = (*iter)->rtpsession;
+
+					if (rtpsession && !rtpsession->onPoolHeartbeat()) havesendhearbeat = false;
 				}
 
 				if (!havesendhearbeat)
@@ -430,29 +431,23 @@ bool RTSPClient::sendTeradownRequest(uint32_t timeout)
 
 bool RTSPClient::sendMediaPackage(const shared_ptr<STREAM_TRANS_INFO> mediainfo, uint32_t timestmap, const char*  buffer, uint32_t bufferlen, bool mark)
 {
-	std::map<STREAM_TRANS_INFO*, shared_ptr<RTPSession> >::iterator iter = internal->rtplist.find(mediainfo.get());
-	if (iter == internal->rtplist.end()) return false;
+	shared_ptr<RTPSession> rtpsession = mediainfo->rtpsession;
 
-	shared_ptr<RTPSession> rtpsession = iter->second;
-	if (rtpsession)
-	{
-		rtpsession->sendMediaData(mediainfo, timestmap,buffer,bufferlen,mark);
-	}
+	if (mediainfo == NULL || rtpsession == NULL || buffer == NULL || bufferlen <= 0) return false;
 
-	return (bool)rtpsession;
+	rtpsession->sendMediaData(mediainfo, timestmap, buffer, bufferlen, mark);
+
+	return true;
 }
 bool RTSPClient::sendContorlPackage(const shared_ptr<STREAM_TRANS_INFO> mediainfo, const char*  buffer, uint32_t bufferlen)
 {
-	std::map<STREAM_TRANS_INFO*, shared_ptr<RTPSession> >::iterator iter = internal->rtplist.find(mediainfo.get());
-	if (iter == internal->rtplist.end()) return false;
+	shared_ptr<RTPSession> rtpsession = mediainfo->rtpsession;
 
-	shared_ptr<RTPSession> rtpsession = iter->second;
-	if (rtpsession)
-	{
-		rtpsession->sendContorlData(mediainfo, buffer, bufferlen);
-	}
+	if (mediainfo == NULL || rtpsession == NULL || buffer == NULL || bufferlen <= 0) return false;
 
-	return (bool)rtpsession;
+	rtpsession->sendContorlData(mediainfo, buffer, bufferlen);
+
+	return true;
 }
 
 }

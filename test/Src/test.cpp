@@ -225,20 +225,29 @@ int main()
 #include "Base/Base.h"
 using namespace Public::Base;
 
+
+class AClass
+{
+public:
+	virtual void testa() {}
+	virtual void testb() {}
+};
+
+class BClass :public AClass
+{
+public:
+
+	virtual void testa() {}
+	virtual void testc() {}
+};
+
 int main()
 {
-	std::string strtmp;
+	AClass* ptr = new BClass;
 
-	strtmp.reserve(100);
 
-	char* buffer = (char*)strtmp.c_str();
-	
-	for (int i = 0; i < 10; i++)
-	{
-		strtmp.append(1,'0' + i);
 
-		printf("%x %s\r\n", strtmp.c_str(), strtmp.c_str());
-	}
+	auto val = typeid(ptr).raw_name();
 
 
 	getchar();

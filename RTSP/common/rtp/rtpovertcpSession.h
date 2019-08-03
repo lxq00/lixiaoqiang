@@ -11,7 +11,7 @@ public:
 	rtpOverTcpSesssion(const shared_ptr<STREAM_TRANS_INFO>& _transport, 
 		const SendMediaDataCallback& _sendmediacallback,const SendContrlDataCallback& _sendcontrlcallback,
 		const MediaDataCallback& _datacallback, const ContorlDataCallback& _contorlcallback)
-		:RTPSession(_transport, _datacallback, _contorlcallback),firsthearbeta(true)
+		:RTPSession(_transport, _datacallback, _contorlcallback),firsthearbeta(true), rtpsn(0)
 		,sendmediacallback(_sendmediacallback),sendcontorlcallback(_sendcontrlcallback)
 	{}
 	~rtpOverTcpSesssion()
@@ -23,7 +23,26 @@ public:
 	}
 	void rtpovertcpMediaCallback(const shared_ptr<STREAM_TRANS_INFO>& mediainfo, const RTPHEADER& rtpheader, const std::vector<CircleBuffer::BufferInfo>& buffer)
 	{
-		//datacallback(mediainfo, ntohl(rtpheader.ts), buffer, bufferlen, rtpheader.m);
+		if (buffer.size() == 0)
+		{
+			datacallback(mediainfo, ntohl(rtpheader.ts), buffer[0].bufferAddr, buffer[0].bufferLen, rtpheader.m);
+		}
+		else if(buffer.size() > 1)
+		{
+			uint32_t totalsize = 0;
+			for (size_t i = 0; i < buffer.size(); i++) totalsize += buffer[i].bufferLen;
+
+			String bufferdata;
+			uint32_t havecopysize = 0;
+			char* bufferptr = bufferdata.alloc(totalsize);
+			for (size_t i = 0; i < buffer.size(); i++)
+			{
+				memcpy(bufferptr + havecopysize, buffer[i].bufferAddr, buffer[i].bufferLen);
+				havecopysize += buffer[i].bufferLen;
+			}
+
+			datacallback(mediainfo, ntohl(rtpheader.ts), bufferdata.c_str(), bufferdata.length(), rtpheader.m);
+		}
 	}
 	void sendContorlData(const shared_ptr<STREAM_TRANS_INFO>& transportinfo, const char*  buffer, uint32_t bufferlen)
 	{
@@ -39,7 +58,7 @@ public:
 			memset(&rtpheader, 0, sizeof(RTPHEADER));
 			rtpheader.v = RTP_VERSION;
 			rtpheader.ts = htonl(timestmap);
-			rtpheader.seq = htons(transportinfo->rtpsn++);
+			rtpheader.seq = htons(rtpsn++);
 			rtpheader.pt = transportinfo->streaminfo.nPayLoad;
 			rtpheader.m = bufferlen == cansendlen ? mark : false;
 			rtpheader.ssrc = htonl(transportinfo->transportinfo.ssrc);
@@ -62,6 +81,7 @@ public:
 	}
 private:
 	bool					 firsthearbeta;
+	uint16_t				 rtpsn;
 
 	SendMediaDataCallback	sendmediacallback;
 	SendContrlDataCallback	sendcontorlcallback;

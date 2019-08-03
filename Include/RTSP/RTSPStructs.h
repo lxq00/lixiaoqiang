@@ -79,14 +79,14 @@ struct STREAM_INFO
 
 	STREAM_INFO():nPayLoad(0),nWidth(0),nHight(0),nSampRate(0),nBandwidth(0)/*,nTrackID(0)*/,fFramRate(0), profile_level_id(0){}
 };
-
+class RTPSession;
 struct STREAM_TRANS_INFO
 {
-	uint16_t		rtpsn;
-	STREAM_INFO		streaminfo;
-	TRANSPORT_INFO	transportinfo;
+	STREAM_INFO				streaminfo;
+	TRANSPORT_INFO			transportinfo;
+	shared_ptr<RTPSession>	rtpsession;
 
-	STREAM_TRANS_INFO():rtpsn(0){}
+	STREAM_TRANS_INFO(){}
 };
 
 //媒体信息结构定义
