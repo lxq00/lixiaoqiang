@@ -136,7 +136,7 @@ struct RTSPServerSession::RTSPServerSessionInternal:public RTSPSession
 			
 			RANGE_INFO range;
 			rtsp_header_parse_range(rangestr.c_str(), &range);
-			handler->onPlayRequest(session, cmdinfo, range);
+			handler->onPlayRequest(session, cmdinfo, rtspmedia ,range);
 
 			buildRtpSession(true);
 		}
