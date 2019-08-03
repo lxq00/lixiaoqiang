@@ -50,8 +50,10 @@ public:
 	uint32_t					ssrc;
 
 	bool						transportbytcp;
+
+	bool						isserver;
 public:
-	RTSPSession()
+	RTSPSession(bool server):isserver(server)
 	{
 		protocolstartcseq = 0;
 		transportbytcp = true;
@@ -297,23 +299,9 @@ private:
 		}
 
 		cmd->headers["CSeq"] = cmd->cseq;		
+		cmd->url = cmd->url;
 
-		std::string cmdstr;
-		
-		if (cmd->url.length() > 0)
-		{
-			cmdstr = cmd->method + " " + cmd->url + " RTSP/1.0" + HTTPSEPERATOR;
-		}
-		else
-		{
-			if (cmd->statuscode == 200) cmd->statusmsg = "0K";
-			cmdstr = std::string("RTSP/1.0 ") + Value(cmd->statuscode).readString() + " " + cmd->statusmsg + HTTPSEPERATOR;
-		}
-		for (std::map<std::string, Value>::iterator iter = cmd->headers.begin(); iter != cmd->headers.end(); iter++)
-		{
-			cmdstr += iter->first + ": " + iter->second.readString() + HTTPSEPERATOR;
-		}
-		cmdstr += HTTPSEPERATOR;
+		std::string cmdstr = HTTPBuild::build(!isserver,*(HTTPHeader*)cmd.get());
 		if (body.length() > 0) cmdstr += body;
 
 

@@ -1,31 +1,14 @@
 #pragma once
+#include "Base/Base.h"
+using namespace Public::Base;
 
 namespace Public {
 namespace HTTP {
 
-
-#define MAXRECVBUFFERLEN	56*1024
-
-#define HTTPHREADERLINEEND	"\r\n"
-#define HTTPHEADEREND		"\r\n\r\n"
-#define Content_Length "Content-Length"
-#define HTTPVERSION		"HTTP/1.1"
-#define Content_Type "Content-Type"
-
-#define Transfer_Encoding "Transfer-Encoding"
-
-#define CHUNKED		"chunked"
-#define CONNECTION	"Connection"
-#define CONNECTION_Close	"Close"
-#define CONNECTION_KeepAlive	"keep-alive"
-#define CONNECTION_Upgrade		"Upgrade"
-
-
-
 struct ContentInfo
 {
-	std::string contentType;
-	std::string filetype;
+	const char* contentType;
+	const char* filetype;
 };
 
 struct MediaType
