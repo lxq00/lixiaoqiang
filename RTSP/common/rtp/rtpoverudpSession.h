@@ -236,7 +236,7 @@ public:
 				const char* framedataaddr = iter->framedata.c_str() + sizeof(RTPHEADER);
 				size_t framedatasize = iter->framedata.length() - sizeof(RTPHEADER);
 
-				datacallback(transportinfo, iter->tiemstmap, framedataaddr, framedatasize, iter->mark);
+				datacallback(transportinfo, *header, framedataaddr, framedatasize);
 
 				prevsn = iter->sn;
 			}
@@ -254,7 +254,7 @@ public:
 				const char* framedataaddr = frametmp.framedata.c_str() + sizeof(RTPHEADER);
 				size_t framedatasize = frametmp.framedata.length() - sizeof(RTPHEADER);
 
-				datacallback(transportinfo, frametmp.tiemstmap,framedataaddr, framedatasize, frametmp.mark);
+				datacallback(transportinfo, *header, framedataaddr, framedatasize);
 
 				prevsn = frametmp.sn;
 			}

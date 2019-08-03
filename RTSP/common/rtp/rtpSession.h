@@ -8,7 +8,7 @@ class RTPSession
 {
 public:
 	//Fucntion4<bool isvideo,uint32_t timestmap,const char* buffer,uint32_t bufferlen,bool mark>RTPDataCallback
-	typedef Function5<void, const shared_ptr<STREAM_TRANS_INFO>&,uint32_t,const char*, uint32_t, bool> MediaDataCallback;
+	typedef Function4<void, const shared_ptr<STREAM_TRANS_INFO>&,const RTPHEADER&,const char*, uint32_t> MediaDataCallback;
 
 	//控制数据回调
 	typedef Function3<void, const shared_ptr<STREAM_TRANS_INFO>&,const char*, uint32_t> ContorlDataCallback;

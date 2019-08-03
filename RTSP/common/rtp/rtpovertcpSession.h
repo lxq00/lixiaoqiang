@@ -25,7 +25,7 @@ public:
 	{
 		if (buffer.size() == 0)
 		{
-			datacallback(mediainfo, ntohl(rtpheader.ts), buffer[0].bufferAddr, buffer[0].bufferLen, rtpheader.m);
+			datacallback(mediainfo, rtpheader, buffer[0].bufferAddr, buffer[0].bufferLen);
 		}
 		else if(buffer.size() > 1)
 		{
@@ -41,7 +41,7 @@ public:
 				havecopysize += buffer[i].bufferLen;
 			}
 
-			datacallback(mediainfo, ntohl(rtpheader.ts), bufferdata.c_str(), bufferdata.length(), rtpheader.m);
+			datacallback(mediainfo, rtpheader, bufferdata.c_str(), bufferdata.length());
 		}
 	}
 	void sendContorlData(const shared_ptr<STREAM_TRANS_INFO>& transportinfo, const char*  buffer, uint32_t bufferlen)

@@ -273,7 +273,7 @@ protected:
 	}
 private:
 	virtual void onContorlDataCallback(const shared_ptr<STREAM_TRANS_INFO>& transinfo, const char* buffer, uint32_t len) = 0;
-	virtual void onMediaDataCallback(const shared_ptr<STREAM_TRANS_INFO>& transinfo, uint32_t timestmap, const char* buffer, uint32_t len, bool mark) = 0;
+	virtual void onMediaDataCallback(const shared_ptr<STREAM_TRANS_INFO>& transinfo, const RTPHEADER& rtpheader, const char* buffer, uint32_t len) = 0;
 	void _rtspBuildRtspCommand(const shared_ptr<RTSPCommandInfo>& cmd, const std::string& body = "", const std::string& contentype = "")
 	{
 		if (body.length() > 0)

@@ -105,12 +105,27 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\RTSP\Defs.h" />
+    <ClInclude Include="..\Include\RTSP\RTPAnalyzer.h" />
     <ClInclude Include="..\Include\RTSP\RTSP.h" />
     <ClInclude Include="..\Include\RTSP\RTSPClient.h" />
     <ClInclude Include="..\Include\RTSP\RTSPServer.h" />
     <ClInclude Include="..\Include\RTSP\RTSPStructs.h" />
     <ClInclude Include="..\Include\RTSP\RTSPUrl.h" />
+    <ClCompile Include="Analyzer\h265frame.cpp" />
+    <ClCompile Include="Analyzer\rtcpAnalyzer.cpp" />
+    <ClCompile Include="Analyzer\RTPAnalyzer.cpp" />
+    <ClCompile Include="Analyzer\rtpH264Analyzer.cpp" />
+    <ClCompile Include="Analyzer\rtpH265Analyzer.cpp" />
+    <ClCompile Include="Analyzer\rtpNoneAnalyzer.cpp" />
     <ClCompile Include="client\RTSPClient.cpp" />
+    <ClInclude Include="Analyzer\h265frame.h" />
+    <ClInclude Include="Analyzer\irtpAnalyzer.h" />
+    <ClInclude Include="Analyzer\rtcpAnalyzer.h" />
+    <ClInclude Include="Analyzer\rtpAnalyzerStructs.h" />
+    <ClInclude Include="Analyzer\rtpH264Analyzer.h" />
+    <ClInclude Include="Analyzer\rtpH265Analyzer.h" />
+    <ClInclude Include="Analyzer\rtpNoneAnalyzer.h" />
+    <ClInclude Include="Analyzer\spsParse.h" />
     <ClInclude Include="common\rtp\rtcp.h" />
     <ClInclude Include="common\rtp\rtpovertcpSession.h" />
     <ClInclude Include="common\rtp\rtpoverudpSession.h" />

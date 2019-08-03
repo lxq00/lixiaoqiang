@@ -161,9 +161,9 @@ struct RTSPServerSession::RTSPServerSessionInternal:public RTSPSession
 	{
 		handler->onContorlPackageCallback(transinfo, buffer, len);
 	}
-	void onMediaDataCallback(const shared_ptr<STREAM_TRANS_INFO>& transinfo, uint32_t timestmap, const char* buffer, uint32_t len, bool mark)
+	void onMediaDataCallback(const shared_ptr<STREAM_TRANS_INFO>& transinfo, const RTPHEADER& rtpheader, const char* buffer, uint32_t bufferlen)
 	{
-		handler->onMediaPackageCallback(transinfo, timestmap, buffer, len, mark);
+		handler->onMediaPackageCallback(transinfo, rtpheader, buffer, bufferlen);
 	}
 	void socketDisconnectCallback()
 	{
