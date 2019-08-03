@@ -121,6 +121,7 @@
     <ClInclude Include="Src\HTTPCache.h" />
     <ClInclude Include="Src\HTTPDefine.h" />
     <ClInclude Include="Src\HTTPCommunication.h" />
+    <ClInclude Include="Src\WebSocketProtocol.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Version.rc" />
@@ -131,6 +132,7 @@
     <ClCompile Include="Src\HTTPServerRequest.cpp" />
     <ClCompile Include="Src\HTTPServerResponse.cpp" />
     <ClCompile Include="Src\HTTPServerSession.cpp" />
+    <ClCompile Include="Src\WebSocketSession.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Include\HTTP\Version.tpl" />

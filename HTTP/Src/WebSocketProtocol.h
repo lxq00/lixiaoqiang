@@ -2,7 +2,6 @@
 
 #include "Base/Base.h"
 #include "Network/Network.h"
-#include "HTTP/WebSocket.h"
 using namespace Public::Base;
 using namespace Public::Network;
 
@@ -102,25 +101,15 @@ class WebSocketProtocol
 		SendItemInfo() :havesendlen(0) {}
 	};
 public:
-	WebSocketProtocol(bool client):isClient(client), errorCode(408)
+	typedef Function2<void, const std::string&, WebSocketDataType> ParseDataCallback;
+public:
+	WebSocketProtocol(bool client,const ParseDataCallback& callback):isClient(client),datacallback(callback)
 	{
-		headerParseFinish = false;
-		recvBuffer = new char[MAXRECVBUFFERLEN + 10];
-		recvBufferLen = 0;
 	}
 	virtual ~WebSocketProtocol() 
 	{
-		sock = NULL;
-		SAFE_DELETE(recvBuffer);
 	}
-	void close()
-	{
-		weak_ptr<Socket>socktmp = sock;
-		if (sock != NULL) sock->disconnect();
-		sock = NULL;
-		while (socktmp.lock() != NULL) Thread::sleep(10);
-	}
-	bool buildAndSend(const std::string& data, WebSocketDataType type)
+	std::string buildProtocol(const std::string& data, WebSocketDataType type)
 	{
 		std::string protocolstr;
 		char maskkey[4] = { 0 };
@@ -192,27 +181,9 @@ public:
 			}
 		}
 
-
-		addDataAndCheckSend(protocolstr.c_str(),protocolstr.length());
-
-		return true;
+		return protocolstr;
 	}
-	bool setSocketAndStart(const shared_ptr<Socket>& _sock)
-	{
-		sock = _sock;
-		sock->setDisconnectCallback(Socket::DisconnectedCallback(&WebSocketProtocol::socketDisConnectcallback, this));
-		sock->async_recv(recvBuffer, MAXRECVBUFFERLEN, Socket::ReceivedCallback(&WebSocketProtocol::socketRecvCallback, this));
 	
-		return true;
-	}
-	shared_ptr<Socket> getsocket() { return sock; }
-    uint32_t sendListSize() 
-    {
-        Guard locker(mutex);
-        return sendlist.size();
-    }
-	bool ready() { return headerParseFinish; }
-
 	const char* parseProtocol(const char* buffer, int len)
 	{
 		int nTry = 100;
@@ -252,14 +223,7 @@ public:
 						}
 					}
 					
-					dataCallback(frame->data, frame->datatype == 1 ? WebSocketDataType_Txt: WebSocketDataType_Bin);
-				}
-
-				if (frame->datatype == 8)
-				{
-					weak_ptr<Socket> socktmp = sock;
-					socktmp.lock()->disconnect();
-					socketDisConnectcallback(sock, "");
+					datacallback(frame->data, frame->datatype == 1 ? WebSocketDataType_Txt: WebSocketDataType_Bin);
 				}
 
 				frame = NULL;
@@ -347,176 +311,10 @@ private:
 
 		return buffer += needlen;
 	}
-	virtual void dataCallback(const std::string& data, WebSocketDataType type) = 0;
-	virtual void socketDisConnectcallback(const weak_ptr<Socket>& /*connectSock*/, const std::string&) = 0;
-	virtual void headerParseReady() {}
-	void socketRecvCallback(const weak_ptr<Socket>& /*sock*/, const char* buffer, int len)
-	{
-		if (len <= 0) return;
-
-		recvBufferLen += len;
-		uint32_t lentmp = recvBufferLen;
-		const char* buftmp = recvBuffer;
-
-		if (!headerParseFinish && lentmp > 0)
-		{
-			const char* tmp = parseHeader(buftmp, lentmp);
-
-			if (tmp != buftmp)
-			{
-				headerParseReady();
-			}
-
-			lentmp = buftmp + lentmp - tmp;
-			buftmp = tmp;
-		}
-		if (headerParseFinish && lentmp > 0)
-		{
-			const char* tmp = parseProtocol(buftmp, lentmp);
-			lentmp = buftmp + lentmp - tmp;
-			buftmp = tmp;
-		}
-
-		if (lentmp > 0 && lentmp != recvBufferLen)
-		{
-			memmove(recvBuffer, buftmp, lentmp);
-		}
-		recvBufferLen = lentmp;
-
-		shared_ptr<Socket> tmp = sock;
-		if (tmp != NULL)
-		{
-			tmp->async_recv(recvBuffer + recvBufferLen, MAXRECVBUFFERLEN - recvBufferLen,
-				Socket::ReceivedCallback(&WebSocketProtocol::socketRecvCallback, this));
-		}
-	}
-	const char* parseHeader(const char* buffer, int bufferlen)
-	{
-		int pos = String::indexOf(buffer, bufferlen, HTTPHEADEREND);
-		if (pos == -1) return buffer;
-
-		const char* endheaderbuf = buffer + pos + strlen(HTTPHEADEREND);
-
-		const char* firsttmp = parseHeaderFlag(buffer, endheaderbuf - buffer);
-		if (firsttmp == NULL) return buffer;
-
-		parseHeaderContent(firsttmp, endheaderbuf - firsttmp);
-
-		headerParseFinish = true;
-
-		return endheaderbuf;
-	}
-	const char* parseHeaderFlag(const char* buffer, int len)
-	{
-		int pos = String::indexOf(buffer, len, HTTPHREADERLINEEND);
-		if (pos == -1) return NULL;
-
-		std::vector<std::string> tmp = String::split(buffer, pos, " ");
-		
-		//不是客户端解析的是客户端返回的数据
-		if (!isClient)
-		{	
-			if (tmp.size() != 3) return NULL;
-
-			url = tmp[1];
-		}
-		else
-		{
-			//解析服务端返回的数据
-			if (tmp.size() < 2) return NULL;
-
-			errorCode = Value(tmp[1]).readInt();
-		}
-
-		return buffer + pos + strlen(HTTPHREADERLINEEND);
-	}
-	bool parseHeaderContent(const char* buffer, int len)
-	{
-		std::vector<std::string> values = String::split(buffer, len, HTTPHREADERLINEEND);
-		for (uint32_t i = 0; i < values.size(); i++)
-		{
-			std::string strtmp = values[i];
-			const char* tmpstr = strtmp.c_str();
-			const char* tmp = strchr(tmpstr, ':');
-			if (tmp != NULL)
-			{
-				headers[String::strip(std::string(tmpstr, tmp - tmpstr))] = String::strip(tmp + 1);
-			}
-		}
-
-		return true;
-	}
-	void dataSendCallback(const weak_ptr<Socket>& ,const char*,int len)
-	{
-		shared_ptr<Socket> tmp = sock;
-		if (tmp == NULL) return;
-
-		//发送失败，socket异常后，退出发送
-		if (len < 0) return;
-
-		Guard locker(mutex);
-		{
-			if (sendlist.size() <= 0) return;
-
-			shared_ptr<SendItemInfo> sendtmp = sendlist.front();
-			//数据出错
-			if (sendtmp->havesendlen + len > sendtmp->needsenddata.length())
-			{
-				assert(0);
-				return;
-			}
-			sendtmp->havesendlen += len;
-			if (sendtmp->havesendlen == sendtmp->needsenddata.length())
-			{
-				sendlist.pop_front();
-			}
-		}
-		
-		{
-			if (sendlist.size() <= 0) return;
-
-			shared_ptr<SendItemInfo> sendtmp = sendlist.front();
-			const char* sendbuffertmp = sendtmp->needsenddata.c_str() + sendtmp->havesendlen;
-			uint32_t  sendbufferlen = sendtmp->needsenddata.length() - sendtmp->havesendlen;
-
-			tmp->async_send(sendbuffertmp, sendbufferlen, Socket::SendedCallback(&WebSocketProtocol::dataSendCallback, this));
-		}
-	}
-protected:
-	void addDataAndCheckSend(const char* buf, int len)
-	{
-		shared_ptr<Socket> socktmp = sock;
-
-		if (socktmp == NULL) return;
-
-		Guard locker(mutex);
-
-		shared_ptr<SendItemInfo> sendinfo = make_shared<SendItemInfo>();
-		sendinfo->needsenddata = std::string(buf, len);
-
-		sendlist.push_back(sendinfo);
-
-		//只有当前加入的一条数据，启动发送
-		if (sendlist.size() == 1)
-		{
-			shared_ptr<SendItemInfo> sendtmp = sendlist.front();
-			const char* sendbuffertmp = sendtmp->needsenddata.c_str();
-			uint32_t  sendbufferlen = sendtmp->needsenddata.length();
-
-			socktmp->async_send(sendbuffertmp, sendbufferlen, Socket::SendedCallback(&WebSocketProtocol::dataSendCallback, this));
-		}
-	}
 private:
-	shared_ptr<Socket>				sock;
 	shared_ptr<FrameInfo>			frame;
-	Socket::DisconnectedCallback	disconnect;
-	char*							recvBuffer;
-	int								recvBufferLen;
-	bool							headerParseFinish;
 	bool							isClient;
-
-	Mutex							mutex;
-	std::list<shared_ptr<SendItemInfo> > sendlist;
+	ParseDataCallback				datacallback;
 };
 
 

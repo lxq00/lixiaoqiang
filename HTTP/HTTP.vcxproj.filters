@@ -324,6 +324,9 @@
     <ClInclude Include="Src\HTTPCache.h">
       <Filter>源文件</Filter>
     </ClInclude>
+    <ClInclude Include="Src\WebSocketProtocol.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Version.rc">
@@ -344,6 +347,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Src\HTTPServerResponse.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\WebSocketSession.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

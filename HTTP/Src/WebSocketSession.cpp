@@ -1,48 +1,112 @@
-#include "HTTP/WebSocket.h"
+#include "HTTP/HTTPServer.h"
 #include "WebSocketProtocol.h"
 #include "boost/regex.hpp" 
-#include "HTTPSession.h"
+#include "HTTPCommunication.h"
 
 namespace Public {
 namespace HTTP {
 
-#define MAXSESSIONCACHESIZE		1024
+#define MAXWEBSOCKETRECVBUFFERLEN		1024
 
-struct WebSocketSession::WebSocketSessionInternal:public WebSocketProtocol
+class WebSocketRecvContent :public IContent,public WebSocketProtocol
 {
-	RecvDataCallback				datacallbck;
+public:
+	WebSocketServerSession*						session;
+
+	WebSocketServerSession::RecvDataCallback	recvcallback;
+	
+	WebSocketRecvContent(WebSocketServerSession* _session):WebSocketProtocol(false,WebSocketProtocol::ParseDataCallback(&WebSocketRecvContent::parseDataCallback,this)), session(session)
+	{}
+	~WebSocketRecvContent() {}
+
+	void parseDataCallback(const std::string& data, WebSocketDataType type)
+	{
+		recvcallback(session,data, type);
+	}
+
+	uint32_t append(const char* buffer, uint32_t len)
+	{
+		const char* usedaddr = parseProtocol(buffer, len);
+
+		return usedaddr - buffer;
+	}
+	void read(String& data) {}
+};
+
+class WebSocketSendContent :public IContent, public WebSocketProtocol
+{
+public:
+	WebSocketSendContent() :WebSocketProtocol(false, NULL){}
+	~WebSocketSendContent() {}
+
+	Mutex							mutex;
+	std::list<std::string>			sendlist;
+
+	uint32_t append(const char* buffer, uint32_t len) { return len; }
+	void read(String& data) 
+	{
+		Guard locker(mutex);
+
+		if (sendlist.size()) return;
+
+		data = sendlist.front();
+		sendlist.pop_front();
+	}
+};
+
+struct WebSocketServerSession::WebSocketServerSessionInternal
+{
+	shared_ptr<HTTPCommunication>	commusession;
+
 	DisconnectCallback				disconnectcallback;
-private:
-	WebSocketSession*				session;
-	char*							bufferAddr;
-	int								bufferUsedLen;
-	weak_ptr<HTTPSession_Service>	httpsession;
-public:	
-	WebSocketSessionInternal(WebSocketSession* _session,const shared_ptr<HTTPSession_Service>& _httpsession):WebSocketProtocol(false), session(_session),httpsession(_httpsession)
+	
+
+	shared_ptr<WebSocketRecvContent>	recvcontent;
+
+	shared_ptr<HTTPHeader>				sendheader;
+	shared_ptr<WebSocketSendContent>	sendcontent;
+};
+WebSocketServerSession::WebSocketServerSession(const shared_ptr<HTTPCommunication>& commuSession)
+{
+	internal = new WebSocketServerSessionInternal;
+	internal->commusession = commuSession;
+}
+WebSocketServerSession::~WebSocketServerSession()
+{
+	stop();
+
+	SAFE_DELETE(internal);
+}
+
+bool WebSocketServerSession::checkWebsocketHeader(const shared_ptr<HTTPHeader>& header)
+{
+	if (strcasecmp(header->method.c_str(), "POST") != 0) return false;
+
+	Value connectionval = header->header(CONNECTION);
+	if (connectionval.empty() || strcasecmp(connectionval.readString().c_str(), CONNECTION_Upgrade) != 0) return false;
+
+	Value upgradval = header->header(CONNECTION_Upgrade);
+	if (upgradval.empty() || strcasecmp(upgradval.readString().c_str(), "websocket") != 0) return false;
+
+	Value keyval = header->header("Sec-WebSocket-Key");
+
+	if (keyval.empty()) return false;
+
+	return true;
+}
+
+void WebSocketServerSession::start(const RecvDataCallback& datacallback, const DisconnectCallback& disconnectcallback)
+{
+	internal->disconnectcallback = disconnectcallback;
+
+	internal->recvcontent = make_shared<WebSocketRecvContent>(this);
+	internal->recvcontent->recvcallback = datacallback;
+
+	internal->sendcontent = make_shared<WebSocketSendContent>();
+	internal->sendheader = make_shared<HTTPHeader>();
 	{
-		_httpsession->request->content()->setReadCallback(HTTPContent::ReadDataCallback(&WebSocketSessionInternal::httpDataRecvCallback, this));
-		bufferAddr = new char[MAXSESSIONCACHESIZE + 100];
-		bufferUsedLen = 0;
-	}
-	~WebSocketSessionInternal()
-	{
-		WebSocketProtocol::close();
-		SAFE_DELETE(bufferAddr);
-	}
-
-	bool initProtocol()
-	{
-		shared_ptr<HTTPSession_Service> sessiontmp = httpsession.lock();
-		if (sessiontmp == NULL) return false;
-
-
-		Value key = sessiontmp->request->header("Sec-WebSocket-Key");
-		Value protocol = sessiontmp->request->header("Sec-WebSocket-Protocol");
-
-		if (key.empty())
-		{
-			return false;
-		}
+		Value key = internal->commusession->recvHeader->header("Sec-WebSocket-Key");
+		Value protocol = internal->commusession->recvHeader->header("Sec-WebSocket-Protocol");
 
 		std::string value = key.readString() + WEBSOCKETMASK;
 		Base::Sha1 sha1;
@@ -50,141 +114,79 @@ public:
 
 		std::map<std::string, Value> header;
 		{
-			sessiontmp->response->headers()["Access-Control-Allow-Origin"] = "*";
-			sessiontmp->response->headers()[CONNECTION] = CONNECTION_Upgrade;
-			sessiontmp->response->headers()[CONNECTION_Upgrade] = "websocket";
-			sessiontmp->response->headers()["Sec-WebSocket-Accept"] = Base64::encode(sha1.report(Sha1::REPORT_BIN));
+			internal->sendheader->headers["Access-Control-Allow-Origin"] = "*";
+			internal->sendheader->headers[CONNECTION] = CONNECTION_Upgrade;
+			internal->sendheader->headers[CONNECTION_Upgrade] = "websocket";
+			internal->sendheader->headers["Sec-WebSocket-Accept"] = Base64::encode(sha1.report(Sha1::REPORT_BIN));
 			if (!protocol.empty())
 			{
-				sessiontmp->response->headers()["Sec-WebSocket-Protocol"] = protocol;
+				internal->sendheader->headers["Sec-WebSocket-Protocol"] = protocol;
 			}
 		}
 
-		sessiontmp->response->statusCode() = 101;
-		sessiontmp->response->errorMessage() = "Switching Protocols";
-
-		sessiontmp->onPoolTimerProc();
-
-		return true;
+		internal->sendheader->statuscode = 101;
+		internal->sendheader->statusmsg = "Switching Protocols";
 	}
 
-	void httpDataRecvCallback(const char* buffer, uint32_t len)
+	internal->commusession->recvContent = internal->recvcontent;
+	internal->commusession->startRecv();
+	internal->commusession->setSendHeaderContentAndPostSend(internal->sendheader, internal->sendcontent);
+}
+void WebSocketServerSession::stop()
+{
+	if (internal->recvcontent) internal->recvcontent->recvcallback = NULL;
+}
+
+bool WebSocketServerSession::send(const std::string& data, WebSocketDataType type)
+{
+	if (!internal->sendcontent) return false;
 	{
-		while (len > 0)
-		{
-			const char* buffertmp = buffer;
-			uint32_t datalen = len;
+		std::string protocol = internal->sendcontent->buildProtocol(data, type);
+
+		Guard locker(internal->sendcontent->mutex);
+		internal->sendcontent->sendlist.push_back(protocol);
+	}
 	
-			if (bufferUsedLen != 0)
-			{
-				uint32_t needlen = min(MAXSESSIONCACHESIZE - bufferUsedLen, datalen);
-				memcpy(bufferAddr + bufferUsedLen, buffertmp, needlen);
-				bufferUsedLen += needlen;
+	internal->commusession->onPoolTimerProc();
 
-				buffertmp = bufferAddr;
-				datalen = bufferUsedLen;
+	return true;
+}
 
-				buffer += needlen;
-				len -= needlen;
-			}
+const std::map<std::string, Value>& WebSocketServerSession::headers() const
+{
+	return internal->commusession->recvHeader->headers;
+}
+Value WebSocketServerSession::header(const std::string& key) const
+{
+	return internal->commusession->recvHeader->header(key);
+}
+const URL& WebSocketServerSession::url() const
+{
+	return internal->commusession->recvHeader->url;
+}
+NetAddr WebSocketServerSession::remoteAddr() const
+{
+	return internal->commusession->socket->getOtherAddr();
+}
 
-			const char* usedtmp = parseProtocol(buffertmp, datalen);
-			if (usedtmp == NULL) break;
+uint32_t WebSocketServerSession::sendListSize()
+{
+	if (!internal->sendcontent) return 0;
 
-			int haveparselen = usedtmp - buffertmp;
+	uint32_t cachesize = 0;
 
-			if (buffertmp == buffer)
-			{
-				buffer += haveparselen;
-				len -= haveparselen;
-			}
-			else
-			{
-				int bufferleavlen = bufferUsedLen - haveparselen;
-				if (bufferUsedLen > 0)
-				{
-					memmove(bufferAddr, bufferAddr + haveparselen, bufferleavlen);
-				}
-				bufferUsedLen = bufferleavlen;
-			}
-		}
-	}
-	void httpDisconnectCallback(HTTPRequest*, const std::string&)
+	Guard locker(internal->sendcontent->mutex);
+	for (std::list<std::string>::iterator iter = internal->sendcontent->sendlist.begin(); iter != internal->sendcontent->sendlist.end(); iter++)
 	{
-		disconnectcallback(session);
-	}
-	void dataCallback(const std::string& data, WebSocketDataType type)
-	{
-		datacallbck(session, data,type);
-	}
-};
-//web socket session
-WebSocketSession::WebSocketSession(const shared_ptr<HTTPSession_Service>& session)
-{
-	internal = new WebSocketSessionInternal(this,session);
-}
-WebSocketSession::~WebSocketSession()
-{
-	SAFE_DELETE(internal);
-}
-bool WebSocketSession::initProtocol()
-{
-	return internal->initProtocol();
-}
-void WebSocketSession::start(const RecvDataCallback& datacallback, const DisconnectCallback& disconnectcallback)
-{
-	internal->datacallbck = datacallback;
-	internal->disconnectcallback = disconnectcallback;
-}
-void WebSocketSession::stop()
-{
-
-}
-bool WebSocketSession::connected() const
-{
-	shared_ptr<Socket> tmp = internal->getsocket();
-	if (tmp == NULL) return false;
-
-	return tmp->getStatus() == NetStatus_connected;
-}
-	
-bool WebSocketSession::send(const std::string& data, WebSocketDataType type)
-{
-	shared_ptr<Socket> tmp = internal->getsocket();
-	if (tmp == NULL || !internal->ready()) return false;
-
-	return internal->buildAndSend(data, type);
-}
-
-const std::map<std::string, Value>& WebSocketSession::headers() const
-{
-	return internal->headers;
-}
-Value WebSocketSession::header(const std::string& key) const
-{
-	std::map<std::string, Value>::const_iterator iter = internal->headers.find(key);
-	if (iter == internal->headers.end())
-	{
-		return Value();
+		cachesize += (*iter).length();
 	}
 
-	return iter->second;
-}
-const URL& WebSocketSession::url() const
-{
-	return internal->url;
-}
-NetAddr WebSocketSession::remoteAddr() const
-{
-	shared_ptr<Socket> tmp = internal->getsocket();
-	if (tmp == NULL) return NetAddr();
-
-	return tmp->getOtherAddr();
+	return cachesize;
 }
 
-uint32_t WebSocketSession::sendListSize()
+void WebSocketServerSession::disconnected()
 {
-    return internal->sendListSize();
+	internal->disconnectcallback(this);
 }
 
 }

@@ -11,7 +11,7 @@ namespace HTTP {
 struct ListenInfo
 {
 	HTTPServer::HTTPCallback	callback;
-	HTTPServer::CacheType		type;
+	HTTPCacheType				type;
 };
 
 struct HTTPSessionInfo
@@ -21,11 +21,10 @@ struct HTTPSessionInfo
 	shared_ptr<HTTPServerSession>		httpsession;
 	weak_ptr<HTTPServerSession>			httpsessionback;
 	ListenInfo							listeninfo;
-	bool								sessionIsCreate;
 	uint64_t							finishtime;
 	uint64_t							nosessiontime;
 
-	HTTPSessionInfo():sessionIsCreate(false),finishtime(0), nosessiontime(0){}
+	HTTPSessionInfo():finishtime(0), nosessiontime(0){}
 };
 
 struct HTTPServrManager:public HTTPCommunicationHandler,public enable_shared_from_this<HTTPServrManager>
@@ -74,7 +73,7 @@ public:
 		}
 	}
 private:
-	void onRecvHeaderOk(HTTPCommunication* commu)
+	bool onRecvHeaderOk(HTTPCommunication* commu)
 	{
 		shared_ptr<HTTPSessionInfo> info;
 		{
@@ -92,23 +91,37 @@ private:
 
 			if (!callback)
 			{
-				return buildErrorResponse(info->commu, 405, "Method Not Allowed");
+				buildErrorResponse(info->commu, 405, "Method Not Allowed");
+
+				return false;
 			}
+
+			if (!WebSocketServerSession::checkWebsocketHeader(info->commu->recvHeader))
+			{
+				buildErrorResponse(info->commu, 405, "Bad Request");
+
+				return false;
+			}
+
 			shared_ptr<WebSocketServerSession> websocketsession = make_shared<WebSocketServerSession>(info->commu);
 			info->websocketsession = websocketsession;
-			info->sessionIsCreate = true;
 			
 			callback(websocketsession);
+
+			return false;
 		}
 		else
 		{
 			info->listeninfo = findHttpCallback(info->commu);
 			if(!info->listeninfo.callback)
 			{
-				return buildErrorResponse(info->commu, 405, "Method Not Allowed");
+				buildErrorResponse(info->commu, 405, "Method Not Allowed");
+
+				return false;
 			}
 			info->httpsessionback = info->httpsession = make_shared<HTTPServerSession>(info->commu, info->listeninfo.type);
-			info->sessionIsCreate = true;
+
+			return true;
 		}
 	}
 	virtual void onRecvContentOk(HTTPCommunication* commu)

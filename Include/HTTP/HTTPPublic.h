@@ -166,7 +166,7 @@ public:
 	IContent() {}
 	virtual ~IContent() {}
 
-	virtual void append(const char* buffer, uint32_t len) = 0;
+	virtual uint32_t append(const char* buffer, uint32_t len) = 0;
 	virtual void read(String& data) = 0;
 };
 
@@ -183,7 +183,7 @@ public:
 	std::string read() const;
 	bool readToFile(const std::string& filename) const;
 private:
-	virtual void append(const char* buffer, uint32_t len);
+	virtual uint32_t append(const char* buffer, uint32_t len);
 	virtual void read(String& data);
 private:
 	struct ReadContentInternal;
@@ -211,7 +211,7 @@ public:
 	bool write(const std::string& buffer);
 	bool writeFromFile(const std::string& filename, bool needdeletefile = false);
 private:
-	virtual void append(const char* buffer, uint32_t len);
+	virtual uint32_t append(const char* buffer, uint32_t len);
 	virtual void read(String& data);
 private:
 	struct ContentInternal;

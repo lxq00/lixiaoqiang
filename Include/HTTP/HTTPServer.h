@@ -92,11 +92,12 @@ public:
 
 	uint32_t sendListSize();
 
+	static bool checkWebsocketHeader(const shared_ptr<HTTPHeader>& header);
 private:
 	void disconnected();
 private:
-	struct WebSocketSessionInternal;
-	WebSocketSessionInternal* internal;
+	struct WebSocketServerSessionInternal;
+	WebSocketServerSessionInternal* internal;
 };
 
 class HTTP_API HTTPServer
