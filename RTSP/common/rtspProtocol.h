@@ -32,7 +32,7 @@ public:
 	typedef Function0<void> DisconnectCallback;
 public:
 	RTSPProtocol(const shared_ptr<Socket>& sock, const CommandCallback& cmdcallback, const DisconnectCallback& disconnectCallback,bool server)
-		:HTTPParse(server),m_recvBuffer(MAXPARSERTSPBUFFERLEN), m_sendBuffer(MAXPARSERTSPBUFFERLEN)
+		:HTTPParse(server),m_recvBuffer(MAXPARSERTSPBUFFERLEN), m_sendBuffer(MAXPARSERTSPBUFFERLEN),m_isSending(false)
 	{
 		m_sock = sock;
 		m_cmdcallback = cmdcallback;
@@ -271,8 +271,11 @@ private:
 							RTPHEADER rtpheader;
 							if (!m_recvBuffer.readBuffer(sizeof(INTERLEAVEDFRAME), &rtpheader, sizeof(RTPHEADER))) break;
 							
-							if (rtpheader.v != RTP_VERSION) break;
-
+							if (rtpheader.v != RTP_VERSION)
+							{
+								assert(0);
+								break;
+							}
 							std::vector<CircleBuffer::BufferInfo> info;
 							if (!m_recvBuffer.readBuffer(sizeof(INTERLEAVEDFRAME) + sizeof(RTPHEADER), info, datalen - sizeof(RTPHEADER))) break;
 
@@ -356,12 +359,12 @@ private:
 			readbufferarray[3] = ch;
 			readbufferarray[4] = 0;
 
+			readpos++;
+
 			if (readpos >= 4)
 			{
 				if (strncasecmp(readbufferarray, rtspcmdflag.c_str(), 4) == 0) return 2;
-			}
-
-			readpos++;
+			}			
 		}
 		return 1;
 	}

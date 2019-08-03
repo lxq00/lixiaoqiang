@@ -168,7 +168,8 @@ public:
 	}
 	void sendDescribeResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, const MEDIA_INFO& mediainfo)
 	{
-		rtspmedia = shared_ptr<MEDIA_INFO>(new MEDIA_INFO(mediainfo));
+		MEDIA_INFO mediatmp = mediainfo.cloneStreamInfo();
+		rtspmedia = shared_ptr<MEDIA_INFO>(new MEDIA_INFO(mediatmp));
 		rtspmedia->ssrc = Value(ssrc).readString();
 
 		sendResponse(cmdinfo, HTTPParse::Header(), rtsp_header_build_sdp(*rtspmedia.get()), RTSPCONENTTYPESDP);

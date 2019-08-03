@@ -101,6 +101,21 @@ struct RTSP_API MEDIA_INFO
 	
 	MEDIA_INFO() :startRange(0),stopRange(0){}
 
+	MEDIA_INFO cloneStreamInfo() const
+	{
+		MEDIA_INFO info;
+
+		for (std::list<shared_ptr<STREAM_TRANS_INFO> >::const_iterator iter = infos.begin(); iter != infos.end(); iter++)
+		{
+			shared_ptr<STREAM_TRANS_INFO> streaminfo = make_shared<STREAM_TRANS_INFO>();
+
+			streaminfo->streaminfo = (*iter)->streaminfo;
+
+			info.infos.push_back(streaminfo);
+		}
+
+		return info;
+	}
 
 	const shared_ptr<STREAM_TRANS_INFO> streamInfo(const std::string& medianame)const
 	{
@@ -114,11 +129,11 @@ struct RTSP_API MEDIA_INFO
 
 		return NULL;
 	}
-	const shared_ptr<STREAM_TRANS_INFO> videoStreamInfo(const std::string& medianame)const
+	const shared_ptr<STREAM_TRANS_INFO> videoStreamInfo()const
 	{
 		return streamInfo("video");
 	}
-	const shared_ptr<STREAM_TRANS_INFO> audioStreamInfo(const std::string& medianame)const
+	const shared_ptr<STREAM_TRANS_INFO> audioStreamInfo()const
 	{
 		return streamInfo("audio");
 	}

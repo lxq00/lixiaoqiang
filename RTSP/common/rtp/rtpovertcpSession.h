@@ -23,7 +23,7 @@ public:
 	}
 	void rtpovertcpMediaCallback(const shared_ptr<STREAM_TRANS_INFO>& mediainfo, const RTPHEADER& rtpheader, const std::vector<CircleBuffer::BufferInfo>& buffer)
 	{
-		if (buffer.size() == 0)
+		if (buffer.size() == 1)
 		{
 			datacallback(mediainfo, rtpheader, buffer[0].bufferAddr, buffer[0].bufferLen);
 		}

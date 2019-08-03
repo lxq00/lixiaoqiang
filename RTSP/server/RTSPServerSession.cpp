@@ -97,6 +97,7 @@ struct RTSPServerSession::RTSPServerSessionInternal:public RTSPSession
 		}
 		else if (strcasecmp(cmdinfo->method.c_str(), "SETUP") == 0)
 		{
+
 			if (sessionstr.length() <= 0)
 			{
 				sessionstr = Value(Time::getCurrentMilliSecond()).readString() + Value(Time::getCurrentTime().makeTime()).readString();
@@ -108,14 +109,17 @@ struct RTSPServerSession::RTSPServerSessionInternal:public RTSPSession
 			rtsp_header_parse_transport(tranportstr.c_str(), &transport);
 
 			shared_ptr<STREAM_TRANS_INFO> transportinfo;
-			for (std::list<shared_ptr<STREAM_TRANS_INFO> >::const_iterator iter = rtspmedia->infos.begin(); iter != rtspmedia->infos.end(); iter++)
+			if (rtspmedia)
 			{
-				if (String::indexOfByCase(cmdinfo->url, (*iter)->streaminfo.szTrackID) != -1)
+				for (std::list<shared_ptr<STREAM_TRANS_INFO> >::const_iterator iter = rtspmedia->infos.begin(); iter != rtspmedia->infos.end(); iter++)
 				{
-					transportinfo = *iter;
-					break;
+					if (String::indexOfByCase(cmdinfo->url, (*iter)->streaminfo.szTrackID) != -1)
+					{
+						transportinfo = *iter;
+						break;
+					}
 				}
-			}
+			}			
 
 			if (transportinfo == NULL)
 			{
@@ -136,7 +140,7 @@ struct RTSPServerSession::RTSPServerSessionInternal:public RTSPSession
 			
 			RANGE_INFO range;
 			rtsp_header_parse_range(rangestr.c_str(), &range);
-			handler->onPlayRequest(session, cmdinfo, range);
+			handler->onPlayRequest(session, cmdinfo, rtspmedia ,range);
 
 			buildRtpSession(true);
 		}

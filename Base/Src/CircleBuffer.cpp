@@ -62,18 +62,24 @@ bool CircleBuffer::consumeLine(std::string& str, const std::string& flag)
 	while (readpos < datalen)
 	{
 		str.append(1, readChar(readpos));
+		readpos++;
+
 		if (readpos >= flaglen && memcmp(str.c_str() + readpos - flaglen, flagaddr, flaglen) == 0)
 		{
 			havefindend = true;
 			break;
 		}
-
-		readpos++;
 	}
-
+	
 	if (havefindend)
 	{
+		str.resize(readpos - flaglen);
+
 		setConsumeLength(readpos);
+	}
+	else
+	{
+		str.resize(0);
 	}
 
 	return havefindend;
