@@ -1,421 +1,287 @@
 #include "HTTP/HTTPServer.h"
-#include "HTTPSession.h"
+#include "HTTPCommunication.h"
 #include "boost/regex.hpp" 
 namespace Public {
 namespace HTTP {
 
-#define MAXCONNECTIONTIMEOUT	3*60*1000
+
+#define COMMUFINISHTIMEOUT		5*1000
+#define NOSESSIONTIMEOUT		2*60*1000
 
 struct ListenInfo
 {
-	HTTPCallback			callback;
-	HTTPServer::CacheType	type;
+	HTTPServer::HTTPCallback	callback;
+	HTTPServer::CacheType		type;
 };
 
-struct HTTPServerCacheFile
+struct HTTPSessionInfo
 {
-public:
-	HTTPServerCacheFile()
-	{
-		File::removeDirectory(cachepath);
-		buildpath();
-	}
-	~HTTPServerCacheFile()
-	{
-		File::removeDirectory(cachepath);
-	}
-	std::string path()
-	{
-		if (!File::access(cachepath, File::accessExist)) File::makeDirectory(cachepath);
+	shared_ptr<HTTPCommunication>		commu;
+	weak_ptr<WebSocketServerSession>	websocketsession;
+	shared_ptr<HTTPServerSession>		httpsession;
+	weak_ptr<HTTPServerSession>			httpsessionback;
+	ListenInfo							listeninfo;
+	bool								sessionIsCreate;
+	uint64_t							finishtime;
+	uint64_t							nosessiontime;
 
-		return cachepath;
-	}
-private:
-	void buildpath()
-	{
-#ifdef WIN32
-		char systempath[513];
-		GetSystemDirectory(systempath, 512);
-		const char* syspathtmp = strcasestr(systempath, "Windows\\system32");
-		if (syspathtmp == NULL)
-		{
-			syspathtmp = strcasestr(systempath, "Windows/system32");
-		}
-		if (syspathtmp != NULL)
-		{
-			*(char*)syspathtmp = 0;
-			std::string systemdatapath = std::string(systempath) + "ProgramData\\ZVan";
-			cachepath = systemdatapath + "\\IVS-III\\HttpCache\\" + File::getExcutableFileName();
-		}
-#else
-		cachepath = std::string("/home/.ZVan/IVS-III/HttpCache/") + File::getExcutableFileName();
-#endif
-	}
-private:
-	std::string cachepath;
-}cache;
-
-struct HTTPServerObject
-{
-public:
-	struct CallbackInfo
-	{
-		ListenInfo		httpLitsenInfo;
-		HTTPServer::WebsocketCallback websocketCallback;
-	};
-	typedef Function1<CallbackInfo, const shared_ptr<HTTPRequest>& > QueryCallback;
-	typedef Function1<void, HTTPServerObject*>	DisconnectCallback;
-private:
-	shared_ptr<Socket>				sock;
-	shared_ptr<HTTPSession_Service> session;
-	QueryCallback					queryCallback;
-	DisconnectCallback				disconnectCallback;
-	std::string						useragent;
-	char							buffer[MAXRECVBUFFERLEN];
-	int								bufferlen;
-	shared_ptr<WebSocketSession>	websocketsession;
-public:
-	HTTPServerObject(const shared_ptr<Socket>& _sock, const std::string& _useragent,const QueryCallback& _querycallback,const DisconnectCallback& _discallback)
-	{
-		bufferlen = 0;
-		queryCallback = _querycallback;
-		disconnectCallback = _discallback;
-
-		sock = _sock;
-		useragent = _useragent;
-		session = make_shared<HTTPSession_Service>(sock, _useragent,
-			HTTPProtocolParser<HTTPRequest>::HeaderParseSuccessCallback(&HTTPServerObject::headerParseCallback,this));
-
-		sock->setDisconnectCallback(Socket::DisconnectedCallback(&HTTPServerObject::socketDisconnectCallback, this));
-		sock->async_recv(buffer, MAXRECVBUFFERLEN,Socket::ReceivedCallback(&HTTPServerObject::recvCallback, this));
-	}
-	~HTTPServerObject()
-	{
-		sock->disconnect();
-		sock = NULL;
-		session = NULL;
-		websocketsession = NULL;
-	}
-	void onPoolTimerProc()
-	{
-		shared_ptr<HTTPSession> tmp = session;
-		if(tmp != NULL) tmp->onPoolTimerProc();
-	}
-	bool isTimeout()
-	{
-		shared_ptr<HTTPSession> tmp = session;
-		if (tmp == NULL) return true;
-
-		uint64_t nowtime = Time::getCurrentMilliSecond();
-		uint64_t sessiontime = tmp->prevAliveTime();
-
-		bool timeoutflag = nowtime > sessiontime && nowtime - sessiontime >= MAXCONNECTIONTIMEOUT;
-
-		if (timeoutflag)
-		{
-			shared_ptr<HTTPRequest> request = tmp->request;
-			if (request != NULL) request->discallback()(request.get(), "timeout");
-		}
-
-		return timeoutflag;
-	}
-    bool isFinish()
-    {
-        shared_ptr<HTTPSession> tmp = session;
-        if (tmp == NULL) return true;
-
-        return tmp->isFinish();
-    }
-private:
-	void headerParseCallback(const shared_ptr<HTTPRequest>& req)
-	{
-		CallbackInfo callback = queryCallback(req);
-
-		if (callback.websocketCallback != NULL)
-		{
-			websocketsession = make_shared<WebSocketSession>(session);
-			callback.websocketCallback(websocketsession);
-		}
-		else if (callback.httpLitsenInfo.callback == NULL || callback.httpLitsenInfo.type == HTTPServer::CacheType_File)
-		{
-			char buffer[256] = { 0 };
-			snprintf_x(buffer, 255, "%llu_%x.cache", Time::getCurrentMilliSecond(), buffer);
-
-			req->content()->setReadToFile(cache.path() + PATH_SEPARATOR + buffer, true);
-		}
-	}
-	void recvCallback(const weak_ptr<Socket>& ,const char* ,int len)
-	{
-		shared_ptr<HTTPSession_Service> tmp = session;
-		if (tmp == NULL) return;
-
-		if (len <= 0)
-		{
-			shared_ptr<HTTPRequest> request = tmp->request;
-			if (request != NULL) request->discallback()(request.get(), "Socket Recv Error");
-
-			shared_ptr<HTTPResponse> response = tmp->response;
-			if (response != NULL)
-			{
-				response->statusCode() = 500;
-				response->errorMessage() = "Socket Recv Error";
-			}
-
-			disconnectCallback(this);
-
-			return;
-		}
-		if (tmp->isFinish())
-		{
-#ifndef HTTPSERVERUSECLOSESESSION
-			tmp = session = make_shared<HTTPSession_Service>(sock, useragent,
-				HTTPParser<HTTPRequest>::HeaderParseSuccessCallback(&HTTPServerObject::headerParseCallback, this));
-#else
-			return;
-#endif
-		}
-
-		bufferlen += len;
-
-		const char* usedendbuf = tmp->inputData(buffer, bufferlen);
-		bufferlen = int(buffer + bufferlen - usedendbuf);
-		if (bufferlen > 0 && usedendbuf != buffer)
-		{
-			memmove(buffer, usedendbuf, bufferlen);
-		}
-
-		if (tmp->requestFinish() && tmp->response == NULL)
-		{
-			shared_ptr<HTTPResponse> response = make_shared<HTTPResponse>
-				(HTTPContent::CheckConnectionIsOk(&HTTPSession_Service::checkSocketIsOk,tmp));
-
-			tmp->setResponse(response);
-			CallbackInfo callback = queryCallback(tmp->request);
-			
-			if (callback.websocketCallback)
-			{
-
-			}
-			else if (callback.httpLitsenInfo.callback)
-			{
-				callback.httpLitsenInfo.callback(tmp->request, response);
-			}
-			else 
-			{
-				response->statusCode() = 405;
-				response->errorMessage() = "Method Not Allowed";
-
-				disconnectCallback(this);
-
-				return;
-			}
-		}
-
-		int recvlen = MAXRECVBUFFERLEN - bufferlen;
-		if (recvlen <= 0)
-		{
-			shared_ptr<HTTPRequest> request = tmp->request;
-			if (request != NULL) request->discallback()(request.get(), "Socket Recv Buffer Full");
-
-			shared_ptr<HTTPResponse> response = tmp->response;
-			if (response != NULL)
-			{
-				response->statusCode() = 500;
-				response->errorMessage() = "Socket Recv Buffer Full";
-			}			
-
-			disconnectCallback(this);
-
-			return;
-		}
-
-		shared_ptr<Socket> socktmp = sock;
-		if(socktmp != NULL) socktmp->async_recv(buffer + bufferlen,recvlen,Socket::ReceivedCallback(&HTTPServerObject::recvCallback, this));
-	}
-	void socketDisconnectCallback(const weak_ptr<Socket>& sock,const std::string&)
-	{
-		shared_ptr<HTTPSession> tmp = session;
-		if (tmp != NULL)
-		{
-			shared_ptr<HTTPRequest> request = tmp->request;
-			if (request != NULL) request->discallback()(request.get(), "socket disconnect");
-		}
-		if (tmp != NULL)
-		{
-			shared_ptr<HTTPResponse> response = tmp->response;
-			if (response != NULL) response->discallback()(response.get(), "socket disconnect");
-		}
-		disconnectCallback(this);
-	}
+	HTTPSessionInfo():sessionIsCreate(false),finishtime(0), nosessiontime(0){}
 };
-struct HTTPServer::HTTPServrInternal:public Thread
+
+struct HTTPServrManager:public HTTPCommunicationHandler,public enable_shared_from_this<HTTPServrManager>
 {
-	shared_ptr<IOWorker>	worker;
-	shared_ptr<Socket>		tcpServer;
-	uint32_t				httpport;
-	std::string				useragent;
+	shared_ptr<IOWorker>				worker;
+	shared_ptr<Socket>					tcpServer;
+	uint32_t							httpport;
+	std::string							useragent;
 	
+
 	Mutex														  mutex;
-	std::map<std::string, std::map<std::string, ListenInfo> >     listencallbackmap;
-	std::map<std::string, HTTPServer::WebsocketCallback>		  listenwebsocketcallbackmap;
-	std::map<std::string, ListenInfo>							  defaultcallback;
+	std::map<std::string, std::map<std::string, ListenInfo> >     httplistencallbackmap;
+	std::map<std::string, HTTPServer::WebsocketCallback>		  websocketlistencallbackmap;
+	std::map<std::string, ListenInfo>							  httpdefaultlistencallback;
+private:
+	std::map< HTTPCommunication*, shared_ptr<HTTPSessionInfo> >   sessionlist;
 
-	std::map<HTTPServerObject*,shared_ptr<HTTPServerObject> >	  objectlist;
-	std::set<HTTPServerObject*>									  freelist;
+	std::list< shared_ptr< HTTPSessionInfo> >					  freesessionlist;
 
-	HTTPServrInternal() :Thread("HTTPServrInternal"),httpport(0)
+	shared_ptr<Timer>											pooltimer;
+public:
+	HTTPServrManager() :httpport(0)
 	{
-		createThread();
+		pooltimer = make_shared<Timer>("HTTPServrManager");
+		pooltimer->start(Timer::Proc(&HTTPServrManager::onPoolTimerProc, this), 0, 1000);
 	}
-	~HTTPServrInternal()
+	~HTTPServrManager()
 	{
-		destroyThread();
+		pooltimer = NULL;
+		if (tcpServer) tcpServer->disconnect();
+		tcpServer = NULL;
+		worker = NULL;
+		
+		sessionlist.clear();
+		freesessionlist.clear();
 	}
 
-	void acceptCallback(const weak_ptr<Socket>& oldsock, const shared_ptr<Socket>& newsock)
+	void onAcceptCallback(const weak_ptr<Socket>& oldsock, const shared_ptr<Socket>& newsock)
 	{
-		shared_ptr<HTTPServerObject> obj = make_shared<HTTPServerObject>(newsock,useragent,
-			HTTPServerObject::QueryCallback(&HTTPServrInternal::getHttpRequestCallback,this),
-			HTTPServerObject::DisconnectCallback(&HTTPServrInternal::disconnectCallback,this)
-			);
+		shared_ptr<HTTPSessionInfo> info = make_shared<HTTPSessionInfo>();
+		info->commu = make_shared<HTTPCommunication>(true,newsock,shared_from_this(),useragent);
 
 		{
 			Guard locker(mutex);
-			objectlist[obj.get()]  = obj;
+			sessionlist[info->commu.get()]  = info;
 		}
 	}
+private:
+	void onRecvHeaderOk(HTTPCommunication* commu)
+	{
+		shared_ptr<HTTPSessionInfo> info;
+		{
+			Guard locker(mutex);
+			std::map<HTTPCommunication*, shared_ptr<HTTPSessionInfo> >::iterator iter = sessionlist.find(commu);
+			if (iter == sessionlist.end()) return;
 
-	void disconnectCallback(HTTPServerObject* object)
+			info = iter->second;
+		}
+
+		Value connectionval = info->commu->recvHeader->header(CONNECTION);
+		if (!connectionval.empty() && strcasecmp(connectionval.readString().c_str(), CONNECTION_Upgrade) == 0)
+		{
+			HTTPServer::WebsocketCallback callback = findWebsocketCallback(info->commu);
+
+			if (!callback)
+			{
+				return buildErrorResponse(info->commu, 405, "Method Not Allowed");
+			}
+			shared_ptr<WebSocketServerSession> websocketsession = make_shared<WebSocketServerSession>(info->commu);
+			info->websocketsession = websocketsession;
+			info->sessionIsCreate = true;
+			
+			callback(websocketsession);
+		}
+		else
+		{
+			info->listeninfo = findHttpCallback(info->commu);
+			if(!info->listeninfo.callback)
+			{
+				return buildErrorResponse(info->commu, 405, "Method Not Allowed");
+			}
+			info->httpsessionback = info->httpsession = make_shared<HTTPServerSession>(info->commu, info->listeninfo.type);
+			info->sessionIsCreate = true;
+		}
+	}
+	virtual void onRecvContentOk(HTTPCommunication* commu)
+	{
+		shared_ptr<HTTPSessionInfo> info;
+		{
+			Guard locker(mutex);
+			std::map<HTTPCommunication*, shared_ptr<HTTPSessionInfo> >::iterator iter = sessionlist.find(commu);
+			if (iter == sessionlist.end()) return;
+
+			info = iter->second;
+		}
+
+		if (!info->httpsession) return;
+
+		shared_ptr<HTTPServerSession> httpsession = info->httpsession;
+		info->httpsession = NULL;
+
+		info->listeninfo.callback(httpsession);
+	}
+	virtual void onDisconnect(HTTPCommunication* commu)
+	{
+		shared_ptr<HTTPSessionInfo> info;
+		{
+			Guard locker(mutex);
+			std::map<HTTPCommunication*, shared_ptr<HTTPSessionInfo> >::iterator iter = sessionlist.find(commu);
+			if (iter == sessionlist.end()) return;
+
+			info = iter->second;
+			freesessionlist.push_back(info);
+			sessionlist.erase(iter);
+		}
+
+		shared_ptr<WebSocketServerSession> websocketsession = info->websocketsession.lock();
+		if (websocketsession) websocketsession->disconnected();
+
+		shared_ptr<HTTPServerSession> httpsession = info->httpsessionback.lock();
+		if (httpsession) httpsession->disconnected();
+	}
+
+	HTTPServer::WebsocketCallback findWebsocketCallback(const shared_ptr<HTTPCommunication>& commu)
 	{
 		Guard locker(mutex);
-		freelist.insert(object);
-	}
-
-	void threadProc()
-	{
-		while (looping())
+		std::string requestPathname = String::tolower(commu->recvHeader->url.pathname);
+		
+		for (std::map<std::string, HTTPServer::WebsocketCallback>::iterator iter = websocketlistencallbackmap.begin(); iter != websocketlistencallbackmap.end(); iter++)
 		{
-			Thread::sleep(100);
-		
-			std::list<shared_ptr<HTTPServerObject> > closelist;
-			std::list<shared_ptr<HTTPServerObject> > timeoutlist;
-			std::map<HTTPServerObject*, shared_ptr<HTTPServerObject> > poollist;
+			boost::regex oRegex(iter->first);
+			if (!boost::regex_match(requestPathname, oRegex))
 			{
-				Guard locker(mutex);
-		
-				for (std::set<HTTPServerObject*>::iterator iter = freelist.begin(); iter != freelist.end(); iter++)
-				{
-					std::map<HTTPServerObject*, shared_ptr<HTTPServerObject> >::iterator oiter = objectlist.find(*iter);
-					if (oiter != objectlist.end())
-					{
-						closelist.push_back(oiter->second);
-						objectlist.erase(oiter);
-					}
-				}
-				freelist.clear();
-
-				poollist = objectlist;
+				continue;
 			}
 
-			for (std::map<HTTPServerObject*, shared_ptr<HTTPServerObject> >::iterator iter = poollist.begin(); iter != poollist.end(); iter++)
-			{
-				iter->second->onPoolTimerProc();
-
-				if (iter->second->isTimeout())
-				{
-					timeoutlist.push_back(iter->second);
-				}
-                ////采用close模式，使用完成后断开连接
-                //else if (iter->second->isFinish())
-                //{
-                //    timeoutlist.push_back(iter->second);
-                //}
-			}
-
-			{
-				Guard locker(mutex);
-				for (std::list<shared_ptr<HTTPServerObject> >::iterator iter = timeoutlist.begin(); iter != timeoutlist.end(); iter++)
-				{
-					objectlist.erase((*iter).get());
-				}
-			}
+			return iter->second;
 		}
-	}
-	HTTPServerObject::CallbackInfo getHttpRequestCallback(const shared_ptr<HTTPRequest>& request)
-	{
-		HTTPServerObject::CallbackInfo callback;
-		{
-			std::string requestPathname = String::tolower(request->url().pathname);
-			std::string method = String::tolower(request->method());
-			std::string connection = request->header(CONNECTION).readString();
 
-			bool isWebsocket = false;
-			if (strcasecmp(connection.c_str(), CONNECTION_Upgrade) == 0 && strcasecmp(request->method().c_str(), "post") == 0 && strcasecmp(request->url().protocol.c_str(), "wss") == 0)
-			{
-				isWebsocket = true;
-			}
+		return HTTPServer::WebsocketCallback();
+	}
+
+	ListenInfo findHttpCallback(const shared_ptr<HTTPCommunication>& commu)
+	{
+		ListenInfo liteninfo;
+		{
+			std::string requestPathname = String::tolower(commu->recvHeader->url.pathname);
+			std::string method = String::tolower(commu->recvHeader->method);
 
 			Guard locker(mutex);
 
-			if (isWebsocket)
-			{
-				for (std::map<std::string, HTTPServer::WebsocketCallback>::iterator iter = listenwebsocketcallbackmap.begin(); iter != listenwebsocketcallbackmap.end(); iter++)
-				{
-					boost::regex oRegex(iter->first);
-					if (!boost::regex_match(requestPathname, oRegex))
-					{
-						continue;
-					}
-
-					callback.websocketCallback = iter->second;
-					break;
-				}
-			}
-
-			if (strcasecmp(connection.c_str(), CONNECTION_Upgrade) == 0 || strcasecmp(request->url().protocol.c_str(), "wss") == 0)
-			{
-				return callback;
-			}			
-
-			for (std::map<std::string, std::map<std::string, ListenInfo> >::iterator citer = listencallbackmap.begin(); citer != listencallbackmap.end() && callback.callback == NULL; citer++)
+			for (std::map<std::string, std::map<std::string, ListenInfo> >::iterator citer = httplistencallbackmap.begin(); citer != httplistencallbackmap.end() && liteninfo.callback == NULL; citer++)
 			{
 				boost::regex oRegex(citer->first);
 				if(!boost::regex_match(requestPathname,oRegex))
 				{
 					continue;
 				}
-				for (std::map<std::string, ListenInfo>::iterator miter = citer->second.begin() ; miter != citer->second.end() && callback.callback == NULL; miter++)
+				for (std::map<std::string, ListenInfo>::iterator miter = citer->second.begin() ; miter != citer->second.end() && liteninfo.callback == NULL; miter++)
 				{
 					if (strcasecmp(method.c_str(), miter->first.c_str()) == 0)
 					{
-						callback.httpLitsenInfo = miter->second;
+						liteninfo = miter->second;
 						break;
 					}
 				}
 			}
-			for (std::map<std::string, ListenInfo>::iterator miter = defaultcallback.begin() ; miter != defaultcallback.end() && callback.callback == NULL; miter++)
+			for (std::map<std::string, ListenInfo>::iterator miter = httpdefaultlistencallback.begin() ; miter != httpdefaultlistencallback.end() && liteninfo.callback == NULL; miter++)
 			{
 				if (strcasecmp(method.c_str(), miter->first.c_str()) == 0)
 				{
-					callback.httpLitsenInfo = miter->second;
+					liteninfo = miter->second;
 					break;
 				}
 			}
 		}
 		
-		return callback;
+		return liteninfo;
+	}
+
+	void onPoolTimerProc(unsigned long)
+	{
+		std::map< HTTPCommunication*, shared_ptr<HTTPSessionInfo> > sessionlisttmp;
+		std::list< shared_ptr< HTTPSessionInfo> >	freelisttmp;
+		{
+			Guard locker(mutex);
+			sessionlisttmp = sessionlist;
+			freelisttmp = freesessionlist;
+			freesessionlist.clear();
+		}
+		uint64_t nowtime = Time::getCurrentMilliSecond();
+		for (std::map< HTTPCommunication*, shared_ptr<HTTPSessionInfo> >::iterator iter = sessionlisttmp.begin(); iter != sessionlisttmp.end(); iter++)
+		{
+			iter->second->commu->onPoolTimerProc();
+			if (iter->second->commu->isTimeout())
+			{
+				{
+					Guard locker(mutex);
+					sessionlist.erase(iter->first);
+				}
+				freelisttmp.push_back(iter->second);
+
+				continue;
+			}
+			if (iter->second->finishtime == 0 && iter->second->commu->sessionIsFinish())
+			{
+				iter->second->finishtime = nowtime;
+			}
+			else if (iter->second->finishtime != 0 && nowtime - iter->second->finishtime >= COMMUFINISHTIMEOUT)
+			{
+				{
+					Guard locker(mutex);
+					sessionlist.erase(iter->first);
+				}
+				freelisttmp.push_back(iter->second);
+
+				continue;
+			}
+
+			shared_ptr<WebSocketServerSession> websocketsession = iter->second->websocketsession.lock();
+			shared_ptr<HTTPServerSession> httpsession = iter->second->httpsessionback.lock();
+			if (iter->second->nosessiontime == 0 && websocketsession == NULL && httpsession == NULL)
+			{
+				iter->second->nosessiontime = nowtime;
+			}
+			else if (iter->second->nosessiontime != 0 && nowtime - iter->second->nosessiontime >= NOSESSIONTIMEOUT)
+			{
+				{
+					Guard locker(mutex);
+					sessionlist.erase(iter->first);
+				}
+				freelisttmp.push_back(iter->second);
+
+				continue;
+			}
+		}
 	}
 };
 
+struct HTTPServer::HTTPServrInternal
+{
+	shared_ptr<HTTPServrManager> manager;
+};
 
 HTTPServer::HTTPServer(const shared_ptr<IOWorker>& worker, const std::string& useragent)
 {
 	internal = new HTTPServrInternal();
-	internal->worker = worker;
-	internal->useragent = useragent;
+	internal->manager = make_shared<HTTPServrManager>();
+	internal->manager->worker = worker;
+	internal->manager->useragent = useragent;
+
+	if (internal->manager->worker == NULL) internal->manager->worker = IOWorker::defaultWorker();
 }
 HTTPServer::~HTTPServer()
 {
+	internal->manager = NULL;
 	SAFE_DELETE(internal);
 }
 
@@ -424,13 +290,13 @@ bool HTTPServer::listen(const std::string& path, const std::string& method, cons
 	std::string flag1 = String::tolower(path);
 	std::string flag2 = String::tolower(method);
 
-	Guard locker(internal->mutex);
+	Guard locker(internal->manager->mutex);
 
-	std::map<std::string, std::map<std::string, ListenInfo> >::iterator citer = internal->listencallbackmap.find(String::tolower(flag1));
-	if (citer == internal->listencallbackmap.end())
+	std::map<std::string, std::map<std::string, ListenInfo> >::iterator citer = internal->manager->httplistencallbackmap.find(String::tolower(flag1));
+	if (citer == internal->manager->httplistencallbackmap.end())
 	{
-		internal->listencallbackmap[flag1] = std::map<std::string, ListenInfo>();
-		citer = internal->listencallbackmap.find(String::tolower(flag1));
+		internal->manager->httplistencallbackmap[flag1] = std::map<std::string, ListenInfo>();
+		citer = internal->manager->httplistencallbackmap.find(String::tolower(flag1));
 	}
 	ListenInfo info;
 	info.callback = callback;
@@ -444,9 +310,9 @@ bool HTTPServer::listen(const std::string& path, const HTTPServer::WebsocketCall
 {
 	std::string flag1 = String::tolower(path);
 	
-	Guard locker(internal->mutex);
+	Guard locker(internal->manager->mutex);
 
-	internal->listenwebsocketcallbackmap[flag1] = callback;
+	internal->manager->websocketlistencallbackmap[flag1] = callback;
 
 	return true;
 }
@@ -454,34 +320,34 @@ bool HTTPServer::defaultListen(const std::string& method, const HTTPCallback& ca
 {
 	std::string flag2 = String::tolower(method);
 	
-	Guard locker(internal->mutex);
+	Guard locker(internal->manager->mutex);
 
 	ListenInfo info;
 	info.callback = callback;
 	info.type = type;
 
-	internal->defaultcallback[flag2] = info;
+	internal->manager->httpdefaultlistencallback[flag2] = info;
 
 	return true;
 }
 
 bool HTTPServer::run(uint32_t httpport)
 {
-	Guard locker(internal->mutex);
-	internal->httpport = httpport;
-	internal->tcpServer = TCPServer::create(internal->worker,httpport);
-    if (internal->tcpServer == shared_ptr<Socket>())
+	Guard locker(internal->manager->mutex);
+	internal->manager->httpport = httpport;
+	internal->manager->tcpServer = TCPServer::create(internal->manager->worker,httpport);
+    if (internal->manager->tcpServer == shared_ptr<Socket>())
     {
         return false;
     }
-	internal->tcpServer->async_accept(Socket::AcceptedCallback(&HTTPServrInternal::acceptCallback, internal));
+	internal->manager->tcpServer->async_accept(Socket::AcceptedCallback(&HTTPServrManager::onAcceptCallback, internal->manager));
 
 	return true;
 }
 
 uint32_t HTTPServer::listenPort() const
 {
-	return internal->httpport;
+	return internal->manager->httpport;
 }
 
 

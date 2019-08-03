@@ -118,22 +118,19 @@
     <ClInclude Include="..\websocketpp\utf8_validator.hpp" />
     <ClInclude Include="..\websocketpp\utilities.hpp" />
     <ClInclude Include="..\websocketpp\version.hpp" />
-    <ClInclude Include="Src\HTTPProtocolBuilder.h" />
+    <ClInclude Include="Src\HTTPCache.h" />
     <ClInclude Include="Src\HTTPDefine.h" />
-    <ClInclude Include="Src\HTTPProtocolParser.h" />
-    <ClInclude Include="Src\HTTPServerSession.h" />
-    <ClInclude Include="Src\HTTPSession.h" />
-    <ClInclude Include="Src\WebSocketProtocol.h" />
+    <ClInclude Include="Src\HTTPCommunication.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Version.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Src\HTTPClient.cpp" />
     <ClCompile Include="Src\HTTPPublic.cpp" />
     <ClCompile Include="Src\HTTPServer.cpp" />
-    <ClCompile Include="Src\WebSocketSession.cpp" />
-    <ClCompile Include="Src\WebSocketClient.cpp" />
+    <ClCompile Include="Src\HTTPServerRequest.cpp" />
+    <ClCompile Include="Src\HTTPServerResponse.cpp" />
+    <ClCompile Include="Src\HTTPServerSession.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Include\HTTP\Version.tpl" />
@@ -142,7 +139,7 @@
     <ProjectGuid>{71F87FB4-D088-4CC9-AE2A-0A59571D0676}</ProjectGuid>
     <RootNamespace>Base</RootNamespace>
     <Keyword>Win32Proj</Keyword>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">

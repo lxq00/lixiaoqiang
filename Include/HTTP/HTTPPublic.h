@@ -147,11 +147,76 @@ private:
 };
 
 
+
 typedef enum {
 	WebSocketDataType_Txt,
 	WebSocketDataType_Bin,
 }WebSocketDataType;
 
+typedef enum {
+	HTTPCacheType_Mem = 0,
+	HTTPCacheType_File,
+}HTTPCacheType;
+
+
+
+class HTTP_API IContent
+{
+public:
+	IContent() {}
+	virtual ~IContent() {}
+
+	virtual void append(const char* buffer, uint32_t len) = 0;
+	virtual void read(String& data) = 0;
+};
+
+class HTTP_API ReadContent :public IContent
+{
+public:
+	ReadContent(HTTPCacheType type);
+	~ReadContent();
+
+	int size() const;
+
+	std::string cacheFileName() const;
+	int read(char* buffer, int maxlen) const;
+	std::string read() const;
+	bool readToFile(const std::string& filename) const;
+private:
+	virtual void append(const char* buffer, uint32_t len);
+	virtual void read(String& data);
+private:
+	struct ReadContentInternal;
+	ReadContentInternal* internal;
+};
+
+class HTTP_API WriteContenNotify
+{
+public:
+	WriteContenNotify() {}
+	virtual ~WriteContenNotify() {}
+
+	virtual void WriteNotify() = 0;
+	virtual void setWriteFileName(const std::string& filename) = 0;
+};
+
+class HTTP_API WriteContent :public IContent
+{
+public:
+	WriteContent(WriteContenNotify* notify, HTTPCacheType type);
+	~WriteContent();
+
+	bool setChunkEOF();
+	bool write(const char* buffer, int len);
+	bool write(const std::string& buffer);
+	bool writeFromFile(const std::string& filename, bool needdeletefile = false);
+private:
+	virtual void append(const char* buffer, uint32_t len);
+	virtual void read(String& data);
+private:
+	struct ContentInternal;
+	ContentInternal* internal;
+};
 
 }
 }
