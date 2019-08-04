@@ -1,12 +1,9 @@
 #include "HTTP/HTTPServer.h"
 #include "WebSocketProtocol.h"
-#include "boost/regex.hpp" 
 #include "HTTPCommunication.h"
 
 namespace Public {
 namespace HTTP {
-
-#define MAXWEBSOCKETRECVBUFFERLEN		1024
 
 class WebSocketRecvContent :public IContent,public WebSocketProtocol
 {

@@ -143,7 +143,7 @@ public:
 				header[headerlen] |= 127 & 0x7f;
 				headerlen += 1;
 
-				*(unsigned long*)(header+headerlen) = netframe::_htonll(data.length());
+				*(unsigned long long*)(header+headerlen) = netframe::_htonll(data.length());
 				headerlen += 8;
 			}
 			//client mask key

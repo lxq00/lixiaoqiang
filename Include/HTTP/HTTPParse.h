@@ -233,6 +233,8 @@ public:
 			cmdstr += iter->first + ": " + iter->second.readString() + HTTPSEPERATOR;
 		}
 		cmdstr += HTTPSEPERATOR;
+
+		return cmdstr;
 	}
 };
 

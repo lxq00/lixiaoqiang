@@ -85,7 +85,7 @@ private:
 		if (len > 0)
 		{
 			sendTotalLen += len;
-			if (len > sendBuffer.length())
+			if ((size_t)len > sendBuffer.length())
 			{
 				assert(0);
 			}
@@ -162,7 +162,7 @@ private:
 				else if(recvContentLen == -1 || recvContentLen > recvContentTotalLen)
 				{
 					uint32_t needsize = buffertmplen;
-					if (recvContentLen != -1) needsize = min(recvContentLen - recvContentTotalLen, buffertmplen);
+					if (recvContentLen != -1) needsize = min((uint32_t)(recvContentLen - recvContentTotalLen), buffertmplen);
 
 					uint32_t appendlen = recvContent->append(buffertmp, needsize);
 

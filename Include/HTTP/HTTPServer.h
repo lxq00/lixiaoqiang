@@ -7,9 +7,7 @@ using namespace Public::Base;
 namespace Public {
 namespace HTTP {
 
-class HTTPCommunication;
-class HTTPServrManager;
-
+struct HTTPServrManager;
 
 class HTTP_API HTTPServerRequest
 {
@@ -58,7 +56,7 @@ private:
 
 class HTTP_API HTTPServerSession
 {
-	friend class HTTPServrManager;
+	friend struct HTTPServrManager;
 public:
 	HTTPServerSession(const shared_ptr<HTTPCommunication>& commuSession, HTTPCacheType type);
 	virtual ~HTTPServerSession();
@@ -72,7 +70,7 @@ private:
 //web socket session
 class HTTP_API WebSocketServerSession
 {
-	friend class HTTPServrManager;
+	friend struct HTTPServrManager;
 public:
 	typedef Function1<void, WebSocketServerSession*> DisconnectCallback;
 	typedef Function3<void, WebSocketServerSession*, const std::string&, WebSocketDataType> RecvDataCallback;
@@ -111,7 +109,7 @@ public:
 	
 	// path 为 请求的url,*为所有  ,callback监听消息的回掉,处理线程数据，先于run启用
 	// Add resources using path and method-string, and an anonymous function
-	bool listen(const std::string& path,const std::string& method,const HTTPCallback& callback, CacheType type = CacheType_Mem);
+	bool listen(const std::string& path,const std::string& method,const HTTPCallback& callback, HTTPCacheType type = HTTPCacheType_Mem);
 
 	// path 为 请求的url,*为所有  ,callback监听消息的回掉,处理线程数据，先于run启用
 	// Add resources using path and method-string, and an anonymous function
@@ -123,7 +121,7 @@ public:
 
 	// path 为 请求的url,*为所有  ,callback监听消息的回掉,处理线程数据，先于run启用
 	// Add resources using path and method-string, and an anonymous function
-	bool defaultListen(const std::string& method, const HTTPCallback& callback, CacheType type = CacheType_Mem);
+	bool defaultListen(const std::string& method, const HTTPCallback& callback, HTTPCacheType type = HTTPCacheType_Mem);
 
 	//异步监听
 	bool run(uint32_t httpport);

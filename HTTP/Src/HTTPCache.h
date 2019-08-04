@@ -168,7 +168,7 @@ public:
 
 
 		char buffer[256];
-		snprintf(buffer, 255, "%s%c%llu_%06x.md", cachepath.c_str(), PATH_SEPARATOR, Time::getCurrentMilliSecond(), buffer);
+		snprintf_x(buffer, 255, "%s%c%llu_%06x.md", cachepath.c_str(), PATH_SEPARATOR, Time::getCurrentMilliSecond(), buffer);
 
 		return buffer;
 	}

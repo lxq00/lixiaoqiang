@@ -79,7 +79,7 @@ private:
 		{
 			Guard locker(mutex);
 			std::map<HTTPCommunication*, shared_ptr<HTTPSessionInfo> >::iterator iter = sessionlist.find(commu);
-			if (iter == sessionlist.end()) return;
+			if (iter == sessionlist.end()) return false;
 
 			info = iter->second;
 		}
@@ -298,7 +298,7 @@ HTTPServer::~HTTPServer()
 	SAFE_DELETE(internal);
 }
 
-bool HTTPServer::listen(const std::string& path, const std::string& method, const HTTPCallback& callback, CacheType type)
+bool HTTPServer::listen(const std::string& path, const std::string& method, const HTTPCallback& callback, HTTPCacheType type)
 {
 	std::string flag1 = String::tolower(path);
 	std::string flag2 = String::tolower(method);
@@ -329,7 +329,7 @@ bool HTTPServer::listen(const std::string& path, const HTTPServer::WebsocketCall
 
 	return true;
 }
-bool HTTPServer::defaultListen(const std::string& method, const HTTPCallback& callback,CacheType type)
+bool HTTPServer::defaultListen(const std::string& method, const HTTPCallback& callback, HTTPCacheType type)
 {
 	std::string flag2 = String::tolower(method);
 	

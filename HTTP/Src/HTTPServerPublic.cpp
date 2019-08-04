@@ -3,11 +3,79 @@
 #include "HTTPDefine.h"
 #include "HTTPCache.h"
 #include "HTTPCommunication.h"
-#include "HTTPDefine.h"
 namespace Public {
 namespace HTTP {
 
-struct HTTPServerResponse::HTTPServerResponseInternal:public WriteContenNotify
+struct  HTTPServerRequest::HTTPServerRequestInternal
+{
+	DisconnectCallback		disconnectcallback;
+	shared_ptr<HTTPHeader>	header;
+	shared_ptr<ReadContent>	content;
+
+	weak_ptr<Socket>		sock;
+};
+
+HTTPServerRequest::HTTPServerRequest(const shared_ptr<HTTPHeader>& header, const shared_ptr<ReadContent>& content, const shared_ptr<Socket>& sock)
+{
+	internal = new HTTPServerRequestInternal;
+	internal->header = header;
+	internal->content = content;
+	internal->sock = sock;
+}
+HTTPServerRequest::~HTTPServerRequest()
+{
+	SAFE_DELETE(internal);
+}
+
+const std::map<std::string, Value>& HTTPServerRequest::headers() const
+{
+	return internal->header->headers;
+}
+Value HTTPServerRequest::header(const std::string& key) const
+{
+	return internal->header->header(key);
+}
+
+const std::string& HTTPServerRequest::method() const
+{
+	return internal->header->method;
+}
+
+const URL& HTTPServerRequest::url()const
+{
+	return internal->header->url;
+}
+
+const shared_ptr<ReadContent>& HTTPServerRequest::content() const
+{
+	return internal->content;
+}
+
+NetAddr HTTPServerRequest::remoteAddr() const
+{
+	shared_ptr<Socket> sock = internal->sock.lock();
+	if (sock == NULL) return NetAddr();
+		
+	return sock->getOtherAddr();
+}
+
+NetAddr HTTPServerRequest::myAddr() const
+{
+	shared_ptr<Socket> sock = internal->sock.lock();
+	if (sock == NULL) return NetAddr();
+
+	return sock->getMyAddr();
+}
+
+HTTPServerRequest::DisconnectCallback&	HTTPServerRequest::discallback()
+{
+	return internal->disconnectcallback;
+}
+
+
+
+
+struct HTTPServerResponse::HTTPServerResponseInternal :public WriteContenNotify
 {
 	shared_ptr<HTTPHeader> header;
 	shared_ptr<WriteContent> content;
@@ -23,7 +91,7 @@ struct HTTPServerResponse::HTTPServerResponseInternal:public WriteContenNotify
 	{
 		std::string contenttype = "application/octet-stream";
 
-		do 
+		do
 		{
 			int pos = (int)String::lastIndexOf(filename, ".");
 			if (pos == -1) break;
@@ -44,7 +112,7 @@ struct HTTPServerResponse::HTTPServerResponseInternal:public WriteContenNotify
 			}
 
 		} while (0);
-		
+
 		header->headers[Content_Type] = contenttype;
 	}
 };
@@ -54,7 +122,7 @@ HTTPServerResponse::HTTPServerResponse(const shared_ptr<HTTPCommunication>& comm
 	internal = new HTTPServerResponseInternal;
 
 	internal->header = make_shared<HTTPHeader>();
-	internal->content = make_shared<WriteContenNotify>(internal, type);
+	internal->content = make_shared<WriteContent>(internal, type);
 
 	internal->header->statuscode = 200;
 	internal->header->statusmsg = "OK";
@@ -87,6 +155,7 @@ shared_ptr<WriteContent>& HTTPServerResponse::content()
 {
 	return internal->content;
 }
+
 
 }
 }

@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
-    <Filter Include="头文件\websocketapp">
-      <UniqueIdentifier>{ba668418-2d62-47bc-af93-72a440d4139c}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Include\HTTP\Defs.h">
@@ -35,285 +32,6 @@
     </ClInclude>
     <ClInclude Include="..\Include\HTTP\HTTP.h">
       <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\client.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\close.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\connection.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\connection_base.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\endpoint.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\endpoint_base.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\error.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\frame.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\server.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\uri.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\utf8_validator.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\utilities.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\version.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\base64\base64.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\common\asio.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\common\asio_ssl.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\common\chrono.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\common\connection_hdl.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\common\cpp11.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\common\functional.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\common\md5.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\common\memory.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\common\network.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\common\platforms.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\common\random.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\common\regex.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\common\stdint.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\common\system_error.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\common\thread.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\common\time.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\common\type_traits.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\concurrency\basic.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\concurrency\none.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\config\asio.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\config\asio_client.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\config\asio_no_tls.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\config\asio_no_tls_client.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\config\boost_config.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\config\core.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\config\core_client.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\config\debug.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\config\debug_asio.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\config\debug_asio_no_tls.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\config\minimal_client.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\config\minimal_server.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\extensions\extension.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\extensions\permessage_deflate\disabled.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\extensions\permessage_deflate\enabled.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\http\constants.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\http\parser.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\http\request.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\http\response.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\http\impl\parser.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\http\impl\request.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\http\impl\response.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\impl\connection_impl.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\impl\endpoint_impl.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\impl\utilities_impl.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\logger\basic.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\logger\levels.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\logger\stub.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\logger\syslog.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\message_buffer\alloc.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\message_buffer\message.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\message_buffer\pool.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\processors\base.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\processors\hybi00.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\processors\hybi07.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\processors\hybi08.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\processors\hybi13.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\processors\processor.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\random\none.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\random\random_device.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\roles\client_endpoint.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\roles\server_endpoint.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\sha1\sha1.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\transport\asio\security\base.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\transport\asio\security\none.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\transport\asio\security\tls.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\transport\asio\base.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\transport\asio\connection.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\transport\asio\endpoint.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\transport\base\connection.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\transport\base\endpoint.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\transport\debug\base.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\transport\debug\connection.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\transport\debug\endpoint.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\transport\iostream\base.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\transport\iostream\connection.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\transport\iostream\endpoint.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\transport\stub\base.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\transport\stub\connection.hpp">
-      <Filter>头文件\websocketapp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\websocketpp\transport\stub\endpoint.hpp">
-      <Filter>头文件\websocketapp</Filter>
     </ClInclude>
     <ClInclude Include="..\Include\HTTP\HTTPParse.h">
       <Filter>头文件</Filter>
@@ -343,13 +61,19 @@
     <ClCompile Include="Src\HTTPServerSession.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Src\HTTPServerRequest.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\HTTPServerResponse.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Src\WebSocketSession.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\HTTPClient.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\WebSocketClient.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\HTTPServerPublic.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\HTTPClientPublic.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
