@@ -71,18 +71,26 @@ struct HTTPClientManager:public HTTPCommunicationHandler,public enable_shared_fr
 		}
 		
 		{
-			shared_ptr<ReadContent> content = make_shared<ReadContent>(responsesavefile.length() == 0 ? HTTPCacheType_Mem : HTTPCacheType_File, responsesavefile);
-			
-			response = make_shared<HTTPClientResponse>(content);
+			response = make_shared<HTTPClientResponse>(commu, responsesavefile.length() == 0 ? HTTPCacheType_Mem : HTTPCacheType_File, responsesavefile);
 		}
 
 		commu->sendHeader = request->header();
 		commu->sendContent = request->content();
 		commu->recvHeader = response->header();
 		commu->recvContent = response->content();
+
+		{
+			commu->sendHeader->headers["Host"] = request->url().getHost();
+		}
 	}
 
-	bool onRecvHeaderOk(HTTPCommunication* commu) { return true; }
+	bool onRecvHeaderOk(HTTPCommunication* commu) 
+	{
+		Value chunkval = commu->recvHeader->header(Transfer_Encoding);
+		if (!chunkval.empty() && strcasecmp(chunkval.readString().c_str(), CHUNKED) == 0) return false;
+
+		return true;
+	}
 	void onRecvContentOk(HTTPCommunication* commu) 
 	{
 	}
@@ -94,8 +102,7 @@ struct HTTPClientManager:public HTTPCommunicationHandler,public enable_shared_fr
 
 	shared_ptr<HTTPClientResponse> errorResponse(uint32_t errcode, const std::string& errmsg)
 	{
-		shared_ptr<ReadContent> content = make_shared<ReadContent>(HTTPCacheType_Mem);
-		shared_ptr<HTTPClientResponse> response = make_shared<HTTPClientResponse>(content);
+		shared_ptr<HTTPClientResponse> response = make_shared<HTTPClientResponse>(commu, HTTPCacheType_Mem);
 		
 		response->header()->statuscode = errcode;
 		response->header()->statusmsg = errmsg;
@@ -124,6 +131,12 @@ struct HTTPClient::HTTPClientInternal
 			if (commu)
 			{
 				commu->onPoolTimerProc();
+
+				if (commu->recvHeader)
+				{
+					Value chunkval = commu->recvHeader->header(Transfer_Encoding);
+					if (!chunkval.empty() && strcasecmp(chunkval.readString().c_str(), CHUNKED) == 0) break;
+				}
 
 				if (commu->sessionIsFinish()) break;
 			}

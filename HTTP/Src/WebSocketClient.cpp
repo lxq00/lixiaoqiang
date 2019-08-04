@@ -22,6 +22,7 @@ public:
 		recvcallback(client,data, type);
 	}
 
+	uint32_t size() { return 0; }
 	uint32_t append(const char* buffer, uint32_t len)
 	{
 		const char* usedaddr = parseProtocol(buffer, len);
@@ -40,6 +41,7 @@ public:
 	Mutex							mutex;
 	std::list<std::string>			sendlist;
 
+	uint32_t size() { return 0; }
 	uint32_t append(const char* buffer, uint32_t len) { return len; }
 	void read(String& data) 
 	{
@@ -81,7 +83,27 @@ struct WebSocketClientManager:public HTTPCommunicationHandler,public enable_shar
 
 	bool startConnect(const URL& url, const WebSocketClient::ConnnectCallback& _connectcallback, const WebSocketClient::RecvDataCallback& _datacallback, const WebSocketClient::DisconnectCallback& _disconnectcallback)
 	{
+		sendheader->method = "POST";
 		sendheader->url = url;
+
+		{
+			std::string key = Guid::createGuid().getStringStream();
+
+			Base::Sha1 sha1;
+			sha1.input(key.c_str(), key.length());
+
+			sendheader->headers["Host"] = url.getHost();
+			sendheader->headers["Connection"] = "Upgrade";
+			sendheader->headers["Pragma"] = "no-cache";
+			sendheader->headers["Cache-Control"] = "no-cache";
+			sendheader->headers["User-Agent"] = "public_websocket";
+			sendheader->headers["Upgrade"] = "websocket";
+			sendheader->headers["Origin"] = url.getProtocol() + "://" + url.getHost();
+			sendheader->headers["Sec-WebSocket-Version"] = 13;
+			sendheader->headers["Sec-WebSocket-Key"] = Base64::encode(sha1.report(Sha1::REPORT_BIN));
+			sendheader->headers["Sec-WebSocket-Extensions"] = "permessage-deflate; client_max_window_bits";
+		}
+
 		connectcalblack = _connectcallback;
 		datacallback = _datacallback;
 		disconnectcallback = _disconnectcallback;

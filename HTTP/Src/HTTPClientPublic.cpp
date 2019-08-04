@@ -6,17 +6,26 @@
 namespace Public {
 namespace HTTP {
 
-struct  HTTPClientResponse::HTTPClientResponseInternal
+struct  HTTPClientResponse::HTTPClientResponseInternal:public WriteContenNotify
 {
+	shared_ptr<HTTPCommunication> commu;
 	shared_ptr<HTTPHeader>	header;
 	shared_ptr<ReadContent>	content;
+
+	virtual void WriteNotify()
+	{
+		commu->startRecv();
+	}
+	virtual void setWriteFileName(const std::string& filename) {}
+	virtual void ReadReady() {}
 };
 
-HTTPClientResponse::HTTPClientResponse(const shared_ptr<ReadContent>& content)
+HTTPClientResponse::HTTPClientResponse(const shared_ptr<HTTPCommunication>& commu, HTTPCacheType type, const std::string& filename)
 {
 	internal = new HTTPClientResponseInternal;
 	internal->header = make_shared<HTTPHeader>();
-	internal->content = content;
+	internal->commu = commu;
+	internal->content = make_shared<ReadContent>(commu->recvHeader,internal,type,filename);
 }
 HTTPClientResponse::~HTTPClientResponse()
 {
@@ -50,8 +59,6 @@ shared_ptr<HTTPHeader>  HTTPClientResponse::header()
 	return internal->header;
 }
 
-
-
 struct HTTPClientRequest::HTTPClientRequestInternal :public WriteContenNotify
 {
 	HTTPClientRequest::DisconnectCallback	disconnected;
@@ -63,10 +70,8 @@ struct HTTPClientRequest::HTTPClientRequestInternal :public WriteContenNotify
 
 	uint32_t	timeout;
 
-	virtual void WriteNotify()
-	{
-		
-	}
+	virtual void WriteNotify() {}
+	virtual void ReadReady() {}
 	virtual void setWriteFileName(const std::string& filename)
 	{
 		std::string contenttype = "application/octet-stream";
@@ -102,7 +107,7 @@ HTTPClientRequest::HTTPClientRequest(const std::string& method,const std::string
 	internal = new HTTPClientRequestInternal;
 
 	internal->header = make_shared<HTTPHeader>();
-	internal->content = make_shared<WriteContent>(internal, type);
+	internal->content = make_shared<WriteContent>(internal->header,internal, type);
 	internal->header->method = method;
 	internal->header->url = url;
 

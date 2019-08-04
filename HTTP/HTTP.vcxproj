@@ -34,6 +34,7 @@
     <ResourceCompile Include="Version.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\ChunkData.cpp" />
     <ClCompile Include="Src\HTTPClient.cpp" />
     <ClCompile Include="Src\HTTPClientPublic.cpp" />
     <ClCompile Include="Src\HTTPPublic.cpp" />

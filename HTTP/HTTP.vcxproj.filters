@@ -76,6 +76,9 @@
     <ClCompile Include="Src\HTTPClientPublic.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Src\ChunkData.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Include\HTTP\Version.tpl">

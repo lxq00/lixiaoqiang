@@ -8,7 +8,7 @@ namespace HTTP {
 
 HTTPServerSession::HTTPServerSession(const shared_ptr<HTTPCommunication>& commuSession,  HTTPCacheType type)
 {
-	shared_ptr<ReadContent> content = make_shared<ReadContent>(type);
+	shared_ptr<ReadContent> content = make_shared<ReadContent>(commuSession->recvHeader,(WriteContenNotify*)NULL,type);
 
 	commuSession->recvContent = content;
 

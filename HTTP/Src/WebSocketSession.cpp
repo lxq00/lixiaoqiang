@@ -21,6 +21,7 @@ public:
 		recvcallback(session,data, type);
 	}
 
+	uint32_t size() { return 0; }
 	uint32_t append(const char* buffer, uint32_t len)
 	{
 		const char* usedaddr = parseProtocol(buffer, len);
@@ -39,6 +40,7 @@ public:
 	Mutex							mutex;
 	std::list<std::string>			sendlist;
 
+	uint32_t size() { return 0; }
 	uint32_t append(const char* buffer, uint32_t len) { return len; }
 	void read(String& data) 
 	{

@@ -45,8 +45,38 @@ public:
 		{
 			sendHeader = header;
 
-			Value contentlenval = sendHeader->header(Content_Length);
-			if (!contentlenval.empty()) sendContentLen = contentlenval.readUint64();
+			{
+				bool iswebsocket = false;
+				Value connectionval = sendHeader->header(CONNECTION);
+				if (!connectionval.empty() && strcasecmp(connectionval.readString().c_str(), CONNECTION_Upgrade) == 0)
+				{
+					iswebsocket = true;
+				}
+
+				bool ischunk = false;
+				Value chunkval = sendHeader->header(Transfer_Encoding);
+				if (!chunkval.empty() && strcasecmp(chunkval.readString().c_str(), CHUNKED) == 0)
+				{
+					ischunk = true;
+				}
+
+				if (!iswebsocket && !ischunk)
+				{
+					Value contentlenval = sendHeader->header(Content_Length);
+					if (!connectionval.empty())
+					{
+						sendHeader->headers[Content_Length] = sendContent->size();
+					}
+					contentlenval = sendHeader->header(Content_Length);
+					if (!contentlenval.empty()) sendContentLen = contentlenval.readUint64();
+
+					sendHeader->headers[CONNECTION] = CONNECTION_KeepAlive;
+				}
+			}
+			if (useragent != "")
+			{
+				sendHeader->headers["User-Agent"] = useragent;
+			}
 		}
 		if (!sendContent) sendContent = content;
 

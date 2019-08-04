@@ -25,7 +25,7 @@ public:
 	Value header(const std::string& key);
 
 	shared_ptr<WriteContent>& content();
-
+	
 	uint32_t& timeout();
 
 	DisconnectCallback&	discallback();
@@ -40,7 +40,7 @@ class HTTP_API HTTPClientResponse
 {
 	friend struct HTTPClientManager;
 public:
-	HTTPClientResponse(const shared_ptr<ReadContent>& content);
+	HTTPClientResponse(const shared_ptr<HTTPCommunication>& commu, HTTPCacheType type, const std::string& filename = "");
 	virtual ~HTTPClientResponse();
 
 	int statusCode() const;
