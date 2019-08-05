@@ -34,11 +34,10 @@ public:
 
 			String bufferdata;
 			uint32_t havecopysize = 0;
-			char* bufferptr = bufferdata.alloc(totalsize);
+			bufferdata.alloc(totalsize);
 			for (size_t i = 0; i < buffer.size(); i++)
 			{
-				memcpy(bufferptr + havecopysize, buffer[i].bufferAddr, buffer[i].bufferLen);
-				havecopysize += buffer[i].bufferLen;
+				bufferdata.append(buffer[i].bufferAddr, buffer[i].bufferLen);
 			}
 
 			datacallback(mediainfo, rtpheader, bufferdata.c_str(), bufferdata.length());

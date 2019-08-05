@@ -13,15 +13,6 @@ using namespace Public::RTSP;
 class RTSPProtocol:public HTTPParse
 {
 public:
-	struct SendItem
-	{
-		String				buffer;
-		uint32_t			havesendlen;
-
-
-
-		SendItem() :havesendlen(0) {}
-	};	
 	struct TCPInterleaved
 	{
 		int dataChannel;
@@ -30,6 +21,7 @@ public:
 public:
 	typedef Function1<void, const shared_ptr<RTSPCommandInfo>&> CommandCallback;
 	typedef Function0<void> DisconnectCallback;
+
 public:
 	RTSPProtocol(const shared_ptr<Socket>& sock, const CommandCallback& cmdcallback, const DisconnectCallback& disconnectCallback,bool server)
 		:HTTPParse(server),m_recvBuffer(MAXPARSERTSPBUFFERLEN), m_sendBuffer(MAXPARSERTSPBUFFERLEN),m_isSending(false)
@@ -55,8 +47,6 @@ public:
 	uint64_t prevalivetime() const { return m_prevalivetime; }
 	uint32_t sendListSize()
 	{
-		Guard locker(m_mutex);
-
 		return m_sendBuffer.dataLenght();
 	}
 
@@ -159,8 +149,8 @@ private:
 			assert(0);
 			return;
 		}
-
-		if(buffer != m_recvBuffer.getProductionAddr())
+		
+		if (buffer != m_recvBuffer.getProductionAddr())
 		{
 			assert(0);
 		}
@@ -171,7 +161,7 @@ private:
 		}
 
 		m_recvBuffer.setProductionLength(len);
-		
+
 		while (m_recvBuffer.dataLenght() > 0)
 		{
 			if (m_cmdinfo != NULL)
@@ -204,7 +194,7 @@ private:
 			{
 				std::string usedstr;
 				shared_ptr<HTTPParse::Header> header = HTTPParse::parse(m_recvBuffer,&usedstr);
-
+								
 				if (header != NULL)
 				{
 					logdebug("\r\n%s", usedstr.c_str());
@@ -287,7 +277,7 @@ private:
 							std::vector<CircleBuffer::BufferInfo> info;
 							if (!m_recvBuffer.readBuffer(sizeof(INTERLEAVEDFRAME), info, datalen)) break;
 
-							std::string buffertmp;
+							std::string bufferstrtmp;
 							const char* buffertmpaddr = NULL;
 
 							if (info.size() == 1) buffertmpaddr = info[0].bufferAddr;
@@ -295,9 +285,9 @@ private:
 							{
 								for (size_t i = 0; i < info.size(); i++)
 								{
-									buffertmp += std::string(info[i].bufferAddr, info[i].bufferLen);
+									bufferstrtmp += std::string(info[i].bufferAddr, info[i].bufferLen);
 								}
-								buffertmpaddr = buffertmp.c_str();
+								buffertmpaddr = bufferstrtmp.c_str();
 							}
 
 							rtpsession->rtpovertcpContorlCallback(transportinfo, buffertmpaddr, datalen);
@@ -330,11 +320,11 @@ private:
 				int a = 0;
 			}
 		}
-		
+				
 		shared_ptr<Socket> socktmp = sock.lock();
 		if (socktmp != NULL)
 		{
-			socktmp->async_recv(m_recvBuffer.getProductionAddr(), m_recvBuffer.getProductionLength(), Socket::ReceivedCallback(&RTSPProtocol::onSocketRecvCallback, this));
+			socktmp->async_recv(m_recvBuffer.getProductionAddr(), m_recvBuffer.getProductionLength(),Socket::ReceivedCallback(&RTSPProtocol::onSocketRecvCallback, this));
 		}
 	}
 	// return 0 not cmonnand,return 1 not sure need wait,return 2 is command
@@ -380,7 +370,6 @@ private:
 	DisconnectCallback			m_disconnect;
 
 	CircleBuffer				m_recvBuffer;
-
 	CircleBuffer				m_sendBuffer;
 	bool						m_isSending;
 	Mutex						m_mutex;
