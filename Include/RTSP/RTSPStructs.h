@@ -223,36 +223,13 @@ struct RANGE_INFO
 
 
 //RTSP√¸¡Ó–≈œ¢
-struct RTSP_API RTSPCommandInfo
+struct RTSP_API RTSPCommandInfo:public HTTPHeader
 {
-	std::string		method;
-	std::string		url;
-	struct {
-		std::string protocol;
-		std::string	version;
-	}verinfo;
-
-	int				statuscode;
-	std::string		statusmsg;
-
-	std::map<std::string, Value> headers;
-
 	std::string body;
 
 	uint32_t		cseq;
 
 	RTSPCommandInfo():cseq(0){}
-	Value header(const std::string& key) const
-	{
-		for (std::map<std::string, Value>::const_iterator iter = headers.begin(); iter != headers.end(); iter++)
-		{
-			if (strcasecmp(key.c_str(), iter->first.c_str()) == 0)
-			{
-				return iter->second;
-			}
-		}
-		return Value();
-	}
 };
 
 /*

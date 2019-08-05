@@ -1,565 +1,252 @@
 #include "boost/asio.hpp"
 #include "HTTP/HTTPPublic.h"
 #include "HTTPDefine.h"
+#include "HTTPCache.h"
+#include "HTTP/HTTPParse.h"
 namespace Public {
 namespace HTTP {
 
-class FileMediaInfo
+struct ReadContent::ReadContentInternal
 {
-public:
-	FileMediaInfo(){}
-	virtual ~FileMediaInfo() {}
-	void setContentFilename(const std::string& filename)
+	shared_ptr<HTTPCache> cache;
+	std::string			  filename;
+	DataCalback			  callback;
+	shared_ptr<ChunkData> chunk;
+
+	WriteContenNotify*	  notify;
+
+
+	bool chunkReadCallback(const char* buffer, int size)
 	{
-		int pos = (int)String::lastIndexOf(filename, ".");
-		if (pos == -1) return;
-
-		std::string pres = filename.c_str() + pos + 1;
-		
-		uint32_t mimetypeslen = 0;
-		ContentInfo* mimetypes = MediaType::info(mimetypeslen);
-		
-		bool haveFind = false;
-		for (uint32_t i = 0; i < mimetypeslen; i++)
-		{
-			if (strcasecmp(pres.c_str(), mimetypes[i].filetype.c_str()) == 0)
-			{
-				headers[Content_Type] = mimetypes[i].contentType;
-				haveFind = true;
-				break;
-			}
-		}
-		if (!haveFind)
-		{
-			headers[Content_Type] = "application/octet-stream";
-		}
-	}
-	virtual Value getHeader(const std::string& key)
-	{
-		for (std::map<std::string, Value>::const_iterator iter = headers.begin(); iter != headers.end(); iter++)
-		{
-			if (strcasecmp(key.c_str(), iter->first.c_str()) == 0) return iter->second;
-		}
-
-		return Value();
-	}
-	std::map<std::string, Value>& headersmap() { return headers; }
-private:
-	std::map<std::string, Value> headers;
-};
-
-
-class HTTPCache
-{
-public:
-	HTTPCache(){}
-	virtual ~HTTPCache() {}
-	virtual bool write(const char* buffer, int len) = 0;
-	virtual int read(char* buffer, int len) = 0;
-	virtual int totalsize() = 0;
-};
-
-#define MAXBUFFERCACHESIZE	5*1024*1024
-
-class HTTPCacheMem :public HTTPCache
-{
-	struct BufferItem
-	{
-		BufferItem():havereadlen(0){}
-		std::string		data;
-		int				havereadlen;
-	};
-public:
-	HTTPCacheMem():cachetotalsize(0){}
-	virtual ~HTTPCacheMem() {}
-	virtual bool write(const char* buffer, int len)
-	{
-		Guard locker(mutex);
-	//	if (cachetotalsize >= MAXBUFFERCACHESIZE) return false;
-		
-		BufferItem item;
-		item.data = std::string(buffer, len);
-
-		memcache.push_back(item);
-
-		cachetotalsize += len;
+		callback(buffer, size);
 
 		return true;
 	}
-	virtual int totalsize()
-	{
-		Guard locker(mutex);
-
-		return cachetotalsize;
-	}
-	virtual int read(char* buffer, int len)
-	{
-		Guard locker(mutex);
-
-		int havereadlen = 0;
-		while (havereadlen < len && memcache.size() > 0)
-		{
-			BufferItem& item = memcache.front();
-			int readlen = min((int)item.data.size() - item.havereadlen, len - havereadlen);
-			memcpy(buffer + havereadlen, item.data.c_str() + item.havereadlen, readlen);
-			item.havereadlen += readlen;
-			havereadlen += readlen;
-			if (item.havereadlen == item.data.length())
-			{
-				cachetotalsize -= (int)item.data.length();
-				memcache.pop_front();
-			}
-		}
-
-		return havereadlen;
-	}
-private:
-	uint32_t				cachetotalsize;
-	Mutex					mutex;
-	std::list<BufferItem>	memcache;
 };
-
-class HTTPCacheFileRead :public HTTPCache
+ReadContent::ReadContent(const shared_ptr<HTTPHeader>& header, WriteContenNotify* notify, HTTPCacheType type, const std::string& filename)
 {
-public:
-	HTTPCacheFileRead(const std::string& _filename,bool _deletefile,bool readmode)
-		:filename(_filename),needdelete(_deletefile), filesize(0),writepos(0),readpos(0)
-	{
-		fd = fopen(filename.c_str(),readmode ? "rb" : "wb+");
-		
-		FileInfo info;
-		if (File::stat(filename, info) && readmode) filesize = (int)info.size;
-	}
-	virtual ~HTTPCacheFileRead()
-	{
-		if (fd != NULL)
-		{
-			fclose(fd);
-			fd = NULL;
-		}
-		if (needdelete)
-		{
-			int deletetimes = 0;
-			while (deletetimes++ <= 10 && File::access(filename, File::accessExist))
-			{
-				File::remove(filename);
-				if (!File::access(filename, File::accessExist)) break;
+	internal = new ReadContentInternal;
+	internal->notify = notify;
+	internal->filename = filename;
 
-				Thread::sleep(100);
-			}
+	if (internal->filename.length() > 0)
+	{
+		internal->cache = make_shared<HTTPCacheFile>(internal->filename, false, false);
+	}
+	else if(type == HTTPCacheType_File)
+	{
+		internal->filename = HTTPServerCacheFilePath::instance()->cachefilename();
+		internal->cache = make_shared<HTTPCacheFile>(internal->filename, true, false);
+	}
+
+	Value chunkval = header->header(Transfer_Encoding);
+	if (!chunkval.empty() && strcasecmp(chunkval.readString().c_str(), CHUNKED) == 0)
+	{
+		if (internal->cache)
+		{
+			internal->chunk->setReadCallback(ChunkData::ReadCallback(&HTTPCache::write, internal->cache));
+
+			if (internal->notify) internal->notify->ReadReady();
 		}
 	}
-	virtual int totalsize()
-	{
-		return filesize;
-	}
-	virtual bool write(const char* buffer, int len)
-	{
-		if (fd == NULL) return false;
-
-		fseek(fd, (int)writepos, SEEK_SET);
-		size_t ret = fwrite(buffer, 1, len, fd);
-		fflush(fd);
-		if (ret > 0) writepos += ret;
-
-		return ret == len;
-	}
-	virtual int read(char* buffer, int len)
-	{
-		if (fd == NULL) return 0;
-
-		fseek(fd, (int)readpos, SEEK_SET);
-		int readlen = (int)fread(buffer, 1, len, fd);
-		if (readlen > 0) readpos += readlen;
-
-		return readlen;
-	}
-private:
-	int					filesize;
-	std::string			filename;
-	bool				needdelete;
-
-	size_t				writepos;
-	size_t				readpos;
-public:
-	FILE*				fd;
-};
-struct HTTPContent::HTTPContentInternal
-{
-	FileMediaInfo*	mediainfo;
-
-	shared_ptr<HTTPCache> cache;
-
-	HTTPContentType  writetype;
-
-	uint32_t		chunkbodysize;
-
-	CheckConnectionIsOk	checkfunc;
-
-	std::string			readtofilename;
-	ReadDataCallback	readcalblack;
-
-	WriteDataCallback	writecallback;
-
-	HTTPContentInternal(FileMediaInfo* info)
-		:mediainfo(info),writetype(HTTPContentType_Normal), chunkbodysize(0)
-	{
-		cache = make_shared<HTTPCacheMem>();
-	}
-	~HTTPContentInternal()
-	{
-		cache = NULL;
-	}
-};
-
-HTTPContent::HTTPContent(FileMediaInfo* info,const CheckConnectionIsOk& check)
-{
-	internal = new HTTPContentInternal(info);
-	internal->checkfunc = check;
+	else if (type == HTTPCacheType_Mem) internal->cache = make_shared<HTTPCacheMem>();
 }
-HTTPContent::~HTTPContent() 
+ReadContent::~ReadContent()
 {
+	internal->cache = NULL;
 	SAFE_DELETE(internal);
 }
-
-int HTTPContent::size()
+uint32_t ReadContent::size()
 {
 	return internal->cache->totalsize();
 }
 
-int HTTPContent::read(char* buffer, int maxlen)
+std::string ReadContent::cacheFileName() const
 {
-	if (buffer == NULL || maxlen <= 0) return 0;
-
-	if (internal->writecallback)
-	{
-		return internal->writecallback(buffer, maxlen);
-	}
-
+	return internal->filename;
+}
+int ReadContent::read(char* buffer, int maxlen) const
+{
 	return internal->cache->read(buffer, maxlen);
 }
-std::string HTTPContent::read()
+std::string ReadContent::read() const
 {
-	std::string memdata;
-
-	char buffer[1024];
-	while (true)
-	{
-		int readlen = internal->cache->read(buffer, 1024);
-		if (readlen <= 0) break;
-
-		memdata += std::string(buffer,readlen);
-	}
-
-	return std::move(memdata);
-}
-bool HTTPContent::setReadToFile(const std::string& filename, bool deletefile)
-{
-	shared_ptr<HTTPCacheFileRead> cache = make_shared<HTTPCacheFileRead>(filename, deletefile, false);
-	if (cache->fd == NULL) return false;
-
-	internal->readtofilename = filename;
-	internal->cache = cache;
-
-	return true;
-}
-std::string HTTPContent::cacheFileName() const
-{
-	return internal->readtofilename;
-}
-bool HTTPContent::readToFile(const std::string& filename)
-{
-	FILE* readfile = fopen(filename.c_str(), "wb+");
-	if (readfile == NULL) return false;
-	
+	std::string bufferstr;
 	char buffer[1024];
 	while (1)
 	{
 		int readlen = internal->cache->read(buffer, 1024);
 		if (readlen <= 0) break;
-		fwrite(buffer, 1, readlen, readfile);
-	}
-	fclose(readfile);
 
-	return true;
-}
-bool HTTPContent::setReadCallback(const ReadDataCallback& callback)
-{
-	internal->readcalblack = callback;
-
-	return true;
-}
-
-HTTPContent::HTTPContentType& HTTPContent::writetype()
-{
-	return internal->writetype;
-}
-bool HTTPContent::setChunkEOF()
-{
-	if (internal->writetype != HTTPContentType_Chunk) return false;
-
-	char buffer[32] = { 0 };
-	sprintf(buffer, "0" HTTPHREADERLINEEND HTTPHREADERLINEEND);
-
-	internal->cache->write(buffer, (int)strlen(buffer));
-
-	return true;
-}
-bool HTTPContent::write(const char* buffer, int len)
-{
-	if (buffer == NULL && len <= 0) return false;
-
-	if (internal->readcalblack)
-	{
-		internal->readcalblack(buffer, len);
-
-		return true;
+		bufferstr += std::string(buffer, readlen);
 	}
 
-	if (internal->checkfunc != NULL && !internal->checkfunc()) return false;
+	return bufferstr;
+}
+bool ReadContent::readToFile(const std::string& filename) const
+{
+	FILE* fd = fopen(filename.c_str(), "wb+");
+	if (fd == NULL) return false;
 
-	//write chunk header
-	if (internal->writetype == HTTPContentType_Chunk)
+	char buffer[1024];
+	while (1)
 	{
-		char buffer[32] = { 0 };
-		sprintf(buffer, "%x" HTTPHREADERLINEEND, len);
-		if (!internal->cache->write(buffer, (int)strlen(buffer)))
+		int readlen = internal->cache->read(buffer, 1024);
+		if (readlen <= 0) break;
+
+		fwrite(buffer, 1, readlen, fd);
+	}
+
+	fclose(fd);
+
+	return true;
+}
+
+void ReadContent::setDataCallback(const DataCalback& callback)
+{
+	if (internal->chunk)
+	{
+		internal->callback = callback;
+		internal->chunk->setReadCallback(ChunkData::ReadCallback(&ReadContentInternal::chunkReadCallback,internal));
+		internal->cache = NULL;
+		if (internal->notify)
 		{
-			return false;
+			internal->notify->ReadReady();
 		}
 	}
-
-	if (!internal->cache->write(buffer, len)) return false;
-	
-	//write chunk end
-	if (internal->writetype == HTTPContentType_Chunk)
-	{
-		if (!internal->cache->write(HTTPHREADERLINEEND, (int)strlen(HTTPHREADERLINEEND)))
-		{
-			return false;
-		}
-	}
-
-	return true;
-}
-bool HTTPContent::write(const std::string& buffer)
-{
-	return write(buffer.c_str(), (int)buffer.length());
 }
 
-const char* HTTPContent::inputAndParse(const char* buffer, int len, bool chunked, bool& chunedfinish)
+uint32_t ReadContent::append(const char* buffer, uint32_t len)
 {
-	chunedfinish = false;
+	if (internal->chunk) return internal->chunk->append(buffer, len);
+	else if(internal->cache)return internal->cache->write(buffer, len);
 
-	//not chunked
-	if(!chunked)
+	return len;
+}
+void ReadContent::read(String& data) {}
+
+
+
+
+struct WriteContent::WriteContentInternal
+{
+	shared_ptr<HTTPHeader> header;
+	WriteContenNotify* notify;
+	shared_ptr<HTTPCache> cache;
+
+	shared_ptr<ChunkData> chunk;
+
+	virtual void setWriteFileName(const std::string& filename)
 	{
-		internal->writetype = HTTPContentType_Normal;
+		std::string contenttype = "application/octet-stream";
 
-		write(buffer, len);
-		return buffer + len;
-	}
-
-
-	//chunked
-	internal->writetype = HTTPContentType_Chunk;
-	while (len >= (int)strlen(HTTPHREADERLINEEND))
-	{
-		//find 
-		if (internal->chunkbodysize == 0)
+		do
 		{
-			int pos = (int)String::indexOf(buffer, len, HTTPHREADERLINEEND);
-			if (pos == -1) return buffer;
+			int pos = (int)String::lastIndexOf(filename, ".");
+			if (pos == -1) break;
 
-			std::string chunksizestr = std::string(buffer, pos);
-			sscanf(String::tolower(chunksizestr).c_str(), "%x", &internal->chunkbodysize);
-			//chuned eof
-			if (internal->chunkbodysize == 0)
+			std::string pres = filename.c_str() + pos + 1;
+
+			uint32_t mimetypeslen = 0;
+			ContentInfo* mimetypes = MediaType::info(mimetypeslen);
+
+			bool haveFind = false;
+			for (uint32_t i = 0; i < mimetypeslen; i++)
 			{
-				if (len < (int)(pos + strlen(HTTPHREADERLINEEND)*2)) return buffer;
-				//是否结束标识 2个HTTPHREADERLINEEND 
-				if (memcmp(buffer + pos, HTTPHREADERLINEEND HTTPHREADERLINEEND, strlen(HTTPHREADERLINEEND) * 2) != 0) return buffer;
-
-				len -= pos + (int)strlen(HTTPHREADERLINEEND) * 2;
-				buffer += pos + (int)strlen(HTTPHREADERLINEEND) * 2;
-
-				chunedfinish = true;
-				return buffer;
+				if (strcasecmp(pres.c_str(), mimetypes[i].filetype) == 0)
+				{
+					contenttype = mimetypes[i].contentType;
+					break;
+				}
 			}
-			buffer += pos + (int)strlen(HTTPHREADERLINEEND);
-			len -= pos + (int)strlen(HTTPHREADERLINEEND);
 
-			//数据长度加上结束标识长度
-			internal->chunkbodysize += (int)strlen(HTTPHREADERLINEEND);
-		}
-		else
-		{
-			//当数据还不够时，返回数据长度，当数据满了，返回chunk缺少长度
-			int datalen = min(len, (int)(internal->chunkbodysize > strlen(HTTPHREADERLINEEND) ? 
-				internal->chunkbodysize - strlen(HTTPHREADERLINEEND) : internal->chunkbodysize));
+		} while (0);
 
-			//数据不够时，处理数据
-			if (internal->chunkbodysize > strlen(HTTPHREADERLINEEND))
-			{
-				internal->cache->write(buffer, datalen);
-			}
-			buffer += datalen;
-			len -= datalen;
-			internal->chunkbodysize -= datalen;
-		}
-	}
-
-	return buffer;
-}
-//bool HTTPContent::write(const HTTPTemplate& temp)
-//{
-//	return write(temp.toValue());
-//}
-bool HTTPContent::writeFromFile(const std::string& filename, bool deleteFile)
-{
-	shared_ptr<HTTPCacheFileRead> cache = make_shared<HTTPCacheFileRead>(filename, deleteFile, true);
-	if (cache->fd == NULL) return false;
-
-	internal->mediainfo->setContentFilename(filename);
-	internal->cache = cache;
-	internal->writetype = HTTPContentType_Normal;
-
-	return true;
-}
-
-bool HTTPContent::setWriteCallback(const WriteDataCallback& _writecallback)
-{
-	internal->writecallback = _writecallback;
-
-	return true;
-}
-
-struct HTTPRequest::HTTPRequestInternal:public FileMediaInfo
-{
-	std::string					 method;
-	URL							 url;
-	
-	uint32_t					 timeout;
-
-	NetAddr						 remoteAddr;
-	NetAddr						 myAddr;
-	DisconnectCallback			 discallback;
-
-	shared_ptr<HTTPContent>		 content;
-
-	HTTPRequestInternal() :method("GET"),timeout(5000)
-	{
-		content = make_shared<HTTPContent>(this);
+		header->headers[Content_Type] = contenttype;
 	}
 };
 
-HTTPRequest::HTTPRequest()
+WriteContent::WriteContent(const shared_ptr<HTTPHeader>& header,WriteContenNotify* notify, HTTPCacheType type)
 {
-	internal = new HTTPRequestInternal();
-}
-HTTPRequest::~HTTPRequest() 
-{
-	internal->content = NULL;
-	SAFE_DELETE(internal);
-}
+	internal = new WriteContentInternal;
+	internal->header = header;
 
-std::map<std::string, Value>& HTTPRequest::headers()
-{
-	return internal->headersmap();
-}
-Value HTTPRequest::header(const std::string& key)
-{
-	return internal->getHeader(key);
-}
-std::string& HTTPRequest::method()
-{
-	return internal->method;
-}
-
-URL& HTTPRequest::url()
-{
-	return internal->url;
-}
-
-shared_ptr<HTTPContent>& HTTPRequest::content()
-{
-	return internal->content;
-}
-
-uint32_t& HTTPRequest::timeout()
-{
-	return internal->timeout;
-}
-
-NetAddr& HTTPRequest::remoteAddr()
-{
-	return internal->remoteAddr;
-}
-
-NetAddr& HTTPRequest::myAddr()
-{
-	return internal->myAddr;
-}
-
-HTTPRequest::DisconnectCallback&	HTTPRequest::discallback()
-{
-	return internal->discallback;
-}
-
-bool HTTPRequest::push(){return false;}
-
-struct HTTPResponse::HTTPResponseInternal :public FileMediaInfo
-{
-	uint32_t statusCode;
-	std::string errorMessage;
-
-	shared_ptr<HTTPContent> content;
-	HTTPResponse::DisconnectCallback  discallback;
-
-	HTTPResponseInternal(const HTTPContent::CheckConnectionIsOk& check):statusCode(200),errorMessage("OK")
+	if (type == HTTPCacheType_Mem) internal->cache = make_shared<HTTPCacheMem>();
+	else
 	{
-		content = make_shared<HTTPContent>(this,check);
+		std::string filename = HTTPServerCacheFilePath::instance()->cachefilename();
+		internal->cache = make_shared<HTTPCacheFile>(filename, true, true);
 	}
-};
-
-HTTPResponse::HTTPResponse(const HTTPContent::CheckConnectionIsOk& check)
-{
-	internal = new HTTPResponseInternal(check);
 }
-HTTPResponse::~HTTPResponse()
+WriteContent::~WriteContent()
 {
-	internal->content = NULL;
 	SAFE_DELETE(internal);
 }
 
-uint32_t& HTTPResponse::statusCode()
+bool WriteContent::write(const char* buffer, int len)
 {
-	return internal->statusCode;
+	while (len > 0)
+	{
+		int writelen = internal->cache->write(buffer, len);
+		if (writelen <= 0) return false;
+
+		len -= writelen;
+		buffer += writelen;
+	}
+
+	if (internal->notify) internal->notify->WriteNotify();
+
+	return true;
 }
-std::string& HTTPResponse::errorMessage()
+bool WriteContent::writeString(const std::string& buffer)
 {
-	return internal->errorMessage;
+	return write(buffer.c_str(), buffer.length());
+}
+bool WriteContent::writeFromFile(const std::string& filename, bool needdeletefile)
+{
+	internal->cache = make_shared<HTTPCacheFile>(filename, needdeletefile, true);
+	internal->setWriteFileName(filename);
+
+	if (internal->notify) internal->notify->WriteNotify();
+
+	return true;
+}
+uint32_t WriteContent::size()
+{
+	return internal->cache->totalsize();
+}
+uint32_t WriteContent::append(const char* buffer, uint32_t len)
+{
+	return 0;
+}
+void WriteContent::read(String& data)
+{
+	char buffer[1024];
+
+	while (1)
+	{
+		int readlen = internal->cache->read(buffer, 1024);
+		if (readlen <= 0) break;
+
+		data += string(buffer, readlen);
+	}
 }
 
-std::map<std::string, Value>& HTTPResponse::headers()
+void WriteContent::writeChunk(const char* buffer, uint32_t len)
 {
-	return internal->headersmap();
-}
-Value HTTPResponse::header(const std::string& key)
-{
-	return internal->getHeader(key);
-}
+	if (!internal->chunk)
+	{
+		internal->header->headers[Transfer_Encoding] = CHUNKED;
 
-shared_ptr<HTTPContent>& HTTPResponse::content()
-{
-	return internal->content;
+		internal->chunk = make_shared<ChunkData>(ChunkData::WriteCallback(&WriteContent::write, this));
+	}
+
+	if(internal->chunk)
+		internal->chunk->append(buffer, len);
 }
-
-bool HTTPResponse::push(){return false;}
-
-HTTPResponse::DisconnectCallback&	HTTPResponse::discallback()
+void WriteContent::writeChunkEnd()
 {
-	return internal->discallback;
+	writeChunk(NULL, 0);
 }
 
 }
