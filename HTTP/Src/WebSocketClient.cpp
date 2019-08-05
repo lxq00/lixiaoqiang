@@ -81,11 +81,12 @@ struct WebSocketClientManager:public HTTPCommunicationHandler,public enable_shar
 	WebSocketClientManager() :startconnecttime(Time::getCurrentMilliSecond()), socketconnectsuccess(false), timeout(10000){}
 	~WebSocketClientManager() {}
 
-	bool startConnect(const URL& url, const WebSocketClient::ConnnectCallback& _connectcallback, const WebSocketClient::RecvDataCallback& _datacallback, const WebSocketClient::DisconnectCallback& _disconnectcallback)
+	bool startConnect(const std::string& urlstr, const WebSocketClient::ConnnectCallback& _connectcallback, const WebSocketClient::RecvDataCallback& _datacallback, const WebSocketClient::DisconnectCallback& _disconnectcallback)
 	{
 		sendheader->method = "POST";
-		sendheader->url = url;
-
+		sendheader->url = urlstr;
+		
+		URL url(urlstr);
 		{
 			std::string key = Guid::createGuid().getStringStream();
 
@@ -193,7 +194,7 @@ WebSocketClient::~WebSocketClient()
 
 	SAFE_DELETE(internal);
 }
-bool WebSocketClient::connect(const URL& url, uint32_t timout_ms, const RecvDataCallback& datacallback, const DisconnectCallback& disconnectcallback)
+bool WebSocketClient::connect(const std::string& url, uint32_t timout_ms, const RecvDataCallback& datacallback, const DisconnectCallback& disconnectcallback)
 {
 	internal->manager->timeout = timout_ms;
 
@@ -209,7 +210,7 @@ bool WebSocketClient::connect(const URL& url, uint32_t timout_ms, const RecvData
 
 	return true;
 }
-bool WebSocketClient::startConnect(const URL& url, const ConnnectCallback& connectcallback, const RecvDataCallback& datacallback, const DisconnectCallback& disconnectcallback)
+bool WebSocketClient::startConnect(const std::string& url, const ConnnectCallback& connectcallback, const RecvDataCallback& datacallback, const DisconnectCallback& disconnectcallback)
 {
 	return internal->manager->startConnect(url, connectcallback, datacallback, disconnectcallback);
 }

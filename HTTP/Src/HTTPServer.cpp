@@ -164,8 +164,10 @@ private:
 
 	HTTPServer::WebsocketCallback findWebsocketCallback(const shared_ptr<HTTPCommunication>& commu)
 	{
+		URL url(commu->recvHeader->url);
+
 		Guard locker(mutex);
-		std::string requestPathname = String::tolower(commu->recvHeader->url.pathname);
+		std::string requestPathname = String::tolower(url.pathname);
 		
 		for (std::map<std::string, HTTPServer::WebsocketCallback>::iterator iter = websocketlistencallbackmap.begin(); iter != websocketlistencallbackmap.end(); iter++)
 		{
@@ -183,9 +185,11 @@ private:
 
 	ListenInfo findHttpCallback(const shared_ptr<HTTPCommunication>& commu)
 	{
+		URL url(commu->recvHeader->url);
+
 		ListenInfo liteninfo;
 		{
-			std::string requestPathname = String::tolower(commu->recvHeader->url.pathname);
+			std::string requestPathname = String::tolower(url.pathname);
 			std::string method = String::tolower(commu->recvHeader->method);
 
 			Guard locker(mutex);

@@ -25,7 +25,7 @@ namespace HTTP {
 struct HTTPHeader
 {
 	std::string		method;
-	URL				url;
+	std::string		url;
 	struct {
 		std::string protocol;
 		std::string	version;
@@ -153,7 +153,7 @@ private:
 			if (tmp.size() != 3) return;
 
 			content->method = tmp[0];
-			content->url = URL(tmp[1]);
+			content->url = tmp[1];
 			versionstr = tmp[2];
 		}
 		else
@@ -204,9 +204,9 @@ public:
 	static std::string build(bool isRequest,const HTTPHeader& headertmp)
 	{
 		HTTPHeader header = headertmp;
-		
+		URL url(headertmp.url);
 		{
-			header.verinfo.protocol = header.url.protocol;
+			header.verinfo.protocol = url.protocol;
 			if (header.verinfo.protocol.length() == 0) header.verinfo.protocol = "HTTP";
 
 			if (strcasecmp(header.verinfo.protocol.c_str(), "http") == 0) header.verinfo.version = "1.1";
@@ -216,10 +216,10 @@ public:
 
 		if (isRequest)
 		{
-			std::string requrl = header.url.href();
+			std::string requrl = url.href();
 			if (strcasecmp(header.verinfo.protocol.c_str(), "http") == 0)
 			{
-				requrl = header.url.getPath();
+				requrl = url.getPath();
 			}
 
 			cmdstr = header.method + " " + requrl + " "+header.verinfo.protocol+"/"+header.verinfo.version + HTTPSEPERATOR;

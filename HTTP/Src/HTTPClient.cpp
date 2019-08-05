@@ -52,7 +52,8 @@ struct HTTPClientManager:public HTTPCommunicationHandler,public enable_shared_fr
 		}
 		socket = TCPClient::create(worker);
 
-		socket->async_connect(NetAddr(request->url().getHostname(), request->url().getPort(80)), Socket::ConnectedCallback(&HTTPClientManager::socketConnectCallback, this));
+		URL url(request->url());
+		socket->async_connect(NetAddr(url.getHostname(), url.getPort(80)), Socket::ConnectedCallback(&HTTPClientManager::socketConnectCallback, this));
 
 		return true;
 	}
@@ -80,7 +81,8 @@ struct HTTPClientManager:public HTTPCommunicationHandler,public enable_shared_fr
 		commu->recvContent = response->content();
 
 		{
-			commu->sendHeader->headers["Host"] = request->url().getHost();
+			URL url(request->url());
+			commu->sendHeader->headers["Host"] = url.getHost();
 		}
 	}
 

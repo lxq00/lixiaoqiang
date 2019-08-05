@@ -17,7 +17,7 @@ struct RTSPServerSession::RTSPServerSessionInternal:public RTSPSession
 	weak_ptr<RTSPServerSession>				sessionptr;
 
 	RTSPServerSessionInternal(const shared_ptr<IOWorker>& _worker, const shared_ptr<Socket>& sock, const RTSPServer::ListenCallback& queryhandle, const AllockUdpPortCallback& allocport, const std::string&  _useragent)
-		:socketdisconnected(false), queryhandlercallback(queryhandle),sessionHaveAuthen(false)
+		:RTSPSession(true),socketdisconnected(false), queryhandlercallback(queryhandle),sessionHaveAuthen(false)
 	{
 		ssrc = (uint32_t)Time::getCurrentTime().makeTime();
 		ioworker = _worker;

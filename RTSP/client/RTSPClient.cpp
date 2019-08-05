@@ -23,7 +23,7 @@ struct RTSPClient::RTSPClientInternal:public RTSPSession
 
 	uint32_t				tcpinterval;
 	RTSPClientInternal(const shared_ptr<RTSPClientHandler>& _handler, const AllockUdpPortCallback& allockport, const shared_ptr<IOWorker>& worker, const RTSPUrl& url, const std::string& _useragent)
-		:handler(_handler), socketconnected(false), connecttimeout(10000), tcpinterval(0)
+		:RTSPSession(false),handler(_handler), socketconnected(false), connecttimeout(10000), tcpinterval(0)
 	{
 		ioworker = worker;
 		rtspurl = url;

@@ -94,7 +94,7 @@ public:
 		std::string cmdstrtmp = cmdstr;
 		if (cmdstrtmp.length() == 0) cmdstrtmp = OPTIONCMDSTR;
 
-		HTTPParse::Header header;
+		HTTPHeader header;
 		header.headers["Public"] = cmdstrtmp;
 
 		sendResponse(cmdinfo, header);
@@ -112,7 +112,7 @@ public:
 	}
 	void sendPlayResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo)
 	{
-		sendResponse(cmdinfo, HTTPParse::Header());
+		sendResponse(cmdinfo, HTTPHeader());
 	}
 	shared_ptr<CommandInfo> sendPauseRequest(uint32_t timeout = -1)
 	{
@@ -126,7 +126,7 @@ public:
 	}
 	void sendPauseResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo)
 	{
-		sendResponse(cmdinfo, HTTPParse::Header());
+		sendResponse(cmdinfo, HTTPHeader());
 	}
 	shared_ptr<CommandInfo> sendGetparameterRequest(const std::string& body, uint32_t timeout = -1)
 	{
@@ -140,7 +140,7 @@ public:
 	}
 	void sendGetparameterResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, const std::string& content)
 	{
-		sendResponse(cmdinfo, HTTPParse::Header(), content);
+		sendResponse(cmdinfo, HTTPHeader(), content);
 	}
 	shared_ptr<CommandInfo> sendTeardownRequest(uint32_t timeout = -1)
 	{
@@ -154,7 +154,7 @@ public:
 	}
 	void sendTeardownResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo)
 	{
-		sendResponse(cmdinfo, HTTPParse::Header());
+		sendResponse(cmdinfo, HTTPHeader());
 	}
 	shared_ptr<CommandInfo> sendDescribeRequest()
 	{
@@ -172,7 +172,7 @@ public:
 		rtspmedia = shared_ptr<MEDIA_INFO>(new MEDIA_INFO(mediatmp));
 		rtspmedia->ssrc = Value(ssrc).readString();
 
-		sendResponse(cmdinfo, HTTPParse::Header(), rtsp_header_build_sdp(*rtspmedia.get()), RTSPCONENTTYPESDP);
+		sendResponse(cmdinfo, HTTPHeader(), rtsp_header_build_sdp(*rtspmedia.get()), RTSPCONENTTYPESDP);
 	}
 	shared_ptr<CommandInfo> sendSetupRequest(const shared_ptr<STREAM_TRANS_INFO>& transport)
 	{
@@ -195,13 +195,13 @@ public:
 			transporttmp->transportinfo.rtp.u.server_port2 = startport + 1;
 		}
 
-		HTTPParse::Header header;
+		HTTPHeader header;
 		header.headers["Transport"] = rtsp_header_build_transport(transporttmp->transportinfo);
 		sendResponse(cmdinfo, header);
 	}
 	void sendErrorResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, int errcode, const std::string& errmsg)
 	{
-		HTTPParse::Header header;
+		HTTPHeader header;
 		header.statuscode = errcode;
 		header.statusmsg = errmsg;
 		if (errcode == 401)
@@ -211,7 +211,7 @@ public:
 
 		sendResponse(cmdinfo, header);
 	}
-	void sendResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, HTTPParse::Header& header, const std::string& body = "", const std::string& contentype = "")
+	void sendResponse(const shared_ptr<RTSPCommandInfo>& cmdinfo, HTTPHeader& header, const std::string& body = "", const std::string& contentype = "")
 	{
 		shared_ptr<RTSPCommandInfo> respcmd = make_shared<RTSPCommandInfo>();
 		respcmd->statuscode = header.statuscode;

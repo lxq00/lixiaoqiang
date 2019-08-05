@@ -17,7 +17,7 @@ public:
 	HTTPClientRequest(const std::string& method,const std::string& url,HTTPCacheType type);
 	virtual ~HTTPClientRequest();
 
-	URL& url();
+	std::string& url();
 
 	std::string& method();
 
@@ -95,8 +95,8 @@ private:
 	 WebSocketClient(const shared_ptr<IOWorker>& worker, const std::string& useragent,const std::map<std::string, Value>& headers = std::map<std::string, Value>());
 	 ~WebSocketClient();
 
-	 bool connect(const URL& url, uint32_t timout_ms, const RecvDataCallback& datacallback, const DisconnectCallback& disconnectcallback);
-	 bool startConnect(const URL& url, const ConnnectCallback& connectcallback, const RecvDataCallback& datacallback, const DisconnectCallback& disconnectcallback);
+	 bool connect(const std::string& url, uint32_t timout_ms, const RecvDataCallback& datacallback, const DisconnectCallback& disconnectcallback);
+	 bool startConnect(const std::string& url, const ConnnectCallback& connectcallback, const RecvDataCallback& datacallback, const DisconnectCallback& disconnectcallback);
 	 bool disconnect();
 	 bool send(const std::string& data, WebSocketDataType type);
 	 uint32_t sendListSize();

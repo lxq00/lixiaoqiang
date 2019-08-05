@@ -117,7 +117,7 @@ HTTPClientRequest::~HTTPClientRequest()
 {
 	SAFE_DELETE(internal);
 }
-URL& HTTPClientRequest::url()
+std::string& HTTPClientRequest::url()
 {
 	return internal->header->url;
 }

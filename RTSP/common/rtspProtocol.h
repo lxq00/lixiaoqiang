@@ -193,7 +193,7 @@ private:
 			else if (m_cmdinfo == NULL && m_haveFindHeaderStart)
 			{
 				std::string usedstr;
-				shared_ptr<HTTPParse::Header> header = HTTPParse::parse(m_recvBuffer,&usedstr);
+				shared_ptr<HTTPHeader> header = HTTPParse::parse(m_recvBuffer,&usedstr);
 								
 				if (header != NULL)
 				{
@@ -201,7 +201,7 @@ private:
 
 					m_cmdinfo = make_shared<RTSPCommandInfo>();
 					m_cmdinfo->method = header->method;
-					m_cmdinfo->url = header->url.href();
+					m_cmdinfo->url = header->url;
 					m_cmdinfo->verinfo.protocol = header->verinfo.protocol;
 					m_cmdinfo->verinfo.version = header->verinfo.version;
 					m_cmdinfo->statuscode = header->statuscode;
