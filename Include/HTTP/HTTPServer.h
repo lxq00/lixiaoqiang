@@ -22,7 +22,7 @@ public:
 
 	const std::string& method() const;
 
-	const URL& url() const;
+	URL url() const;
 
 	const shared_ptr<ReadContent>& content() const;
 
@@ -85,7 +85,7 @@ public:
 
 	const std::map<std::string, Value>& headers() const;
 	Value header(const std::string& key) const;
-	const URL& url() const;
+	URL url() const;
 	NetAddr remoteAddr() const;
 
 	uint32_t sendListSize();

@@ -299,8 +299,9 @@ private:
 			cmd->cseq = protocolstartcseq;
 		}
 
-		cmd->headers["CSeq"] = cmd->cseq;		
-		cmd->url = cmd->url;
+		cmd->headers["CSeq"] = cmd->cseq;	
+
+		if(cmd->url.length() <= 0) cmd->url = rtspurl.rtspurl;
 
 		std::string cmdstr = HTTPBuild::build(!isserver,*(HTTPHeader*)cmd.get());
 		if (body.length() > 0) cmdstr += body;

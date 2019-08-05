@@ -216,17 +216,17 @@ public:
 
 		if (isRequest)
 		{
-			std::string requrl = url.href();
+			std::string requrl = headertmp.url;
 			if (strcasecmp(header.verinfo.protocol.c_str(), "http") == 0)
 			{
 				requrl = url.getPath();
 			}
 
-			cmdstr = header.method + " " + requrl + " "+header.verinfo.protocol+"/"+header.verinfo.version + HTTPSEPERATOR;
+			cmdstr = header.method + " " + requrl + " "+ String::toupper(header.verinfo.protocol)+"/"+header.verinfo.version + HTTPSEPERATOR;
 		}
 		else
 		{
-			cmdstr = header.verinfo.protocol + "/" + header.verinfo.version + Value(header.statuscode).readString() + " " + (header.statuscode == 200 ? "OK" : header.statusmsg) + HTTPSEPERATOR;
+			cmdstr = String::toupper(header.verinfo.protocol) + "/" + header.verinfo.version + " " + Value(header.statuscode).readString() + " " + (header.statuscode == 200 ? "OK" : header.statusmsg) + HTTPSEPERATOR;
 		}
 		for (std::map<std::string, Value>::const_iterator iter = header.headers.begin(); iter != header.headers.end(); iter++)
 		{

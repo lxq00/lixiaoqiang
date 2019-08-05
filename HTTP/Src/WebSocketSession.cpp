@@ -159,7 +159,7 @@ Value WebSocketServerSession::header(const std::string& key) const
 {
 	return internal->commusession->recvHeader->header(key);
 }
-const URL& WebSocketServerSession::url() const
+URL WebSocketServerSession::url() const
 {
 	return internal->commusession->recvHeader->url;
 }

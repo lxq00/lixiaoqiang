@@ -41,7 +41,7 @@ const std::string& HTTPServerRequest::method() const
 	return internal->header->method;
 }
 
-const URL& HTTPServerRequest::url()const
+URL HTTPServerRequest::url()const
 {
 	return internal->header->url;
 }
